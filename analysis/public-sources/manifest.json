@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-08-20T00:00:00+08:00",
+  "captureMethod": "HTTP GET with redirects and content decoding; SHA-256 covers the received HTML response body",
+  "sources": [
+    {"id":"claude-how-it-works","url":"https://code.claude.com/docs/en/how-claude-code-works","status":200,"bytes":498157,"sha256":"3d7d1ccf4e2aa86e52ce9a0b82fea36e1c8c854a620a2d064d972749d5705405","excerptIds":["public-agentic-loop-phases"]},
+    {"id":"claude-agent-loop","url":"https://code.claude.com/docs/en/agent-sdk/agent-loop","status":200,"bytes":638071,"sha256":"381f558fa7e5630403caadb011bebff1a4b2cd416dfb39eae158490a41ea3ea4","excerptIds":["public-tool-results-feedback"]},
+    {"id":"claude-context-window","url":"https://code.claude.com/docs/en/context-window","status":200,"bytes":408363,"sha256":"a1d90df9dd6415d3d8343f914075e7fe7b6a60003f31f8d526ebef3e7ad278ac","excerptIds":["public-context-auto-compaction"]},
+    {"id":"claude-prompt-caching","url":"https://code.claude.com/docs/en/prompt-caching","status":200,"bytes":504906,"sha256":"2fc9e311b720e137e44563ddab3493e5ffde8e2209b293b5b7d553aa770d5305","excerptIds":["public-cache-invalidation"]},
+    {"id":"claude-sessions","url":"https://code.claude.com/docs/en/sessions","status":200,"bytes":468802,"sha256":"85084b53cd0acbee3501d3212c735da7151bdd9b3f084f8635ce9d59838fa737","excerptIds":["public-session-fork-identity"]},
+    {"id":"claude-checkpointing","url":"https://code.claude.com/docs/en/checkpointing","status":200,"bytes":366134,"sha256":"6368d157176e02a22b35e335feba3bb914c9d0068c3b8fcd726b51c68fb209ad","excerptIds":["public-checkpoint-limitations"]},
+    {"id":"claude-memory","url":"https://code.claude.com/docs/en/memory","status":200,"bytes":624976,"sha256":"631411505e6d6c4ab20fb7985c01033231977b2df388f957a7d6f3d6c354bded","excerptIds":["public-memory-entry-budget"]},
+    {"id":"claude-permissions","url":"https://code.claude.com/docs/en/permissions","status":200,"bytes":650214,"sha256":"2a5b2a71fc01eca6467f596e16fcb537320f00a6486350618633a4a8293d676c","excerptIds":["public-permission-precedence"]},
+    {"id":"claude-sandboxing","url":"https://code.claude.com/docs/en/sandboxing","status":200,"bytes":751915,"sha256":"fdca3fd1076c2d898226876c0788da153e79f337e011b602d6cdfaae089378b2","excerptIds":["public-sandbox-layers"]},
+    {"id":"claude-hooks","url":"https://code.claude.com/docs/en/hooks","status":200,"bytes":2629422,"sha256":"6c12f8181af0c580348d32c1019e8d201e9dfb4176b5a0a0204515b8c926dbb0","excerptIds":["public-hook-events"]},
+    {"id":"claude-mcp","url":"https://code.claude.com/docs/en/mcp","status":200,"bytes":1319364,"sha256":"b8f6fcde6d58b5467f9d8f67c38331658b368c21944afb723ae7ef59f116a83d","excerptIds":["public-mcp-roots-change"]},
+    {"id":"claude-subagents","url":"https://code.claude.com/docs/en/sub-agents","status":200,"bytes":1142719,"sha256":"657819550c4c64b5029e368123bda5925b25bca03c44df5f4235d4eac950d85e","excerptIds":["public-subagent-own-context"]},
+    {"id":"anthropic-effective-agents","url":"https://www.anthropic.com/research/building-effective-agents","status":200,"bytes":180187,"sha256":"77eb746d3df42eabc151e8a355919a44ffa5b9592298dcef4386cf486853643c","excerptIds":["public-workflow-agent-distinction"]},
+    {"id":"anthropic-context-engineering","url":"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents","status":200,"bytes":169369,"sha256":"37c646dea56c1189c91bb679ca4309722c6dd8f8b8a69c12cfde65ed89436ca2","excerptIds":["public-context-high-signal","public-compaction-definition"]},
+    {"id":"anthropic-writing-tools","url":"https://www.anthropic.com/engineering/writing-tools-for-agents","status":200,"bytes":202491,"sha256":"a6b44b28f1fbded6ff00f9b4d62b4bd0017fa1e05500882278b23654e35a3fb2","excerptIds":["public-tool-token-efficiency","public-tool-response-format"]},
+    {"id":"anthropic-multi-agent","url":"https://www.anthropic.com/engineering/multi-agent-research-system","status":200,"bytes":173563,"sha256":"459a5b6f8d3e322cfbfffa7bf059cdae5bc50b1e8e4dea2ea6a872c1f9750db4","excerptIds":["public-multiagent-compression"]}
+  ]
+}

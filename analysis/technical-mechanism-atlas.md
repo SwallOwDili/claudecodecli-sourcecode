@@ -185,19 +185,26 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 | MCP 工具为什么会动态出现或失效 | [MCP、Agents 与后台协作](mcp-agents-background.md) | [上下文治理与多层缓存](context-governance-and-caching.md) |
 | 子 Agent 是否只是另一个 prompt | [MCP、Agents 与后台协作](mcp-agents-background.md) | [Agent Loop](agent-loop.md) |
 | fallback 后会不会重复副作用 | [韧性与恢复](resilience-and-recovery.md) | [Agent Loop](agent-loop.md) |
+| 模型、provider、endpoint 和凭据最终怎么选 | [模型、认证与请求装配](models-auth-providers-request.md) | [上下文治理与多层缓存](context-governance-and-caching.md) |
+| settings 为什么不生效、managed policy 能锁什么 | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| TUI、IDE、Remote Control、cloud session 谁持有执行 | [TUI、IDE 与远程会话](tui-ide-remote-cloud.md) | [会话、检查点与 Memory](sessions-checkpoints-memory.md) |
+| 更新、doctor、版本文件和 rollback 怎么区分 | [安装、更新与 Doctor](install-update-doctor-lifecycle.md) | [韧性与恢复](resilience-and-recovery.md) |
+| `.node` 到底被谁调用、能重建到什么程度 | [Native Bridge](native-bridge-runtime.md) | [原生重建证据](../reconstructed/EVIDENCE.md) |
 | 字段表里的值是什么意思 | [机器清单字段指南](inventory-field-guide.md) | [全量能力面](source-surface.md) |
 | 遥测会记录什么、怎么判断慢在哪 | [遥测、日志与诊断](telemetry.md) | [字段指南](inventory-field-guide.md) |
 
 ## 证据索引
 
-- Agent Loop 主状态机：`extracted/cli.js` 271550-272424。
-- 单工具完整控制管线：`extracted/cli.js` 316092-316457。
-- Tool Search 与 deferred schema：`extracted/cli.js` 114258-114369、156521-156552。
-- MCP 动态刷新与循环中途换表：`extracted/cli.js` 491915-491964、272372-272382。
-- resume 消息图恢复：`extracted/cli.js` 323188-323443。
-- file checkpoint 与 rewind：`extracted/cli.js` 194602-194804。
-- 子 Agent 默认与隔离配置：`extracted/cli.js` 156505-156518、306930 附近。
-- team mailbox 与 task claim：`extracted/cli.js` 279171-279317、202474-202511。
-- Stop hook 熔断与 maxTurns：`extracted/cli.js` 272253-272261、272423-272424。
+- Agent Loop 主状态机：`reverse/javascript/cli.readable.js` 271550-272424。
+- 单工具完整控制管线：`reverse/javascript/cli.readable.js` 316092-316457。
+- Tool Search 与 deferred schema：`reverse/javascript/cli.readable.js` 114258-114369、156521-156552。
+- MCP 动态刷新与循环中途换表：`reverse/javascript/cli.readable.js` 491915-491964、272372-272382。
+- resume 消息图恢复：`reverse/javascript/cli.readable.js` 323188-323443。
+- file checkpoint 与 rewind：`reverse/javascript/cli.readable.js` 194602-194804。
+- 子 Agent 默认与隔离配置：`reverse/javascript/cli.readable.js` 156505-156518、306930 附近。
+- team mailbox 与 task claim：`reverse/javascript/cli.readable.js` 279171-279317、202474-202511。
+- Stop hook 熔断与 maxTurns：`reverse/javascript/cli.readable.js` 272253-272261、272423-272424。
 
 函数名、行号和分支来自发布 bundle 的可读化布局，不是 Anthropic 原始 TypeScript 模块名。跨版本比较应优先比较状态语义、稳定字段、阈值和可达分支，不能把压缩符号改名本身当成功能变化。
+
+核心结论的机器可校验证据合同见 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)。validator 会检查文件、真实行数、范围内 anchors、Probe 报告字段、官方来源 manifest 和 excerpt 引用；不能再靠“文档够长、出现关键词”通过。

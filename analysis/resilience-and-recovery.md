@@ -142,7 +142,7 @@ API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 bloc
 
 当响应以 end turn/stop sequence 结束且只有 thinking、没有用户可见文本，CLI 会补一次提示要求给出可见答案。第二次仍无可见文本则接受结束。这个分支改善 UI 完整性，但不应无限消耗 turn。
 
-以上三条位于 Agent Loop 无工具结束判断中，见 `extracted/cli.js` 272171-272264。
+以上三条位于 Agent Loop 无工具结束判断中，见 `reverse/javascript/cli.readable.js` 272171-272264。
 
 ## Context 恢复：请求太长时先缩小问题
 
@@ -208,7 +208,7 @@ MCP server 断开会让工具 call 失败或从可用表移除。恢复包含两
 
 仅“socket reconnect 成功”不够。如果模型仍看到旧 schema，下一轮会继续产生无效 input。反过来，正在进行的 API request 也不会因 server 刚连上而热注入工具，刷新发生在下一请求边界。
 
-证据见 `extracted/cli.js` 491915-491964、231802-231817、272372-272382。
+证据见 `reverse/javascript/cli.readable.js` 491915-491964、231802-231817、272372-272382。
 
 ## Session resume：恢复逻辑历史，不复活旧进程
 
@@ -307,14 +307,14 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 
 ## 证据位置
 
-- Agent Loop 恢复与终止：`extracted/cli.js` 271550-272424。
-- 无工具恢复分支：`extracted/cli.js` 272171-272264。
-- Stop hook cap：`extracted/cli.js` 272253-272261。
-- 工具批次、MCP refresh、queue、maxTurns：`extracted/cli.js` 272293-272424。
-- 单工具错误映射：`extracted/cli.js` 316092-316487。
-- resume 修链：`extracted/cli.js` 323188-323443。
-- file checkpoint/rewind：`extracted/cli.js` 194602-194804。
-- MCP refresh/cache invalidation：`extracted/cli.js` 491915-491964、231802-231817。
+- Agent Loop 恢复与终止：`reverse/javascript/cli.readable.js` 271550-272424。
+- 无工具恢复分支：`reverse/javascript/cli.readable.js` 272171-272264。
+- Stop hook cap：`reverse/javascript/cli.readable.js` 272253-272261。
+- 工具批次、MCP refresh、queue、maxTurns：`reverse/javascript/cli.readable.js` 272293-272424。
+- 单工具错误映射：`reverse/javascript/cli.readable.js` 316092-316487。
+- resume 修链：`reverse/javascript/cli.readable.js` 323188-323443。
+- file checkpoint/rewind：`reverse/javascript/cli.readable.js` 194602-194804。
+- MCP refresh/cache invalidation：`reverse/javascript/cli.readable.js` 491915-491964、231802-231817。
 - 事件、错误和诊断清单：[source inventory](source-inventory/summary.json)。
 
 恢复机制的证据边界必须保持清楚：bundle 能证明客户端如何分类、重试、改写消息和发出结果；远端服务是否幂等、服务端内部路由和账户风控仍需要对应 API/服务证据。

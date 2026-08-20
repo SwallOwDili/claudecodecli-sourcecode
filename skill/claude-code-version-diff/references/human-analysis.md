@@ -16,9 +16,18 @@ analysis/sessions-checkpoints-memory.md
 analysis/tools-permissions-hooks.md
 analysis/mcp-agents-background.md
 analysis/resilience-and-recovery.md
+analysis/models-auth-providers-request.md
+analysis/settings-feature-flags-policy.md
+analysis/tui-ide-remote-cloud.md
+analysis/install-update-doctor-lifecycle.md
+analysis/native-bridge-runtime.md
 analysis/inventory-field-guide.md
 analysis/telemetry.md
 analysis/source-surface.md
+analysis/mechanism-evidence.jsonl
+analysis/public-sources/manifest.json
+analysis/public-source-excerpts.md
+analysis/runtime-probes/*.json
 ```
 
 README routes readers into these documents and keeps hashes/counts secondary.
@@ -56,6 +65,19 @@ Create `analysis/public-claims-validation.md` and record:
 - an explicit boundary for current-doc-only, server-side, remote-config, platform-specific, or untriggered behavior.
 
 Use the labels `Public`, `Static`, `Probe`, and `Boundary`. Never use a current documentation page to fill an implementation gap in an old branch, and never infer implementation solely from a release-note sentence or lexical hit.
+
+Public research must be reproducible enough to detect documentation drift. Store HTTP status, response-body byte length, SHA-256, retrieval timestamp, URL, and excerpt IDs in `analysis/public-sources/manifest.json`. Store the short passages actually used to form hypotheses in `analysis/public-source-excerpts.md`. A URL alone is not a stable research record, and an HTML hash alone is not readable evidence.
+
+## Structured mechanism evidence
+
+Every strong mechanism claim must have one unique row in `analysis/mechanism-evidence.jsonl`. Human prose explains the mechanism; this registry lets the validator and comparator recheck what the prose relies on.
+
+- `Static` rows name the exact source view and path, a real line range within that file, and anchors that occur inside the range. Use `extracted/cli.js` only for canonical packed line numbers and `reverse/javascript/cli.readable.js` only for readable-view line numbers. Never attach a readable-view six-digit line number to the one-line packed bundle.
+- `Probe` rows point to a committed normalized report and identify fields containing the exact command, controlled input, literal output, exit status, and required checks. Prefer successful state transitions. Empty lists, validation errors, missing-session errors, and command help prove only their narrow command/error surface.
+- `Public` rows resolve both a source ID in the public manifest and an excerpt ID in the excerpt file.
+- `Boundary` rows state why the claim cannot be recovered from the shipped client.
+
+At least one exact-binary positive probe must exercise the central Agent Loop contract when the release can be isolated: advertise a real tool schema, receive a complete `tool_use`, execute a reversible tool, observe a paired `tool_result` in the next Messages request, reach a success result, then resume the created session and prove history injection. Record the target binary SHA-256. A mock Messages endpoint is acceptable because the object under test is the client loop; the report must state that it does not prove model quality or server-side behavior.
 
 ## Mechanism atlas
 
@@ -189,6 +211,26 @@ Separate at least these recovery layers:
 
 For every recovery path, say what is retried, what state is retained, what is discarded, whether tools can repeat, and which external side effects survive. Include one failure chain where a local file change is recoverable but a remote action is not.
 
+## Models, authentication, providers, and request chapter
+
+Trace provider selection precedence, model alias/catalog resolution, credential-source precedence, OAuth/API-key/cloud credential paths, custom base-URL and first-party-host gates, beta/header construction, Messages request fields, streaming selection, and error identity. Explain which model facts are baked into the client and which come from remote config or the service. Include a field-level request example with content redacted but shape preserved.
+
+## Settings, feature flags, and managed policy chapter
+
+Trace user, project, local, CLI/flag, and managed-policy sources separately. For important settings, state merge semantics rather than only source order: scalar replacement, map merge, list concatenation/deduplication, deletion/reset behavior, invalid-value fallback, and managed-only restrictions. Show how remote feature evaluation, environment overrides, and enterprise policy gates enter reachable branches. Do not treat the presence of an environment name as proof that it wins or is reachable.
+
+## TUI, IDE, remote control, and cloud chapter
+
+Separate local TUI/print/SDK modes, IDE discovery and bidirectional context, local socket or protocol ownership, Remote Control reconnect and attachment lifecycle, and cloud/teleport session ownership. Explain where input, rendering, files, approval state, and transcripts live; what survives disconnect; what is retransmitted; and which behavior depends on remote services. Include reconnect limits and user-visible failure states when recoverable.
+
+## Install, update, doctor, and release lifecycle chapter
+
+Trace the resolved real version file rather than trusting a launcher. Record version, size, hash, architecture, signature, install shape, migrations, auto-update/check gates, doctor fault domains, native-module release matching, and rollback compatibility. Distinguish disabling automatic installation, disabling checks/traffic, hiding commands, and externally managed deployment. State that binary rollback does not automatically downgrade settings or transcript schemas.
+
+## Native bridge runtime chapter
+
+Join each JavaScript consumer to its N-API export/object/prototype contract, language/dependency evidence, Mach-O slices/frameworks, resource lifetime, error mapping, permission/TCC boundary, and external side effects. Compare original and compatible modules on the same controlled inputs, but retain `Observed`, `Derived`, and `Compatible` labels. A matching export count is insufficient; cover arguments, nullability, return fields, sync/Promise/callback form, disposal, threads, and architecture coverage.
+
 ## Field guide
 
 Explain how to read every JSONL family, not every row in prose. Cover:
@@ -244,6 +286,10 @@ Before publication, verify:
 - README first screen links all human documents;
 - the mechanism atlas links every deep topic and lets a reader choose by user problem;
 - public research has retrieval dates and clearly separates `Public`, `Static`, `Probe`, and `Boundary` evidence;
+- public sources have status, byte length, SHA-256, excerpt IDs, and readable fixed excerpts;
+- every mechanism evidence row has a unique claim ID and valid source/probe/public/boundary shape;
+- readable-JavaScript line numbers point to `reverse/javascript/cli.readable.js`, while canonical line numbers point to `extracted/cli.js`;
+- the Agent Loop positive probe proves real tool execution, paired result feedback, success, and successful resume on the exact binary hash;
 - a reader can follow one request without opening JSONL;
 - Agent Loop explains streaming tool start, concurrency barriers, permission order, result feedback, max turns, Stop hook re-entry, fallback side effects, and every terminal class;
 - context/cache contains real thresholds and a cost example;
@@ -251,6 +297,11 @@ Before publication, verify:
 - tools/permissions/hooks states the exact execution order, mode set, fail-closed paths, and whether a failed layer called the tool;
 - MCP/agents/background explains generation refresh, deferred schema, child isolation, task/mailbox state, durability, and coordination cost;
 - resilience/recovery distinguishes every retry/fallback counter and states which side effects remain;
+- models/auth/providers/request explains selector and credential precedence plus the actual Messages request shape;
+- settings/feature flags/policy explains per-field merge semantics and managed-only gates;
+- TUI/IDE/remote/cloud distinguishes local state from remote ownership and reconnect behavior;
+- install/update/doctor distinguishes launcher, immutable version file, migration, update gates, and rollback compatibility;
+- native bridge analysis joins JavaScript consumers to N-API contracts, lifetimes, side effects, and architecture limits;
 - inventory field guide explains unresolved dynamic data honestly;
 - telemetry distinguishes first-party, OTEL, Datadog, GrowthBook, error reporting, and local diagnostics;
 - risk control distinguishes local execution governance from unobserved server-side abuse scoring;

@@ -12,7 +12,7 @@ Anthropic 当前 Agent SDK 文档把 Agent Loop 概括为收集上下文、采�
 
 1. 把公开主张拆成可观察假设，例如“工具结果会进入下一轮”“停止条件有界”“子 Agent 有独立上下文”。
 2. 在 `2.1.235` canonical bundle 中连出从输入到状态变化再到输出的可达调用链，不用单个字符串命中代替实现证据。
-3. 对版本身份、session、MCP、agents 等可隔离入口使用同哈希二进制 probe；无法安全触发或依赖服务端的路径保留为边界。
+3. 对工具回灌和 session resume 使用同哈希二进制的正向 probe；空列表与错误路径只证明对应 command/error surface，无法触发或依赖服务端的路径保留为边界。
 
 逐项矩阵见 [公开主张与 2.1.235 验证](public-claims-validation.md)，完整系统位置见 [技术机制总图](technical-mechanism-atlas.md)。这一区分也适用于后续版本：当前官网文档可能已经描述更新实现，不能倒灌到旧分支。
 
@@ -448,6 +448,45 @@ query_first_chunk_received
 `tengu_tool_use_success` 记录 duration、PreToolUse hook 时间、permission 时间、输入/结果大小、内存变化、MCP 类型、file extension/command 长度等。`tengu_tool_use_can_use_tool_rejected` 记录拒绝来源和 decision reason。`tengu_tool_use_error` 记录错误类、阶段和 request/query 关联。
 
 内容字段是否进入一方、OTEL 或本地记录受各自独立的内容开关控制，不能因为事件 schema 有 `tool_input`/`error` 就断言默认上传原文。详见 [遥测专题](telemetry.md)。
+
+## 精确版本正向探针：闭环不是纸面调用链
+
+静态调用链能证明路径存在，但用户真正关心的是发布二进制是否按这个顺序运行。本仓库新增 [probe_agent_loop.mjs](../skill/claude-code-version-diff/scripts/probe_agent_loop.mjs)，在隔离 HOME/config/workspace 中启动本地 Messages API，并驱动 SHA-256 为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` 的 2.1.235：
+
+```text
+request 1:
+  user = AGENT_LOOP_INITIAL_MARKER
+  tools includes Read schema
+
+mock response:
+  tool_use id=toolu_agent_loop_probe name=Read
+  input.file_path=$WORKSPACE/probe-fixture.txt
+
+CLI action:
+  真实执行 Read，读取 AGENT_LOOP_FILE_MARKER
+
+request 2:
+  保留同 ID tool_use
+  新增 tool_result.tool_use_id=toolu_agent_loop_probe
+  tool_result content 包含 AGENT_LOOP_FILE_MARKER
+
+mock response / CLI result:
+  TOOL_EXECUTION_OK
+  subtype=success
+  exit=0
+```
+
+随后脚本使用同一个 session ID 运行 `--resume`。第三次主请求同时包含首次 user marker、首次最终助手文本 `TOOL_EXECUTION_OK` 和当前 `AGENT_LOOP_RESUME_MARKER`，最终 literal result 为 `RESUME_OK`、exit 0。
+
+固化报告 [agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json) 的 13 个 checks 全部为 true。它直接证明：
+
+1. 工具 schema 进入首个真实请求；
+2. 完整 `tool_use` 触发内置工具执行；
+3. 工具结果以同 ID 回到下一次请求；
+4. 最终 result 进入 success terminal state；
+5. transcript 持久化后能成功 resume 并恢复历史。
+
+这仍有明确边界：探针只使用 `Read` 和本地 mock server，不证明 Bash/sandbox/网络工具、MCP refresh、远端模型质量或服务端缓存。它证明的是客户端 Agent Loop 合同本身。
 
 ## 一个具体执行例子
 

@@ -19,9 +19,15 @@
 | [`analysis/tools-permissions-hooks.md`](analysis/tools-permissions-hooks.md) | 工具从 schema 到 call 的完整控制管线，六种 permission mode、hooks、sandbox、凭据与企业 policy |
 | [`analysis/mcp-agents-background.md`](analysis/mcp-agents-background.md) | MCP 动态工具表、Tool Search、子 Agent 独立上下文、后台任务、task claim、mailbox 与 worktree |
 | [`analysis/resilience-and-recovery.md`](analysis/resilience-and-recovery.md) | API retry、流式降级、模型 fallback、输出修复、reactive compact、resume、rewind 与副作用边界 |
+| [`analysis/models-auth-providers-request.md`](analysis/models-auth-providers-request.md) | provider 选择优先级、模型目录、OAuth/API key/cloud credentials、base URL gate 与 Messages 请求装配 |
+| [`analysis/settings-feature-flags-policy.md`](analysis/settings-feature-flags-policy.md) | user/project/local/flag/policy 五层配置、字段合并语义、feature gate 与 managed-only 风控 |
+| [`analysis/tui-ide-remote-cloud.md`](analysis/tui-ide-remote-cloud.md) | TUI/print/SDK、IDE 双向上下文、Remote Control 重连与附件边界、cloud/teleport ownership |
+| [`analysis/install-update-doctor-lifecycle.md`](analysis/install-update-doctor-lifecycle.md) | 真实版本文件、更新迁移、doctor 故障域、native 配套安装与 rollback 边界 |
+| [`analysis/native-bridge-runtime.md`](analysis/native-bridge-runtime.md) | 5 个 `.node` 的 JS consumer、N-API 合同、Rust/Swift/macOS framework、生命周期与副作用 |
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
 | [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
 | [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
+| [`analysis/mechanism-evidence.jsonl`](analysis/mechanism-evidence.jsonl) | 每条核心结论对应的 evidence class、源码 view、真实行号、anchors 或运行探针字段，供 validator/comparator 自动复核 |
 
 一次主线程请求的实际路径可以概括为：
 
@@ -45,7 +51,7 @@
 
 这里的“多层缓存”不是一个模糊名词：进程内工具 schema/model config cache 降低本地重复计算；API prompt cache 复用 system/message 前缀；tool search 避免未使用 schema 常驻；precomputed compact cache 提前准备摘要。Transcript 和 memory 是持久状态，不是 prompt cache。每层的命中、失效和费用影响见上下文专题。
 
-每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。
+每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。官方页面还固化了响应 hash 与逐条摘录，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
 ## 快照信息
 
@@ -92,6 +98,9 @@
 |   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
 |   |-- technical-mechanism-atlas.md    九层运行机制总图与问题导向阅读路由
 |   |-- public-claims-validation.md     官方原理、bundle 证据和运行探针对照
+|   |-- mechanism-evidence.jsonl        结论到源码范围/anchor/探针字段的结构化证据合同
+|   |-- public-sources/manifest.json    官方页面响应状态、字节数与 SHA-256
+|   |-- public-source-excerpts.md       与本版验证问题对应的固定官方摘录
 |   |-- technical-architecture.md       面向人的完整技术架构导读
 |   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义
 |   |-- context-governance-and-caching.md 上下文治理、多层缓存、压缩与恢复
@@ -99,6 +108,12 @@
 |   |-- tools-permissions-hooks.md       工具合同、权限、hooks、sandbox、policy
 |   |-- mcp-agents-background.md        MCP、Tool Search、Agents、task 与 mailbox
 |   |-- resilience-and-recovery.md      retry/fallback/compact/resume/副作用恢复
+|   |-- models-auth-providers-request.md 模型、认证、provider 与请求装配
+|   |-- settings-feature-flags-policy.md settings 来源、feature gate 与 managed policy
+|   |-- tui-ide-remote-cloud.md         TUI、IDE、Remote Control 与 cloud session
+|   |-- install-update-doctor-lifecycle.md 安装、更新、doctor 与版本生命周期
+|   |-- native-bridge-runtime.md        JavaScript、N-API 与 Rust/Swift native bridge
+|   |-- runtime-probes/                 精确版本正向运行探针的归一化结果
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
 |   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
 |   |-- source-surface.md              全产品能力面和证据边界

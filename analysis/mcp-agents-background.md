@@ -64,7 +64,7 @@ Exit status: 0
 
 ### Generation 与刷新
 
-MCP 工具表有 generation/refresh 语义。server 连接、断开、重连或工具列表变化时，旧定义不能永久留在 prompt 和执行 registry 中。本版动态列表刷新位于 `extracted/cli.js` 491915-491964；Agent Loop 在工具批次结束、进入下一轮前还会检查刷新，见 272372-272382。
+MCP 工具表有 generation/refresh 语义。server 连接、断开、重连或工具列表变化时，旧定义不能永久留在 prompt 和执行 registry 中。本版动态列表刷新位于 `reverse/javascript/cli.readable.js` 491915-491964；Agent Loop 在工具批次结束、进入下一轮前还会检查刷新，见 272372-272382。
 
 因此，一次 turn 内可能出现：
 
@@ -83,7 +83,7 @@ MCP 工具表有 generation/refresh 语义。server 连接、断开、重连或�
 
 ### `defer_loading`
 
-本版 Tool Search 会把候选工具标成 `defer_loading`。初始上下文保留可发现信息，而完整 schema 在模型搜索/选择后再加入。判断与 schema 说明位于 `extracted/cli.js` 114258-114369、156521-156552。
+本版 Tool Search 会把候选工具标成 `defer_loading`。初始上下文保留可发现信息，而完整 schema 在模型搜索/选择后再加入。判断与 schema 说明位于 `reverse/javascript/cli.readable.js` 114258-114369、156521-156552。
 
 这不是“缓存工具执行结果”，也不是“按需安装 MCP server”。它改变的是工具定义何时进入模型上下文：
 
@@ -99,7 +99,7 @@ Tool Search 受模型、provider、远端能力和工具规模等条件控制。
 
 ### 缓存失效
 
-已发现 schema 的缓存需要绑定当前工具 generation。MCP server 的 tool definition 变化后，旧 schema 若仍缓存，会产生两类错误：模型按旧字段调用；permission/validator 按新字段拒绝。2.1.235 的 Tool Search cache invalidation 位于 `extracted/cli.js` 231802-231817。
+已发现 schema 的缓存需要绑定当前工具 generation。MCP server 的 tool definition 变化后，旧 schema 若仍缓存，会产生两类错误：模型按旧字段调用；permission/validator 按新字段拒绝。2.1.235 的 Tool Search cache invalidation 位于 `reverse/javascript/cli.readable.js` 231802-231817。
 
 ## MCP 调用仍走统一工具管线
 
@@ -130,7 +130,7 @@ MCP tool 被发现后，不会绕过 Claude Code 的本地控制层。它仍需�
 - query/usage/telemetry 关联；
 - 可选 worktree、cwd、transcript 和后台 task state。
 
-本版 fork Agent 默认配置在 `extracted/cli.js` 156505-156518：`maxTurns: 200`、`model: inherit`、`permissionMode: bubble`。
+本版 fork Agent 默认配置在 `reverse/javascript/cli.readable.js` 156505-156518：`maxTurns: 200`、`model: inherit`、`permissionMode: bubble`。
 
 ### 三个默认值的真实含义
 
@@ -173,7 +173,7 @@ Exit status: 0
 
 ## 主 Agent 如何接收子 Agent 状态
 
-子 Agent 状态构造与消息队列位于 `extracted/cli.js` 306930、307605-307608 附近。上游可以看到：
+子 Agent 状态构造与消息队列位于 `reverse/javascript/cli.readable.js` 306930、307605-307608 附近。上游可以看到：
 
 - task/agent ID；
 - running/completed/failed 等状态；
@@ -202,7 +202,7 @@ Exit status: 0
 
 ## Task registry 与 claim
 
-Agent team 需要共享任务状态，但不能让多个 teammate 同时无条件执行同一任务。`2.1.235` 的 task claim 路径位于 `extracted/cli.js` 202474-202511，核心语义是：
+Agent team 需要共享任务状态，但不能让多个 teammate 同时无条件执行同一任务。`2.1.235` 的 task claim 路径位于 `reverse/javascript/cli.readable.js` 202474-202511，核心语义是：
 
 1. 读取/定位 task。
 2. 检查当前状态和依赖。
@@ -214,7 +214,7 @@ claim 解决的是归属竞争，不自动解决文件写冲突。两个不同 t
 
 ## Team mailbox 与消息语义
 
-team mailbox 实现在 `extracted/cli.js` 279171-279317。它支持面向 teammate/leader 的消息、广播、shutdown/request/response 等协作状态。SendMessage 的价值不只是聊天：它让 Agent 能传递发现、阻塞、计划审批和任务状态。
+team mailbox 实现在 `reverse/javascript/cli.readable.js` 279171-279317。它支持面向 teammate/leader 的消息、广播、shutdown/request/response 等协作状态。SendMessage 的价值不只是聊天：它让 Agent 能传递发现、阻塞、计划审批和任务状态。
 
 消息系统需要处理：
 
@@ -307,14 +307,14 @@ team mailbox 实现在 `extracted/cli.js` 279171-279317。它支持面向 teamma
 
 ## 证据位置
 
-- Tool Search gates：`extracted/cli.js` 114258-114369。
-- deferred tool 判断和 schema：`extracted/cli.js` 156521-156552。
-- Tool Search cache invalidation：`extracted/cli.js` 231802-231817。
-- MCP 动态列表刷新：`extracted/cli.js` 491915-491964。
-- Agent Loop 中途刷新 MCP tools：`extracted/cli.js` 272372-272382。
-- fork Agent 默认：`extracted/cli.js` 156505-156518。
-- 子 Agent 状态和消息队列：`extracted/cli.js` 306930、307605-307608 附近。
-- task claim：`extracted/cli.js` 202474-202511。
-- team mailbox：`extracted/cli.js` 279171-279317。
+- Tool Search gates：`reverse/javascript/cli.readable.js` 114258-114369。
+- deferred tool 判断和 schema：`reverse/javascript/cli.readable.js` 156521-156552。
+- Tool Search cache invalidation：`reverse/javascript/cli.readable.js` 231802-231817。
+- MCP 动态列表刷新：`reverse/javascript/cli.readable.js` 491915-491964。
+- Agent Loop 中途刷新 MCP tools：`reverse/javascript/cli.readable.js` 272372-272382。
+- fork Agent 默认：`reverse/javascript/cli.readable.js` 156505-156518。
+- 子 Agent 状态和消息队列：`reverse/javascript/cli.readable.js` 306930、307605-307608 附近。
+- task claim：`reverse/javascript/cli.readable.js` 202474-202511。
+- team mailbox：`reverse/javascript/cli.readable.js` 279171-279317。
 
 这些证据证明客户端已经携带对应控制与协作路径。实际 MCP server 行为、远端 team 服务、feature flag 和组织权限仍需按目标环境另做运行验证。

@@ -38,7 +38,7 @@
 
 精确版本探针证明了两层失败语义：非法 ID 直接失败；结构合法但本地不存在的 UUID 返回 `No conversation found with session ID: ...`，exit status 1。CLI 不会把不存在的 resume ID 静默当成新会话。
 
-bundle 中的 resume 修复主路径位于 `extracted/cli.js` 323188-323443。它处理的不是单个文本文件拼接，而是消息过滤、UUID/parent 关系、fork/compact 信息和当前会话选择。
+bundle 中的 resume 修复主路径位于 `reverse/javascript/cli.readable.js` 323188-323443。它处理的不是单个文本文件拼接，而是消息过滤、UUID/parent 关系、fork/compact 信息和当前会话选择。
 
 ## JSONL transcript 保存的是事件流
 
@@ -101,7 +101,7 @@ resume 遇到 boundary 后有两类修链路径：
 - 当前文件是否仍满足可恢复条件；
 - symbolic link、缺失文件或写入错误应该如何报告。
 
-本版保留的 checkpoint 数量上限是 100。相关常量和裁剪路径见 `extracted/cli.js` 17194、194602-194619。上限意味着长会话不是无限保存每次文件状态；旧 checkpoint 会按实现规则退出可恢复集合。
+本版保留的 checkpoint 数量上限是 100。相关常量和裁剪路径见 `reverse/javascript/cli.readable.js` 17194、194602-194619。上限意味着长会话不是无限保存每次文件状态；旧 checkpoint 会按实现规则退出可恢复集合。
 
 ### 计算差异
 
@@ -117,7 +117,7 @@ resume 遇到 boundary 后有两类修链路径：
 4. dry run 还是实际写回；
 5. 恢复过程中是否跳过 link 或遇到写入错误。
 
-失败会返回明确文本，例如 `File rewinding is not enabled.`、`No file checkpoint found for this message.` 或 `Failed to rewind: ...`。文件 edit tracking 与 rewind 实现在 `extracted/cli.js` 194641-194804；SDK 暴露的 `rewindFiles` 分支也保留 `canRewind`、diff stats 和 `skippedLinks` 结果。
+失败会返回明确文本，例如 `File rewinding is not enabled.`、`No file checkpoint found for this message.` 或 `Failed to rewind: ...`。文件 edit tracking 与 rewind 实现在 `reverse/javascript/cli.readable.js` 194641-194804；SDK 暴露的 `rewindFiles` 分支也保留 `canRewind`、diff stats 和 `skippedLinks` 结果。
 
 ## Conversation rewind 与 file rewind 是两件事
 
@@ -156,7 +156,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 ### `MEMORY.md` 的装载边界
 
-本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和约 25KB 的边界建立可注入视图，超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 `extracted/cli.js` 114154 附近。
+本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和约 25KB 的边界建立可注入视图，超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 `reverse/javascript/cli.readable.js` 114154 附近。
 
 这两个限制的目的不是永久删除 memory，而是控制常驻 token：
 
@@ -226,11 +226,11 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 ## 证据位置
 
-- resume 与消息图修复：`extracted/cli.js` 323188-323443。
+- resume 与消息图修复：`reverse/javascript/cli.readable.js` 323188-323443。
 - compact boundary 生成与读取：见 [上下文治理专题](context-governance-and-caching.md) 中对应 bundle 索引。
-- file checkpoint 上限：`extracted/cli.js` 17194、194602-194619。
-- file edit tracking 与 rewind：`extracted/cli.js` 194641-194804。
-- `MEMORY.md` 200 行/25KB 入口处理：`extracted/cli.js` 114154 附近。
+- file checkpoint 上限：`reverse/javascript/cli.readable.js` 17194、194602-194619。
+- file edit tracking 与 rewind：`reverse/javascript/cli.readable.js` 194641-194804。
+- `MEMORY.md` 200 行/25KB 入口处理：`reverse/javascript/cli.readable.js` 114154 附近。
 - SDK `rewindFiles` 的 dry-run、错误和 `skippedLinks`：canonical bundle 的 SDK engine 暴露路径。
 - storage/schema/event 全量集合：[source inventory](source-inventory/summary.json)。
 

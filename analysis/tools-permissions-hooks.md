@@ -6,7 +6,7 @@
 
 ## 完整控制管线
 
-`2.1.235` 单工具核心路径位于 `extracted/cli.js` 316092-316487。用可读语义展开如下：
+`2.1.235` 单工具核心路径位于 `reverse/javascript/cli.readable.js` 316092-316487。用可读语义展开如下：
 
 ```text
 model emits tool_use(name, id, raw input)
@@ -266,9 +266,9 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 
 ## 证据位置
 
-- 单工具完整管线：`extracted/cli.js` 316092-316487。
-- streaming executor 与并发屏障：`extracted/cli.js` 267124-267268。
-- Stop hook 和默认 cap 8：`extracted/cli.js` 272253-272264。
+- 单工具完整管线：`reverse/javascript/cli.readable.js` 316092-316487。
+- streaming executor 与并发屏障：`reverse/javascript/cli.readable.js` 267124-267268。
+- Stop hook 和默认 cap 8：`reverse/javascript/cli.readable.js` 272253-272264。
 - 机器化风控表面：[risk-control-surface.txt](risk-control-surface.txt)。
 - hook event：[hook-events.txt](source-inventory/hook-events.txt)。
 - hook/permission/schema 字段说明：[schema-descriptions.txt](source-inventory/schema-descriptions.txt)。

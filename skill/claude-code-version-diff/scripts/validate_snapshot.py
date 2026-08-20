@@ -118,6 +118,41 @@ HUMAN_ANALYSIS_DOCS = {
         "terminal reason",
         "副作用",
     ),
+    "analysis/models-auth-providers-request.md": (
+        "Provider selector",
+        "ANTHROPIC_BASE_URL",
+        "apiKeyHelper",
+        "Request construction",
+        "tool_use_id",
+    ),
+    "analysis/settings-feature-flags-policy.md": (
+        "userSettings",
+        "policySettings",
+        "managed policy",
+        "Feature flag",
+        "failIfUnavailable",
+    ),
+    "analysis/tui-ide-remote-cloud.md": (
+        "Remote Control",
+        "teleport",
+        "IDE integration",
+        "reconnect",
+        "attachment",
+    ),
+    "analysis/install-update-doctor-lifecycle.md": (
+        "Auto-update",
+        "DISABLE_AUTOUPDATER",
+        "doctor",
+        "rollback",
+        "SHA-256",
+    ),
+    "analysis/native-bridge-runtime.md": (
+        "N-API",
+        "ImageProcessor",
+        "ScreenCaptureKit",
+        "waitForUrlEvent",
+        "Compatible",
+    ),
     "analysis/inventory-field-guide.md": (
         "comparisonKey",
         "comparisonValue",
@@ -141,6 +176,16 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/tools-permissions-hooks.md": (6000, 10),
     "analysis/mcp-agents-background.md": (6000, 10),
     "analysis/resilience-and-recovery.md": (6000, 10),
+    "analysis/models-auth-providers-request.md": (6000, 10),
+    "analysis/settings-feature-flags-policy.md": (6000, 10),
+    "analysis/tui-ide-remote-cloud.md": (6000, 10),
+    "analysis/install-update-doctor-lifecycle.md": (5000, 8),
+    "analysis/native-bridge-runtime.md": (6000, 10),
+}
+EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
+SOURCE_VIEW_PATHS = {
+    "canonical-js": "extracted/cli.js",
+    "readable-js": "reverse/javascript/cli.readable.js",
 }
 
 
@@ -346,6 +391,314 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
     return len(entries)
 
 
+def nested_value(document: object, dotted_path: str) -> object:
+    value = document
+    for part in dotted_path.split("."):
+        if not isinstance(value, dict) or part not in value:
+            raise KeyError(dotted_path)
+        value = value[part]
+    return value
+
+
+def read_jsonl(path: Path, failures: list[str]) -> list[dict]:
+    records: list[dict] = []
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, 1):
+                if not line.strip():
+                    failures.append(f"blank JSONL record: {path.name}:{line_number}")
+                    continue
+                record = json.loads(line)
+                if not isinstance(record, dict):
+                    failures.append(f"non-object JSONL record: {path.name}:{line_number}")
+                    continue
+                records.append(record)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        failures.append(f"invalid JSONL {path.name}: {error}")
+    return records
+
+
+def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, dict], set[str]]:
+    manifest_path = repo / "analysis/public-sources/manifest.json"
+    excerpts_path = repo / "analysis/public-source-excerpts.md"
+    if not manifest_path.is_file():
+        failures.append("missing analysis/public-sources/manifest.json")
+        return {}, set()
+    if not excerpts_path.is_file():
+        failures.append("missing analysis/public-source-excerpts.md")
+        return {}, set()
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        failures.append(f"invalid public source manifest: {error}")
+        return {}, set()
+    if manifest.get("schemaVersion") != 1:
+        failures.append("public source manifest schemaVersion must equal 1")
+    if not isinstance(manifest.get("retrievedAt"), str) or not manifest["retrievedAt"]:
+        failures.append("public source manifest missing retrievedAt")
+    if not isinstance(manifest.get("captureMethod"), str) or not manifest["captureMethod"]:
+        failures.append("public source manifest missing captureMethod")
+    sources: dict[str, dict] = {}
+    declared_owners: dict[str, str] = {}
+    for source in manifest.get("sources", []):
+        if not isinstance(source, dict):
+            failures.append("public source manifest contains a non-object source")
+            continue
+        source_id = source.get("id")
+        if not isinstance(source_id, str) or not source_id:
+            failures.append("public source manifest source missing id")
+            continue
+        if source_id in sources:
+            failures.append(f"duplicate public source id: {source_id}")
+        sources[source_id] = source
+        if not str(source.get("url", "")).startswith("https://"):
+            failures.append(f"public source {source_id} must use an https URL")
+        if source.get("status") != 200:
+            failures.append(f"public source {source_id} status is not 200")
+        if not isinstance(source.get("bytes"), int) or source["bytes"] < 1:
+            failures.append(f"public source {source_id} has invalid byte count")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(source.get("sha256", ""))):
+            failures.append(f"public source {source_id} has invalid sha256")
+        excerpt_ids = source.get("excerptIds")
+        if not isinstance(excerpt_ids, list) or not excerpt_ids:
+            failures.append(f"public source {source_id} has no excerptIds")
+            continue
+        for excerpt_id in excerpt_ids:
+            if not isinstance(excerpt_id, str) or not excerpt_id:
+                failures.append(f"public source {source_id} has an invalid excerptId")
+                continue
+            previous_owner = declared_owners.get(excerpt_id)
+            if previous_owner is not None:
+                failures.append(
+                    f"public excerpt {excerpt_id} has multiple owners: "
+                    f"{previous_owner}, {source_id}"
+                )
+            declared_owners[excerpt_id] = source_id
+    excerpts = excerpts_path.read_text(encoding="utf-8")
+    heading_matches = list(re.finditer(r"^## `([^`]+)`\s*$", excerpts, re.MULTILINE))
+    excerpt_ids = {match.group(1) for match in heading_matches}
+    if len(excerpt_ids) != len(heading_matches):
+        failures.append("public source excerpt file contains duplicate headings")
+    excerpt_owners: dict[str, str] = {}
+    for index, match in enumerate(heading_matches):
+        end = heading_matches[index + 1].start() if index + 1 < len(heading_matches) else len(excerpts)
+        block = excerpts[match.end():end]
+        source_match = re.search(r"^Source: `([^`]+)`\s*$", block, re.MULTILINE)
+        if source_match is None:
+            failures.append(f"public excerpt {match.group(1)} has no Source line")
+        else:
+            excerpt_owners[match.group(1)] = source_match.group(1)
+        if not re.search(r"^>\s+\S", block, re.MULTILINE):
+            failures.append(f"public excerpt {match.group(1)} has no quoted content")
+    declared = set(declared_owners)
+    if excerpt_ids != declared:
+        failures.append(
+            "public source excerpt set differs from manifest: "
+            f"extra={sorted(excerpt_ids - declared)}, missing={sorted(declared - excerpt_ids)}"
+        )
+    for excerpt_id in sorted(excerpt_ids & declared):
+        if excerpt_owners.get(excerpt_id) != declared_owners.get(excerpt_id):
+            failures.append(
+                f"public excerpt {excerpt_id} source mismatch: "
+                f"{excerpt_owners.get(excerpt_id)!r} != {declared_owners.get(excerpt_id)!r}"
+            )
+    return sources, excerpt_ids
+
+
+def validate_markdown_source_references(repo: Path, failures: list[str]) -> None:
+    line_counts = {
+        relative: sum(1 for _ in (repo / relative).open("r", encoding="utf-8"))
+        for relative in SOURCE_VIEW_PATHS.values()
+    }
+    for relative in candidate_paths(repo):
+        if not relative.endswith(".md"):
+            continue
+        path = repo / relative
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for markdown_line, content in enumerate(lines, 1):
+            for source_path, source_lines in line_counts.items():
+                marker = f"`{source_path}`"
+                start = content.find(marker)
+                if start < 0:
+                    continue
+                suffix = content[start + len(marker):]
+                for referenced_line in re.findall(r"(?<![.\d])\d{4,6}(?![.\d])", suffix):
+                    value = int(referenced_line)
+                    if value > source_lines:
+                        failures.append(
+                            f"out-of-range source reference: {relative}:{markdown_line} "
+                            f"{source_path}:{value} > {source_lines}"
+                        )
+
+
+def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
+    path = repo / "analysis/mechanism-evidence.jsonl"
+    if not path.is_file():
+        failures.append("missing analysis/mechanism-evidence.jsonl")
+        return 0
+    records = read_jsonl(path, failures)
+    sources, excerpt_ids = validate_public_sources(repo, failures)
+    source_cache: dict[str, list[str]] = {}
+    claim_ids: set[str] = set()
+    for index, record in enumerate(records, 1):
+        claim_id = record.get("claimId")
+        evidence_class = record.get("evidenceClass")
+        if not isinstance(claim_id, str) or not claim_id:
+            failures.append(f"mechanism evidence record {index} missing claimId")
+            continue
+        if claim_id in claim_ids:
+            failures.append(f"duplicate mechanism evidence claimId: {claim_id}")
+        claim_ids.add(claim_id)
+        if evidence_class not in EVIDENCE_CLASSES:
+            failures.append(f"mechanism evidence {claim_id} has invalid evidenceClass")
+            continue
+        if not isinstance(record.get("claim"), str) or not record["claim"]:
+            failures.append(f"mechanism evidence {claim_id} missing claim text")
+
+        if evidence_class == "Static":
+            source_view = record.get("sourceView")
+            relative = record.get("path")
+            if SOURCE_VIEW_PATHS.get(source_view) != relative:
+                failures.append(
+                    f"mechanism evidence {claim_id} sourceView/path mismatch: "
+                    f"{source_view!r} -> {relative!r}"
+                )
+                continue
+            source_path = repo / str(relative)
+            if not source_path.is_file():
+                failures.append(f"mechanism evidence {claim_id} source file is missing")
+                continue
+            lines = source_cache.setdefault(
+                str(relative), source_path.read_text(encoding="utf-8").split("\n")
+            )
+            start_line = record.get("startLine")
+            end_line = record.get("endLine")
+            if (
+                not isinstance(start_line, int)
+                or not isinstance(end_line, int)
+                or start_line < 1
+                or end_line < start_line
+                or end_line > len(lines)
+            ):
+                failures.append(
+                    f"mechanism evidence {claim_id} has invalid line range "
+                    f"{start_line}-{end_line} for {len(lines)} lines"
+                )
+                continue
+            anchors = record.get("anchors")
+            if not isinstance(anchors, list) or not anchors or not all(
+                isinstance(anchor, str) and anchor for anchor in anchors
+            ):
+                failures.append(f"mechanism evidence {claim_id} has invalid anchors")
+                continue
+            evidence_text = "\n".join(lines[start_line - 1:end_line])
+            for anchor in anchors:
+                if anchor not in evidence_text:
+                    failures.append(
+                        f"mechanism evidence {claim_id} anchor absent from range: {anchor!r}"
+                    )
+
+        elif evidence_class == "Probe":
+            report_relative = record.get("reportPath")
+            if (
+                not isinstance(report_relative, str)
+                or not report_relative.startswith("analysis/runtime-probes/")
+                or ".." in Path(report_relative).parts
+            ):
+                failures.append(f"mechanism evidence {claim_id} has invalid probe reportPath")
+                continue
+            report_path = repo / str(report_relative)
+            if not report_path.is_file():
+                failures.append(f"mechanism evidence {claim_id} probe report is missing")
+                continue
+            try:
+                report = json.loads(report_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                failures.append(f"mechanism evidence {claim_id} has invalid probe report: {error}")
+                continue
+            target = report.get("target", {})
+            if not isinstance(target.get("version"), str) or not target["version"]:
+                failures.append(f"mechanism evidence {claim_id} probe target missing version")
+            if not re.fullmatch(r"[0-9a-f]{64}", str(target.get("binarySha256", ""))):
+                failures.append(f"mechanism evidence {claim_id} probe target has invalid binarySha256")
+            for field_name in (
+                "commandField",
+                "inputField",
+                "literalOutputField",
+                "exitStatusField",
+            ):
+                field = record.get(field_name)
+                if not isinstance(field, str):
+                    failures.append(f"mechanism evidence {claim_id} missing {field_name}")
+                    continue
+                try:
+                    value = nested_value(report, field)
+                except KeyError:
+                    failures.append(
+                        f"mechanism evidence {claim_id} probe report missing field {field}"
+                    )
+                    continue
+                if field_name != "exitStatusField" and value in (None, "", [], {}):
+                    failures.append(
+                        f"mechanism evidence {claim_id} probe field {field} is empty"
+                    )
+                if field_name == "commandField" and not isinstance(value, str):
+                    failures.append(
+                        f"mechanism evidence {claim_id} probe command field {field} is not text"
+                    )
+                if field_name == "exitStatusField" and not isinstance(value, int):
+                    failures.append(
+                        f"mechanism evidence {claim_id} probe exit field {field} is not an integer"
+                    )
+            try:
+                exit_status = nested_value(report, str(record.get("exitStatusField")))
+            except KeyError:
+                exit_status = None
+            if exit_status != record.get("expectedExitStatus"):
+                failures.append(
+                    f"mechanism evidence {claim_id} probe exit status mismatch: "
+                    f"{exit_status!r} != {record.get('expectedExitStatus')!r}"
+                )
+            if report.get("pass") is not True:
+                failures.append(f"mechanism evidence {claim_id} probe report did not pass")
+            required_checks = record.get("requiredChecks")
+            if (
+                not isinstance(required_checks, list)
+                or not required_checks
+                or not all(isinstance(check, str) and check for check in required_checks)
+                or len(set(required_checks)) != len(required_checks)
+            ):
+                failures.append(f"mechanism evidence {claim_id} has invalid requiredChecks")
+                required_checks = []
+            for check in required_checks:
+                if report.get("checks", {}).get(check) is not True:
+                    failures.append(
+                        f"mechanism evidence {claim_id} required probe check failed: {check}"
+                    )
+
+        elif evidence_class == "Public":
+            source_id = record.get("sourceId")
+            excerpt_id = record.get("excerptId")
+            source = sources.get(str(source_id))
+            if source is None:
+                failures.append(f"mechanism evidence {claim_id} has unknown public source")
+            if excerpt_id not in excerpt_ids:
+                failures.append(f"mechanism evidence {claim_id} has unknown excerptId")
+            if source is not None and excerpt_id not in source.get("excerptIds", []):
+                failures.append(
+                    f"mechanism evidence {claim_id} excerpt is not owned by source {source_id}"
+                )
+
+        elif not isinstance(record.get("boundaryReason"), str) or not record["boundaryReason"]:
+            failures.append(f"mechanism evidence {claim_id} missing boundaryReason")
+
+    validate_markdown_source_references(repo, failures)
+    return len(records)
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -420,6 +773,7 @@ def main() -> int:
         )
 
     inventory_files = validate_source_inventory(repo, failures)
+    mechanism_evidence = validate_mechanism_evidence(repo, failures)
 
     risk_surface = repo / "analysis/risk-control-surface.txt"
     risk_entries = 0
@@ -506,6 +860,7 @@ def main() -> int:
     print(f"files checked: {checked}")
     print(f"risk controls checked: {risk_entries}")
     print(f"source inventory files checked: {inventory_files}")
+    print(f"mechanism evidence records checked: {mechanism_evidence}")
     print("capture path privacy: PASS")
     print(f"main source sha256: {sha256(main_source)}")
     if deep_output:

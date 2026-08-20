@@ -60,6 +60,17 @@ SOURCE_INVENTORY_MINIMUMS = {
     "model-aliases": 1,
 }
 HUMAN_ANALYSIS_DOCS = {
+    "analysis/technical-mechanism-atlas.md": (
+        "三条必须同时理解的闭环",
+        "外部状态",
+        "公开原理与本版本实现",
+    ),
+    "analysis/public-claims-validation.md": (
+        "Public",
+        "Static",
+        "Probe",
+        "Boundary",
+    ),
     "analysis/technical-architecture.md": (
         "request",
         "context",
@@ -78,6 +89,35 @@ HUMAN_ANALYSIS_DOCS = {
         "auto-compact",
         "compact boundary",
     ),
+    "analysis/sessions-checkpoints-memory.md": (
+        "message graph",
+        "compact boundary",
+        "file checkpoint",
+        "MEMORY.md",
+        "外部状态",
+    ),
+    "analysis/tools-permissions-hooks.md": (
+        "updatedInput",
+        "PostToolBatch",
+        "bypassPermissions",
+        "fail closed",
+        "tool.call",
+    ),
+    "analysis/mcp-agents-background.md": (
+        "defer_loading",
+        "generation",
+        "maxTurns: 200",
+        "permissionMode: bubble",
+        "task claim",
+        "mailbox",
+    ),
+    "analysis/resilience-and-recovery.md": (
+        "HTTP/API retry",
+        "tombstone",
+        "reactive compact",
+        "terminal reason",
+        "副作用",
+    ),
     "analysis/inventory-field-guide.md": (
         "comparisonKey",
         "comparisonValue",
@@ -93,6 +133,14 @@ HUMAN_ANALYSIS_DOCS = {
         "Derived",
         "Heuristic",
     ),
+}
+HUMAN_ANALYSIS_MINIMUMS = {
+    "analysis/technical-mechanism-atlas.md": (6000, 8),
+    "analysis/public-claims-validation.md": (6000, 8),
+    "analysis/sessions-checkpoints-memory.md": (6000, 10),
+    "analysis/tools-permissions-hooks.md": (6000, 10),
+    "analysis/mcp-agents-background.md": (6000, 10),
+    "analysis/resilience-and-recovery.md": (6000, 10),
 }
 
 
@@ -336,21 +384,33 @@ def main() -> int:
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
+    readme_first_screen = readme.split("## 快照信息", 1)[0]
     for relative, required_terms in HUMAN_ANALYSIS_DOCS.items():
         path = repo / relative
         if not path.is_file():
             failures.append(f"missing human analysis document: {relative}")
             continue
         content = path.read_text(encoding="utf-8")
-        if len(content) < 1000:
+        minimum_length, minimum_headings = HUMAN_ANALYSIS_MINIMUMS.get(
+            relative, (1000, 1)
+        )
+        if len(content) < minimum_length:
             failures.append(f"human analysis document is too small: {relative}")
+        heading_count = len(re.findall(r"^#{2,4}\s+\S", content, re.MULTILINE))
+        if heading_count < minimum_headings:
+            failures.append(
+                f"human analysis document has too few sections: {relative} "
+                f"({heading_count} < {minimum_headings})"
+            )
         for term in required_terms:
             if term not in content:
                 failures.append(
                     f"human analysis document {relative} does not cover {term!r}"
                 )
-        if relative not in readme:
-            failures.append(f"README does not link human analysis document: {relative}")
+        if relative not in readme_first_screen:
+            failures.append(
+                f"README first screen does not link human analysis document: {relative}"
+            )
 
     private_capture_files = find_private_capture_data(repo)
     if private_capture_files:

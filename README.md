@@ -6,13 +6,19 @@
 
 ## 先读什么
 
-这个仓库同时服务两类读者：人需要理解系统为什么这样设计，比较器需要稳定、无遗漏地逐版本 diff。不要从 70 个 JSONL/TXT 文件开始读。
+这个仓库同时服务两类读者：人需要理解系统为什么这样设计，比较器需要稳定、无遗漏地逐版本 diff。不要从 70 个 JSONL/TXT 文件开始读，也不要把字段数量当成技术分析。
 
 | 入口 | 解决的问题 |
 | --- | --- |
-| [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整系统图 |
-| [`analysis/agent-loop.md`](analysis/agent-loop.md) | Agent Loop 状态机、流中工具执行、并发屏障、权限管线、Stop hook、maxTurns、fallback 和子 Agent |
+| [`analysis/technical-mechanism-atlas.md`](analysis/technical-mechanism-atlas.md) | **首选入口**：一次请求跨越的九个子系统、三条闭环、状态归属、故障表现和专题阅读路由 |
+| [`analysis/public-claims-validation.md`](analysis/public-claims-validation.md) | 官方 Claude Code/Agent SDK/Engineering 原理与 `2.1.235` bundle、精确二进制探针逐项对照，防止版本倒灌 |
+| [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整架构图 |
+| [`analysis/agent-loop.md`](analysis/agent-loop.md) | Agent Loop 状态机、流中工具执行、并发屏障、工具结果反馈、Stop hook、maxTurns、fallback 和子 Agent |
 | [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md) | 上下文装配、多层缓存、5m/1h TTL、tool search、microcompaction、auto-compact、resume 和成本算例 |
+| [`analysis/sessions-checkpoints-memory.md`](analysis/sessions-checkpoints-memory.md) | message graph、JSONL、compact boundary、resume/fork、100 个 file checkpoint、rewind 与 `MEMORY.md` 边界 |
+| [`analysis/tools-permissions-hooks.md`](analysis/tools-permissions-hooks.md) | 工具从 schema 到 call 的完整控制管线，六种 permission mode、hooks、sandbox、凭据与企业 policy |
+| [`analysis/mcp-agents-background.md`](analysis/mcp-agents-background.md) | MCP 动态工具表、Tool Search、子 Agent 独立上下文、后台任务、task claim、mailbox 与 worktree |
+| [`analysis/resilience-and-recovery.md`](analysis/resilience-and-recovery.md) | API retry、流式降级、模型 fallback、输出修复、reactive compact、resume、rewind 与副作用边界 |
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
 | [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
 | [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
@@ -38,6 +44,8 @@
 ```
 
 这里的“多层缓存”不是一个模糊名词：进程内工具 schema/model config cache 降低本地重复计算；API prompt cache 复用 system/message 前缀；tool search 避免未使用 schema 常驻；precomputed compact cache 提前准备摘要。Transcript 和 memory 是持久状态，不是 prompt cache。每层的命中、失效和费用影响见上下文专题。
+
+每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。
 
 ## 快照信息
 
@@ -82,9 +90,15 @@
 |   |-- release-notes.md               2.1.235 官方变更记录
 |   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
 |   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
+|   |-- technical-mechanism-atlas.md    九层运行机制总图与问题导向阅读路由
+|   |-- public-claims-validation.md     官方原理、bundle 证据和运行探针对照
 |   |-- technical-architecture.md       面向人的完整技术架构导读
 |   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义
 |   |-- context-governance-and-caching.md 上下文治理、多层缓存、压缩与恢复
+|   |-- sessions-checkpoints-memory.md  会话图、JSONL、checkpoint、rewind、memory
+|   |-- tools-permissions-hooks.md       工具合同、权限、hooks、sandbox、policy
+|   |-- mcp-agents-background.md        MCP、Tool Search、Agents、task 与 mailbox
+|   |-- resilience-and-recovery.md      retry/fallback/compact/resume/副作用恢复
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
 |   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
 |   |-- source-surface.md              全产品能力面和证据边界
@@ -102,7 +116,7 @@
 
 ## 机器证据层：一次性全量静态提取
 
-下面的计数表是完整性索引，不是阅读入口。字段含义先看 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)，系统行为先看上面的三份架构文档。
+下面的计数表是完整性索引，不是阅读入口。字段含义先看 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)，系统行为先看上面的机制总图和专题文档。
 
 除 packed bytes、bytecode、native reverse 和人工能力说明外，本分支还从 canonical `extracted/cli.js` 确定性生成 70 类机器清单。清单不是挑选出来的“亮点”，而是后续每个版本必须重跑和逐项 diff 的归档合同。
 
@@ -265,7 +279,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - fallback 会 tombstone 当前消息、abort 未完成工具并清理 UI 状态，但无法自动撤销已经完成的文件、Git 或远端副作用。
 - custom/subagent 使用同一个核心循环，但拥有独立 model/effort/maxTurns、工具、权限上下文、abort controller、worktree 和 transcript。
 
-完整状态字段、时序图、终止原因和一个 Read/Edit/Bash 的执行例子见 [`analysis/agent-loop.md`](analysis/agent-loop.md)。
+完整状态字段、时序图、终止原因和一个 Read/Edit/Bash 的执行例子见 [`analysis/agent-loop.md`](analysis/agent-loop.md)；与官方 Agent SDK 原理的逐项验证见 [`analysis/public-claims-validation.md`](analysis/public-claims-validation.md)。
 
 ### 模型与上下文控制
 
@@ -280,14 +294,16 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - 可将 cwd、环境、memory path、Git 状态等机器动态段从 system prompt 移到第一条 user message，提高跨用户 prompt cache 复用率。
 - 支持替换或追加 system prompt、JSON Schema 结构化输出、美元预算上限、prompt suggestion 和 partial message streaming。
 
-完整调用链、优先级、失败回退、设置/环境变量和成本算例见 [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md)。
+完整调用链、优先级、失败回退、设置/环境变量和成本算例见 [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md)。消息图、transcript、checkpoint、rewind 和 memory 的恢复边界见 [`analysis/sessions-checkpoints-memory.md`](analysis/sessions-checkpoints-memory.md)。
 
 ### 工具、权限与隔离
 
-- 支持 tool allow/deny、内置工具选择，以及 `acceptEdits`、`auto`、`bypassPermissions`、`manual`、`dontAsk`、`plan` 权限模式。
+- 支持 tool allow/deny、内置工具选择，以及 `default`、`acceptEdits`、`auto`、`bypassPermissions`、`dontAsk`、`plan` 六种权限模式。
 - Safe mode 会关闭 `CLAUDE.md`、skills、plugins、hooks、MCP、custom commands、agents、主题等自定义内容，但保留认证、模型、内置工具和权限系统。
 - Bare mode 会跳过 hooks、LSP、plugin sync、attribution、auto-memory、后台预取、keychain 和自动 `CLAUDE.md` 发现，但仍接受显式传入的配置。
 - 支持额外可读目录、隔离 worktree、strict MCP config 和企业托管设置。
+
+单工具从查找、input schema、PreToolUse、permission/policy 到 output schema 的完整顺序，以及 hook、sandbox、凭据和 managed settings 的失败语义见 [`analysis/tools-permissions-hooks.md`](analysis/tools-permissions-hooks.md)。
 
 ### 风控、安全与企业治理
 
@@ -398,9 +414,9 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 从本版本开始，skill 的交付合同分成两层：
 
 - **机器证据层**：packed bytes、bytecode、native reports、结构化 inventory 和稳定语义 diff，保证没有靠人工挑选遗漏字段。
-- **人类解释层**：技术架构、Agent Loop、上下文治理/缓存、遥测、风控、字段字典和版本专题，必须解释触发条件、调用链、默认值、优先级、状态变化、失败回退、成本和用户影响。
+- **人类解释层**：机制总图、公开主张验证、技术架构、Agent Loop、上下文治理/缓存、会话/checkpoint/memory、工具/权限/hooks、MCP/Agents/后台协作、韧性恢复、遥测、风控、字段字典和版本专题。每个机制必须解释 purpose、owned state、call chain、gate/precedence、threshold、failure、lifecycle、user impact、evidence 和 boundary。
 
-后续版本不能只更新 count table。任何新增 settings/env/model/event 字段都要说明字段语义、来源、默认/约束、谁读取、何时生效、如何失效、用户怎样观察；任何上下文/cache/compact 变化都要给出旧版和新版的状态机与成本影响。
+后续版本不能只更新 count table。任何新增 settings/env/model/event 字段都要说明字段语义、来源、默认/约束、谁读取、何时生效、如何失效、用户怎样观察；任何上下文/cache/compact 变化都要给出旧版和新版的状态机与成本影响。官方当前文档或 Engineering 文章只用于提出验证假设，必须标明调研日期，并分别标注目标版本的静态证据、运行 probe 和未证实边界。
 
 验证任意版本分支：
 
@@ -428,7 +444,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 - 新增或删除的 CLI option/command；
 - 新增或删除的权限模式、风控 circuit breaker、沙箱/凭据/信任和企业治理控制；
 - `analysis/source-inventory/summary.json` 中全部 70 类清单的 count delta、added 和 removed，包括调用点、动态表达式、事件/payload、OTEL、Datadog、typed env、settings schema、模型目录/pricing/alias、全部字符串/模板、tools/commands、hooks/protocol、storage、API、errors、URLs/hosts；
-- 人类解释层的章节级变化：请求装配、上下文预算、cache scope/TTL/breakpoint、tool deferral、microcompaction、auto-compact、resume、遥测 transport/privacy、风险控制与字段语义；
+- 人类解释层的章节级变化：完整请求机制、公开主张验证状态、请求装配、上下文预算、cache scope/TTL/breakpoint、tool deferral、microcompaction、auto-compact、session/checkpoint/memory、MCP/Agent/task/mailbox、retry/fallback/resume/rewind、遥测 transport/privacy、风险控制与字段语义；
 - Agent Loop 的主状态字段、流中工具启动点、并发屏障、tool pipeline、Stop hook、maxTurns、fallback sweep、terminal reason 和子 Agent 隔离变化；
 - 老分支没有全量 inventory 时，才回退到 `ANTHROPIC_*`、`CLAUDE_CODE_*`、`ENABLE_*` 和 endpoint host 的旧式扫描；
 - JSC bytecode 与可读化 JavaScript 大小/哈希变化；

@@ -2,6 +2,8 @@
 
 这是一份面向人的入口。它先解释 Claude Code CLI 作为一个本地 Agent harness 如何运行，再把读者带到完整机器证据。不要从 70 个 inventory 文件开始读，也不要把一个 313 MB 可执行文件误解成“只有一段聊天 CLI”。
 
+第一次阅读先看 [技术机制总图](technical-mechanism-atlas.md)：它按九个子系统和三条闭环解释一次请求。本文负责组件与发布物分层；Agent Loop、会话/checkpoint、工具权限、MCP/Agents 和恢复语义分别由专题展开。官方公开原理与 `2.1.235` 实现的版本边界见 [验证矩阵](public-claims-validation.md)。
+
 ## 一张图看完整请求
 
 ```text
@@ -222,7 +224,7 @@ slash command/skill listing 不是免费元数据。描述会进入上下文，�
 
 ### 权限模式
 
-公开/内部表面包括 `acceptEdits`、`auto`、`bypassPermissions`、`manual`、`dontAsk`、`plan` 等。最终决策会携带 decision reason/source，permission dialog 还区分本次允许、会话允许和持久规则。
+规范化后的权限模式是 `default`、`acceptEdits`、`auto`、`bypassPermissions`、`dontAsk`、`plan`；输入表面还接受 `manual` 作为 `default` 的兼容 alias。最终决策会携带 decision reason/source，permission dialog 还区分本次允许、会话允许和持久规则。
 
 ### 本地执行边界
 
@@ -336,15 +338,20 @@ TUI 处理：
 
 ## 建议阅读顺序
 
-1. 本文：先建立系统图。
-2. [`agent-loop.md`](agent-loop.md)：理解模型、工具、权限、重试和终止如何组成持续执行状态机。
-3. [`context-governance-and-caching.md`](context-governance-and-caching.md)：理解上下文、缓存、压缩和恢复。
-4. [`telemetry.md`](telemetry.md)：理解网络出口、默认值和隐私控制。
-5. [`inventory-field-guide.md`](inventory-field-guide.md)：学会读机器记录。
-6. [`source-surface.md`](source-surface.md)：按全产品能力面查索引。
-7. [`risk-control-surface.txt`](risk-control-surface.txt)：查本地风控决策面。
-8. `reverse/javascript/cli.readable.js`：沿本文给出的函数/行定位实现。
-9. `extracted/cli.js`：最终 canonical packed bytes。
+1. [`technical-mechanism-atlas.md`](technical-mechanism-atlas.md)：先建立九层机制和三条闭环。
+2. 本文：理解组件、请求路径和发布物分层。
+3. [`public-claims-validation.md`](public-claims-validation.md)：区分官方当前主张、本版静态证据、运行 probe 和边界。
+4. [`agent-loop.md`](agent-loop.md)：理解模型、工具、结果反馈、重试和终止如何组成持续执行状态机。
+5. [`context-governance-and-caching.md`](context-governance-and-caching.md)：理解上下文、缓存、压缩和成本。
+6. [`sessions-checkpoints-memory.md`](sessions-checkpoints-memory.md)：理解消息图、transcript、resume、rewind 和 memory。
+7. [`tools-permissions-hooks.md`](tools-permissions-hooks.md)：理解动作前后的完整控制管线。
+8. [`mcp-agents-background.md`](mcp-agents-background.md)：理解动态扩展、独立 Agent context 和协作状态。
+9. [`resilience-and-recovery.md`](resilience-and-recovery.md)：理解 retry/fallback 和不可撤销副作用。
+10. [`telemetry.md`](telemetry.md)：理解网络出口、默认值和隐私控制。
+11. [`inventory-field-guide.md`](inventory-field-guide.md)：学会读机器记录。
+12. [`source-surface.md`](source-surface.md) 与 [`risk-control-surface.txt`](risk-control-surface.txt)：按能力面查机器证据。
+13. `reverse/javascript/cli.readable.js`：沿专题给出的函数/行定位实现。
+14. `extracted/cli.js`：最终 canonical packed bytes。
 
 ## 证据等级
 

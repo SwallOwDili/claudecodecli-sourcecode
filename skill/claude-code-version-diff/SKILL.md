@@ -27,10 +27,11 @@ Every snapshot or comparison intended for human readers must also follow [refere
 6. Store the primary packed module as `extracted/cli.js`; retain every other packed filename under `extracted/`.
 7. Capture `VERSION`, `analysis/version.json`, the raw unpack manifest, exact upstream release notes for the version, a normalized CLI option/command inventory, and an evidence-based risk-control surface.
 8. Run `scripts/extract_source_inventory.py <repo>` against canonical `extracted/cli.js`. It requires Node or Bun and the vendored Acorn 8.15.0 parser. Commit every generated file and `analysis/source-inventory/summary.json`; never hand-edit generated inventories.
-9. Write `analysis/technical-architecture.md`, `analysis/agent-loop.md`, `analysis/context-governance-and-caching.md`, `analysis/inventory-field-guide.md`, `analysis/telemetry.md`, and `analysis/source-surface.md`. Cover every generated inventory category, the complete product capability surface, Agent Loop state/transitions/tool scheduling/termination, context/cache/compact/resume call chains, telemetry/export/log/profile paths, and field semantics. Separate product schema from dependency/embedded-doc heuristics.
-10. Write the README as the reading router: lead with what to read and a request-lifecycle overview, then version delta and major behavior. Keep inventory counts as machine evidence, not the primary explanation.
-11. Run `scripts/validate_snapshot.py` before committing. It regenerates source inventories in a temporary directory, validates `reverse/` when present, and rejects capture-machine home/workspace paths or credential-shaped values outside canonical packed/reverse evidence.
-12. Commit on the numeric version branch. Push, verify that the remote branch points at the local commit, then clone/fetch the remote branch into a fresh directory and rerun validation plus privacy scanning.
+9. Research current first-party Claude Code/Agent SDK documentation and relevant Anthropic Engineering articles. Record retrieval date and URLs, turn each public claim into a concrete bundle/probe hypothesis, and label results `Public`, target-version `Static`, exact-binary `Probe`, or `Boundary`. Current documentation must never be silently backported into an older snapshot.
+10. Write the complete human mechanism layer: `analysis/technical-mechanism-atlas.md`, `analysis/public-claims-validation.md`, `analysis/technical-architecture.md`, `analysis/agent-loop.md`, `analysis/context-governance-and-caching.md`, `analysis/sessions-checkpoints-memory.md`, `analysis/tools-permissions-hooks.md`, `analysis/mcp-agents-background.md`, `analysis/resilience-and-recovery.md`, `analysis/inventory-field-guide.md`, `analysis/telemetry.md`, and `analysis/source-surface.md`. Cover every generated inventory category and every important lifecycle: request assembly, Agent Loop, context/cache/compact, session/checkpoint/memory, tool/permission/hook/sandbox, MCP/agents/tasks/background, retry/fallback/resume/rewind, observability, and field semantics. Separate product schema from dependency/embedded-doc heuristics.
+11. Write the README as the reading router: lead with the mechanism atlas, public-claim validation, question-oriented topic links, and a request-lifecycle overview, then version delta and major behavior. Keep inventory counts as machine evidence, not the primary explanation.
+12. Run `scripts/validate_snapshot.py` before committing. It regenerates source inventories in a temporary directory, validates the complete human mechanism document contract, validates `reverse/` when present, and rejects capture-machine home/workspace paths or credential-shaped values outside canonical packed/reverse evidence.
+13. Commit on the numeric version branch. Push, verify that the remote branch points at the local commit, then clone/fetch the remote branch into a fresh directory and rerun validation plus privacy scanning.
 
 If the executable is not a Bun standalone build, stop assuming this format and inspect its actual container/packaging before choosing an extractor.
 
@@ -82,6 +83,11 @@ Lead with observed changes:
 - native architecture, dependency, import/export, and Swift project-symbol changes;
 - reconstructed native contracts, source files, languages, and implementation churn when present;
 - Agent Loop entrypoints, state fields, streaming tool start point, concurrency barriers, tool pipeline order, queue absorption, max-turn accounting, Stop hook re-entry, fallback sweeps, terminal reasons, and subagent isolation;
+- session/message-graph/compact-boundary repair, checkpoint caps, rewind semantics, transcript retention, and memory entrypoint limits;
+- tool schema and alias contracts, permission precedence, hooks, sandbox/filesystem/network/credential controls, managed policy, and fail-closed behavior;
+- MCP generation refresh, Tool Search deferral/cache invalidation, subagent defaults/isolation, background durability, task claim, mailbox, and worktree boundaries;
+- request/stream/model/output/context/tool/hook/MCP/session recovery layers, including exactly which provisional messages are discarded and which completed external side effects remain;
+- changes between current public claims and what each target release can actually prove, with source retrieval dates and explicit version-drift boundaries;
 - upstream release notes corroborated by reachable source strings or structures.
 
 After the deterministic report, write a human comparison for every materially changed subsystem. Explain old behavior, new behavior, trigger/priority/default, state transition, failure fallback, user-visible effect, token/latency/cost impact, and exact evidence. Do not publish a count-only report when settings, context, cache, telemetry, permissions, tools, models, storage, or protocol changed.
@@ -93,7 +99,10 @@ Do not infer a feature change only because a minified symbol, bytecode hash, add
 Cover:
 
 - a first-screen reading guide and a plain request-lifecycle diagram;
+- a mechanism atlas that names owned state, lifecycle transitions, failure symptoms, user impact, and links to every deep topic;
+- a public-claim validation matrix separating current first-party documentation, target-version static evidence, exact-binary probes, and unverified/server-side boundaries;
 - a dedicated Agent Loop chapter covering model turns versus API attempts, streaming tool execution, concurrency, hooks/permissions, result feedback, stop conditions, retries/fallbacks, max turns, and subagents;
+- dedicated session/checkpoint/memory, tools/permissions/hooks, MCP/agents/background, and resilience/recovery chapters;
 - binary and extraction facts;
 - payload structure and fidelity;
 - exact release delta;
@@ -128,6 +137,10 @@ Read [references/human-analysis.md](references/human-analysis.md) before writing
 For context governance, trace system prompt segmentation, user/system context, tool schema residency/deferral, prompt-cache scopes and message breakpoints, 5m/1h TTL eligibility, context hints, tool-result cleanup, precomputed/reactive/manual compaction, compact boundaries, transcripts, resume, and memory. Include at least one concrete window-threshold example and one cache-cost example using the version's baked model catalog.
 
 For Agent Loop analysis, trace the outer turn wrapper, observer tap, core state object, pre-call queue absorption and compaction, model streaming parser, the exact point where a completed `tool_use` block starts execution, concurrency-safe scheduling and barriers, input/hook/permission/output validation order, tool-result pairing, Stop hook re-entry, max-turn accounting, fallback abort/tombstone behavior, terminal reasons, and subagent isolation. Explicitly state that message tombstones and aborts cannot undo completed external side effects.
+
+For session and recovery analysis, trace message UUID/parent graphs, transcript event persistence, compact boundaries and resume repair, fork and leaf selection, file checkpoint limits/dry-run/rewind, memory entrypoint budgets, prompt-cache independence, and the exact external side effects that cannot be restored.
+
+For MCP and multi-agent analysis, trace configuration trust, connection/auth/list lifecycle, generation refresh, deferred schema and cache invalidation, child-loop defaults and isolation, permission bubbling, task registry/claim, mailbox delivery/ack/size semantics, background durability, worktree scope, and token/coordination cost.
 
 ## Exhaustive source inventory
 

@@ -7,9 +7,15 @@ Use this reference when writing a version snapshot README, architecture document
 Every full snapshot includes:
 
 ```text
+analysis/technical-mechanism-atlas.md
+analysis/public-claims-validation.md
 analysis/technical-architecture.md
 analysis/agent-loop.md
 analysis/context-governance-and-caching.md
+analysis/sessions-checkpoints-memory.md
+analysis/tools-permissions-hooks.md
+analysis/mcp-agents-background.md
+analysis/resilience-and-recovery.md
 analysis/inventory-field-guide.md
 analysis/telemetry.md
 analysis/source-surface.md
@@ -35,6 +41,32 @@ For each important mechanism, answer in this order:
 12. **Boundary**: what remains server-side, runtime-only, removed before shipping, or compatible rather than original.
 
 Do not replace these answers with counts, identifier lists, or field dumps.
+
+## Public research and target-version validation
+
+Before writing the mechanism layer, search current first-party Claude Code/Agent SDK documentation and relevant Anthropic Engineering articles. Public material is a source of design intent and verification hypotheses, not automatic target-version evidence.
+
+Create `analysis/public-claims-validation.md` and record:
+
+- retrieval date and first-party URL;
+- a short, non-copied statement of each public claim;
+- the concrete target-version object to search: CLI surface, stable key, state field, default, threshold, error, request field, or ordered call path;
+- target-version static evidence and reachability;
+- exact-version runtime probe command, controlled input, literal result, and exit status when practical;
+- an explicit boundary for current-doc-only, server-side, remote-config, platform-specific, or untriggered behavior.
+
+Use the labels `Public`, `Static`, `Probe`, and `Boundary`. Never use a current documentation page to fill an implementation gap in an old branch, and never infer implementation solely from a release-note sentence or lexical hit.
+
+## Mechanism atlas
+
+`analysis/technical-mechanism-atlas.md` is the first human reading route. It must:
+
+- show one complete request from input/session through context assembly, model stream, tool control, result feedback, persistence, collaboration, recovery, and observability;
+- distinguish the reasoning/execution loop, context-control loop, and control/recovery loop;
+- name which state is process-local, session-persistent, or external;
+- map each mechanism to its user symptom and deep topic;
+- include one concrete end-to-end task crossing all major layers;
+- explain the evidence hierarchy and current-document version-drift rule.
 
 ## Agent Loop chapter
 
@@ -94,6 +126,69 @@ Include at least:
 - one prompt-cache dollar calculation using baked input/write/read prices;
 - one table distinguishing cache, deferral, compaction, transcript, and memory.
 
+## Sessions, checkpoints, and memory chapter
+
+Trace separately:
+
+- session ID lookup and invalid/missing-session errors;
+- message UUID, parent, logical parent, branch leaf, fork, and tombstone semantics;
+- JSONL physical event order versus the logical message view sent to the model;
+- transcript persistence/retention versus prompt cache and auto-memory;
+- compact boundary fields, preserved messages/segments, and resume graph repair;
+- file checkpoint enablement, exact cap, pruning, dry-run diff, restore, link/error handling, and conversation-versus-file rewind;
+- `CLAUDE.md`, auto-memory, `MEMORY.md`, and compact summary roles and budgets;
+- process state, durable task state, and external side effects that resume cannot restore.
+
+Include a recovery matrix and at least one user-facing diagnosis for resume, rewind, retention, and memory growth.
+
+## Tools, permissions, and hooks chapter
+
+Trace the exact ordered path from tool name/raw input through alias lookup, parse/coercion, input schema, custom validation, PreToolUse, permission/policy/classifier, updated-input revalidation, runtime sandbox, call, result mapping, PostToolUse/PostToolUseFailure, output validation, PostToolBatch, and result/context persistence.
+
+Explain:
+
+- every target-version permission mode and its enabling gate;
+- rule and managed-policy precedence, decision source/reason, ask/deny/fail-closed behavior;
+- hook event timing, concurrency, blocking, defer, input/output mutation, timeout/error, and Stop-hook cap;
+- filesystem/network/socket/domain/credential sandbox dimensions and unavailable-sandbox fallback;
+- workspace/MCP/plugin/helper trust boundaries;
+- why a post-action hook or tombstone cannot undo a completed side effect.
+
+Include a failure matrix that states whether `tool.call` occurred and what the next model turn observes.
+
+## MCP, agents, and background chapter
+
+Trace:
+
+- MCP config sources, workspace trust, strict/managed filters, transport/auth, capability listing, connection state, generation refresh, and error recovery;
+- Tool Search enable/disable reasons, `defer_loading`, discovery, schema residency, generation-bound cache, and invalidation;
+- subagent messages/tools/model/effort/maxTurns/permission/abort/worktree/transcript isolation and exact defaults;
+- parent tool-use/result/progress mapping and permission bubbling;
+- foreground tool batch versus background/durable task lifecycle;
+- task registry, atomic claim/owner/status/dependency behavior;
+- team mailbox sender/recipient/broadcast/ack/size/redelivery/shutdown behavior;
+- worktree benefits and shared-resource limitations;
+- token, latency, model, coordination, and duplicated-work cost.
+
+Include one complete orchestrator-worker timeline and explain when multi-agent work is a poor fit.
+
+## Resilience and recovery chapter
+
+Separate at least these recovery layers:
+
+- HTTP/API retry and status/provider classification;
+- streaming watchdog, partial block boundaries, and non-stream fallback;
+- model/refusal/server fallback, consent/allowlist, tombstone, abort, and usage identity;
+- max-output continuation, malformed-tool retry, thinking-only nudge, and their independent counters;
+- precompute/reactive compact and bounded retry;
+- tool errors as result feedback versus transparent tool retry;
+- hook errors and Stop-hook re-entry/circuit breaking;
+- MCP reconnect plus tool-generation/schema-cache refresh;
+- transcript resume, checkpoint/rewind, and durable versus process-only background state;
+- typed terminal reasons and SDK/exit-code mapping.
+
+For every recovery path, say what is retried, what state is retained, what is discarded, whether tools can repeat, and which external side effects survive. Include one failure chain where a local file change is recoverable but a remote action is not.
+
 ## Field guide
 
 Explain how to read every JSONL family, not every row in prose. Cover:
@@ -147,9 +242,15 @@ Group related fields into a mechanism. A new telemetry event alone is an observa
 Before publication, verify:
 
 - README first screen links all human documents;
+- the mechanism atlas links every deep topic and lets a reader choose by user problem;
+- public research has retrieval dates and clearly separates `Public`, `Static`, `Probe`, and `Boundary` evidence;
 - a reader can follow one request without opening JSONL;
 - Agent Loop explains streaming tool start, concurrency barriers, permission order, result feedback, max turns, Stop hook re-entry, fallback side effects, and every terminal class;
 - context/cache contains real thresholds and a cost example;
+- sessions/checkpoints/memory distinguishes message graph, transcript, file history, prompt cache, memory, process state, and external state;
+- tools/permissions/hooks states the exact execution order, mode set, fail-closed paths, and whether a failed layer called the tool;
+- MCP/agents/background explains generation refresh, deferred schema, child isolation, task/mailbox state, durability, and coordination cost;
+- resilience/recovery distinguishes every retry/fallback counter and states which side effects remain;
 - inventory field guide explains unresolved dynamic data honestly;
 - telemetry distinguishes first-party, OTEL, Datadog, GrowthBook, error reporting, and local diagnostics;
 - risk control distinguishes local execution governance from unobserved server-side abuse scoring;

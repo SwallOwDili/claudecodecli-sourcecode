@@ -51,11 +51,47 @@ def read_lines(repo: Path, branch: str, path: str) -> set[str]:
 
 
 def read_inventory_lines(repo: Path, branch: str, path: str) -> set[str]:
-    return {
+    lines = [
         line.rstrip()
         for line in show(repo, branch, path, text=True).splitlines()
         if line.rstrip()
-    }
+    ]
+    if not path.endswith(".jsonl"):
+        return set(lines)
+    values: set[str] = set()
+    for line in lines:
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            values.add(line)
+            continue
+        comparison_key = record.get("comparisonKey")
+        comparison_value = record.get("comparisonValue")
+        if isinstance(comparison_key, str) and isinstance(comparison_value, str):
+            values.add(f"{comparison_key}\t{comparison_value}")
+        else:
+            for field in (
+                "offset",
+                "line",
+                "column",
+                "locations",
+                "exportOffset",
+                "exportLine",
+                "exportColumn",
+                "builderOffset",
+                "builderLine",
+                "builderColumn",
+            ):
+                record.pop(field, None)
+            values.add(
+                json.dumps(
+                    record,
+                    sort_keys=True,
+                    ensure_ascii=True,
+                    separators=(",", ":"),
+                )
+            )
+    return values
 
 
 def tree_paths(repo: Path, branch: str, prefix: str) -> set[str]:

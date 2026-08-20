@@ -1,0 +1,5 @@
+https://api.datadoghq.com/mcp
+https://browser-intake-us5-datadoghq.com/api/v2/logs
+https://cdn.growthbook.io
+https://http-intake.logs.us5.datadoghq.com/api/v2/logs
+https://otel.example.com

@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 全量可提取能力面
 
-本文是发布 bundle 的能力地图。机器清单负责穷举稳定字面量，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
+本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
 ## 证据等级
 
@@ -22,13 +22,21 @@
 | 清单 | 数量 | 说明 |
 | --- | ---: | --- |
 | [environment-access-identifiers](source-inventory/environment-access-identifiers.txt) | 1,300 | direct、environment proxy 和广义标识的并集 |
+| [environment-access-callsites](source-inventory/environment-access-callsites.jsonl) | 2,548 | AST 识别的实际访问点、accessor、fallback 和位置 |
 | [direct-process-environment-accesses](source-inventory/direct-process-environment-accesses.txt) | 453 | 直接 `process.env` 静态访问 |
+| [dynamic-process-environment-callsites](source-inventory/dynamic-process-environment-callsites.jsonl) | 143 | 动态 `process.env[expression]`，保留表达式 |
 | [environment-proxy-accesses](source-inventory/environment-proxy-accesses.txt) | 589 | bundle 环境代理对象静态属性访问 |
 | [environment-like-identifiers](source-inventory/environment-like-identifiers.txt) | 1,048 | 广义环境形态 token，含依赖项 |
+| [environment-schema](source-inventory/environment-schema.jsonl) | 842 | typed env builder、类型、options 和导出映射 |
 | [otel-environment-variables](source-inventory/otel-environment-variables.txt) | 77 | OTEL 和相关遥测变量 |
+| [observability-environment-schema](source-inventory/observability-environment-schema.jsonl) | 71 | typed env schema 的观测子集 |
+| [observability-environment-defaults](source-inventory/observability-environment-defaults.jsonl) | 23 | 观测变量的 `??`/`||` fallback 表达式 |
 | [feature-flags](source-inventory/feature-flags.txt) | 355 | `et()` 静态 feature key |
+| [feature-flag-callsites](source-inventory/feature-flag-callsites.jsonl) | 498 | 全部 `et()` 调用及动态/作用域解析状态 |
 | [growthbook-keys](source-inventory/growthbook-keys.txt) | 6 | `CB()` 静态 GrowthBook key |
+| [growthbook-callsites](source-inventory/growthbook-callsites.jsonl) | 12 | 全部 `CB()` 调用及动态表达式 |
 | [root-settings-keys](source-inventory/root-settings-keys.txt) | 156 | Claude Code 根 settings schema 键 |
+| [root-settings-schema](source-inventory/root-settings-schema.jsonl) | 160 | 156 direct + 4 spread，含 RHS、builder、description、enum/default/catch |
 | [schema-property-identifiers](source-inventory/schema-property-identifiers.txt) | 1,971 | 全 bundle schema property 候选，含依赖 schema |
 | [schema-descriptions](source-inventory/schema-descriptions.txt) | 1,150 | `.describe()` 静态说明文本 |
 | [static-enum-groups](source-inventory/static-enum-groups.tsv) | 201 | 静态 enum value group |
@@ -39,14 +47,19 @@
 | 清单 | 数量 | 说明 |
 | --- | ---: | --- |
 | [tengu-identifiers](source-inventory/tengu-identifiers.txt) | 1,939 | 所有静态 `tengu_*` 标识 |
+| [observability-identifiers](source-inventory/observability-identifiers.txt) | 149 | telemetry/log/debug/profile/recording 相关稳定标识 |
+| [observability-templates](source-inventory/observability-templates.jsonl) | 166 | 观测相关 template 及插值表达式 |
+| [telemetry-endpoints](source-inventory/telemetry-endpoints.txt) | 5 | 观测形态 endpoint 候选，含依赖示例，需按 callsite 定性 |
 | [first-party-events](source-inventory/first-party-events.txt) | 1,436 | 一方静态事件名 |
 | [first-party-event-templates](source-inventory/first-party-event-templates.txt) | 3 | 归一化动态模板 |
+| [first-party-event-callsites](source-inventory/first-party-event-callsites.jsonl) | 2,194 | 全部 `H`/`Fv` 调用、参数、scope 和 payload/spread |
 | [first-party-event-fields](source-inventory/first-party-event-fields.tsv) | 1,411 | 一方 event 到显式顶层字段映射 |
 | [first-party-event-families](source-inventory/first-party-event-families.tsv) | 40 | 一方事件 family 计数 |
 | [first-party-event-schema-fields](source-inventory/first-party-event-schema-fields.txt) | 34 | 一方 internal-event envelope 字段 |
 | [first-party-environment-fields](source-inventory/first-party-environment-fields.txt) | 36 | 一方 environment envelope 字段 |
 | [third-party-otel-events](source-inventory/third-party-otel-events.txt) | 26 | 第三方 OTEL structured event |
 | [third-party-otel-event-fields](source-inventory/third-party-otel-event-fields.tsv) | 26 | OTEL event 到字段映射 |
+| [otel-event-callsites](source-inventory/otel-event-callsites.jsonl) | 52 | 全部 `Nd()` 调用和动态事件表达式 |
 | [otel-metrics](source-inventory/otel-metrics.tsv) | 8 | metric 名、unit、description |
 | [otel-spans](source-inventory/otel-spans.txt) | 10 | trace span 名 |
 | [datadog-forwarded-events](source-inventory/datadog-forwarded-events.txt) | 181 | Datadog allowlist |
@@ -66,8 +79,13 @@
 | [named-component-identifiers](source-inventory/named-component-identifiers.txt) | 182 | name+description 组件，含依赖组件 |
 | [slash-command-identifiers](source-inventory/slash-command-identifiers.txt) | 103 | local/local-jsx/prompt slash command |
 | [model-identifiers](source-inventory/model-identifiers.txt) | 37 | Claude model literal |
+| [model-catalog](source-inventory/model-catalog.jsonl) | 17 | 完整 baked model 条目及 resolved pricing |
+| [model-pricing-tiers](source-inventory/model-pricing-tiers.jsonl) | 6 | 输入/输出/cache/web-search 定价 tier |
+| [model-aliases](source-inventory/model-aliases.jsonl) | 4 | family alias 及 provider-specific resolution |
+| [model-catalog-metadata](source-inventory/model-catalog-metadata.jsonl) | 1 | schema version、latest family、best/default 元数据 |
 | [anthropic-beta-identifiers](source-inventory/anthropic-beta-identifiers.txt) | 53 | date-suffixed beta/API version literal |
 | [api-paths](source-inventory/api-paths.txt) | 99 | 静态 API path |
+| [api-path-templates](source-inventory/api-path-templates.jsonl) | 119 | 动态 API/path template 和插值表达式 |
 | [http-route-identifiers](source-inventory/http-route-identifiers.txt) | 19 | `METHOD /path` route 标识 |
 | [runtime-requires](source-inventory/runtime-requires.txt) | 54 | 静态 runtime `require()` target |
 
@@ -78,8 +96,15 @@
 | [claude-storage-namespaces](source-inventory/claude-storage-namespaces.txt) | 29 | Claude storage key factory namespace |
 | [storage-namespaces](source-inventory/storage-namespaces.txt) | 41 | 全 bundle namespace，含依赖 |
 | [error-message-literals](source-inventory/error-message-literals.txt) | 2,248 | Error/TypeError/RangeError 静态 literal |
+| [error-message-callsites](source-inventory/error-message-callsites.jsonl) | 4,831 | 全部 Error/TypeError/RangeError 调用及参数/scope |
+| [error-message-templates](source-inventory/error-message-templates.jsonl) | 1,526 | error 第一个参数的 template/expression 记录 |
 | [diagnostic-message-literals](source-inventory/diagnostic-message-literals.txt) | 830 | `T()` debug/diagnostic literal |
+| [diagnostic-message-callsites](source-inventory/diagnostic-message-callsites.jsonl) | 5,403 | 全部 `T()` 调用及参数/scope |
+| [diagnostic-message-templates](source-inventory/diagnostic-message-templates.jsonl) | 4,438 | diagnostic 第一个参数的 template/expression 记录 |
+| [static-string-literals](source-inventory/static-string-literals.jsonl) | 85,095 | 260,838 次 quoted-string occurrence 的全量归组 |
+| [template-literals](source-inventory/template-literals.jsonl) | 25,187 | 30,114 次 template occurrence 的全量归组 |
 | [urls](source-inventory/urls.txt) | 557 | 静态 URL |
+| [url-templates](source-inventory/url-templates.jsonl) | 236 | URL template 和插值表达式 |
 | [endpoint-hosts](source-inventory/endpoint-hosts.txt) | 179 | URL 归一化 host |
 
 ## Build、package 和 runtime
@@ -103,16 +128,16 @@
 
 ## Settings、环境、schema 和 enum
 
-- 根 settings schema 恢复 156 个键，适合声明“Claude Code 配置面”。
+- 根 settings schema 恢复 156 个 direct 键和 4 个 spread；结构化清单保存每个 RHS、builder、description、enum、default/catch 和未解析 spread。
 - 1,971 schema property、1,150 description、201 enum group 是更广集合，包含 SDK、MCP、OTEL、依赖库和内嵌文档 schema，不能全部称为用户 setting。
 - settings 来源包含 policy/managed、flag、user、project、local、CLI 和 host/remote 注入；不同字段有 scope、trust、remote policy 和 merge precedence。
 - project/local 不允许覆盖某些 user-only setting，例如本版本新增的 spellcheck。
-- environment 既有 direct `process.env`，也有统一代理和 host-safe env union；1,300 并集是调用线索，不代表 1,300 个公开支持变量。
+- environment 既有 direct `process.env`，也有统一代理和 host-safe env union；2,548 个实际访问点、143 个动态 key 和 842 个 typed schema entry 可逐项比较。1,300 并集仍是调用线索，不代表 1,300 个公开支持变量。
 - `safe mode`、`bare mode`、managed settings、strict policy helper keys、remote managed settings 都会改变加载面。
 
 ## 模型、provider、auth 和 beta
 
-- 内置 model catalog 同时记录 family、provider ID、context window、output limit、pricing tier、capabilities、default effort、fallback、image limit 和 advisor rank。
+- 17 条内置 model catalog 同时记录 family、所有 provider ID、knowledge cutoff、context window、output limit、6 个 pricing tier、capabilities、default/各档 effort、fallback、image limit 和 advisor rank；4 个 alias 记录默认及 provider-specific resolution。
 - provider 面包括 first-party、Bedrock、Vertex、Foundry、Anthropic AWS、Anthropic Google Cloud、Mantle、gateway/企业 base URL。
 - auth 面包括 Claude subscription OAuth、API key、auth token、managed key、apiKeyHelper、AWS/GCP helper、WIF、mTLS、proxy auth 和 host credential file。
 - credential helper 有 TTL、权限和输出校验；credentials file 要求严格文件权限。
@@ -213,7 +238,7 @@
 - request 构建覆盖 model alias/provider ID、betas、thinking/effort、tools、streaming、prompt cache、structured output、compaction/context management。
 - retry 覆盖 network、timeout、429/5xx、overloaded、auth refresh、fallback model/provider、watchdog 和 max retries；不同路径的 retry 语义需按 callsite 分开。
 - rate limit、service tier、token/cost、cache read/write、web search、context/output limit 在 schema/model catalog/telemetry 中均有字段。
-- 2,248 个 error literal 和 830 个 diagnostic literal 是完整静态字面量集合；动态 template 只保留在 canonical source。
+- 2,248 个 error literal 和 830 个 diagnostic literal 是去重静态集合；4,831/5,403 个完整调用点以及 1,526/4,438 个动态模板参数另存 JSONL，不再只留在 canonical source。
 - compact 覆盖自动/手动、关闭时的 context-limit 提示、compaction event/span、summary/retention 和 resume consistency。
 
 ## 维护规则
@@ -226,3 +251,4 @@
 4. 把新字面量先归类为 product、dependency、embedded docs 或 heuristic，再写能力结论。
 5. 更新 telemetry、risk-control、native contract、README 和 release delta。
 6. 扫描所有可发布文件中的采集机 home、workspace 和 credential-shaped value；只允许 `extracted/`、`reverse/` 保留发布产物自身携带的上游构建路径证据。
+7. 要求 `completionAudit` 的全部布尔项为 true 且 `knownStaticExtractionGaps` 为空；不可恢复边界只能是发布产物本身不存在的运行时/服务端/构建前信息。

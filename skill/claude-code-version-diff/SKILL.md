@@ -24,7 +24,7 @@ Read [references/snapshot-contract.md](references/snapshot-contract.md) before c
 5. Keep JavaScript, native helpers, assets, and the manifest. Add JSC bytecode and deep static-analysis artifacts when deep reverse is requested.
 6. Store the primary packed module as `extracted/cli.js`; retain every other packed filename under `extracted/`.
 7. Capture `VERSION`, `analysis/version.json`, the raw unpack manifest, exact upstream release notes for the version, a normalized CLI option/command inventory, and an evidence-based risk-control surface.
-8. Run `scripts/extract_source_inventory.py <repo>` against canonical `extracted/cli.js`. Commit every generated file and `analysis/source-inventory/summary.json`; never hand-edit generated inventories.
+8. Run `scripts/extract_source_inventory.py <repo>` against canonical `extracted/cli.js`. It requires Node or Bun and the vendored Acorn 8.15.0 parser. Commit every generated file and `analysis/source-inventory/summary.json`; never hand-edit generated inventories.
 9. Write `analysis/telemetry.md` and `analysis/source-surface.md`. Cover every generated inventory category, all telemetry/export/log/profile paths, and the complete product capability surface. Separate product schema from dependency/embedded-doc heuristics.
 10. Write the README with the version-specific delta, complete capability surface, inventory counts/links, telemetry defaults/privacy controls, native reconstruction status, and evidence boundaries.
 11. Run `scripts/validate_snapshot.py` before committing. It regenerates source inventories in a temporary directory, validates `reverse/` when present, and rejects capture-machine home/workspace paths or credential-shaped values outside canonical packed/reverse evidence.
@@ -74,6 +74,7 @@ Lead with observed changes:
 - provider/config/feature identifiers;
 - endpoint hosts;
 - every inventory file registered in `analysis/source-inventory/summary.json`, including event/field schemas, OTEL, Datadog, settings/schema, tools/commands, hooks/protocol, models/betas, storage, APIs, errors/diagnostics, URLs/hosts, and runtime requires;
+- semantic JSONL rows via `comparisonKey` / `comparisonValue`, so source offsets, line wrapping, and minifier movement do not masquerade as behavior changes;
 - source and analysis churn;
 - JSC bytecode size/hash and readable-JavaScript size;
 - native architecture, dependency, import/export, and Swift project-symbol changes;
@@ -112,9 +113,13 @@ Keep hashes and byte counts machine-readable in `analysis/version.json`; do not 
 - count per category;
 - path, line count, size, and SHA-256 for every generated file.
 
-The validator must regenerate the entire directory to a temporary location and compare exact bytes. A passing check requires the committed summary, file set, counts, hashes, and canonical source hash to match regeneration.
+The current inventory contract uses vendored Acorn 8.15.0 with `ecmaVersion=latest`. It must record every AST callsite for `H`, `Fv`, `Nd`, `et`, `CB`, `T`, `Error`, `TypeError`, and `RangeError`; lexical function scope and nearest resolvable assignment; all arguments; static, template, conditional, identifier, member/call, and unresolved name expressions; payload properties, computed keys, shorthand, recursively resolvable spreads, and unresolved spreads; every quoted string and template occurrence; every static and dynamic environment access; typed environment builders/defaults; the complete root settings object; and the complete baked model catalog, pricing, aliases, and metadata.
 
-Broad regex inventories such as environment-shaped identifiers, schema properties, storage namespaces, named components, URLs, and beta identifiers can include third-party dependencies or embedded documentation. Keep those labels heuristic. Dedicated parsers for root settings, static event callsites/fields, tool/command objects, hook events, SDK subtypes, and Claude storage namespaces have stronger evidence but still cannot expand computed keys, spreads, runtime remote config, or server-side behavior.
+Every JSONL row must carry `comparisonKey` and `comparisonValue`. The comparison value excludes location-only fields but preserves the semantic expression, payload, schema, or catalog value. Long, credential-shaped, or user-home-shaped values retain length, SHA-256, and locations without duplicating their content outside canonical evidence.
+
+The validator must regenerate the entire directory to a temporary location and compare exact bytes. A passing check requires the committed summary, file set, counts, hashes, canonical source hash, Acorn version, JSONL comparison fields, target-callsite totals, and completion audit to match regeneration. `completionAudit` must confirm all target callsites and lexical literals are recorded, dynamic expressions are retained, settings keys match structured rows, the model catalog is parsed, and `knownStaticExtractionGaps` is empty.
+
+Broad regex inventories such as environment-shaped identifiers, schema properties, storage namespaces, named components, URLs, and beta identifiers can include third-party dependencies or embedded documentation. Keep those labels heuristic. AST and structured parsers retain computed keys, spreads, and dynamic expressions without executing them. Runtime values returned by remote config/APIs/user files/environment variables, server-side behavior, and source removed before shipping remain outside the artifact and must be listed only as non-recoverable boundaries.
 
 ## Publication privacy
 

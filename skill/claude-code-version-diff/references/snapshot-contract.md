@@ -15,7 +15,7 @@ analysis/risk-control-surface.txt
 analysis/telemetry.md
 analysis/source-surface.md
 analysis/source-inventory/summary.json
-analysis/source-inventory/*.{txt,tsv}
+analysis/source-inventory/*.{txt,tsv,jsonl}
 skill/claude-code-version-diff/...
 reverse/...                        Required when deep reverse is requested
 reconstructed/...                  Required when native source reconstruction is requested
@@ -45,6 +45,8 @@ Required top-level fields:
 - Native source reconstruction must remain under `reconstructed/`, carry evidence labels, and never replace the packed `.node` baseline.
 - Generated source inventories must come only from canonical `extracted/cli.js`; do not generate them from the readable JavaScript view or hand-edit them.
 - `analysis/source-inventory/summary.json` must record the canonical source hash plus every generated file's path, line count, size, and SHA-256.
+- Source inventory format v3 must record vendored Acorn 8.15.0 as the JavaScript parser. Node or Bun may host it, but parser semantics must not depend on an unpinned global package.
+- Every JSONL row must contain stable `comparisonKey` and `comparisonValue` fields. Location fields remain evidence but are excluded from semantic comparison values.
 - Broad inventories must document dependency/embedded-document contamination boundaries. Do not label all environment-shaped tokens, schema properties, namespaces, URLs, or named components as user-facing Claude Code settings.
 
 ## Deep-reverse files
@@ -98,6 +100,8 @@ python3 skill/claude-code-version-diff/scripts/extract_source_inventory.py <repo
 
 The validator must regenerate into a temporary directory and compare exact bytes for the summary and every inventory file. It must also check required non-empty categories and reject stale, missing, extra, or manually edited artifacts.
 
+The summary completion audit must prove all target `H`/`Fv`/`Nd`/`et`/`CB` and message callsites are recorded, all lexical strings/templates are counted, dynamic expressions and unresolved spreads are retained, root settings direct keys match structured rows, the baked model catalog is parsed, and `knownStaticExtractionGaps` is empty. Non-recoverable boundaries must be limited to values/code absent from the release artifact, such as runtime remote data, server-side behavior, or pre-bundle source removed by the build.
+
 ## Native reconstruction files
 
 When `reconstructed/` exists, require:
@@ -122,11 +126,12 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 
 1. Source inventory extractor reruns deterministically.
 2. Snapshot validator exits zero and reports source inventory files checked plus capture-path privacy PASS.
-3. Skill validator exits zero.
-4. Deep-reverse validator exits zero when `reverse/` exists.
-5. Git branch name equals `VERSION`.
-6. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
-7. Privacy scanning covers tracked files and untracked publish candidates, not only the current Git index.
-8. Working tree contains only intended snapshot files before commit.
-9. Local commit is present on the requested remote branch after push.
-10. A fresh remote checkout passes validation and contains no capture-machine home/workspace path.
+3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
+4. Skill validator exits zero.
+5. Deep-reverse validator exits zero when `reverse/` exists.
+6. Git branch name equals `VERSION`.
+7. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
+8. Privacy scanning covers tracked files and untracked publish candidates, not only the current Git index.
+9. Working tree contains only intended snapshot files before commit.
+10. Local commit is present on the requested remote branch after push.
+11. A fresh remote checkout passes validation and contains no capture-machine home/workspace path.

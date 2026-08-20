@@ -39,6 +39,25 @@ SOURCE_INVENTORY_MINIMUMS = {
     "schema-property-identifiers": 1,
     "error-message-literals": 1,
     "endpoint-hosts": 1,
+    "first-party-event-callsites": 1,
+    "otel-event-callsites": 1,
+    "feature-flag-callsites": 1,
+    "growthbook-callsites": 1,
+    "error-message-callsites": 1,
+    "error-message-templates": 1,
+    "diagnostic-message-callsites": 1,
+    "diagnostic-message-templates": 1,
+    "static-string-literals": 1,
+    "template-literals": 1,
+    "environment-access-callsites": 1,
+    "dynamic-process-environment-callsites": 1,
+    "environment-schema": 1,
+    "observability-environment-schema": 1,
+    "observability-environment-defaults": 1,
+    "root-settings-schema": 1,
+    "model-catalog": 1,
+    "model-pricing-tiers": 1,
+    "model-aliases": 1,
 }
 
 
@@ -90,6 +109,12 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
     if not extractor.is_file():
         failures.append("missing source inventory extractor")
         return 0
+    parser_helper = extractor.with_name("parse_javascript_surface.mjs")
+    acorn = extractor.parent.parent / "vendor/acorn/acorn.mjs"
+    acorn_license = extractor.parent.parent / "vendor/acorn/LICENSE"
+    for required in (parser_helper, acorn, acorn_license):
+        if not required.is_file():
+            failures.append(f"missing source inventory parser dependency: {required.name}")
 
     try:
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -97,8 +122,11 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         failures.append(f"invalid source inventory summary: {error}")
         return 0
 
-    if summary.get("formatVersion", 0) < 2:
-        failures.append("source inventory formatVersion must be at least 2")
+    if summary.get("formatVersion", 0) < 3:
+        failures.append("source inventory formatVersion must be at least 3")
+    parser = summary.get("javascriptParser", {})
+    if parser.get("name") != "acorn" or parser.get("version") != "8.15.0":
+        failures.append("source inventory must use vendored Acorn 8.15.0")
     source = repo / "extracted/cli.js"
     canonical = summary.get("canonicalSource", {})
     if canonical.get("path") != "extracted/cli.js":
@@ -115,6 +143,42 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
             failures.append(
                 f"source inventory {name!r} count is missing or below {minimum}"
             )
+
+    completion = summary.get("completionAudit", {})
+    for field in (
+        "allTargetCallsitesRecorded",
+        "allLexicalLiteralsRecorded",
+        "dynamicExpressionsRetained",
+        "rootSettingsKeysMatchStructuredRows",
+        "modelCatalogParsed",
+    ):
+        if completion.get(field) is not True:
+            failures.append(f"source inventory completion audit failed: {field}")
+    if completion.get("knownStaticExtractionGaps") != []:
+        failures.append("source inventory reports known static extraction gaps")
+
+    target_coverage = summary.get("coverage", {}).get("targetCallsites", {})
+    expected_target_files = {
+        "H": "first-party-event-callsites",
+        "Fv": "first-party-event-callsites",
+        "Nd": "otel-event-callsites",
+        "et": "feature-flag-callsites",
+        "CB": "growthbook-callsites",
+    }
+    for callee, inventory_name in expected_target_files.items():
+        total = target_coverage.get(callee, {}).get("total")
+        if not isinstance(total, int) or total < 1:
+            failures.append(f"source inventory callsite coverage missing for {callee}")
+    first_party_total = sum(
+        target_coverage.get(callee, {}).get("total", 0) for callee in ("H", "Fv")
+    )
+    if first_party_total != counts.get("first-party-event-callsites"):
+        failures.append("first-party callsite coverage does not match JSONL count")
+    for callee in ("Nd", "et", "CB"):
+        if target_coverage.get(callee, {}).get("total") != counts.get(
+            expected_target_files[callee]
+        ):
+            failures.append(f"{callee} callsite coverage does not match JSONL count")
 
     entries = summary.get("files", [])
     expected_names: set[str] = set()
@@ -135,6 +199,29 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
             failures.append(f"source inventory size mismatch: {relative}")
         if entry.get("sha256") != sha256(path):
             failures.append(f"source inventory hash mismatch: {relative}")
+        if path.suffix == ".jsonl":
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    for line_number, line in enumerate(handle, 1):
+                        if not line.strip():
+                            failures.append(
+                                f"blank JSONL record: {relative}:{line_number}"
+                            )
+                            continue
+                        record = json.loads(line)
+                        if not isinstance(record, dict):
+                            failures.append(
+                                f"non-object JSONL record: {relative}:{line_number}"
+                            )
+                            continue
+                        if not isinstance(record.get("comparisonKey"), str) or not isinstance(
+                            record.get("comparisonValue"), str
+                        ):
+                            failures.append(
+                                f"missing comparison fields: {relative}:{line_number}"
+                            )
+            except (json.JSONDecodeError, UnicodeDecodeError) as error:
+                failures.append(f"invalid JSONL inventory {relative}: {error}")
 
     committed_names = {
         path.name

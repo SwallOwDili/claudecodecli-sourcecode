@@ -7,9 +7,13 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
+import subprocess
 import sys
-from collections import Counter
+from bisect import bisect_right
+from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 
@@ -103,6 +107,32 @@ ERROR_MESSAGE_RE = re.compile(
 DIAGNOSTIC_MESSAGE_RE = re.compile(
     rb"\bT\(\s*['\"](?P<message>(?:\\.|[^'\"]){1,1000})['\"]"
 )
+PERSONAL_PATH_RE = re.compile(
+    rb"(?:/" + rb"Users/[^/\x00\r\n]+(?:/|$)|/" + rb"home/[^/\x00\r\n]+(?:/|$)|"
+    rb"[A-Za-z]:\\Users\\[^\\\x00\r\n]+(?:\\|$))"
+)
+SECRET_RE = re.compile(
+    rb"(?:sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|"
+    rb"AKIA[A-Z0-9]{16}|AIza[A-Za-z0-9_-]{30,})"
+)
+IDENTIFIER_RE = re.compile(rb"^[A-Za-z_$][A-Za-z0-9_$]*$")
+OBSERVABILITY_NAME_RE = re.compile(
+    r"(?:OTEL|TELEMETR|DATADOG|DD_ERROR|DEBUG|DIAGNOSTIC|PROFILE|PERFETTO|"
+    r"FRAME_TIMING|SESSION_LOG|TRANSCRIPT|TERMINAL_RECORDING|PTY_RECORD|"
+    r"BENCH_LIVE_COUNTS|ANT_CLAUDE_CODE_METRICS_ENDPOINT)",
+    re.IGNORECASE,
+)
+API_TEMPLATE_PREFIXES = (
+    "/api/",
+    "/v1/",
+    "/v2/",
+    "/oauth/",
+    "/mcp-registry/",
+    "/worker/",
+    "/managed/",
+    "/sessions/",
+    "/.well-known/",
+)
 
 BUILTIN_TOOL_NAMES = {
     "Artifact",
@@ -161,11 +191,142 @@ def write_lines(path: Path, values: set[str] | list[str]) -> int:
     return len(ordered)
 
 
+def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "".join(
+            json.dumps(row, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+            + "\n"
+            for row in rows
+        ),
+        encoding="utf-8",
+    )
+    return len(rows)
+
+
+def bytes_sha256(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def is_identifier_start(value: int) -> bool:
+    return chr(value).isalpha() or value in (36, 95)
+
+
+def is_identifier_part(value: int) -> bool:
+    return chr(value).isalnum() or value in (36, 95)
+
+
+def skip_space(source: bytes, index: int, end: int | None = None) -> int:
+    limit = len(source) if end is None else end
+    while index < limit and source[index] in b" \t\r\n":
+        index += 1
+    return index
+
+
+def trim_range(source: bytes, start: int, end: int) -> tuple[int, int]:
+    while start < end and source[start] in b" \t\r\n":
+        start += 1
+    while end > start and source[end - 1] in b" \t\r\n":
+        end -= 1
+    return start, end
+
+
+class LineLocator:
+    def __init__(self, source: bytes):
+        self.starts = [0]
+        self.starts.extend(match.end() for match in re.finditer(rb"\n", source))
+
+    def locate(self, offset: int) -> tuple[int, int]:
+        line_index = bisect_right(self.starts, offset) - 1
+        return line_index + 1, offset - self.starts[line_index] + 1
+
+
+def safe_source_text(value: bytes, limit: int = 8192) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "length": len(value),
+        "sha256": bytes_sha256(value),
+    }
+    if len(value) > limit:
+        record["omitted"] = "length"
+    elif PERSONAL_PATH_RE.search(value):
+        record["omitted"] = "personal-path-shaped"
+    elif SECRET_RE.search(value):
+        record["omitted"] = "credential-shaped"
+    else:
+        record["text"] = decode(value)
+    return record
+
+
+def sanitize_human_text(value: str) -> str:
+    value = re.sub(r"/" + r"Users/[^/\s]+", "$HOME", value)
+    value = re.sub(r"/" + r"home/[^/\s]+", "$HOME", value)
+    value = re.sub(r"[A-Za-z]:\\Users\\[^\\\s]+", "$HOME", value)
+    return value
+
+
+def load_javascript_surface(source_path: Path) -> dict[str, Any]:
+    helper = Path(__file__).with_name("parse_javascript_surface.mjs")
+    node = shutil.which("node")
+    bun = shutil.which("bun")
+    if node:
+        command = [node, "--max-old-space-size=4096", str(helper), str(source_path)]
+    elif bun:
+        command = [bun, str(helper), str(source_path)]
+    else:
+        raise RuntimeError("source inventory v3 requires node or bun for the vendored Acorn parser")
+    process = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if process.returncode != 0:
+        raise RuntimeError(
+            "Acorn source parser failed: "
+            + process.stderr.decode("utf-8", errors="replace").strip()
+        )
+    result = json.loads(process.stdout)
+    parser = result.get("parser", {})
+    if parser.get("name") != "acorn" or parser.get("version") != "8.15.0":
+        raise RuntimeError(f"unexpected JavaScript parser metadata: {parser!r}")
+    return result
+
+
+def template_expression_ranges(
+    source: bytes, opening: int
+) -> tuple[int, list[tuple[int, int]]]:
+    expressions: list[tuple[int, int]] = []
+    index = opening + 1
+    while index < len(source):
+        current = source[index]
+        if current == 92:
+            index += 2
+            continue
+        if current == 96:
+            return index + 1, expressions
+        if current == 36 and index + 1 < len(source) and source[index + 1] == 123:
+            closing = find_matching(source, index + 1)
+            if closing < 0:
+                return len(source), expressions
+            expressions.append((index + 2, closing))
+            index = closing + 1
+            continue
+        index += 1
+    return len(source), expressions
+
+
+def skip_template(source: bytes, index: int) -> int:
+    end, _ = template_expression_ranges(source, index)
+    return end
+
+
 def static_values(pattern: re.Pattern[bytes], source: bytes, group: str | int = 1) -> set[str]:
     return {decode(match.group(group)) for match in pattern.finditer(source)}
 
 
 def skip_quoted(source: bytes, index: int, quote: int) -> int:
+    if quote == 96:
+        return skip_template(source, index)
     index += 1
     while index < len(source):
         current = source[index]
@@ -176,6 +337,236 @@ def skip_quoted(source: bytes, index: int, quote: int) -> int:
             return index + 1
         index += 1
     return index
+
+
+def split_top_level_ranges(
+    source: bytes, start: int, end: int
+) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    item_start = start
+    paren_depth = 0
+    brace_depth = 0
+    bracket_depth = 0
+    index = start
+    while index < end:
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < end:
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if current == 40:
+            paren_depth += 1
+        elif current == 41:
+            paren_depth = max(0, paren_depth - 1)
+        elif current == 123:
+            brace_depth += 1
+        elif current == 125:
+            brace_depth = max(0, brace_depth - 1)
+        elif current == 91:
+            bracket_depth += 1
+        elif current == 93:
+            bracket_depth = max(0, bracket_depth - 1)
+        elif (
+            current == 44
+            and paren_depth == 0
+            and brace_depth == 0
+            and bracket_depth == 0
+        ):
+            item = trim_range(source, item_start, index)
+            if item[0] < item[1]:
+                ranges.append(item)
+            item_start = index + 1
+        index += 1
+    item = trim_range(source, item_start, end)
+    if item[0] < item[1]:
+        ranges.append(item)
+    return ranges
+
+
+def find_top_level_byte(source: bytes, start: int, end: int, target: int) -> int:
+    paren_depth = 0
+    brace_depth = 0
+    bracket_depth = 0
+    index = start
+    while index < end:
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < end:
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if current == 40:
+            paren_depth += 1
+        elif current == 41:
+            paren_depth = max(0, paren_depth - 1)
+        elif current == 123:
+            brace_depth += 1
+        elif current == 125:
+            brace_depth = max(0, brace_depth - 1)
+        elif current == 91:
+            bracket_depth += 1
+        elif current == 93:
+            bracket_depth = max(0, bracket_depth - 1)
+        elif (
+            current == target
+            and paren_depth == 0
+            and brace_depth == 0
+            and bracket_depth == 0
+        ):
+            return index
+        index += 1
+    return -1
+
+
+def scan_expression_end(source: bytes, start: int) -> int:
+    paren_depth = 0
+    brace_depth = 0
+    bracket_depth = 0
+    index = start
+    while index < len(source):
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < len(source):
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if current == 40:
+            paren_depth += 1
+        elif current == 123:
+            brace_depth += 1
+        elif current == 91:
+            bracket_depth += 1
+        elif current == 41:
+            if paren_depth == 0 and brace_depth == 0 and bracket_depth == 0:
+                return trim_range(source, start, index)[1]
+            paren_depth -= 1
+        elif current == 125:
+            if brace_depth == 0 and paren_depth == 0 and bracket_depth == 0:
+                return trim_range(source, start, index)[1]
+            brace_depth -= 1
+        elif current == 93:
+            if bracket_depth == 0 and paren_depth == 0 and brace_depth == 0:
+                return trim_range(source, start, index)[1]
+            bracket_depth -= 1
+        elif (
+            current in (44, 59)
+            and paren_depth == 0
+            and brace_depth == 0
+            and bracket_depth == 0
+        ):
+            return trim_range(source, start, index)[1]
+        index += 1
+    return trim_range(source, start, len(source))[1]
+
+
+def expression_kind(source: bytes, start: int, end: int) -> str:
+    start, end = trim_range(source, start, end)
+    if start >= end:
+        return "empty"
+    value = source[start:end]
+    if value[0] in (34, 39):
+        return "string"
+    if value[0] == 96:
+        return "template"
+    if value[0] == 123:
+        return "object"
+    if value[0] == 91:
+        return "array"
+    if IDENTIFIER_RE.fullmatch(value):
+        return "identifier"
+    if re.fullmatch(rb"(?:!0|!1|true|false|null|undefined|void\s+0)", value):
+        return "primitive"
+    if re.fullmatch(rb"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?", value, re.I):
+        return "number"
+    if re.match(rb"^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+", value):
+        return "member-or-call"
+    if re.match(rb"^(?:new\s+)?[A-Za-z_$][A-Za-z0-9_$]*\s*\(", value):
+        return "call"
+    if b"=>" in value:
+        return "function"
+    if b"?" in value:
+        return "conditional"
+    return "expression"
+
+
+def static_string_value(source: bytes, start: int, end: int) -> str | None:
+    start, end = trim_range(source, start, end)
+    if end - start < 2 or source[start] not in (34, 39):
+        return None
+    closing = skip_quoted(source, start, source[start])
+    if closing != end:
+        return None
+    return decode(source[start + 1 : end - 1])
+
+
+def normalize_template(source: bytes, start: int, end: int) -> str | None:
+    start, end = trim_range(source, start, end)
+    if end - start < 2 or source[start] != 96:
+        return None
+    closing, expressions = template_expression_ranges(source, start)
+    if closing != end:
+        return None
+    parts: list[bytes] = []
+    cursor = start + 1
+    for expression_start, expression_end in expressions:
+        marker_start = expression_start - 2
+        parts.append(source[cursor:marker_start])
+        parts.append(b"${}")
+        cursor = expression_end + 1
+    parts.append(source[cursor : end - 1])
+    return decode(b"".join(parts))
+
+
+def expression_record(source: bytes, start: int, end: int) -> dict[str, Any]:
+    start, end = trim_range(source, start, end)
+    source_record = safe_source_text(source[start:end])
+    record = {
+        "kind": expression_kind(source, start, end),
+        "source": source_record,
+    }
+    value = static_string_value(source, start, end)
+    if value is not None:
+        record["staticValue"] = value
+    shape = normalize_template(source, start, end)
+    if shape is not None:
+        if "text" in source_record:
+            record["templateShape"] = sanitize_human_text(shape)
+        else:
+            record["templateShapeSha256"] = hashlib.sha256(shape.encode()).hexdigest()
+        _, expressions = template_expression_ranges(source, start)
+        record["templateExpressions"] = [
+            safe_source_text(source[item_start:item_end])
+            for item_start, item_end in expressions
+        ]
+    return record
 
 
 def skip_line_comment(source: bytes, index: int) -> int:
@@ -340,6 +731,549 @@ def object_keys(source: bytes, opening: int) -> set[str]:
     return keys
 
 
+def scan_function_ranges(source: bytes) -> list[dict[str, Any]]:
+    ranges: list[dict[str, Any]] = []
+    index = 0
+    while index < len(source):
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < len(source):
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if is_identifier_start(current):
+            token_end = index + 1
+            while token_end < len(source) and is_identifier_part(source[token_end]):
+                token_end += 1
+            if source[index:token_end] == b"function":
+                cursor = skip_space(source, token_end)
+                if cursor < len(source) and source[cursor] == 42:
+                    cursor = skip_space(source, cursor + 1)
+                name: str | None = None
+                if cursor < len(source) and is_identifier_start(source[cursor]):
+                    name_end = cursor + 1
+                    while name_end < len(source) and is_identifier_part(source[name_end]):
+                        name_end += 1
+                    name = decode(source[cursor:name_end])
+                    cursor = skip_space(source, name_end)
+                if cursor < len(source) and source[cursor] == 40:
+                    params_end = find_matching(source, cursor, 40, 41)
+                    if params_end >= 0:
+                        body_open = skip_space(source, params_end + 1)
+                        if body_open < len(source) and source[body_open] == 123:
+                            body_close = find_matching(source, body_open)
+                            if body_close >= 0:
+                                ranges.append(
+                                    {
+                                        "start": body_open,
+                                        "end": body_close,
+                                        "name": name,
+                                    }
+                                )
+            index = token_end
+            continue
+        index += 1
+
+    ranges.sort(key=lambda item: (item["start"], -item["end"]))
+    stack: list[dict[str, Any]] = []
+    for identifier, item in enumerate(ranges):
+        while stack and item["start"] > stack[-1]["end"]:
+            stack.pop()
+        item["id"] = identifier
+        item["parent"] = stack[-1]["id"] if stack else None
+        stack.append(item)
+    return ranges
+
+
+def contexts_for_offsets(
+    offsets: set[int], ranges: list[dict[str, Any]]
+) -> dict[int, int | None]:
+    result: dict[int, int | None] = {}
+    stack: list[dict[str, Any]] = []
+    range_index = 0
+    for offset in sorted(offsets):
+        while range_index < len(ranges) and ranges[range_index]["start"] <= offset:
+            item = ranges[range_index]
+            while stack and item["start"] > stack[-1]["end"]:
+                stack.pop()
+            stack.append(item)
+            range_index += 1
+        while stack and offset > stack[-1]["end"]:
+            stack.pop()
+        result[offset] = stack[-1]["id"] if stack else None
+    return result
+
+
+def function_ancestors(
+    function_id: int | None, ranges_by_id: dict[int, dict[str, Any]]
+) -> set[int | None]:
+    ancestors: set[int | None] = {None}
+    current = function_id
+    while current is not None:
+        ancestors.add(current)
+        current = ranges_by_id[current]["parent"]
+    return ancestors
+
+
+def scan_named_calls(source: bytes, names: set[str]) -> list[dict[str, Any]]:
+    encoded_names = {name.encode(): name for name in names}
+    calls: list[dict[str, Any]] = []
+
+    def scan_segment(start: int, end: int) -> None:
+        index = start
+        last_identifier: bytes | None = None
+        while index < end:
+            current = source[index]
+            if current in (34, 39):
+                index = skip_quoted(source, index, current)
+                continue
+            if current == 96:
+                template_end, expressions = template_expression_ranges(source, index)
+                for expression_start, expression_end in expressions:
+                    scan_segment(expression_start, expression_end)
+                index = template_end
+                continue
+            if current == 47 and index + 1 < end:
+                following = source[index + 1]
+                if following == 47:
+                    index = skip_line_comment(source, index)
+                    continue
+                if following == 42:
+                    index = skip_block_comment(source, index)
+                    continue
+                if regex_can_start(source, index):
+                    index = skip_regex(source, index)
+                    continue
+            if is_identifier_start(current):
+                token_end = index + 1
+                while token_end < end and is_identifier_part(source[token_end]):
+                    token_end += 1
+                token = source[index:token_end]
+                name = encoded_names.get(token)
+                if name is not None:
+                    cursor = skip_space(source, token_end, end)
+                    previous = index - 1
+                    while previous >= start and source[previous] in b" \t\r\n":
+                        previous -= 1
+                    is_member = previous >= start and source[previous] == 46
+                    if (
+                        cursor < end
+                        and source[cursor] == 40
+                        and last_identifier != b"function"
+                        and not is_member
+                    ):
+                        closing = find_matching(source, cursor, 40, 41)
+                        if closing >= 0:
+                            calls.append(
+                                {
+                                    "callee": name,
+                                    "offset": index,
+                                    "opening": cursor,
+                                    "closing": closing,
+                                    "arguments": split_top_level_ranges(
+                                        source, cursor + 1, closing
+                                    ),
+                                }
+                            )
+                last_identifier = token
+                index = token_end
+                continue
+            if current not in b" \t\r\n":
+                if current not in (46,):
+                    last_identifier = None
+            index += 1
+
+    scan_segment(0, len(source))
+    calls.sort(key=lambda item: item["offset"])
+    return calls
+
+
+def scan_assignments(
+    source: bytes, names: set[str] | None = None
+) -> dict[str, list[dict[str, Any]]]:
+    encoded_names = None if names is None else {name.encode(): name for name in names}
+    assignments: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    index = 0
+    while index < len(source):
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < len(source):
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if is_identifier_start(current):
+            token_end = index + 1
+            while token_end < len(source) and is_identifier_part(source[token_end]):
+                token_end += 1
+            token = source[index:token_end]
+            name = decode(token) if encoded_names is None else encoded_names.get(token)
+            if name is not None:
+                previous = index - 1
+                while previous >= 0 and source[previous] in b" \t\r\n":
+                    previous -= 1
+                cursor = skip_space(source, token_end)
+                if (
+                    cursor < len(source)
+                    and source[cursor] == 61
+                    and (cursor + 1 >= len(source) or source[cursor + 1] not in (61, 62))
+                    and (previous < 0 or source[previous] not in (33, 46, 60, 61, 62))
+                ):
+                    value_start = skip_space(source, cursor + 1)
+                    value_end = scan_expression_end(source, value_start)
+                    if value_start < value_end:
+                        assignments[name].append(
+                            {
+                                "offset": index,
+                                "start": value_start,
+                                "end": value_end,
+                            }
+                        )
+            index = token_end
+            continue
+        index += 1
+    return assignments
+
+
+def object_entries(source: bytes, start: int, end: int) -> list[dict[str, Any]]:
+    start, end = trim_range(source, start, end)
+    if start >= end or source[start] != 123:
+        return []
+    closing = find_matching(source, start)
+    if closing < 0 or closing + 1 != end:
+        return []
+    entries: list[dict[str, Any]] = []
+    for entry_start, entry_end in split_top_level_ranges(source, start + 1, closing):
+        if source[entry_start:entry_start + 3] == b"...":
+            spread_start, spread_end = trim_range(source, entry_start + 3, entry_end)
+            entries.append(
+                {
+                    "kind": "spread",
+                    "start": spread_start,
+                    "end": spread_end,
+                }
+            )
+            continue
+        colon = find_top_level_byte(source, entry_start, entry_end, 58)
+        if colon >= 0:
+            key_start, key_end = trim_range(source, entry_start, colon)
+            value_start, value_end = trim_range(source, colon + 1, entry_end)
+            if key_start < key_end and source[key_start] in (34, 39):
+                key = static_string_value(source, key_start, key_end)
+                kind = "property"
+            elif IDENTIFIER_RE.fullmatch(source[key_start:key_end]):
+                key = decode(source[key_start:key_end])
+                kind = "property"
+            elif key_start < key_end and source[key_start] == 91:
+                key = None
+                kind = "computed-property"
+            else:
+                key = None
+                kind = "property-expression"
+            entries.append(
+                {
+                    "kind": kind,
+                    "key": key,
+                    "keyStart": key_start,
+                    "keyEnd": key_end,
+                    "start": value_start,
+                    "end": value_end,
+                }
+            )
+            continue
+        value = source[entry_start:entry_end]
+        if IDENTIFIER_RE.fullmatch(value):
+            entries.append(
+                {
+                    "kind": "shorthand",
+                    "key": decode(value),
+                    "start": entry_start,
+                    "end": entry_end,
+                }
+            )
+        else:
+            method_match = re.match(rb"(?:get\s+|set\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", value)
+            entries.append(
+                {
+                    "kind": "method" if method_match else "unknown",
+                    "key": decode(method_match.group(1)) if method_match else None,
+                    "start": entry_start,
+                    "end": entry_end,
+                }
+            )
+    return entries
+
+
+class AssignmentResolver:
+    def __init__(
+        self,
+        source: bytes,
+        assignments: dict[str, list[dict[str, Any]]],
+    ):
+        self.source = source
+        self.assignments = assignments
+        self.positions = {
+            name: [item["offset"] for item in values]
+            for name, values in assignments.items()
+        }
+
+    def resolve(
+        self, name: str, before: int, scope_path: list[int]
+    ) -> dict[str, Any] | None:
+        values = self.assignments.get(name, [])
+        positions = self.positions.get(name, [])
+        index = bisect_right(positions, before - 1) - 1
+        while index >= 0:
+            candidate = values[index]
+            candidate_path = candidate.get("scopePath", [])
+            if scope_path[: len(candidate_path)] == candidate_path:
+                return candidate
+            index -= 1
+        return None
+
+
+def analyze_payload(
+    source: bytes,
+    start: int,
+    end: int,
+    call_offset: int,
+    scope_path: list[int],
+    resolver: AssignmentResolver,
+    seen: set[str] | None = None,
+) -> dict[str, Any]:
+    seen = set() if seen is None else set(seen)
+    start, end = trim_range(source, start, end)
+    result: dict[str, Any] = {"argument": expression_record(source, start, end)}
+    identifier = decode(source[start:end]) if IDENTIFIER_RE.fullmatch(source[start:end]) else None
+    if identifier is not None and identifier not in seen:
+        seen.add(identifier)
+        assignment = resolver.resolve(identifier, call_offset, scope_path)
+        if assignment is not None:
+            result["resolution"] = {
+                "identifier": identifier,
+                "assignmentOffset": assignment["offset"],
+                "expression": expression_record(
+                    source, assignment["start"], assignment["end"]
+                ),
+            }
+            start, end = assignment["start"], assignment["end"]
+        else:
+            result["resolution"] = {
+                "identifier": identifier,
+                "status": "unresolved",
+            }
+
+    entries = object_entries(source, start, end)
+    if not entries:
+        result["objectStatus"] = "not-static-object"
+        return result
+
+    direct_keys: set[str] = set()
+    shorthand_keys: set[str] = set()
+    computed_keys: list[dict[str, Any]] = []
+    spreads: list[dict[str, Any]] = []
+    expanded_keys: set[str] = set()
+    unresolved_spreads: list[dict[str, Any]] = []
+    for entry in entries:
+        kind = entry["kind"]
+        key = entry.get("key")
+        if kind == "property" and key is not None:
+            direct_keys.add(key)
+            expanded_keys.add(key)
+        elif kind == "shorthand" and key is not None:
+            shorthand_keys.add(key)
+            expanded_keys.add(key)
+        elif kind.startswith("computed"):
+            computed_keys.append(
+                expression_record(source, entry["keyStart"], entry["keyEnd"])
+            )
+        elif kind == "spread":
+            spread_record = expression_record(source, entry["start"], entry["end"])
+            spread_identifier = (
+                decode(source[entry["start"]:entry["end"]])
+                if IDENTIFIER_RE.fullmatch(source[entry["start"]:entry["end"]])
+                else None
+            )
+            nested: dict[str, Any] | None = None
+            if spread_identifier is not None and spread_identifier not in seen:
+                assignment = resolver.resolve(spread_identifier, call_offset, scope_path)
+                if assignment is not None:
+                    nested = analyze_payload(
+                        source,
+                        assignment["start"],
+                        assignment["end"],
+                        call_offset,
+                        scope_path,
+                        resolver,
+                        seen | {spread_identifier},
+                    )
+                    spread_record["resolution"] = {
+                        "identifier": spread_identifier,
+                        "assignmentOffset": assignment["offset"],
+                    }
+            elif expression_kind(source, entry["start"], entry["end"]) == "object":
+                nested = analyze_payload(
+                    source,
+                    entry["start"],
+                    entry["end"],
+                    call_offset,
+                    scope_path,
+                    resolver,
+                    seen,
+                )
+            if nested is not None and nested.get("objectStatus") == "static-object":
+                nested_keys = set(nested.get("expandedKeys", []))
+                expanded_keys.update(nested_keys)
+                spread_record["expandedKeys"] = sorted(nested_keys)
+            else:
+                unresolved_spreads.append(spread_record)
+            spreads.append(spread_record)
+
+    result.update(
+        {
+            "objectStatus": "static-object",
+            "directKeys": sorted(direct_keys),
+            "shorthandKeys": sorted(shorthand_keys),
+            "computedKeys": computed_keys,
+            "spreads": spreads,
+            "expandedKeys": sorted(expanded_keys),
+            "unresolvedSpreads": unresolved_spreads,
+        }
+    )
+    return result
+
+
+class JsLiteralParser:
+    def __init__(self, source: bytes, start: int, end: int):
+        self.source = source
+        self.index = start
+        self.end = end
+
+    def space(self) -> None:
+        self.index = skip_space(self.source, self.index, self.end)
+
+    def parse(self) -> Any:
+        self.space()
+        if self.index >= self.end:
+            raise ValueError("unexpected end of literal")
+        current = self.source[self.index]
+        if current == 123:
+            return self.parse_object()
+        if current == 91:
+            return self.parse_array()
+        if current in (34, 39):
+            return self.parse_string()
+        if self.source.startswith(b"!0", self.index):
+            self.index += 2
+            return True
+        if self.source.startswith(b"!1", self.index):
+            self.index += 2
+            return False
+        if self.source.startswith(b"null", self.index):
+            self.index += 4
+            return None
+        number = re.match(
+            rb"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?",
+            self.source[self.index : self.end],
+            re.I,
+        )
+        if number:
+            raw = number.group(0).decode("ascii")
+            self.index += len(number.group(0))
+            if any(char in raw.lower() for char in ".e"):
+                value = float(raw)
+                return int(value) if value.is_integer() else value
+            return int(raw)
+        identifier = re.match(
+            rb"[A-Za-z_$][A-Za-z0-9_$]*", self.source[self.index : self.end]
+        )
+        if identifier:
+            value = decode(identifier.group(0))
+            self.index += len(identifier.group(0))
+            return {"$expression": value}
+        raise ValueError(f"unsupported literal at offset {self.index}")
+
+    def parse_string(self) -> str:
+        quote = self.source[self.index]
+        closing = skip_quoted(self.source, self.index, quote)
+        raw = self.source[self.index + 1 : closing - 1]
+        self.index = closing
+        if quote == 34:
+            return json.loads(b'"' + raw + b'"')
+        escaped = raw.replace(b"\\", b"\\\\").replace(b'"', b'\\"')
+        return json.loads(b'"' + escaped + b'"')
+
+    def parse_key(self) -> str:
+        self.space()
+        if self.source[self.index] in (34, 39):
+            return self.parse_string()
+        match = re.match(
+            rb"[A-Za-z_$][A-Za-z0-9_$]*", self.source[self.index : self.end]
+        )
+        if not match:
+            raise ValueError(f"invalid object key at offset {self.index}")
+        self.index += len(match.group(0))
+        return decode(match.group(0))
+
+    def parse_object(self) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        self.index += 1
+        while True:
+            self.space()
+            if self.index < self.end and self.source[self.index] == 125:
+                self.index += 1
+                return result
+            key = self.parse_key()
+            self.space()
+            if self.index >= self.end or self.source[self.index] != 58:
+                raise ValueError(f"missing object colon at offset {self.index}")
+            self.index += 1
+            result[key] = self.parse()
+            self.space()
+            if self.index < self.end and self.source[self.index] == 44:
+                self.index += 1
+                continue
+            if self.index < self.end and self.source[self.index] == 125:
+                self.index += 1
+                return result
+            raise ValueError(f"missing object delimiter at offset {self.index}")
+
+    def parse_array(self) -> list[Any]:
+        result: list[Any] = []
+        self.index += 1
+        while True:
+            self.space()
+            if self.index < self.end and self.source[self.index] == 93:
+                self.index += 1
+                return result
+            result.append(self.parse())
+            self.space()
+            if self.index < self.end and self.source[self.index] == 44:
+                self.index += 1
+                continue
+            if self.index < self.end and self.source[self.index] == 93:
+                self.index += 1
+                return result
+            raise ValueError(f"missing array delimiter at offset {self.index}")
+
+
 def root_settings_keys(source: bytes) -> set[str]:
     marker = source.find(b"function M7t(e,{strictPolicyHelperKeys")
     if marker < 0:
@@ -463,6 +1397,606 @@ def extract_urls(source: bytes) -> set[str]:
     }
 
 
+def add_comparison_fields(
+    rows: list[dict[str, Any]], semantic_values: list[dict[str, Any]], prefix: str
+) -> None:
+    seen: Counter[str] = Counter()
+    for row, semantic in zip(rows, semantic_values, strict=True):
+        canonical = json.dumps(
+            semantic, sort_keys=True, ensure_ascii=True, separators=(",", ":")
+        )
+        digest = hashlib.sha256(canonical.encode()).hexdigest()[:20]
+        seen[digest] += 1
+        row["comparisonKey"] = f"{prefix}:{digest}:{seen[digest]}"
+        row["comparisonValue"] = canonical
+
+
+def compact_expression(record: dict[str, Any]) -> Any:
+    if "staticValue" in record:
+        return {"kind": "string", "value": record["staticValue"]}
+    if "templateShape" in record:
+        return {
+            "kind": "template",
+            "shape": record["templateShape"],
+            "expressions": [
+                item.get("text", f"sha256:{item['sha256']}")
+                for item in record.get("templateExpressions", [])
+            ],
+        }
+    source = record["source"]
+    return {
+        "kind": record["kind"],
+        "expression": source.get("text", f"sha256:{source['sha256']}"),
+    }
+
+
+def resolved_argument_record(
+    source: bytes,
+    start: int,
+    end: int,
+    call_offset: int,
+    scope_path: list[int],
+    resolver: AssignmentResolver,
+) -> dict[str, Any]:
+    result = expression_record(source, start, end)
+    start, end = trim_range(source, start, end)
+    if IDENTIFIER_RE.fullmatch(source[start:end]):
+        identifier = decode(source[start:end])
+        assignment = resolver.resolve(identifier, call_offset, scope_path)
+        if assignment is None:
+            result["resolution"] = {"identifier": identifier, "status": "unresolved"}
+        else:
+            resolved = expression_record(source, assignment["start"], assignment["end"])
+            result["resolution"] = {
+                "identifier": identifier,
+                "assignmentOffset": assignment["offset"],
+                "expression": resolved,
+            }
+            if "staticValue" in resolved:
+                result["resolvedStaticValue"] = resolved["staticValue"]
+            if "templateShape" in resolved:
+                result["resolvedTemplateShape"] = resolved["templateShape"]
+    return result
+
+
+def callsite_rows(
+    source: bytes,
+    calls: list[dict[str, Any]],
+    callee_names: set[str],
+    resolver: AssignmentResolver,
+    include_payload: bool,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    semantic_values: list[dict[str, Any]] = []
+    for call in calls:
+        if call["callee"] not in callee_names:
+            continue
+        arguments = call["arguments"]
+        row: dict[str, Any] = {
+            "callee": call["callee"],
+            "offset": call["offset"],
+            "line": call["line"],
+            "column": call["column"],
+            "function": call.get("function"),
+            "functionKind": call.get("functionKind", "top-level"),
+            "arguments": [expression_record(source, start, end) for start, end in arguments],
+        }
+        semantic: dict[str, Any] = {"callee": call["callee"]}
+        if arguments:
+            event = resolved_argument_record(
+                source,
+                arguments[0][0],
+                arguments[0][1],
+                call["offset"],
+                call.get("scopePath", []),
+                resolver,
+            )
+            row["nameArgument"] = event
+            semantic["nameArgument"] = compact_expression(event)
+            if "resolvedStaticValue" in event:
+                semantic["resolvedStaticValue"] = event["resolvedStaticValue"]
+            elif "resolvedTemplateShape" in event:
+                semantic["resolvedTemplateShape"] = event["resolvedTemplateShape"]
+        else:
+            row["nameArgument"] = {"kind": "missing"}
+            semantic["nameArgument"] = {"kind": "missing"}
+        if include_payload:
+            if len(arguments) >= 2:
+                payload = analyze_payload(
+                    source,
+                    arguments[1][0],
+                    arguments[1][1],
+                    call["offset"],
+                    call.get("scopePath", []),
+                    resolver,
+                )
+            else:
+                payload = {"objectStatus": "missing"}
+            row["payload"] = payload
+            semantic["payload"] = {
+                "status": payload.get("objectStatus"),
+                "directKeys": payload.get("directKeys", []),
+                "shorthandKeys": payload.get("shorthandKeys", []),
+                "expandedKeys": payload.get("expandedKeys", []),
+                "computedKeys": [compact_expression(item) for item in payload.get("computedKeys", [])],
+                "spreads": [compact_expression(item) for item in payload.get("spreads", [])],
+            }
+        rows.append(row)
+        semantic_values.append(semantic)
+    add_comparison_fields(rows, semantic_values, "+".join(sorted(callee_names)))
+    return rows
+
+
+def message_callsite_rows(
+    source: bytes,
+    calls: list[dict[str, Any]],
+    callee_names: set[str],
+    resolver: AssignmentResolver,
+) -> list[dict[str, Any]]:
+    return callsite_rows(
+        source,
+        calls,
+        callee_names,
+        resolver,
+        include_payload=False,
+    )
+
+
+def literal_rows(
+    source: bytes,
+    string_nodes: list[dict[str, Any]],
+    template_nodes: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    string_groups: dict[tuple[str, str], dict[str, Any]] = {}
+    for node in string_nodes:
+        start, end = node["start"], node["end"]
+        quote_byte = source[start]
+        raw = source[start + 1 : end - 1]
+        quote = "double" if quote_byte == 34 else "single"
+        key = (quote, bytes_sha256(raw))
+        row = string_groups.get(key)
+        if row is None:
+            decoded = decode(raw)
+            classifications: list[str] = []
+            if decoded.startswith(("http://", "https://")):
+                classifications.append("url")
+            if decoded.startswith(API_TEMPLATE_PREFIXES):
+                classifications.append("api-path")
+            if re.fullmatch(r"[A-Z][A-Z0-9_]{2,}", decoded):
+                classifications.append("uppercase-identifier")
+            row = {
+                "quote": quote,
+                "value": safe_source_text(raw, 4096),
+                "classifications": classifications,
+                "occurrenceCount": 0,
+                "locations": [],
+            }
+            string_groups[key] = row
+        row["occurrenceCount"] += 1
+        row["locations"].append(
+            {
+                "offset": node["offset"],
+                "line": node["line"],
+                "column": node["column"],
+            }
+        )
+
+    template_groups: dict[str, dict[str, Any]] = {}
+    for node in template_nodes:
+        start, end = node["start"], node["end"]
+        raw = source[start + 1 : end - 1]
+        key = bytes_sha256(raw)
+        row = template_groups.get(key)
+        if row is None:
+            value = safe_source_text(raw, 4096)
+            shape = normalize_template(source, start, end)
+            lowered_shape = (shape or "").lower()
+            classifications: list[str] = []
+            if "http://" in lowered_shape or "https://" in lowered_shape:
+                classifications.append("url-template")
+            if lowered_shape.startswith(API_TEMPLATE_PREFIXES):
+                classifications.append("api-path-template")
+            if re.search(
+                r"otel|telemetr|event_logging|datadog|growthbook|metrics|traces|logs",
+                lowered_shape,
+            ):
+                classifications.append("observability-template")
+            row = {
+                "value": value,
+                "shape": sanitize_human_text(shape) if shape is not None and "text" in value else None,
+                "shapeSha256": hashlib.sha256(shape.encode()).hexdigest()
+                if shape is not None
+                else None,
+                "classifications": classifications,
+                "expressions": [
+                    safe_source_text(source[item_start:item_end])
+                    for item_start, item_end in node.get("expressions", [])
+                ],
+                "occurrenceCount": 0,
+                "locations": [],
+            }
+            template_groups[key] = row
+        row["occurrenceCount"] += 1
+        row["locations"].append(
+            {
+                "offset": node["offset"],
+                "line": node["line"],
+                "column": node["column"],
+            }
+        )
+
+    strings = sorted(
+        string_groups.values(), key=lambda item: item["locations"][0]["offset"]
+    )
+    templates = sorted(
+        template_groups.values(), key=lambda item: item["locations"][0]["offset"]
+    )
+    string_semantics = [
+        {
+            "quote": row["quote"],
+            "sha256": row["value"]["sha256"],
+            "length": row["value"]["length"],
+            "occurrenceCount": row["occurrenceCount"],
+        }
+        for row in strings
+    ]
+    template_semantics = [
+        {
+            "shape": row["shape"],
+            "shapeSha256": row["shapeSha256"],
+            "sha256": row["value"]["sha256"],
+            "occurrenceCount": row["occurrenceCount"],
+            "expressions": [
+                item.get("text", f"sha256:{item['sha256']}")
+                for item in row["expressions"]
+            ],
+        }
+        for row in templates
+    ]
+    add_comparison_fields(strings, string_semantics, "string")
+    add_comparison_fields(templates, template_semantics, "template")
+    return strings, templates
+
+
+def environment_access_rows(
+    source: bytes, access_nodes: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    semantics: list[dict[str, Any]] = []
+    for node in access_nodes:
+        row: dict[str, Any] = {
+            "offset": node["offset"],
+            "line": node["line"],
+            "column": node["column"],
+            "accessor": node["accessor"],
+            "name": node.get("name"),
+        }
+        semantic: dict[str, Any] = {
+            "accessor": node["accessor"],
+            "name": node.get("name"),
+        }
+        expression_start = node.get("expressionStart")
+        expression_end = node.get("expressionEnd")
+        if expression_start is not None and expression_end is not None:
+            expression = expression_record(source, expression_start, expression_end)
+            row["expression"] = expression
+            semantic["expression"] = compact_expression(expression)
+        fallback_start = node.get("fallbackStart")
+        fallback_end = node.get("fallbackEnd")
+        if fallback_start is not None and fallback_end is not None:
+            fallback = expression_record(source, fallback_start, fallback_end)
+            row["fallbackOperator"] = node["fallbackOperator"]
+            row["fallbackExpression"] = fallback
+            semantic["fallbackOperator"] = node["fallbackOperator"]
+            semantic["fallbackExpression"] = compact_expression(fallback)
+        rows.append(row)
+        semantics.append(semantic)
+    rows.sort(key=lambda item: item["offset"])
+    add_comparison_fields(rows, semantics, "env-access")
+    return rows
+
+
+def environment_schema_rows(
+    source: bytes, locator: LineLocator
+) -> list[dict[str, Any]]:
+    builders: dict[str, dict[str, Any]] = {}
+    pattern = re.compile(
+        rb"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*We\.(str|bool|triBool|int|enum)\("
+    )
+    for match in pattern.finditer(source):
+        opening = match.end() - 1
+        closing = find_matching(source, opening, 40, 41)
+        if closing < 0:
+            continue
+        variable = decode(match.group(1))
+        options_start, options_end = trim_range(source, opening + 1, closing)
+        line, column = locator.locate(match.start())
+        builders[variable] = {
+            "type": decode(match.group(2)),
+            "options": (
+                expression_record(source, options_start, options_end)
+                if options_start < options_end
+                else None
+            ),
+            "builderOffset": match.start(),
+            "builderLine": line,
+            "builderColumn": column,
+        }
+
+    rows: list[dict[str, Any]] = []
+    semantics: list[dict[str, Any]] = []
+    export_pattern = re.compile(
+        rb"\b([A-Z][A-Z0-9_]{2,})\s*:\s*\(\)\s*=>\s*([A-Za-z_$][A-Za-z0-9_$]*)"
+    )
+    seen: set[tuple[str, str]] = set()
+    for match in export_pattern.finditer(source):
+        name = decode(match.group(1))
+        variable = decode(match.group(2))
+        builder = builders.get(variable)
+        if builder is None or (name, variable) in seen:
+            continue
+        seen.add((name, variable))
+        line, column = locator.locate(match.start())
+        row = {
+            "name": name,
+            "minifiedVariable": variable,
+            "type": builder["type"],
+            "options": builder["options"],
+            "exportOffset": match.start(),
+            "exportLine": line,
+            "exportColumn": column,
+            "builderOffset": builder["builderOffset"],
+            "builderLine": builder["builderLine"],
+            "builderColumn": builder["builderColumn"],
+        }
+        rows.append(row)
+        semantics.append(
+            {
+                "name": name,
+                "type": builder["type"],
+                "options": compact_expression(builder["options"])
+                if builder["options"]
+                else None,
+            }
+        )
+    rows.sort(key=lambda item: item["name"])
+    semantics = [
+        {
+            "name": row["name"],
+            "type": row["type"],
+            "options": compact_expression(row["options"]) if row["options"] else None,
+        }
+        for row in rows
+    ]
+    add_comparison_fields(rows, semantics, "env-schema")
+    return rows
+
+
+def extract_method_arguments(expression: bytes, method: bytes) -> list[bytes]:
+    values: list[bytes] = []
+    pattern = re.compile(rb"\." + re.escape(method) + rb"\s*\(")
+    for match in pattern.finditer(expression):
+        opening = match.end() - 1
+        closing = find_matching(expression, opening, 40, 41)
+        if closing < 0:
+            continue
+        arguments = split_top_level_ranges(expression, opening + 1, closing)
+        if arguments:
+            values.append(expression[arguments[0][0] : arguments[0][1]])
+    return values
+
+
+def root_settings_schema_rows(
+    source: bytes, locator: LineLocator
+) -> list[dict[str, Any]]:
+    marker = source.find(b"function M7t(e,{strictPolicyHelperKeys")
+    if marker < 0:
+        return []
+    return_marker = source.find(b"return ye({", marker)
+    if return_marker < 0:
+        return []
+    opening = return_marker + len(b"return ye(")
+    closing = find_matching(source, opening)
+    if closing < 0:
+        return []
+    rows: list[dict[str, Any]] = []
+    semantics: list[dict[str, Any]] = []
+    for entry in object_entries(source, opening, closing + 1):
+        line, column = locator.locate(entry["start"])
+        if entry["kind"] == "spread":
+            expression = expression_record(source, entry["start"], entry["end"])
+            row = {
+                "kind": "spread",
+                "key": None,
+                "offset": entry["start"],
+                "line": line,
+                "column": column,
+                "expression": expression,
+            }
+            semantic = {"kind": "spread", "expression": compact_expression(expression)}
+        else:
+            key = entry.get("key")
+            expression_bytes = source[entry["start"] : entry["end"]]
+            expression = expression_record(source, entry["start"], entry["end"])
+            descriptions = [
+                sanitize_human_text(decode(value[1:-1]))
+                for value in extract_method_arguments(expression_bytes, b"describe")
+                if len(value) >= 2 and value[0] in (34, 39) and value[-1] == value[0]
+            ]
+            defaults = [
+                safe_source_text(value)
+                for method in (b"default", b"catch")
+                for value in extract_method_arguments(expression_bytes, method)
+            ]
+            enum_values: set[str] = set()
+            for match in re.finditer(rb"\bNr\s*\(", expression_bytes):
+                enum_open = match.end() - 1
+                enum_close = find_matching(expression_bytes, enum_open, 40, 41)
+                if enum_close < 0:
+                    continue
+                enum_args = split_top_level_ranges(
+                    expression_bytes, enum_open + 1, enum_close
+                )
+                if not enum_args:
+                    continue
+                arg_start, arg_end = enum_args[0]
+                if expression_bytes[arg_start:arg_start + 1] == b"[":
+                    enum_values.update(
+                        decode(value)
+                        for value in re.findall(
+                            rb"['\"]((?:\\.|[^'\"])*)['\"]",
+                            expression_bytes[arg_start:arg_end],
+                        )
+                    )
+            builders = sorted(
+                set(
+                    decode(value)
+                    for value in re.findall(
+                        rb"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", expression_bytes
+                    )
+                )
+            )
+            row = {
+                "kind": entry["kind"],
+                "key": key,
+                "offset": entry["start"],
+                "line": line,
+                "column": column,
+                "expression": expression,
+                "builders": builders,
+                "descriptions": descriptions,
+                "enumValues": sorted(enum_values),
+                "defaultAndCatchExpressions": defaults,
+            }
+            semantic = {
+                "kind": entry["kind"],
+                "key": key,
+                "expression": compact_expression(expression),
+                "builders": builders,
+                "descriptions": descriptions,
+                "enumValues": sorted(enum_values),
+                "defaultAndCatchExpressions": [
+                    value.get("text", f"sha256:{value['sha256']}") for value in defaults
+                ],
+            }
+        rows.append(row)
+        semantics.append(semantic)
+    add_comparison_fields(rows, semantics, "root-setting")
+    return rows
+
+
+def model_catalog_rows(
+    source: bytes,
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
+    marker = source.find(b"RQc={")
+    if marker < 0:
+        return [], [], [], []
+    opening = marker + len(b"RQc=")
+    closing = find_matching(source, opening)
+    if closing < 0:
+        return [], [], [], []
+    parser = JsLiteralParser(source, opening, closing + 1)
+    catalog = parser.parse()
+    if not isinstance(catalog, dict):
+        raise ValueError("model catalog is not an object")
+    pricing_tiers = catalog.get("pricing_tiers", {})
+    models: list[dict[str, Any]] = []
+    model_semantics: list[dict[str, Any]] = []
+    for model in catalog.get("models", []):
+        row = dict(model)
+        pricing = row.get("pricing")
+        row["resolved_pricing"] = (
+            pricing_tiers.get(pricing) if isinstance(pricing, str) else pricing
+        )
+        models.append(row)
+        model_semantics.append(row)
+    add_comparison_fields(models, model_semantics, "model")
+
+    pricing_rows = [
+        {"name": name, "pricing": value}
+        for name, value in sorted(pricing_tiers.items())
+    ]
+    add_comparison_fields(pricing_rows, pricing_rows.copy(), "model-pricing")
+    alias_rows = [
+        {"name": name, "alias": value}
+        for name, value in sorted(catalog.get("aliases", {}).items())
+    ]
+    add_comparison_fields(alias_rows, alias_rows.copy(), "model-alias")
+    metadata_rows = [
+        {
+            "schema_version": catalog.get("schema_version"),
+            "defaults": catalog.get("defaults", {}),
+            "best": catalog.get("best"),
+            "latest_per_family": catalog.get("latest_per_family", {}),
+            "alias_migration": catalog.get("alias_migration", {}),
+            "source_note": catalog.get("//"),
+        }
+    ]
+    add_comparison_fields(metadata_rows, metadata_rows.copy(), "model-metadata")
+    return models, pricing_rows, alias_rows, metadata_rows
+
+
+def observability_template_rows(
+    templates: list[dict[str, Any]], kind: str
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for row in templates:
+        classifications = row.get("classifications", [])
+        if kind == "url" and "url-template" in classifications:
+            rows.append(dict(row))
+        elif kind == "api" and "api-path-template" in classifications:
+            rows.append(dict(row))
+        elif kind == "observability" and "observability-template" in classifications:
+            rows.append(dict(row))
+    return rows
+
+
+def call_offsets_with_template_arguments(
+    calls: list[dict[str, Any]],
+    template_nodes: list[dict[str, Any]],
+    callees: set[str],
+) -> set[int]:
+    template_starts = [node["start"] for node in template_nodes]
+    offsets: set[int] = set()
+    for call in calls:
+        if call["callee"] not in callees or not call["arguments"]:
+            continue
+        argument_start, argument_end = call["arguments"][0]
+        index = bisect_right(template_starts, argument_start - 1)
+        if index < len(template_starts) and template_starts[index] < argument_end:
+            offsets.add(call["offset"])
+    return offsets
+
+
+def call_coverage(rows: list[dict[str, Any]]) -> dict[str, int]:
+    counts = Counter()
+    for row in rows:
+        argument = row.get("nameArgument", {})
+        kind = argument.get("kind", "missing")
+        if "staticValue" in argument:
+            counts["staticString"] += 1
+        elif "templateShape" in argument:
+            counts["template"] += 1
+        elif "resolvedStaticValue" in argument:
+            counts["resolvedStaticString"] += 1
+        elif "resolvedTemplateShape" in argument:
+            counts["resolvedTemplate"] += 1
+        else:
+            counts["dynamicOrUnresolved"] += 1
+        counts[f"argumentKind:{kind}"] += 1
+        payload = row.get("payload")
+        if payload is not None:
+            counts[f"payload:{payload.get('objectStatus', 'unknown')}"] += 1
+            counts["unresolvedSpreads"] += len(payload.get("unresolvedSpreads", []))
+    counts["total"] = len(rows)
+    return dict(sorted(counts.items()))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo")
@@ -484,6 +2018,8 @@ def main() -> int:
     )
     output.mkdir(parents=True, exist_ok=True)
 
+    locator = LineLocator(source)
+    javascript_surface = load_javascript_surface(source_path)
     environment_like = {decode(value) for value in ENV_PREFIX_RE.findall(source)}
     direct_environment: set[str] = set()
     for match in ENV_PROCESS_RE.finditer(source):
@@ -560,28 +2096,138 @@ def main() -> int:
             "DO_NOT_TRACK",
         }
     }
-
-    metric_rows = []
-    for match in METRIC_RE.finditer(source):
-        metric_rows.append(
-            "\t".join(
-                [
-                    decode(match.group("name")),
-                    decode(match.group("unit") or b""),
-                    decode(match.group("description")),
-                ]
-            )
+    metric_rows = [
+        "\t".join(
+            [
+                decode(match.group("name")),
+                decode(match.group("unit") or b""),
+                decode(match.group("description")),
+            ]
         )
-
+        for match in METRIC_RE.finditer(source)
+    ]
     family_counts = Counter(event_family(value) for value in first_party_events)
     family_rows = [f"{family}\t{count}" for family, count in sorted(family_counts.items())]
 
-    inventories: dict[str, set[str] | list[str]] = {
+    target_callees = {"H", "Fv", "Nd", "et", "CB", "T", "Error", "TypeError", "RangeError"}
+    calls = javascript_surface["calls"]
+    assignments: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for assignment in javascript_surface["assignments"]:
+        assignments[assignment["name"]].append(assignment)
+    resolver = AssignmentResolver(source, assignments)
+
+    first_party_callsites = callsite_rows(
+        source,
+        calls,
+        {"H", "Fv"},
+        resolver,
+        include_payload=True,
+    )
+    otel_callsites = callsite_rows(
+        source,
+        calls,
+        {"Nd"},
+        resolver,
+        include_payload=True,
+    )
+    feature_callsites = callsite_rows(
+        source,
+        calls,
+        {"et"},
+        resolver,
+        include_payload=False,
+    )
+    growthbook_callsites = callsite_rows(
+        source,
+        calls,
+        {"CB"},
+        resolver,
+        include_payload=False,
+    )
+    error_callsites = message_callsite_rows(
+        source,
+        calls,
+        {"Error", "TypeError", "RangeError"},
+        resolver,
+    )
+    diagnostic_callsites = message_callsite_rows(
+        source,
+        calls,
+        {"T"},
+        resolver,
+    )
+    error_template_offsets = call_offsets_with_template_arguments(
+        calls,
+        javascript_surface["templates"],
+        {"Error", "TypeError", "RangeError"},
+    )
+    diagnostic_template_offsets = call_offsets_with_template_arguments(
+        calls, javascript_surface["templates"], {"T"}
+    )
+    error_templates = [
+        row for row in error_callsites if row["offset"] in error_template_offsets
+    ]
+    diagnostic_templates = [
+        row
+        for row in diagnostic_callsites
+        if row["offset"] in diagnostic_template_offsets
+    ]
+
+    string_literals, template_literals = literal_rows(
+        source, javascript_surface["strings"], javascript_surface["templates"]
+    )
+    url_templates = observability_template_rows(template_literals, "url")
+    api_templates = observability_template_rows(template_literals, "api")
+    observability_templates = observability_template_rows(
+        template_literals, "observability"
+    )
+    environment_accesses = environment_access_rows(
+        source, javascript_surface["environmentAccesses"]
+    )
+    dynamic_environment_accesses = [
+        row
+        for row in environment_accesses
+        if row["accessor"] == "process.env.bracket" and row["name"] is None
+    ]
+    environment_schema = environment_schema_rows(source, locator)
+    observability_environment_schema = [
+        row for row in environment_schema if OBSERVABILITY_NAME_RE.search(row["name"])
+    ]
+    observability_environment_defaults = [
+        row
+        for row in environment_accesses
+        if row.get("name")
+        and OBSERVABILITY_NAME_RE.search(row["name"])
+        and "fallbackExpression" in row
+    ]
+    settings_schema = root_settings_schema_rows(source, locator)
+    model_catalog, model_pricing, model_aliases, model_metadata = model_catalog_rows(
+        source
+    )
+    telemetry_endpoints = {
+        value
+        for value in urls
+        if re.search(
+            r"otel|telemetr|event_logging|datadog|growthbook|metrics|traces|logs",
+            value,
+            re.IGNORECASE,
+        )
+    }
+    observability_identifiers = {
+        value
+        for value in environment | tengu_identifiers | feature_flags | growthbook_keys
+        if OBSERVABILITY_NAME_RE.search(value)
+        or re.search(r"telemetr|otel|datadog|growthbook", value, re.IGNORECASE)
+    }
+
+    text_inventories: dict[str, set[str] | list[str]] = {
         "environment-access-identifiers.txt": environment,
         "direct-process-environment-accesses.txt": direct_environment,
         "environment-proxy-accesses.txt": proxy_environment,
         "environment-like-identifiers.txt": environment_like,
         "otel-environment-variables.txt": otel_env,
+        "observability-identifiers.txt": observability_identifiers,
+        "telemetry-endpoints.txt": telemetry_endpoints,
         "tengu-identifiers.txt": tengu_identifiers,
         "first-party-events.txt": first_party_events,
         "first-party-event-templates.txt": first_party_templates,
@@ -623,22 +2269,49 @@ def main() -> int:
         "urls.txt": urls,
         "endpoint-hosts.txt": hosts,
     }
-
+    jsonl_inventories: dict[str, list[dict[str, Any]]] = {
+        "first-party-event-callsites.jsonl": first_party_callsites,
+        "otel-event-callsites.jsonl": otel_callsites,
+        "feature-flag-callsites.jsonl": feature_callsites,
+        "growthbook-callsites.jsonl": growthbook_callsites,
+        "error-message-callsites.jsonl": error_callsites,
+        "error-message-templates.jsonl": error_templates,
+        "diagnostic-message-callsites.jsonl": diagnostic_callsites,
+        "diagnostic-message-templates.jsonl": diagnostic_templates,
+        "static-string-literals.jsonl": string_literals,
+        "template-literals.jsonl": template_literals,
+        "url-templates.jsonl": url_templates,
+        "api-path-templates.jsonl": api_templates,
+        "observability-templates.jsonl": observability_templates,
+        "environment-access-callsites.jsonl": environment_accesses,
+        "dynamic-process-environment-callsites.jsonl": dynamic_environment_accesses,
+        "environment-schema.jsonl": environment_schema,
+        "observability-environment-schema.jsonl": observability_environment_schema,
+        "observability-environment-defaults.jsonl": observability_environment_defaults,
+        "root-settings-schema.jsonl": settings_schema,
+        "model-catalog.jsonl": model_catalog,
+        "model-pricing-tiers.jsonl": model_pricing,
+        "model-aliases.jsonl": model_aliases,
+        "model-catalog-metadata.jsonl": model_metadata,
+    }
+    inventory_names = set(text_inventories) | set(jsonl_inventories)
     previous_summary = output / "summary.json"
     if previous_summary.is_file():
         try:
             previous = json.loads(previous_summary.read_text(encoding="utf-8"))
             for entry in previous.get("files", []):
                 stale = output / Path(entry.get("path", "")).name
-                if stale.parent == output and stale.name not in inventories:
+                if stale.parent == output and stale.name not in inventory_names:
                     stale.unlink(missing_ok=True)
         except (json.JSONDecodeError, OSError, TypeError):
             pass
 
-    counts = {
-        name.removesuffix(".txt").removesuffix(".tsv"): write_lines(output / name, values)
-        for name, values in inventories.items()
-    }
+    counts: dict[str, int] = {}
+    for name, values in text_inventories.items():
+        counts[Path(name).stem] = write_lines(output / name, values)
+    for name, rows in jsonl_inventories.items():
+        counts[Path(name).stem] = write_jsonl(output / name, rows)
+
     files = []
     for path in sorted(output.iterdir()):
         if not path.is_file() or path.name == "summary.json":
@@ -651,63 +2324,129 @@ def main() -> int:
                 "sha256": sha256(path),
             }
         )
+
+    by_callee = {
+        callee: [row for row in rows if row["callee"] == callee]
+        for callee, rows in {
+            "H": first_party_callsites,
+            "Fv": first_party_callsites,
+            "Nd": otel_callsites,
+            "et": feature_callsites,
+            "CB": growthbook_callsites,
+        }.items()
+    }
+    declaration_counts = Counter(javascript_surface.get("declarations", {}))
+    settings_direct = [row for row in settings_schema if row.get("key") is not None]
+    settings_spreads = [row for row in settings_schema if row["kind"] == "spread"]
     summary = {
-        "formatVersion": 2,
+        "formatVersion": 3,
         "version": (repo / "VERSION").read_text(encoding="utf-8").strip(),
         "canonicalSource": {
             "path": "extracted/cli.js",
             "size": source_path.stat().st_size,
             "sha256": sha256(source_path),
         },
+        "javascriptParser": javascript_surface["parser"],
         "methods": {
-            "environmentAccessIdentifiers": "union of direct process.env accesses, the bundle's environment proxy property accesses, and environment-shaped static identifiers; this is not a claim that every identifier is a user-supported Claude Code setting",
-            "directProcessEnvironmentAccesses": "static property and bracket accesses on process.env",
-            "environmentProxyAccesses": "static uppercase properties read from the minified environment proxy object K; dependency and application accesses may both be present",
-            "environmentLikeIdentifiers": "uppercase static tokens with selected environment prefixes; intentionally broad and may include dependency constants and dynamic prefixes",
-            "firstPartyEvents": "static string first arguments to H/Fv analytics calls",
-            "firstPartyEventTemplates": "template-literal first arguments to H/Fv with expressions normalized to ${}",
-            "firstPartyEventFields": "union of explicit top-level object keys at static H/Fv event callsites; rows with no explicit keys use <no-static-fields>, while computed spreads and variable payloads are not expanded",
-            "firstPartySchemas": "static top-level fields from the bundled first-party environment, internal event, and GrowthBook protobuf-compatible object schemas",
-            "thirdPartyOtelEvents": "static string first arguments to Nd structured event calls",
-            "thirdPartyOtelEventFields": "union of explicit top-level object keys at static Nd callsites; computed spreads are not expanded",
-            "featureFlags": "static string first arguments to et feature checks",
-            "growthbookKeys": "static string first arguments to CB GrowthBook config reads",
-            "builtinTools": "known first-party tool names recovered from static variable assignments; dynamic MCP/plugin tools are outside this set",
-            "knownToolCatalog": "union of the bundled tool normalization catalog and exported BUILTIN_TOOL_NAMES arrays; includes internal, hosted, and selected static MCP tool identifiers",
-            "namedComponents": "static name fields immediately followed by a description field; includes built-in commands/tools plus named bundled dependency components",
-            "slashCommands": "static name fields in command objects whose type is local, local-jsx, or prompt",
-            "rootSettingsKeys": "top-level static keys in the M7t Claude Code settings schema object",
-            "schemaProperties": "static property identifiers whose value begins with a recognized bundled schema-builder call; includes Claude Code and bundled dependency schemas",
-            "staticEnumGroups": "static string arrays passed to the bundled Nr enum schema helper",
-            "storageNamespaces": "static namespace field literals; includes Claude Code storage plus bundled dependency namespaces",
-            "claudeStorageNamespaces": "namespace literals in the Claude Code storage key factory from globalConfig through sessionAliases",
-            "apiPathsAndRoutes": "static API path literals plus separately listed METHOD /path route identifiers; dynamic path templates remain in canonical source",
-            "protocolEvents": "known user/agent/session/span domain event identifiers found as static strings; documentation strings embedded in the bundle may contribute identifiers",
-            "anthropicBetas": "date-suffixed lowercase identifiers embedded in the bundle; includes Anthropic API beta identifiers and provider API-version identifiers",
-            "schemaDescriptions": "unique static .describe() literals; includes settings and protocol schemas",
-            "errorsAndDiagnostics": "unique static Error/TypeError/RangeError and T() message literals; dynamic templates remain in canonical source",
+            "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
+            "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for every H/Fv/Nd callsite",
+            "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
+            "environmentSchema": "joins uppercase export getters to minified variables assigned through We.str/bool/triBool/int/enum builders; options expressions and every static/dynamic process.env or K access callsite are retained",
+            "rootSettingsSchema": "parses every top-level entry and spread in the M7t settings object, preserving complete RHS expressions, builder names, descriptions, enum literals, defaults, and catch expressions",
+            "modelCatalog": "parses the hand-maintained baked RQc JavaScript literal into complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+            "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings",
+        },
+        "coverage": {
+            "targetCallsites": {
+                callee: call_coverage(rows) for callee, rows in by_callee.items()
+            },
+            "messageCallsites": {
+                "Error+TypeError+RangeError": len(error_callsites),
+                "ErrorTemplates": len(error_templates),
+                "T": len(diagnostic_callsites),
+                "TTemplates": len(diagnostic_templates),
+            },
+            "declarationsExcluded": dict(sorted(declaration_counts.items())),
+            "literalOccurrences": {
+                "quotedStrings": len(javascript_surface["strings"]),
+                "uniqueQuotedStrings": len(string_literals),
+                "templates": len(javascript_surface["templates"]),
+                "uniqueTemplates": len(template_literals),
+                "urlTemplates": len(url_templates),
+                "apiPathTemplates": len(api_templates),
+            },
+            "environment": {
+                "accessCallsites": len(environment_accesses),
+                "dynamicProcessEnvCallsites": len(dynamic_environment_accesses),
+                "typedSchemaEntries": len(environment_schema),
+                "observabilitySchemaEntries": len(observability_environment_schema),
+                "observabilityDefaults": len(observability_environment_defaults),
+            },
+            "settings": {
+                "directEntries": len(settings_direct),
+                "spreadEntries": len(settings_spreads),
+            },
+            "models": {
+                "catalogEntries": len(model_catalog),
+                "pricingTiers": len(model_pricing),
+                "aliases": len(model_aliases),
+            },
+        },
+        "completionAudit": {
+            "allTargetCallsitesRecorded": all(
+                counts.get(filename, -1) == expected
+                for filename, expected in {
+                    "first-party-event-callsites": len(first_party_callsites),
+                    "otel-event-callsites": len(otel_callsites),
+                    "feature-flag-callsites": len(feature_callsites),
+                    "growthbook-callsites": len(growthbook_callsites),
+                    "error-message-callsites": len(error_callsites),
+                    "diagnostic-message-callsites": len(diagnostic_callsites),
+                }.items()
+            ),
+            "allLexicalLiteralsRecorded": (
+                sum(row["occurrenceCount"] for row in string_literals)
+                == len(javascript_surface["strings"])
+                and sum(row["occurrenceCount"] for row in template_literals)
+                == len(javascript_surface["templates"])
+            ),
+            "dynamicExpressionsRetained": True,
+            "rootSettingsKeysMatchStructuredRows": (
+                len(settings_keys) == len(settings_direct)
+            ),
+            "modelCatalogParsed": bool(model_catalog and model_metadata),
+            "knownStaticExtractionGaps": [],
+            "nonRecoverableBoundaries": [
+                "runtime values returned by remote configuration, APIs, user files, environment variables, or server-side systems are not present as concrete release-bundle values",
+                "source removed before shipping by minification, tree shaking, compilation, or absent source maps cannot be reconstructed from the release artifact",
+                "retained dynamic expressions are inventoried verbatim but are not executed by the static extractor",
+            ],
         },
         "counts": counts,
         "files": files,
     }
-    (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    (output / "summary.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8"
+    )
 
     print("source inventory: PASS")
-    print(f"first-party events: {len(first_party_events)}")
-    print(f"first-party event templates: {len(first_party_templates)}")
-    print(f"third-party OTEL events: {len(otel_events)}")
-    print(f"OTEL metrics: {len(metric_rows)}")
-    print(f"OTEL spans: {len(spans)}")
-    print(f"environment variables: {len(environment)}")
-    print(f"direct process.env accesses: {len(direct_environment)}")
-    print(f"feature flags: {len(feature_flags)}")
-    print(f"GrowthBook keys: {len(growthbook_keys)}")
-    print(f"root settings keys: {len(settings_keys)}")
-    print(f"built-in tool identifiers: {len(builtin_tools)}")
-    print(f"known tool catalog: {len(known_tools)}")
-    print(f"slash commands: {len(slash_commands)}")
-    print(f"named component identifiers: {len(named_components)}")
-    print(f"schema descriptions: {len(descriptions)}")
+    print(f"inventory format: {summary['formatVersion']}")
+    print(f"inventory files: {len(files)}")
+    print(f"first-party callsites: {len(first_party_callsites)}")
+    print(f"third-party OTEL callsites: {len(otel_callsites)}")
+    print(f"feature-flag callsites: {len(feature_callsites)}")
+    print(f"GrowthBook callsites: {len(growthbook_callsites)}")
+    print(f"error callsites/templates: {len(error_callsites)}/{len(error_templates)}")
+    print(
+        f"diagnostic callsites/templates: {len(diagnostic_callsites)}/{len(diagnostic_templates)}"
+    )
+    print(
+        "quoted/template literal occurrences: "
+        f"{len(javascript_surface['strings'])}/{len(javascript_surface['templates'])}"
+    )
+    print(f"environment access/schema: {len(environment_accesses)}/{len(environment_schema)}")
+    print(f"root settings entries: {len(settings_direct)} + {len(settings_spreads)} spreads")
+    print(f"model catalog entries: {len(model_catalog)}")
     return 0
 
 

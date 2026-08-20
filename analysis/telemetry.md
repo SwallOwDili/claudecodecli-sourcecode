@@ -2,10 +2,11 @@
 
 本文只记录发布 bundle 中可以静态证实的客户端行为。它覆盖一方事件、OpenTelemetry、Datadog、GrowthBook、错误上报、Perfetto、启动/查询 profiling、本地 debug/diagnostic 日志，以及对应的门控、字段、队列、重试和隐私控制。
 
-完整事件名和字段不在本文手工复制。机器清单是最终证据：
+完整事件名、调用表达式、payload、环境 schema、默认值和消息模板不在本文手工复制。机器清单是最终证据：
 
 - [一方事件 1,436 项](source-inventory/first-party-events.txt)
 - [一方动态事件模板 3 项](source-inventory/first-party-event-templates.txt)
+- [一方 `H`/`Fv` 调用点 2,194 项](source-inventory/first-party-event-callsites.jsonl)
 - [一方事件到字段映射 1,411 行](source-inventory/first-party-event-fields.tsv)
 - [一方事件 schema 34 字段](source-inventory/first-party-event-schema-fields.txt)
 - [一方环境 schema 36 字段](source-inventory/first-party-environment-fields.txt)
@@ -13,11 +14,32 @@
 - [OTEL event 字段映射 26 行](source-inventory/third-party-otel-event-fields.tsv)
 - [OTEL metrics 8 项](source-inventory/otel-metrics.tsv)
 - [OTEL spans 10 项](source-inventory/otel-spans.txt)
+- [OTEL `Nd` 调用点 52 项](source-inventory/otel-event-callsites.jsonl)
 - [OTEL 环境变量 77 项](source-inventory/otel-environment-variables.txt)
+- [全部环境访问点 2,548 项](source-inventory/environment-access-callsites.jsonl)
+- [typed 环境 schema 842 项](source-inventory/environment-schema.jsonl)
+- [观测环境 schema 71 项](source-inventory/observability-environment-schema.jsonl)
+- [观测环境默认/fallback 23 项](source-inventory/observability-environment-defaults.jsonl)
 - [Datadog allowlist 181 项](source-inventory/datadog-forwarded-events.txt)
 - [Datadog tag 字段 34 项](source-inventory/datadog-tag-fields.txt)
 - [Datadog 删除字段 26 项](source-inventory/datadog-redacted-fields.txt)
 - [GrowthBook 事件字段 15 项](source-inventory/growthbook-event-fields.txt)
+- [feature `et` 调用点 498 项](source-inventory/feature-flag-callsites.jsonl)
+- [GrowthBook `CB` 调用点 12 项](source-inventory/growthbook-callsites.jsonl)
+- [观测相关标识 149 项](source-inventory/observability-identifiers.txt)
+- [观测模板 166 项](source-inventory/observability-templates.jsonl)
+- [error 调用点 4,831 项](source-inventory/error-message-callsites.jsonl) 和 [模板参数 1,526 项](source-inventory/error-message-templates.jsonl)
+- [diagnostic 调用点 5,403 项](source-inventory/diagnostic-message-callsites.jsonl) 和 [模板参数 4,438 项](source-inventory/diagnostic-message-templates.jsonl)
+
+## 静态覆盖审计
+
+v3 提取器使用仓库内置 Acorn `8.15.0` 将完整 `extracted/cli.js` 解析为 AST，而不是依赖全局正则猜测 JavaScript 边界。它排除同名函数声明后，记录每个目标调用的 offset/line/column、所在函数和词法 scope、全部参数、事件名表达式、静态值或模板形状，并在同级或祖先作用域查找最近赋值。
+
+调用覆盖为：`H` 2,162、`Fv` 32、`Nd` 52、`et` 498、`CB` 12。`H` 的第一个参数包含 2,119 个直接字符串、3 个模板、24 个 identifier、9 个 conditional 和 7 个 member/call；`Fv` 的 32 个均为直接字符串。动态/未解析表达式没有被丢弃，而是连同原表达式、长度、SHA-256、作用域解析结果和 unresolved 状态写入 JSONL。
+
+一方和 OTEL payload 解析保留顶层 property、shorthand、computed key、spread，并递归展开能在作用域中解析的 identifier/object spread；不能静态求值的 spread 仍以原表达式和 unresolved 标志保留。`comparisonKey` / `comparisonValue` 是跨版本语义比较字段，line/offset 变化不会单独制造功能变化。
+
+全词法审计还覆盖 260,838 次 quoted-string occurrence（85,095 个唯一值）和 30,114 次 template occurrence（25,187 个唯一值），其中 URL template 236、API/path template 119。过长、凭据形态或用户 home 形态内容只在清单中保留长度、SHA-256 和位置，canonical bundle 本身不改写。
 
 ## 通道总览
 
@@ -48,6 +70,8 @@
 - API key helper、环境 bearer token、无 scope OAuth 等路径通过单独判断。
 
 第三方 OTEL 是用户/管理员显式配置的出口，以 `CLAUDE_CODE_ENABLE_TELEMETRY` 为总开关。它不等同于 Anthropic 一方事件通道。
+
+环境访问不只做变量名集合：842 条 typed schema 由 `We.str/bool/triBool/int/enum` builder 恢复，类型分布为 string 423、boolean 277、integer 97、tri-state boolean 41、enum 4；其中 71 条属于观测面，类型分布为 string 38、boolean 18、integer 13、tri-state boolean 2。另有 2,548 个实际访问点、143 个动态 `process.env[...]` 和 23 个观测 fallback/default 表达式。每条记录都保留 builder/options、访问形式、动态 key 表达式和默认表达式，不能把 1,300 个环境形态标识全部误称为公开配置。
 
 ## 一方事件流水线
 
@@ -119,7 +143,7 @@ backoff 为二次增长：`base * attempts^2`，并限制在 500 ms 至 30 s。�
 - extensions：skill、plugin、marketplace、MCP server/tool、team、head SHA；
 - event-specific metadata：清理保留字段后编码进 `additional_metadata`。
 
-这表示 schema 具备承载这些字段的能力，不表示每个事件都会填满所有字段。每个静态 callsite 的显式字段见 `first-party-event-fields.tsv`。其中 284 行以 `<no-static-fields>` 标记，表示解析器发现了事件和对象 callsite，但顶层只由 spread、变量或当前静态解析器不能展开的结构组成；这些 payload 和动态模板仍需回到 canonical bundle 追踪。静态字符串原值若以空格或 tab 结尾，生成器会写成 `\x20`/`\t`，避免证据被 Git 尾随空白规则改变。
+这表示 schema 具备承载这些字段的能力，不表示每个事件都会填满所有字段。旧式扁平映射 `first-party-event-fields.tsv` 中的 `<no-static-fields>` 只表示没有直接静态顶层字段；完整 `first-party-event-callsites.jsonl` 仍保留变量 payload、computed key、所有 spread、可展开对象、未解析表达式和函数作用域，不再要求靠手工回看 bundle 才知道表达式是什么。静态字符串原值若以空格或 tab 结尾，生成器会写成 `\x20`/`\t`，避免证据被 Git 尾随空白规则改变。
 
 ## Datadog 分支
 
@@ -212,6 +236,8 @@ interaction、LLM 和 tool span 同时可以关联 Perfetto span ID。LLM 完成
 - Perfetto：`CLAUDE_CODE_PERFETTO_TRACE` 和 write interval，输出本地 trace；
 - heap/process telemetry：RSS、heap、external、array buffers、CPU、uptime 等。
 
+消息面不是只保留去重后的 2,248 个 error literal 和 830 个 diagnostic literal：4,831 个 `Error`/`TypeError`/`RangeError` 调用、5,403 个 `T()` 调用，以及其中 1,526/4,438 个模板参数均带调用类型、位置、函数 scope、完整参数和稳定比较值。这样可以直接比较错误分支、插值参数和诊断上下文的版本变化。
+
 这些本地文件类功能是否产生网络流量取决于具体后续 exporter/上传路径。仅看到 `DEBUG`、profile 或 diagnostics 标识，不能推断内容会自动上传。
 
 ## 审计和版本比较规则
@@ -223,6 +249,6 @@ python3 skill/claude-code-version-diff/scripts/extract_source_inventory.py .
 python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 ```
 
-跨版本比较器会遍历 `analysis/source-inventory/summary.json` 中登记的每个文件，输出 count delta、added 和 removed。任何新增 exporter、endpoint、event、field、redaction、metric、span、环境变量、feature gate 或 schema 都应先出现在机器清单，再更新本文的架构解释。
+跨版本比较器会遍历 `analysis/source-inventory/summary.json` 中登记的 70 个文件，输出 count delta、added 和 removed。JSONL 优先比较 `comparisonKey` / `comparisonValue`，忽略纯 offset/line 漂移。任何新增 exporter、endpoint、event、field、redaction、metric、span、环境变量、feature gate、默认值、settings 字段、模型或消息模板都应先出现在机器清单，再更新本文的架构解释。
 
-静态清单的边界：直接字面量可穷举；变量 payload、computed key、spread、运行时远程配置、服务端处理规则和 bundle 中不存在的服务端风控无法由静态清单穷举。此边界不影响已经恢复的 canonical bytes、逐事件显式字段和客户端分支行为。
+`summary.json` 的 completion audit 要求所有目标调用点、全部词法字符串/模板、动态表达式、根 settings 结构和模型目录均完成记录，且 `knownStaticExtractionGaps` 必须为空。不可恢复边界只剩发布产物本身不存在的内容：运行时远程配置/API/用户文件/环境值、服务端处理与风控规则，以及构建前被 minification、tree shaking 或缺失 source map 删除的信息。

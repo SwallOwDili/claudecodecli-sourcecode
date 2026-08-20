@@ -50,6 +50,14 @@ def read_lines(repo: Path, branch: str, path: str) -> set[str]:
     }
 
 
+def read_inventory_lines(repo: Path, branch: str, path: str) -> set[str]:
+    return {
+        line.rstrip()
+        for line in show(repo, branch, path, text=True).splitlines()
+        if line.rstrip()
+    }
+
+
 def tree_paths(repo: Path, branch: str, prefix: str) -> set[str]:
     output = git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix, text=True)
     return {line.strip() for line in output.splitlines() if line.strip()}
@@ -82,6 +90,12 @@ def source_inventory(source: bytes) -> dict[str, set[str]]:
     return {"environment": env, "features": features, "hosts": hosts}
 
 
+def code_span(value: str) -> str:
+    longest = max((len(run) for run in re.findall(r"`+", value)), default=0)
+    fence = "`" * (longest + 1)
+    return f"{fence}{value}{fence}"
+
+
 def bullet_diff(title: str, old: set[str], new: set[str]) -> list[str]:
     added = sorted(new - old)
     removed = sorted(old - new)
@@ -91,12 +105,12 @@ def bullet_diff(title: str, old: set[str], new: set[str]) -> list[str]:
     if added:
         lines.append("### Added")
         lines.append("")
-        lines.extend(f"- `{item}`" for item in added)
+        lines.extend(f"- {code_span(item)}" for item in added)
         lines.append("")
     if removed:
         lines.append("### Removed")
         lines.append("")
-        lines.extend(f"- `{item}`" for item in removed)
+        lines.extend(f"- {code_span(item)}" for item in removed)
         lines.append("")
     if not added and not removed:
         lines.extend(["No changes.", ""])
@@ -105,6 +119,76 @@ def bullet_diff(title: str, old: set[str], new: set[str]) -> list[str]:
 
 def manifest_map(document: dict) -> dict[str, dict]:
     return {entry["path"]: entry for entry in document.get("files", [])}
+
+
+def source_inventory_report(
+    repo: Path, old_branch: str, new_branch: str
+) -> tuple[list[str], bool]:
+    summary_path = "analysis/source-inventory/summary.json"
+    old_exists = has_path(repo, old_branch, summary_path)
+    new_exists = has_path(repo, new_branch, summary_path)
+    lines = ["## Exhaustive source inventory", ""]
+    if not old_exists or not new_exists:
+        if new_exists and not old_exists:
+            lines.extend(["Machine-readable source inventory coverage was added in the new branch.", ""])
+        elif old_exists and not new_exists:
+            lines.extend(["Machine-readable source inventory coverage is absent from the new branch.", ""])
+        else:
+            lines.extend(["Neither branch contains a machine-readable source inventory.", ""])
+        return lines, False
+
+    old_summary = read_json(repo, old_branch, summary_path)
+    new_summary = read_json(repo, new_branch, summary_path)
+    old_counts = old_summary.get("counts", {})
+    new_counts = new_summary.get("counts", {})
+    lines.extend(
+        [
+            f"Inventory format: `{old_summary.get('formatVersion')}` -> `{new_summary.get('formatVersion')}`.",
+            "",
+            "| Inventory | Old | New | Delta |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+    )
+    for name in sorted(set(old_counts) | set(new_counts)):
+        old_value = old_counts.get(name, 0)
+        new_value = new_counts.get(name, 0)
+        lines.append(f"| `{name}` | {old_value} | {new_value} | {new_value - old_value:+d} |")
+    lines.append("")
+
+    old_files = {
+        Path(entry["path"]).name: entry for entry in old_summary.get("files", [])
+    }
+    new_files = {
+        Path(entry["path"]).name: entry for entry in new_summary.get("files", [])
+    }
+    added_files = sorted(set(new_files) - set(old_files))
+    removed_files = sorted(set(old_files) - set(new_files))
+    lines.extend(
+        [
+            f"Inventory artifacts added: {len(added_files)}; removed: {len(removed_files)}.",
+            "",
+        ]
+    )
+    if added_files:
+        lines.extend(["### Added inventory artifacts", ""])
+        lines.extend(f"- `{name}`" for name in added_files)
+        lines.append("")
+    if removed_files:
+        lines.extend(["### Removed inventory artifacts", ""])
+        lines.extend(f"- `{name}`" for name in removed_files)
+        lines.append("")
+
+    for name in sorted(set(old_files) & set(new_files)):
+        path = f"analysis/source-inventory/{name}"
+        title = "Source inventory: " + name.rsplit(".", 1)[0].replace("-", " ")
+        lines.extend(
+            bullet_diff(
+                title,
+                read_inventory_lines(repo, old_branch, path),
+                read_inventory_lines(repo, new_branch, path),
+            )
+        )
+    return lines, True
 
 
 def main() -> int:
@@ -202,23 +286,32 @@ def main() -> int:
         lines.extend(
             ["## Risk-control surface", "", "Neither branch contains a normalized risk-control surface.", ""]
         )
-    lines.extend(
-        bullet_diff(
-            "Environment identifiers",
-            old_inventory["environment"],
-            new_inventory["environment"],
+    source_inventory_lines, exhaustive_inventory = source_inventory_report(
+        repo, args.old_branch, args.new_branch
+    )
+    lines.extend(source_inventory_lines)
+    if not exhaustive_inventory:
+        lines.extend(
+            bullet_diff(
+                "Fallback environment identifiers",
+                old_inventory["environment"],
+                new_inventory["environment"],
+            )
         )
-    )
-    lines.extend(
-        bullet_diff(
-            "Feature identifiers",
-            old_inventory["features"],
-            new_inventory["features"],
+        lines.extend(
+            bullet_diff(
+                "Fallback feature identifiers",
+                old_inventory["features"],
+                new_inventory["features"],
+            )
         )
-    )
-    lines.extend(
-        bullet_diff("Endpoint hosts", old_inventory["hosts"], new_inventory["hosts"])
-    )
+        lines.extend(
+            bullet_diff(
+                "Fallback endpoint hosts",
+                old_inventory["hosts"],
+                new_inventory["hosts"],
+            )
+        )
 
     old_deep = has_path(repo, args.old_branch, "reverse/summary.json")
     new_deep = has_path(repo, args.new_branch, "reverse/summary.json")

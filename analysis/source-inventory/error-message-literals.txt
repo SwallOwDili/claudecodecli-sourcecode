@@ -1,0 +1,2248 @@
+#callbackParams only accepts string urls, http.IncomingMessage or a lookalike
+#userinfo() method can only be POST or a GET
+$data keyword must have\x20
+$schema must be a string
+--base-dir (or SELF_HOSTED_RUNNER_BASE_DIR) is required on Windows: the built-in default is a POSIX container path that does not apply there. Pass the directory that repositories should be checked out under.
+--git-host-rewrite requires <from>=<to>
+--git-ssh-rewrite requires a hostname
+--hooks-dir is not supported on Windows: lifecycle hooks currently require a Linux or macOS host, because they are POSIX executables that the runner spawns directly (no shell, no .cmd/.ps1/.exe resolution). Run the runner on a Linux or macOS host to use hooks, or drop --hooks-dir / SELF_HOSTED_RUNNER_HOOKS_DIR to use the built-in checkout and command behavior. See docs/self-hosted-runners-guide.md \xA7 Lifecycle hooks.
+--min-idle must be an integer in [0, 100]
+--scm-connector-ca-file requires a path
+--scm-connector-host expects a bare hostname (e.g. ghe.example.com[:443]), not a URL
+--scm-connector-host port must be an integer in [1, 65535]
+--scm-connector-host requires HOST[:PORT]
+--scm-connector-host-rewrite expects bare hostnames, not URLs
+--scm-connector-host-rewrite requires <from>=<to_host:to_port>
+--scm-connector-host: hostname is empty
+--scm-connector-host: hostname must be a bare hostname or [v6] literal
+--scm-connector-id / --scm-connector-provider / --scm-connector-ca-file / --scm-connector-host-rewrite require --scm-connector-host
+--scm-connector-id is required when --scm-connector-host is set
+--scm-connector-id must be a positive integer
+--scm-connector-id requires an integer
+--scm-connector-provider must match ^[a-z0-9-]{1,32}$
+--scm-connector-provider requires a value
+--sigkill-timeout-sec was renamed to --session-stop-grace-sec. It controls how long to wait for the Claude process to exit cleanly after a session ends, before force-killing it. The post-session hook runs after this.
+.git pointer file is a symlink
+.mcp.json is malformed (not valid JSON, or mcpServers is not an object)
+.merge() cannot be used on object schemas containing refinements. Use .safeExtend() instead.
+.omit() cannot be used on object schemas containing refinements
+.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest.resourceLogs: array expected
+.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest.resourceLogs: object expected
+.opentelemetry.proto.collector.logs.v1.ExportLogsServiceResponse.partialSuccess: object expected
+.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest.resourceMetrics: array expected
+.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest.resourceMetrics: object expected
+.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse.partialSuccess: object expected
+.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest.resourceSpans: array expected
+.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest.resourceSpans: object expected
+.opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse.partialSuccess: object expected
+.opentelemetry.proto.common.v1.AnyValue.arrayValue: object expected
+.opentelemetry.proto.common.v1.AnyValue.kvlistValue: object expected
+.opentelemetry.proto.common.v1.ArrayValue.values: array expected
+.opentelemetry.proto.common.v1.ArrayValue.values: object expected
+.opentelemetry.proto.common.v1.EntityRef.descriptionKeys: array expected
+.opentelemetry.proto.common.v1.EntityRef.idKeys: array expected
+.opentelemetry.proto.common.v1.InstrumentationScope.attributes: array expected
+.opentelemetry.proto.common.v1.InstrumentationScope.attributes: object expected
+.opentelemetry.proto.common.v1.KeyValue.value: object expected
+.opentelemetry.proto.common.v1.KeyValueList.values: array expected
+.opentelemetry.proto.common.v1.KeyValueList.values: object expected
+.opentelemetry.proto.logs.v1.LogRecord.attributes: array expected
+.opentelemetry.proto.logs.v1.LogRecord.attributes: object expected
+.opentelemetry.proto.logs.v1.LogRecord.body: object expected
+.opentelemetry.proto.logs.v1.LogsData.resourceLogs: array expected
+.opentelemetry.proto.logs.v1.LogsData.resourceLogs: object expected
+.opentelemetry.proto.logs.v1.ResourceLogs.resource: object expected
+.opentelemetry.proto.logs.v1.ResourceLogs.scopeLogs: array expected
+.opentelemetry.proto.logs.v1.ResourceLogs.scopeLogs: object expected
+.opentelemetry.proto.logs.v1.ScopeLogs.logRecords: array expected
+.opentelemetry.proto.logs.v1.ScopeLogs.logRecords: object expected
+.opentelemetry.proto.logs.v1.ScopeLogs.scope: object expected
+.opentelemetry.proto.metrics.v1.Exemplar.filteredAttributes: array expected
+.opentelemetry.proto.metrics.v1.Exemplar.filteredAttributes: object expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogram.dataPoints: array expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogram.dataPoints: object expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.Buckets.bucketCounts: array expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.attributes: array expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.attributes: object expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.exemplars: array expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.exemplars: object expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.negative: object expected
+.opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.positive: object expected
+.opentelemetry.proto.metrics.v1.Gauge.dataPoints: array expected
+.opentelemetry.proto.metrics.v1.Gauge.dataPoints: object expected
+.opentelemetry.proto.metrics.v1.Histogram.dataPoints: array expected
+.opentelemetry.proto.metrics.v1.Histogram.dataPoints: object expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.attributes: array expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.attributes: object expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.bucketCounts: array expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.exemplars: array expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.exemplars: object expected
+.opentelemetry.proto.metrics.v1.HistogramDataPoint.explicitBounds: array expected
+.opentelemetry.proto.metrics.v1.Metric.exponentialHistogram: object expected
+.opentelemetry.proto.metrics.v1.Metric.gauge: object expected
+.opentelemetry.proto.metrics.v1.Metric.histogram: object expected
+.opentelemetry.proto.metrics.v1.Metric.metadata: array expected
+.opentelemetry.proto.metrics.v1.Metric.metadata: object expected
+.opentelemetry.proto.metrics.v1.Metric.sum: object expected
+.opentelemetry.proto.metrics.v1.Metric.summary: object expected
+.opentelemetry.proto.metrics.v1.MetricsData.resourceMetrics: array expected
+.opentelemetry.proto.metrics.v1.MetricsData.resourceMetrics: object expected
+.opentelemetry.proto.metrics.v1.NumberDataPoint.attributes: array expected
+.opentelemetry.proto.metrics.v1.NumberDataPoint.attributes: object expected
+.opentelemetry.proto.metrics.v1.NumberDataPoint.exemplars: array expected
+.opentelemetry.proto.metrics.v1.NumberDataPoint.exemplars: object expected
+.opentelemetry.proto.metrics.v1.ResourceMetrics.resource: object expected
+.opentelemetry.proto.metrics.v1.ResourceMetrics.scopeMetrics: array expected
+.opentelemetry.proto.metrics.v1.ResourceMetrics.scopeMetrics: object expected
+.opentelemetry.proto.metrics.v1.ScopeMetrics.metrics: array expected
+.opentelemetry.proto.metrics.v1.ScopeMetrics.metrics: object expected
+.opentelemetry.proto.metrics.v1.ScopeMetrics.scope: object expected
+.opentelemetry.proto.metrics.v1.Sum.dataPoints: array expected
+.opentelemetry.proto.metrics.v1.Sum.dataPoints: object expected
+.opentelemetry.proto.metrics.v1.Summary.dataPoints: array expected
+.opentelemetry.proto.metrics.v1.Summary.dataPoints: object expected
+.opentelemetry.proto.metrics.v1.SummaryDataPoint.attributes: array expected
+.opentelemetry.proto.metrics.v1.SummaryDataPoint.attributes: object expected
+.opentelemetry.proto.metrics.v1.SummaryDataPoint.quantileValues: array expected
+.opentelemetry.proto.metrics.v1.SummaryDataPoint.quantileValues: object expected
+.opentelemetry.proto.resource.v1.Resource.attributes: array expected
+.opentelemetry.proto.resource.v1.Resource.attributes: object expected
+.opentelemetry.proto.resource.v1.Resource.entityRefs: array expected
+.opentelemetry.proto.resource.v1.Resource.entityRefs: object expected
+.opentelemetry.proto.trace.v1.ResourceSpans.resource: object expected
+.opentelemetry.proto.trace.v1.ResourceSpans.scopeSpans: array expected
+.opentelemetry.proto.trace.v1.ResourceSpans.scopeSpans: object expected
+.opentelemetry.proto.trace.v1.ScopeSpans.scope: object expected
+.opentelemetry.proto.trace.v1.ScopeSpans.spans: array expected
+.opentelemetry.proto.trace.v1.ScopeSpans.spans: object expected
+.opentelemetry.proto.trace.v1.Span.Event.attributes: array expected
+.opentelemetry.proto.trace.v1.Span.Event.attributes: object expected
+.opentelemetry.proto.trace.v1.Span.Link.attributes: array expected
+.opentelemetry.proto.trace.v1.Span.Link.attributes: object expected
+.opentelemetry.proto.trace.v1.Span.attributes: array expected
+.opentelemetry.proto.trace.v1.Span.attributes: object expected
+.opentelemetry.proto.trace.v1.Span.events: array expected
+.opentelemetry.proto.trace.v1.Span.events: object expected
+.opentelemetry.proto.trace.v1.Span.links: array expected
+.opentelemetry.proto.trace.v1.Span.links: object expected
+.opentelemetry.proto.trace.v1.Span.status: object expected
+.opentelemetry.proto.trace.v1.TracesData.resourceSpans: array expected
+.opentelemetry.proto.trace.v1.TracesData.resourceSpans: object expected
+.partial() cannot be used on object schemas containing refinements
+.pick() cannot be used on object schemas containing refinements
+/
+:active is not supported.
+:column is not supported.
+:current is not supported.
+:future is not supported.
+:hover is not supported.
+:link is not supported.
+:nth-column is not supported.
+:nth-last-column is not supported.
+:past is not supported.
+:visited is not supported.
+@@asyncIterator is not a function
+@ant/computer-use-input is not supported on this platform
+@aws-sdk/core/protocols - (XML serializer) cannot write null value.
+@aws-sdk/core/protocols - JsonReplacer already created.
+@aws-sdk/core/protocols - JsonReplacer exhausted.
+@aws-sdk/core/protocols - JsonReplacer not created yet.
+@aws-sdk/core/protocols - QuerySerializer cannot flush with nothing written to buffer.
+@aws-sdk/core/protocols - xml serializer, cannot call _write() on List/Map schema, call writeList or writeMap() instead.
+@aws-sdk/core::resolveAwsSdkSigV4Config - `credentials` not provided and no credentialDefaultProvider was configured.
+@aws-sdk/credential-providers - createCredentialChain(...).expireAfter(ms) may not be called with a duration lower than five minutes.
+@aws-sdk/util-endpoint - endpointProvider and endpoint missing in config for this client.
+@smithy/core - HttpProtocol: eventStreamMarshaller missing in serdeContext.
+@smithy/core/cbor: client may not serialize undefined value.
+@smithy/core/event-streams - non-struct member not supported in event stream union.
+@smithy/core/protocols - HTTP Protocol error handler failed to throw.
+@smithy/core/protocols - RPC Protocol error handler failed to throw.
+@smithy/core/schema - cannot iterate non-struct schema.
+@smithy/core/serde - NumericValue must only contain [0-9], at most one decimal point\x20
+@smithy/middleware-endpoint: (default endpointRuleSet) endpoint is not set - you must configure an endpoint.
+@smithy/util-base64: toBase64 encoder function only accepts string | Uint8Array.
+@smithy/util-stream: unable to instantiate ChecksumStream because API unavailable: ReadableStream/TransformStream.
+@smithy/util-utf8: toUtf8 encoder function only accepts string | Uint8Array.
+@smithy::core/protocols - initial-response event encountered in event stream but no response schema given.
+A DEFAULT_3P_*_KEY points at a model config with bedrock: null \u2014 Bedrock setup has no fallback id for that tier
+A credential source or AWS security credentials supplier must be specified.
+A credential source or subject token supplier must be specified.
+A goal proposal is already awaiting the user
+A key or a keyFile must be provided to getCredentials.
+A withProject fork cannot re-identify the session \u2014 update the root session instead
+ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN, or WIF env vars (ANTHROPIC_FEDERATION_RULE_ID + ANTHROPIC_ORGANIZATION_ID) required
+ASN.1 object does not contain a valid RSASSA-PKCS1-v1_5 DigestInfo value.
+ASN.1 object does not contain a valid RSASSA-PKCS1-v1_5 DigestInfo value. Missing algorithm identifier NULL parameters.
+ASN.1 parsing error: Max depth exceeded.
+AWS default-chain credential resolve timed out
+AWSQuery protocol has no payload codec.
+AWS_PROFILE is set, skipping fromEnv provider.
+AWS_SIGV4A_SIGNING_REGION_SET not set in env.
+Abstract function; should be overriding in subclass.
+Agent stalled (stream watchdog)
+Algorithm\x20
+Already at the first node.\x20
+Already at the last node.\x20
+Already connected to a transport. Call close() before connecting to a new transport, or use a separate Protocol instance per connection.
+Already in a worktree session
+An entity must be set without\x20
+An entity with value\x20
+AppStateProvider can not be nested within another AppStateProvider
+Argument must be a number
+Argument must not be a number
+Argument to\x20
+Arrays are not supported.
+Assertion failed:\x20
+Async refinement encountered during synchronous parse operation. Use .parseAsync instead.
+Async schemas not supported in object keys currently
+Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.
+At least one access boundary rule needs to be defined.
+At least one of certificateFile and caCertificateFile must be set
+At least one of max, maxSize, or ttl is required
+At least one permission should be defined in access boundary rules.
+Attempted to allocate an event message where size was not a number:\x20
+Attempted to update an already finished hash.
+Attribute type not specified.
+Attribute value not specified.
+Attribute\x20
+Authentication failed: invalid or missing API key
+Authentication tag does not match tag length.
+Authentication timeout
+Azure AD token unavailable
+Bad combinator.
+Bad\x20
+Base64Coder: incorrect characters for decoding
+Base64Coder: incorrect padding
+BatchSpanProcessor: span export failed
+Bearer token authentication is not permitted for non-TLS protected (non-https) URLs.
+BigInt cannot be represented in JSON Schema
+BigInt literals cannot be represented in JSON Schema
+BitMatrix size must be defined and greater than 0
+Bits beyond keysize not zero as expected.
+Both interceptors and interceptor_providers were passed as options to the client constructor. Only one of these is allowed.
+BoundedStdioClientTransport: _readBuffer is no longer the BoundedReadBuffer \u2014\x20
+Branch could not be written through storage
+Bridge unreachable
+CDATA outside of element
+CLAUDE_CODE_CUSTOM_OAUTH_URL is not an approved endpoint.
+CLAUDE_CODE_NO_MODEL_FALLBACK forbids model substitution
+CLAUDE_CODE_NO_MODEL_FALLBACK tripwire: a model-fallback pivot was attempted\x20
+CLAUDE_STAGE_FILE_ROOT must be an absolute path
+CONNECT handshake timed out
+CONNECT response header too large
+Call listen() first.
+Callback required as last argument
+Can
+Can not delete in empty document
+Can not rewrite read-only method\x20
+Cancellation over SharedArrayBuffer doesn
+Cancelled
+Cannot add MCP server to scope: claudeai
+Cannot add MCP server to scope: dynamic
+Cannot add MCP server to scope: enterprise
+Cannot add MCP server: enterprise MCP configuration is active and has exclusive control over MCP servers
+Cannot add an empty service to a server
+Cannot add initializers after decoration has completed
+Cannot calculate proper length in synchronous way.
+Cannot compose insecure credentials
+Cannot configure version negotiation after connecting to transport
+Cannot create call, subchannel not READY
+Cannot create final Buffer. It would be larger than 0x
+Cannot create literal schema with no valid values
+Cannot create view with no selector arguments supplied
+Cannot delete permission rules from read-only settings
+Cannot drain port 0
+Cannot edit file: old_string is a substring of a new_string from a previous edit.
+Cannot encrypt private key. Unknown encryption algorithm.
+Cannot enqueue task message: taskStore and taskMessageQueue are not configured
+Cannot fetch ID token in this environment, use GCE or set the GOOGLE_APPLICATION_CREDENTIALS environment variable to a service account credentials JSON file.
+Cannot hash more than 2^53 - 1 bits
+Cannot insert elements at root level.\x20
+Cannot install plugins to managed scope
+Cannot mix number and bigint in multiple_of check.
+Cannot overwrite keys on object schemas containing refinements. Use `.safeExtend()` instead.
+Cannot read ContentInfo.
+Cannot read EncryptedContentInfo.
+Cannot read PKCS #12 PBE data block. Unsupported OID.
+Cannot read PKCS#10 certificate request. ASN.1 object is not a PKCS#10 CertificationRequest.
+Cannot read PKCS#12 BagAttribute.
+Cannot read PKCS#12 PFX. ASN.1 object is not an PKCS#12 PFX.
+Cannot read PKCS#12\x20
+Cannot read PKCS#7 RecipientInfo. ASN.1 object is not an PKCS#7 RecipientInfo.
+Cannot read PKCS#7 message. ASN.1 object is not a supported PKCS#7 message.
+Cannot read PKCS#7 message. ASN.1 object is not an PKCS#7 ContentInfo.
+Cannot read PKCS#7 message. ContentType with OID\x20
+Cannot read RSASSA-PSS parameter block.
+Cannot read SafeBag.
+Cannot read X.509 certificate. ASN.1 object is not an X509v3 Certificate.
+Cannot read encrypted PBE data block. Unsupported OID.
+Cannot read encrypted private key. ASN.1 object is not a supported EncryptedPrivateKeyInfo.
+Cannot read encrypted private key. Unsupported encryption scheme OID.
+Cannot read encrypted private key. Unsupported key derivation function OID.
+Cannot read notBefore/notAfter validity times; more than two times were provided in the certificate.
+Cannot read notBefore/notAfter validity times; they were not provided as either UTCTime or GeneralizedTime.
+Cannot read password-based-encryption algorithm parameters. ASN.1 object is not a supported EncryptedPrivateKeyInfo.
+Cannot read private key. ASN.1 object does not contain an RSAPrivateKey.
+Cannot read private member from an object whose class did not declare it
+Cannot read public key. ASN.1 object does not contain an RSAPublicKey.
+Cannot read public key. OID is not RSA.
+Cannot read public key. Unknown OID.
+Cannot read so many bytes!
+Cannot register capabilities after connecting to transport
+Cannot remove the root element.\x20
+Cannot require module\x20
+Cannot resolve hostname from client config
+Cannot resume teammate: no team is active in this session
+Cannot safely quote a Unicode single-quote variant (U+2018-U+201B) in a PowerShell path; install Windows Terminal (wt.exe).
+Cannot satisfy policy dependencies due to requirements cycle.
+Cannot sign data without `client_email`.
+Cannot specify both `message` and `error` params
+Cannot transition to auto mode: gate is not enabled
+Cannot unbind port 0
+Cannot use both a settings file path and the sandbox option. Include the sandbox configuration in your settings file instead.
+Cannot use diag as the logger for itself. Please use a DiagLogger implementation like ConsoleDiagLogger or a custom implementation
+Cannot use remoteEval on GrowthBook Cloud
+Cannot use retries with the sync api
+Cannot use same file for input and output
+Cannot use\x20
+Cannot write private member to an object whose class did not declare it
+Cannot write to terminated process
+Capacity must be greater than 0
+Certificate chain must be given with accompanying private key
+CertificateVerify signature does not match.
+Channel credentials must be a ChannelCredentials object
+Channel has been shut down
+Channel options must be an object
+Channel target must be a string
+Channel#createCall: deadline must be a number or Date
+Channel#createCall: method must be a string
+Circular reference detected in\x20
+Class extends value\x20
+Claude Code web sessions require authentication with a Claude.ai account. API key authentication is not sufficient. Please run /login to authenticate, or check your authentication status with /status.
+Claude Design is only reachable from api.anthropic.com; the current OAuth base URL is not on the first-party allowlist.
+Claude in Chrome Native Host not supported on this platform
+Claude in Chrome bridge is not initialized in this session.
+Client does not support URL elicitation (required for notifications/elicitation/complete)
+Client does not support form elicitation.
+Client does not support sampling tools capability.
+Client does not support url elicitation.
+Clipboard write did not round-trip.
+Cloud sessions are only available on the first-party Anthropic API provider.
+CodeGen: name must be a valid identifier
+CodeGen: not in self-balancing block
+CodeGen: ref must be passed in value
+CodeGen:\x20
+Color should be defined as hex string
+Command alias can
+Command processing failed
+Comment text cannot contain double-hypen:\x20
+Compaction unavailable: CLAUDE_CODE_NO_MODEL_FALLBACK is set and model substitution is disabled \xB7 unset it to allow the swap
+Compaction unavailable: your model policy only allows Fable 5, which requires usage credits \xB7 /model to set it up
+ComputerUseSession.reset() called while the lock cleanup, Esc hotkey, or run-loop pump is still registered
+Concurrency Limit reached
+Concurrent export limit reached
+Conditional schemas (if/then/else) are not supported
+Config accessed before allowed.
+Config fallback write through storage failed
+Config update through storage failed
+Conflicting SSO region
+Conflicting SSO start_url
+Connection closed during the version negotiation probe
+ConsentRow may only be constructed by the consentRows factories
+Content block input is not a string
+Content block is not a input_json block
+Content block is not a text block
+Content block is not a thinking block
+Content block not found
+Conversation too long to branch through storage
+Conversation unreadable through storage
+Could not add PKCS#7 signer; no private key specified.
+Could not add PKCS#7 signer; unknown message digest algorithm:\x20
+Could not compute certificate digest. Unknown message digest algorithm OID.
+Could not compute certification request digest. Unknown message digest algorithm OID.
+Could not compute\x20
+Could not convert PEM to DER; PEM is encrypted.
+Could not convert PKCS#7 message from PEM; PEM header type is not\x20
+Could not convert PKCS#7 message from PEM; PEM is encrypted.
+Could not convert certificate from PEM; PEM header type is not\x20
+Could not convert certificate from PEM; PEM is encrypted.
+Could not convert certification request from PEM; PEM header type is not\x20
+Could not convert certification request from PEM; PEM is encrypted.
+Could not convert encrypted private key from PEM; PEM header type is\x20
+Could not convert encrypted private key from PEM; PEM is encrypted.
+Could not convert private key from PEM; PEM header type is not\x20
+Could not convert private key from PEM; PEM is encrypted.
+Could not convert public key from PEM; PEM header type is not\x20
+Could not convert public key from PEM; PEM is encrypted.
+Could not create any elements with:\x20
+Could not decrypt private key; unsupported encryption algorithm\x20
+Could not encrypt RSA private key; unsupported encryption algorithm\x20
+Could not find Claude Desktop config file in Windows. Make sure Claude Desktop is installed on Windows.
+Could not find expected\x20
+Could not find platform-specific native package
+Could not install - another process is currently installing Claude. Please try again in a moment.
+Could not load credentials from any providers
+Could not load token from any providers
+Could not refresh access token.
+Could not resolve a `Response` object
+Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the\x20
+Could not sign PKCS#7 message; there is no content to sign.
+Crc error -\x20
+CryptoKey does not support this operation
+CryptoKey instance expected
+CryptoKey is not extractable
+Custom types cannot be represented in JSON Schema
+Cyclic object value
+DOMParser.parseFromString: the provided mimeType\x20
+Dangerous flag combination detected
+Date cannot be represented in JSON Schema
+Deadline is too far in the future
+Deadline passed without connectivity state change
+Deep link cwd contains disallowed control characters
+Deep link cwd contains invisible or bidirectional control characters
+Deep link query contains disallowed control characters
+Default value only applies to #FIXED or #DEFAULT.\x20
+Derived key is too long.
+DeviceBridgeTransport start can only be called once.
+Doctype not allowed inside or after documentElement at position\x20
+Document can only have one root node.\x20
+Download failed after all retries
+Duplicate policy names not allowed in pipeline
+Dynamic catch values are not supported in JSON Schema
+EC2 Instance Metadata Service access disabled
+ECDSA signature must be a Base64 string or a Buffer
+EEXIST: name already taken (exclusive create)
+EISDIR: illegal operation on a directory, read
+ENOENT
+ENOENT: marketplace catalog not cached
+ENOENT: no such file or directory
+ERR: contains `self` is not supported at the top-level of a language.  See documentation.
+Ed448 *_hash calculation is not supported in your Node.js runtime version
+Either provider.prepareTokenRequest() or authorizationCode is required
+Empty value provided for input HTTP label:\x20
+Encoded message does not end in 0xBC.
+Encoder has to be a function.
+Encoder not initialized
+Encoding\x20
+Encrypted message is invalid.
+Encrypted message length is invalid.
+Encryption block is invalid.
+Encryption is not available for remoteEval
+EnterPlanMode tool cannot be used in agent contexts
+Entity value can
+Epoch timestamps must be expressed as floating point numbers or their string representation
+Epoch timestamps must be valid finite numbers.
+Epoch timestamps must be valid, non-Infinite, non-NaN numerics
+Error converting schema to JSON.
+Error detected in Markup declaration
+Error in internal subset at position\x20
+Error response received from instance metadata service
+Eventstream payload must be a Readable stream.
+Executable response is expired.
+Existing OAuth client information is required when exchanging an authorization code
+Expected IHDR on beggining
+Expected WebsocketSignatureV4 signer, please check the client constructor.
+Expected `appArguments` as Array type
+Expected `awsRegion` option to be passed to the client or the `AWS_REGION` environment variable to be present
+Expected a `target`
+Expected a and b to be arrays of the same length
+Expected a function
+Expected a non-empty string
+Expected a non-null value
+Expected a string
+Expected a valid `name`
+Expected a valid string to create an image with text.
+Expected at least two images to join
+Expected both left and top to be set
+Expected either clientSecret or certificatePath or clientAssertion to be defined.
+Expected input to be a string
+Expected input to be an array of images to join
+Expected noise to be an object
+Expected only one of dpi or height
+Expected palette not found
+Expected pattern to be a non-empty string
+Expected payload to be of type string or Buffer.
+Expected real number, got implicit NaN
+Expected request body to be an object for post /v1/messages
+Expected secret to be of type string
+Expected to consume entire buffer, but\x20
+Expected valid noise or background to create a new input image
+Expected valid width, height and channels to create a new input image
+Expected whitespace after\x20
+Expected width, height and channels for raw pixel input
+Expected\x20
+Expiration time too far in future:\x20
+ExplicitBucketHistogramAggregation should be created with explicit boundaries, if a single bucket histogram is required, please pass an empty array
+Export failed with retryable status
+Export failed with unknown error
+Exporter has been shutdown
+Extension ID not specified.
+Extension value not specified.
+Extension\x20
+External $ref is not supported, only local refs (#/...) are allowed
+External entities are not supported
+ExternalAccountClients should be initialized via: ExternalAccountClient.fromJSON(), directly via explicit constructors, eg. new AwsClient(options), new IdentityPoolClient(options), newPluggableAuthClientOptions, or via new GoogleAuth(options).getClient()
+Fable consent declined and the model policy allows no non-Fable fallback
+Fail to set maxConcurrentStreams to\x20
+Failed to connect before the deadline
+Failed to create backup of Terminal.app preferences, bailing out
+Failed to create object store
+Failed to decrypt
+Failed to decrypt PKCS#12 SafeContents.
+Failed to disable audio bell for any Terminal.app profile
+Failed to enable Option as Meta key for any Terminal.app profile
+Failed to enable Option as Meta key or disable audio bell for any Terminal.app profile
+Failed to fetch session logs
+Failed to find wrapped line in text
+Failed to get access token
+Failed to get mux proxy server port
+Failed to install Alacritty Shift+Enter key binding
+Failed to install Zed Shift+Enter key binding
+Failed to load conversation
+Failed to load credentials
+Failed to parse the X.509 certificate
+Failed to read default Terminal.app profile
+Failed to read startup Terminal.app profile
+Failed to refresh access token.
+Failed to respawn in-process teammate
+Failed to spawn in-process teammate
+Failed to start HTTP bridge process
+Failed to start SOCKS bridge process
+Failed to submit feedback: request did not return feedback_id
+Fallback model cannot be the same as the main model. Please specify a different model for fallbackModel option.
+File exceeds maxBytes limit
+FileHistory: Error copying over backup from previous session
+FileHistory: Failed to copy backups on restore (no previous session id)
+FileHistory: Failed to record copy backup snapshot
+FileHistory: backup source is not a regular file
+FileHistory: invalid backup file name
+FileHistory: invalid session id
+FileHistory: no usable next version
+FileHistory: tracked path is not a regular file
+Files API is unavailable for HIPAA-regulated organizations
+Files API is unavailable on third-party providers (data-residency)
+First argument must be a buffer
+Flash local storage not available.
+Forked dispatch requires forkDispatchHookExecutors
+FormData boundary must be a string
+FormData instance required
+Function expected
+Function hook cancelled
+Function types cannot be represented in JSON Schema
+Gateway URL must use https:// (got http://). Plain HTTP is only allowed for localhost during development.
+Generator is already executing.
+Given salt length does not match length of given salt.
+Goal proposals are only available in interactive local sessions.
+Goal proposals need an interactive session to render the approval prompt; none is available here.
+GrowthBook eval-authed fetch threw; falling back to /api/eval
+GrowthBook eval-authed returned non-ok; falling back to /api/eval
+HTTP credential provider response not of the required format, an object matching: { AccessKeyId: string, SecretAccessKey: string, Token: string, Expiration: string(rfc3339) }
+Headers not set by metadata plugin
+Hex encoded strings must have an even number length
+IDE client not available
+ITermBackend not registered. Import ITermBackend.ts before using the registry.
+IdP claims missing required `sub`
+IdP refresh response had neither id_token nor access_token
+If a code_challenge_method is provided, code_challenge must be included.
+If operationSpec.baseUrl is not specified, then the ServiceClient must have a endpoint string property that contains the base URL to use.
+Illegal constructor
+Illegal lexeme\x20
+In order to do WAM authentication, `parentWindowHandle` under `brokerOptions` is a required parameter
+Incompatible auth server: does not support dynamic client registration
+Incomplete configuration. The fromSSO() argument hash must include\x20
+Inconsistent PSS signature, 0x01 marker not found
+Inconsistent parameters to PSS signature verification.
+Incorrect arguments passed
+Incorrect padding on base64 string.
+Initialization failed
+Ink instance not found - cannot pause rendering
+Input Bit Array is empty
+Input Buffer is empty
+Input bit Array is empty
+Input buffers must have the same length
+Int64 buffers must be exactly 8 bytes
+Integer too large; max is 32-bits.
+Internal ZodObject error: invalid unknownKeys value.
+Internal error: session team not initialized. This should have happened at startup when agent swarms are enabled.
+Invalid API key format. API key must contain only alphanumeric characters, dashes, and underscores.
+Invalid CDATA starting at position\x20
+Invalid DER signature
+Invalid DOCTYPE
+Invalid ISO date string
+Invalid IV length; got\x20
+Invalid IV parameter.
+Invalid Key.
+Invalid OID\x20
+Invalid PEM formatted message.
+Invalid PEM formatted message. The first encapsulated header must be\x20
+Invalid PEM formatted message. The\x20
+Invalid PKCS#12. macData field present but MAC was not validated.
+Invalid PLIST tag\x20
+Invalid QR Code version
+Invalid RFC-3339 date-time value
+Invalid RFC-7231 date-time value
+Invalid RSAES-OAEP padding.
+Invalid RSAES-OAEP seed. The seed length must match the digest length.
+Invalid SHA-512 algorithm:\x20
+Invalid SJIS character:\x20
+Invalid Tag instead of DOCTYPE
+Invalid Token or Protected Header formatting
+Invalid Triple-DES key size:\x20
+Invalid URL
+Invalid argument
+Invalid attribute definition
+Invalid authorization URL: must use http:// or https:// scheme
+Invalid base64 string.
+Invalid callback URL \u2014 no authorization code. The flow is still open; retry with the full redirect URL.
+Invalid clockTolerance option type
+Invalid convolution kernel
+Invalid data
+Invalid default value type; expected: #REQUIRED, #IMPLIED, #FIXED or #DEFAULT.\x20
+Invalid encoding:\x20
+Invalid events response
+Invalid file signature
+Invalid hex color:\x20
+Invalid hex string length
+Invalid input
+Invalid input to extend: expected a plain object
+Invalid input to safeExtend: expected a plain object
+Invalid input type
+Invalid issuer, expected one of [
+Invalid key generation algorithm:\x20
+Invalid key parameter.
+Invalid list
+Invalid loadBalancingConfig: load balancing policy name required
+Invalid major version
+Invalid method config hedging policy: hedgingDelay must be a string consisting of a positive integer followed by s
+Invalid method config hedging policy: maxAttempts must be an integer at least 2
+Invalid method config hedging policy: nonFatalStatusCodes value must be a string or number
+Invalid method config hedging policy: nonFatalStatusCodes value not a status code name
+Invalid method config hedging policy: nonFatalStatusCodes value not in status code range
+Invalid method config name: method set with empty or unset service
+Invalid method config retry policy: backoffMultiplier must be a number greater than 0
+Invalid method config retry policy: initialBackoff must be a string consisting of a positive integer or decimal followed by s
+Invalid method config retry policy: maxAttempts must be an integer at least 2
+Invalid method config retry policy: maxBackoff must be a string consisting of a positive integer or decimal followed by s
+Invalid method config retry policy: retryableStatusCodes is required
+Invalid method config retry policy: retryableStatusCodes must be non-empty
+Invalid method config retry policy: retryableStatusCodes value must be a string or number
+Invalid method config retry policy: retryableStatusCodes value not a status code name
+Invalid method config retry policy: retryableStatusCodes value not in status code range
+Invalid method config: invalid maxRequestBytes
+Invalid method config: invalid name array
+Invalid method config: invalid timeout
+Invalid method config: invalid timeout.nanos
+Invalid method config: invalid timeout.seconds
+Invalid method config: invalid waitForReady
+Invalid method config: retryPolicy and hedgingPolicy cannot both be specified
+Invalid minor version
+Invalid mode
+Invalid mode:\x20
+Invalid number of delimiters (
+Invalid parameter:\x20
+Invalid patch version
+Invalid prime generation algorithm:\x20
+Invalid processing instruction starting at position\x20
+Invalid processing instruction value:\x20
+Invalid region in client config
+Invalid response format from plugin catalog
+Invalid response received from instance metadata service.
+Invalid retryThrottling: maxTokens must be a number in (0, 1000]
+Invalid retryThrottling: tokenRatio must be a number greater than 0
+Invalid scope was specified by the user or calling client
+Invalid selector.
+Invalid service config choice: invalid clientHostname
+Invalid service config choice: invalid clientLanguage
+Invalid service config choice: invalid percentage
+Invalid service config choice: missing service config
+Invalid service config list
+Invalid service config: invalid loadBalancingConfig
+Invalid service config: invalid loadBalancingPolicy
+Invalid session logs response format
+Invalid session_id: contains unsafe characters
+Invalid signer.authenticatedAttributes. If signer.authenticatedAttributes is specified, then it must contain at least two attributes, PKCS #9 content-type and PKCS #9 message-digest.
+Invalid signer; authenticatedAttributes must be present when the ContentInfo content type is not PKCS#7 Data.
+Invalid skill name\x20
+Invalid state parameter
+Invalid string. Length must be a multiple of 4
+Invalid subscription provided. You can locate your subscription by following the instructions listed here: https://learn.microsoft.com/azure/azure-portal/get-subscription-tenant-id.
+Invalid tenant id provided. You can locate your tenant id by following the instructions listed here: https://learn.microsoft.com/partner-center/find-ids-and-domain-names.
+Invalid time period format
+Invalid token signature:\x20
+Invalid version number:\x20
+Invalid version:\x20
+Invalid work secret: missing api_base_url
+Invalid work secret: missing or empty session_ingress_token
+Invalid\x20
+IssueSessionToken: response missing session_token
+Iterator access denied!
+Iterator is not an object
+Iterator result is not an object
+Iterator.next is not a function
+JP2 output requires libvips with support for OpenJPEG
+JSON Web Key for symmetric algorithms must have JWK\x20
+JSON Web Key for this operation must be a private JWK
+JSON Web Key for this operation must be a public JWK
+JSON form must be an array of strings
+JSON.stringify
+JWK alg and alg option value mismatch
+JWK must be an object
+JWT Claims Set MUST be an object
+JWT is malformed
+JWT must be a string
+JWTs must have three components
+Key length is invalid.
+LOCALAPPDATA is not set
+LSP client not started
+LSP server crashed during startup
+LSP server declared a message larger than the size limit \u2014 refusing to buffer it
+LSP server exceeded the header size limit without a message header \u2014 it is likely printing logs or other non-protocol output to stdout instead of stderr
+LSP server manager not initialized when tool was called
+LSP server not initialized
+LSP server process stdio not available
+LSP server sent a Content-Length that is not a number \u2014 its stdout is desynchronized from the base protocol
+LSP server sent a header block without a Content-Length \u2014 its stdout is desynchronized from the base protocol (non-protocol output on stdout?)
+LSP server sent non-protocol output in the header block \u2014 its stdout is desynchronized from the base protocol (logs/banners on stdout instead of stderr?)
+LSP server stopped during initialize
+Leftmost octets not zero as expected
+Line number must start from `1`.
+LinkedMap got modified during iteration.
+Linux bridge process died unexpectedly
+Listener not defined for signal:\x20
+Literal `undefined` cannot be represented in JSON Schema
+LocalFileJournal: journal append failed
+LocalFileJournal: journal read cursor failed to advance
+LocalFileJournal: journal read failed
+Lock already held by another process
+Lock file is already being held
+Lock held by another process
+Lock is already released
+Lock is not acquired/owned by you
+Login blocked: this machine
+MCP controls aren
+MCP dial failed
+MCP runtime accessor tripwire: resolved generation is v1 but the loaded client module does not carry MCP_TREE_ID v1
+MCP runtime accessor tripwire: resolved generation is v2 but the loaded client module does not carry MCP_TREE_ID v2
+MCP skill builders not registered \u2014 loadSkillsDir.ts has not been evaluated yet
+Malformed AST
+Malformed PKCS#7 message, expecting content constructed of only OCTET STRING objects.
+Malformed PKCS#7 message, expecting encrypted content constructed of only OCTET STRING objects.
+Malformed RPCv2 CBOR response, status:\x20
+Map cannot be represented in JSON Schema
+Mapper function is required
+Maximum nested tags exceeded
+Maximum retries reached with no response or error to throw
+Message is too long for PKCS#1 v1.5 padding.
+Message is too long to encrypt.
+Message not found
+Metadata key\x20
+Metadata string value\x20
+Method names cannot start with $
+Method not implemented.
+MetricReader can not be bound to a MeterProvider again.
+MetricReader is not bound to a MetricProducer
+MetricReader is shutdown
+Missing CDATA text.\x20
+Missing DTD attribute default.\x20
+Missing DTD attribute name.\x20
+Missing DTD attribute type.\x20
+Missing DTD element name.\x20
+Missing DTD entity name.\x20
+Missing DTD entity value.\x20
+Missing DTD notation name.\x20
+Missing IdentityClient
+Missing algorithm parameter for jws.verify
+Missing attribute name.\x20
+Missing clientKey
+Missing comment text.\x20
+Missing element name.\x20
+Missing element text.\x20
+Missing instruction target.\x20
+Missing mandatory system identifier for SYSTEM notation
+Missing node name.
+Missing output file path
+Missing raw text.\x20
+Missing required parameter: task_id
+Missing root node name.
+Missing subject_token_field_name for JSON credential_source format
+Mixed Zod versions detected in object shape.
+More transparent colors than palette size
+MultiSpanProcessor: forceFlush failed
+Must either provide rootDirectory or walker argument
+Must pass in a JSON object containing an  impersonated refresh token
+Must pass in a JSON object containing the service account auth settings.
+Must pass in a JSON object containing the user refresh token
+Must pass in a stream containing the Google auth settings.
+Must pass in a stream containing the service account auth settings.
+Must pass in a stream containing the user refresh token.
+Must provide a hilo val of\x20
+Must provide an API Key string.
+Must specify clientKey to enable streaming
+NOT SUPPORTED: keyword\x20
+NO_DISPLAYED_UPDATES: empty intake rejected
+NPM marketplace sources not yet implemented
+NaN cannot be represented in JSON Schema
+Native CLI binary for darwin-arm64 not found. Reinstall @anthropic-ai/claude-agent-sdk without --omit=optional, or set options.pathToClaudeCodeExecutable.
+Native binary not found in staged package
+Native image processor module not available
+Negative length:\x20
+No HttpAuthScheme was selected: unable to sign request
+No SubtleCrypto implementation found
+No TTY available to prompt for client secret. Set MCP_CLIENT_SECRET env var instead.
+No access token available
+No access token for polling
+No access token is returned by the refreshHandler callback.
+No access token to revoke.
+No access, refresh token, API key or refresh handler callback is set.
+No agent available for forked execution
+No assistant message found
+No assistant messages found
+No auth available
+No authorization code received
+No available ports for OAuth redirect
+No claude.ai OAuth token available
+No claude.ai OAuth token found
+No code verifier saved
+No command provided.
+No content found in user prompt message
+No context available
+No conversation to branch
+No default load balancer type registered
+No environment secret provided. Use --environment-secret-file or set SELF_HOSTED_RUNNER_ENVIRONMENT_SECRET.
+No environments available for session creation
+No expiration time in token:\x20
+No header received from proxy CONNECT response
+No input text
+No issue time in token:\x20
+No key or keyFile set.
+No manifest.json found in MCPB file
+No matching service config found
+No message handler registered
+No messages to branch
+No messages to compact
+No names provided
+No pem found for envelope:\x20
+No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.
+No providers in chain
+No refresh token is set.
+No refresh token or refresh handler callback is set.
+No region was given. The client should be instantiated with the `region` option or the `CLOUD_ML_REGION` environment variable should be set.
+No request provided
+No result received from shell command
+No result returned
+No retry token available
+No runtime abstraction layer installed
+No runtime abstraction layer provided
+No sed arguments
+No session ID provided for teleport
+No socket was returned in the `connect()` function
+No task store configured
+No task store provided for task-capable tool.
+No task store provided.
+No timeoutMillis provided.
+No token to revoke.
+No transporter set.
+No valid AWS\x20
+No valid Identity Pool\x20
+No valid Pluggable Auth\x20
+No valid config path found for Alacritty
+No valid endpoint provider available.
+No value provided for input HTTP label:\x20
+No walker function defined for node type\x20
+No\x20
+Node is not in a tree with a FocusManager
+Non-Buffer data on Writable Stream
+Non-constructed ASN.1 object of indefinite length.
+Not a Node
+Not a regular file (device, FIFO, or socket)
+Not a string or buffer
+Not accepted
+Not available in this library. Use @grpc/proto-loader and loadPackageDefinition instead
+Not connected
+Not enough arguments
+Not implemented
+Not implemented. Use addService() instead
+Not implemented. Use bindAsync() instead
+Not in a worktree session
+Not well-formed XML starting with\x20
+Not yet implemented
+NotYetImplemented
+Notation declaration is not allowed in a parameter entity.\x20
+Nothing to send
+OAuth account information not found in config
+OAuth client information must be saveable for dynamic registration
+OAuth flow completed without producing auth URLs
+OAuth state mismatch - possible CSRF attack
+OID value too large; max is 32-bits.
+OID value too large; max is 53-bits.
+OTLP request body chunk conversion failed
+OTLP request body chunk is not string or Uint8Array
+Object argument required.
+Object expected
+Object expected.
+Object iterator must return a key-value pair
+Object not disposable.
+Objects are not valid as a React child (found:\x20
+Official marketplace GCS fetch failed and git fallback is disabled
+Onboarding guide unavailable: policy-disabled
+Only 8, 16, 24, or 32 bits supported:\x20
+Only PKCS#12 PFX in password integrity mode supported.
+Only gaussian noise is supported at the moment
+Only macOS, Linux, and Windows are supported
+Only one of credential source or AWS security credentials supplier can be specified.
+Only one of credential source or subject token supplier can be specified.
+Opening and ending tag mismatch:\x20
+Options.continue with sessionStore requires store.listSessions to be implemented
+Original and edited file match exactly. Failed to apply edit.
+Overlapping edit
+PBKDF2 key\x20
+PKCS#12 AuthenticatedSafe expected to be a SEQUENCE OF ContentInfo
+PKCS#12 EncryptedContentInfo ContentType is not Data.
+PKCS#12 MAC could not be verified. Invalid password?
+PKCS#12 PFX of version other than 3 not supported.
+PKCS#12 SafeContents Data is not an OCTET STRING.
+PKCS#12 SafeContents expected to be a SEQUENCE OF SafeBag.
+PKCS#12 authSafe content data is not an OCTET STRING.
+PKCS#12 uses unsupported MAC algorithm:\x20
+PKCS#7 CRL support not yet implemented.
+PKCS#7 signature verification not yet implemented.
+Param is not a string
+Parameter entities are not supported
+ParentBasedSampler must have a root sampler configured
+Parser was already resumed
+Parsing XML not supported.
+Pass at most one of `profile`, `credentials`, or `config`.
+Path contains null bytes
+Path-style addressing cannot be used with ARN buckets
+Pattern not found in template literal
+Per-exec filesystem.allowRead/allowWrite is not supported\x20
+Permission prompt tool returned an invalid result. Expected a single text block param with type=
+Pi Tag is not closed.
+Plan mode is active, so a goal cannot be proposed yet. Keep planning; propose the goal after the plan is approved.
+Plan token is missing or does not match this project. Call finalize_plan first.
+Please pass\x20
+Please use $(options).sync`command` instead of $.sync(options)`command`.
+Pluggable Auth executables need to be explicitly allowed to run by setting the GOOGLE_EXTERNAL_ACCOUNT_ALLOW_EXECUTABLES environment Variable to 1.
+Plugin zip cache is not enabled
+Policies inside a phase cannot specify afterPhase.
+PowerShell is not available
+Prebuilt binaries for linux-x64 require v2 microarchitecture
+Private accessor was defined without a getter
+Private accessor was defined without a setter
+Private key must be given with accompanying certificate chain
+Private method is not writable
+ProcessTransport is not ready for writing
+ProcessTransport output stream not available
+ProposeGoal cannot be used in agent contexts
+ProposeGoal only proposes a new goal; it cannot clear one. The user can clear an active goal with /goal clear.
+Provided load balancing config has multiple conflicting entries
+Provided message too short to accommodate event stream message overhead
+Provided region was not found in the partition array or regex, and default partition with id\x20
+Proxy closed during CONNECT handshake
+Proxy connection ended before receiving CONNECT response
+Public and/or system identifiers are required for an external entity.\x20
+Public or system identifiers are required for an external entity.\x20
+Query closed before response received
+Query closed before spawn
+REPL execution interrupted
+REPL: unawaited Promise coerced to string. Shorthand results used\x20
+RFC-3339 date-times must be expressed as strings
+RFC-7231 date-times must be expressed as strings
+RFC3339 timestamps must be strings
+RFC7231 timestamps must be strings.
+RSA-OAEP key\x20
+RSAES-OAEP encoded message length is invalid.
+RSAES-OAEP input message length is too long.
+RSAES-OAEP key is too short for the hash function.
+Ran out of data
+Random bytes length must be >= 16
+React.Children.only expected to receive a single React element child.
+Reactive compact: empty summary text in summarization response
+Read aborted
+ReadNotifications can only be called from the main conversation \u2014 subagents must not drain the session notification buffer.
+Readable.toWeb() is not supported. Please ensure a polyfill is available.
+Reader aborted too early
+Received compressed message but\x20
+Received parameters by name but param is not an object literal.
+Recursive join is unsupported
+Reduce of empty list with no initial value
+RefreshToken: response missing token
+Region is missing
+Remote environments are only available on the first-party Anthropic API provider.
+Remote session is not connected \u2014 try again in a moment
+Reported message length does not match received message length
+Request Timeout
+Request aborted
+Request time out
+Resolved credential object is not valid
+Resolving load balancer should never call requestReresolution
+Resource server does not implement OAuth 2.0 Protected Resource Metadata.
+Response
+Response from Amazon Cognito contained no access key ID
+Response from Amazon Cognito contained no credentials
+Response from Amazon Cognito contained no identity ID
+Response from Amazon Cognito contained no secret key
+RetryOperation timeout occurred
+Root element needs a name.
+SDK servers should be handled in print.ts
+SHA256: can
+SSEClientTransport already started! If using Client class, note that connect() calls start() automatically.
+SSO returns an invalid temporary credential.
+Salt length not specified or specific salt not given.
+Schema appears to be from zod 3, which the SDK cannot convert to JSON Schema. Upgrade to zod >=4.2.0, or wrap your JSON Schema with fromJsonSchema().
+Schema is missing a method literal
+Schema is missing an `id` property
+Schema method literal must be a string
+Scopes or url must be provided
+Second argument must be a buffer
+Secret can
+Session delete: project listing incomplete via storage
+Session delete: session directory not deletable via storage
+Session delete: transcript not deletable via storage
+Session delete: transcript unreadable via storage
+Session hook success callback failed
+Session not active (409): the session was archived or deleted.
+Set cannot be represented in JSON Schema
+Should never happen.
+Skill names must be non-empty strings.
+Skipping SSO provider in default chain (inputs do not include SSO fields).
+Socket closed
+Socket closed while loading credentials
+Something went wrong, a child dependency can
+Source and destination must not be the same.
+Source code is missing.
+Staged binary not found
+Start can only be called once per transport.
+Stats tab rendered without getSkillStatsInputs
+StdioClientTransport already started! If using Client class, note that connect() calls start() automatically.
+StdioServerTransport already started! If using Server class, note that connect() calls start() automatically.
+Stream can only be iterated once
+Stream ended without receiving any events
+Stream idle timeout - no chunks received
+Stream not writable
+StreamableHTTPClientTransport already started! If using Client class, note that connect() calls start() automatically.
+String required as first argument
+SubtleCrypto not found. Make sure it
+Symbol.asyncDispose is not defined.
+Symbol.asyncIterator is not defined.
+Symbol.dispose is not defined.
+Symbols cannot be represented in JSON Schema
+Symmetric decryption failed.
+Symmetric encryption failed.
+Symmetric key has wrong length; got\x20
+Symmetric key not available.
+Synchronous parse encountered promise.
+System identifier is required for a public external entity.\x20
+TLS connection timed out
+TLS version rollback attack detected.
+Team config file unreadable (lock acquired, read failed)
+Team name is required for permission requests
+Temporary credential requires multi-factor authentication, but no MFA code callback was provided.
+TextDecoder is not available, please make sure polyfill is provided.
+The IDE connection is managed automatically and can
+The SSO session associated with this profile has expired. To refresh this SSO session run aws sso login with the corresponding profile.
+The SSO session associated with this profile is invalid. To refresh this SSO session run aws sso login with the corresponding profile.
+The `input` and `inputFile` options cannot be both set.
+The `input` option cannot be a stream in sync mode
+The `level` option should be an integer from 0 to 3
+The `x` argument is required
+The access token expiry_date field is missing in the provided credentials.
+The amount of data is too big to be stored in a QR Code
+The application rejected the certificate.
+The argument must be a React element, but you passed\x20
+The authorityHost address must use the\x20
+The channel has been closed
+The charset option must be either utf-8, iso-8859-1, or undefined
+The document node has no parent.
+The executable failed to finish within the timeout specified.
+The executable response must contain the `expiration_time` field for successful responses when an output_file has been specified in the configuration.
+The file at the specified path does not contain a PEM-encoded certificate.
+The file path is invalid.
+The first argument must be a Readable, a ReadableStream, or an async iterable.
+The goal condition is empty once whitespace and invisible characters are removed. Provide a visible condition.
+The includeDirs option must be an array
+The incoming JSON object does not contain a client_email field
+The incoming JSON object does not contain a client_id field
+The incoming JSON object does not contain a client_secret field
+The incoming JSON object does not contain a private_key field
+The incoming JSON object does not contain a refresh_token field
+The incoming JSON object does not contain a service_account_impersonation_url field
+The incoming JSON object does not contain a source_credentials field
+The incoming JSON object does not have the\x20
+The input to be decoded is not correctly encoded.
+The iterator does not provide a throw method
+The last message must contain only tool_result content if any is present
+The operation was aborted
+The parent certificate did not issue the given child certificate; the child certificate
+The provided fetch function does not support file uploads with the current global FormData class.
+The received response has neither a result nor an error property.
+The request is not an instance of `HttpRequest` and cannot be signed
+The root node has no parent. Use doc() if you need to get the document object.
+The second argument must be a string, a stream or an Execa child process.
+The segmenter passed must have a granularity of\x20
+The selected snapshot was not found
+The stream has been consumed by other callbacks.
+The target child process
+The user has disabled model-proposed goals in their settings. Do not propose goals; the user can set one themselves with /goal.
+The verifyIdToken method requires an ID Token
+There are some read requests waitng on finished stream
+This DOM method is not implemented.
+This XML node type is not supported in a JS object:\x20
+This cloud session is archived and cannot accept new messages.
+This method accepts an options object as the first parameter, which includes the idToken, audience, and maxExpiry.
+This schema contains multiple valid literal values. Use `.values` instead.
+Timed out
+Timed out waiting for GCP credentials
+Timeout
+TimeoutError from instance metadata service
+TmuxBackend not registered. Import TmuxBackend.ts before using the registry.
+To add an Option object use addOption() instead of option() or requiredOption()
+To many thunks active
+To use the sync capability of this library in old node versions, please pin pngjs to v2.3.0
+Token does not contain a Protected Header
+Token refresh response missing required fields
+Token used too early,\x20
+Token used too late,\x20
+Too few arguments provided
+Too few bytes to parse DER.
+Too few bytes to read ASN.1 value.
+Tool use input must be a string or object
+Transforms cannot be represented in JSON Schema
+Transparency chunk must be after palette
+Transport is closed
+Truncated event message received.
+Type mismatch in reflection object handling
+URL is required.
+URN without nid cannot be serialized
+Unable to access DB
+Unable to build claude.ai connector auth URL (missing org or server id)
+Unable to connect to instance metadata service
+Unable to create API key. The server accepted the request but did not return a key.
+Unable to decrypt PKCS#8 ShroudedKeyBag, wrong password?
+Unable to determine AWS region due to missing\x20
+Unable to determine AWS role name due to missing\x20
+Unable to execute PowerShell. Ensure that it is installed in your system
+Unable to find a parent for\x20
+Unable to find environment variable credentials.
+Unable to get organization UUID
+Unable to get organization UUID for constructing session URL
+Unable to parse color from object:\x20
+Unable to parse color from string:\x20
+Unable to parse max_tokens from max_tokens exceed context limit error message
+Unable to parse the subject_token from the credential_source URL
+Unable to parse the subject_token from the credential_source file
+Unable to update lock within the stale threshold
+Unclosed DOCTYPE
+Undefined cannot be represented in JSON Schema
+Unescaped\x20
+Unexpected Gaxios Error
+Unexpected auth result:\x20
+Unexpected data on Writable Stream
+Unexpected data type (
+Unexpected end of input
+Unexpected error: http2 request did not get a response
+Unexpected read state
+Unexpected string encoding replacement character. This should be an unreachable error.
+Unexpected value in exhaustive check
+Uninitialized schema in ZodMiniType.
+Unions must have exactly one non-null member. None were found.
+Unknown EC Level:\x20
+Unknown RSASSA-PKCS1-v1_5 DigestAlgorithm identifier.
+Unknown Selector.
+Unknown XML node type:\x20
+Unknown algorithm\x20
+Unknown edition for\x20
+Unknown edition:\x20
+Unknown encoding\x20
+Unknown error: Failed to fetch ID token
+Unknown fingerprint type\x20
+Unknown format option provided.
+Unknown hash algorithm:\x20
+Unknown hash algorithm\x20
+Unknown language:\x20
+Unknown message digest algorithm.
+Unknown mode:\x20
+Unknown model:\x20
+Unknown object type\x20
+Unknown state
+Unparsed DER bytes remain after ASN.1 parsing.
+Unprocessed schema. This is a bug in Zod.
+Unrecognised filter type -\x20
+Unrecognized endpoint parameter instruction:\x20
+Unrecognized header type tag
+Unrecoverable manifest issues, please run\x20
+Unsupported Aggregation
+Unsupported AuthenticationRecord version
+Unsupported MGF function.
+Unsupported MGF hash function.
+Unsupported PKCS#12 SafeBag type.
+Unsupported PKCS#12 contentType.
+Unsupported PKCS#7 message. Only wrapped ContentType Data supported.
+Unsupported PRF OID.
+Unsupported PRF algorithm.
+Unsupported RSASSA-PSS hash function.
+Unsupported algorithm:\x20
+Unsupported architecture: arm64
+Unsupported asymmetric cipher, OID\x20
+Unsupported bit depth\x20
+Unsupported certificate type, only X.509 supported.
+Unsupported color type
+Unsupported compression algorithm.
+Unsupported compression method
+Unsupported control request subtype:\x20
+Unsupported critical chunk type\x20
+Unsupported edition\x20
+Unsupported encryption scheme:\x20
+Unsupported filter method
+Unsupported interlace method
+Unsupported key algorithm
+Unsupported marketplace source type
+Unsupported marketplace source type for refresh
+Unsupported named curve
+Unsupported platform - Claude Desktop integration only works on macOS and WSL.
+Unsupported platform: darwin
+Unsupported protocol\x20
+Unsupported symmetric cipher, OID\x20
+Unterminated content model
+Unterminated list of notations
+Validation failed but no issues detected.
+Views with a specified name must be declared with an instrument selector that selects at most one instrument per meter.
+Void cannot be represented in JSON Schema
+WarmQuery.query() can only be called once
+Web identity configuration not specified
+Web search is not available on this Foundry deployment.
+WebSocket connection error
+WebSocket error
+WebSocket is not open. Cannot send message.
+WebSocket is not open. Cannot start transport.
+WebStorage not available.
+Webhook key must not be null in order to unwrap
+When adding a listener with a context, you should remove it with the same context
+When using credentials, the ServiceClientOptions must contain either a endpoint or a credentialScopes. Unable to create a bearerTokenAuthenticationPolicy
+Worker ID is required for permission requests
+Worker name is required for permission requests
+Workflow aborted
+Workspace trust not yet accepted. Run `claude` once in this directory and accept the trust dialog, then retry with --worktree.
+WorktreeCreate hook failed: hook is configured but did not run (workspace not trusted, disableAllHooks set, or matcher mismatch)
+WorktreeCreate hook failed: hook succeeded but returned no worktree path (command: echo the path to stdout; http/callback: return hookSpecificOutput.worktreePath)
+Wrong number of segments in token:\x20
+Wrong recipient, payload audience != requiredAudience
+XAA IdP: callback missing code
+XAA IdP: login cancelled
+XAA IdP: login timed out
+XAA IdP: state mismatch (possible CSRF)
+XAA IdP: token response missing id_token (check scope=openid)
+XAA: PRM discovery failed: PRM missing resource or authorization_servers
+XAA: no IdP connection configured. Run\x20
+XAA: oauth.xaa must be set
+XML data is accepted in String or Bytes[] form.
+XML serialization unsupported!
+You cannot provide both `authClient` and `googleAuth`. Please provide only one of them.
+You must pass an array of schemas to z.tuple([ ... ])
+You need to specify a canvas element
+Your session has expired. Please run /login to sign in again.
+ZodSuccess
+[RemoteSessionManager] Cannot send: not connected
+[RemoteSessionManager] Disconnected
+[SCHEDULER_MISSING] this DS
+[engine] pendingDenialFrames buffer is full; dropping oldest permission_denied advisory frames
+[useRemoteSession] Cannot send control request: no manager
+`File` is not defined as a global, which is required for file uploads.
+`ReadableStream` is not defined as a global; You will need to polyfill it, `globalThis.ReadableStream = ReadableStream`
+`allowEmptyArrays` option can only be `true` or `false`, when provided
+`callbacks` must be an object, got a function instead. Did you mean `{onEvent: fn}`?
+`commaRoundTrip` must be a boolean, or absent
+`dev:` was removed \u2014 the gateway is Postgres-only. Set store.postgres_url\x20
+`encodeDotInKeys` option can only be `true` or `false`, when provided
+`fetch` is not defined as a global; Either pass `fetch` to the client, `new Anthropic({ fetch })` or polyfill the global, `globalThis.fetch = fetch`
+`filter` needs to be a string, array, or function
+`x`, `y` and `length` must be defined when `x` or `y` is defined
+a
+a Comparator is required
+a Range is required
+a component of the sockets path is a symlink whose target does not exist \u2014 create the target (0700) or repoint the link
+a sockets-directory component appeared while being created and is not our directory \u2014 refusing to use it
+a sockets-directory component exists but is not a directory \u2014 refusing to use it
+a sockets-directory component is a symlink owned by another user \u2014 refusing to use it
+a sockets-directory component is not a private-or-sticky directory owned by us or root \u2014 refusing to use it
+aborted
+absolute srcpath does not exist
+access_token not present in TokenSet
+active-time ledger read failed
+addKeywords: keyword must be string or non-empty array
+addService() requires two objects as arguments
+addSessionWorktree: worktreePath must not equal canonicalRepoPath
+add\x20
+address must be a string
+adopted agent name is held by a non-file entry
+adopted file copy made no progress
+adopted file copy source is not the validated inode
+agent({isolation:
+agent({schema}): subagent completed without calling StructuredOutput (after in-conversation nudge)
+ajv implementation error
+ajv.removeSchema: invalid parameter
+alpha
+alphaQuality
+already ended
+ambiguous heredoc terminator (<<- tab-prefixed delim)
+ambiguous heredoc terminator (shell_eof_token)
+ancestry walk failed
+ancestry walk truncated (maxDepth) above the prefix
+angle
+animated
+anymatch: specify first argument
+archive rejected
+argument string is required
+argument string is required to be a string
+armLiveSubscription: late-park fall-through lost its park
+artifact permission check crashed
+asset download stream stalled
+async format in sync schema
+async keyword in sync schema
+async operations unsupported - update to Node 12+ (or Node 10-11 with the --experimental-worker CLI flag)
+async schema in sync schema
+async schema referenced by sync schema
+att() can only be used immediately after an ele() call in callback mode.\x20
+attach
+attachment-only poll dispatch made no progress \u2014 falling back to value dispatch
+attempted to get private field on non-instance
+attempted to set private field on non-instance
+attribute equal must after attrName
+attribute invalid close char(
+attribute value must after\x20
+attribute value no end\x20
+attribute() applies to element nodes only.
+authentication requires session support
+autoOrient
+awsCredentialExport did not return a valid value
+awsCredentialExport did not return valid AWS STS output structure
+b
+background
+bad maskPattern:
+bad png - invalid compressed data response
+bad png - invalid inflate data response
+basename
+bedrock upstream: aws_access_key_id and aws_secret_access_key must be set together (and are required with aws_session_token)
+beforeMatch cannot be used with starts
+begin & end are not supported with match
+bigint payload cannot be serialized
+bigint value cannot be rendered
+binShell object form is Windows-only; pass a shell path string on macOS/Linux
+bindAsync called after shutdown
+bindAsync operation cancelled by unbind call
+bitblt reading outside image
+bitblt writing outside image
+bitdepth
+bitdepth when using prebuilt binaries
+blend
+boolOp
+both\x20
+bottom
+boundary must be 10-70 characters long
+bridge URL failed validation
+brightness
+budget
+cache value is not JSON-serializable: it has no JSON representation
+cacheKeyAttributes are only used for remoteEval
+cached document is not an object
+cached tools/list document has a malformed tools array
+cached value already set
+call .storeOptionsAsProperties() before adding options
+call .storeOptionsAsProperties() before setting option values
+callback must be a function
+callback not provided
+can
+can not find mode to replace
+can only send body on POST
+canUseTool callback cannot be used with permissionPromptToolName. Please use one or the other.
+canUseTool callback is not provided.
+cannot set size without setting maxSize or maxEntrySize on cache
+cannot set sizeCalculation without setting maxSize or maxEntrySize
+cannot use `getEvalContext` outside of an evaluation
+cannot verify s_hash,\x20
+cant skip wire type\x20
+captureBitStringValue only supported for zero unused bits
+case.yaml must be a YAML object
+ccr-gateway host requires --sdk-url
+ccr-session host requires --sdk-url
+cd: unexpected stat errno
+certificateFile and privateKeyFile must be set or unset together
+channel
+channel and label counts mismatch:\x20
+checkClientCertificate must be a boolean
+checkout hook aborted
+checks.state argument is missing
+chromaSubsampling
+circuit open
+claude gateway requires the native binary
+claude gateway requires the native binary. Install via https://claude.ai/install.sh instead of npm.
+claude.ai MCP proxy is not available on third-party providers
+claudeAuthenticate: no authDelegate wired
+claudeOAuthCallback: no authDelegate wired
+claudeOAuthWaitForCompletion: no authDelegate wired
+client must be an instance of openid-client Client
+client must have an issuer with an identifier
+client_id is required
+client_secret is required
+client_secret_basic authentication requires a client_secret
+client_secret_basic client authentication method requires a client_secret
+client_secret_post client authentication method requires a client_secret
+code-sign: ANTHROPIC_BASE_URL is unset
+code-sign: CLAUDE_CODE_REMOTE_SESSION_ID is unset or malformed \u2014\x20
+code-sign: CLAUDE_CODE_SESSION_ACCESS_TOKEN is unset
+code-sign: no file specified to sign
+code-sign: response missing signature
+colours
+colourspace
+combineRows accepts only constructor-produced ConsentRows
+combineRows: combined updates exceed the display intake cap
+combineRows: schema rejected already-minted updates
+comment is not well-formed at position\x20
+compression
+compressionLevel
+computed keys not allowed in meta
+config read failed
+config read timed out
+config.endpointProvider is not set.
+confusableTagScrubPattern: tag names are lowercase [a-z0-9_-]
+connect timed out
+container
+content-type header is missing from object
+could not determine DPoP JWS Algorithm
+could not read TLS certificate fingerprint
+create requires body
+create.channels
+create.noise.mean
+create.noise.sigma
+create.pageHeight
+createMultiStoreState: length mismatch
+create_webhook_trigger requires body
+creds must be a ServerCredentials object
+cri.issuer must be https:// (http:// allowed for loopback only) \u2014 the verification JWKS derives from it, and keys fetched over plaintext invite substitution.
+cri.issuer must not target a cloud metadata endpoint \u2014 the verification JWKS derives from it.
+cri.issuer targets loopback but CLAUDE_GATEWAY_ALLOW_LOOPBACK is not set \u2014 safeFetch would block every derived-JWKS fetch at runtime. Set the escape (tests) or remove the issuer override.
+cri.jwks_url must be a loopback URL \u2014 it exists for tests against local mocks, and honoring an external URL here would let it substitute the admission authority (its keys would mint CRI principals). Remove it.
+cri.jwks_url targets loopback but CLAUDE_GATEWAY_ALLOW_LOOPBACK is not set \u2014 safeFetch would block every JWKS fetch at runtime. Set the escape (tests) or remove the override.
+daemon pipe.key is not a valid nonce
+data must be an object
+data should be a string, Buffer or Uint8Array
+declaration() must be the first node.
+decode-token: --api-url requires a value
+decode-token: JWT header is missing `alg` or `kid` \u2014 cannot select a JWKS key
+decode-token: at most one positional token argument
+decode-token: no token supplied. Pass it as an argument, pipe it on stdin, or set $CLAUDE_CODE_SESSION_ACCESS_TOKEN.
+decode-token: not a JWT \u2014 expected 3 dot-separated base64url segments\x20
+decode-token: signature verification FAILED
+decode-token: token has no numeric `exp` claim
+decodingTier
+deepFreezePlainData: accessor property in mint input \u2014 plain data only
+deepFreezePlainData: function in mint input \u2014 plain data only
+deepFreezePlainData: non-enumerable property in mint input \u2014 plain data only
+deepFreezePlainData: non-plain prototype in mint input \u2014 plain data only
+deepFreezePlainData: prototype-key property in mint input \u2014 plain data only
+deepFreezePlainData: symbol-keyed property in mint input \u2014 plain data only
+delay
+deleteRemoteAgentMetadata: storage delete failed
+deleted
+density
+dependentSchemas and dependentRequired are not supported
+depth
+design login interrupted
+design login timed out
+dest already exists.
+dest ancestor escaped working sync dir
+dest ancestor resolves into an ignored path
+dest is a symlink
+dest parent escaped stage root
+dest parent escaped working sync dir
+dest resolves into an ignored path
+destination resolves outside the sync tree
+did not return a value
+digestAlgorithm must one of\x20
+dilate
+directory resolves elsewhere (reparse point)
+discovery-cache: delete failed
+discovery-cache: list failed
+discovery-cache: read failed
+discovery-cache: write failed
+discriminator: mapping is not supported
+discriminator: requires discriminator option
+discriminator: requires oneOf keyword
+discriminator: requires propertyName
+distance
+dither
+division by zero
+doPick called before start
+docId space exhausted
+doctype external id is not well-formed at position\x20
+doctype internal subset is not well-formed, missing ]
+doctype name missing or contains unexpected characters at position\x20
+doctype not terminated with > at position\x20
+dst must be an object
+dt-columns must be an array of column objects with a string\x20
+dtd() must come before the root node.
+duplicate doc entry
+duplicate id\x20
+duplicate name\x20
+duration out of range
+effort
+either tls_client_certificate_bound_access_tokens or dpop_bound_access_tokens must be set to true
+either\x20
+elements closed character\x20
+email domain not allowed
+empty argument \u2014 a flag value may be unset (failed env/K8s substitution?)
+empty string
+empty term entry
+enableFileCheckpointing is not yet supported with sessionStore (backup blobs are not mirrored, so rewindFiles() fails after a store-backed resume).
+encrypted JWTs cannot be decoded
+end must be a Number
+end tag name contains invalid characters:\x20
+end tag name missing
+engine: queryParams called before REPL registered builder
+engine: queryParams called before send \u2014 REPL wiring bug
+ensureToolResultPairing: tool_use/tool_result pairing mismatch detected (strict mode).\x20
+enum must have non-empty array
+enumeration deadline reached
+environment secret is missing the ccr:pool_id claim \u2014 cannot derive the environment ID for spawn-hint polling
+erode
+error
+errorHandler object is no longer supported, switch to onError!
+evicted
+exceeds the read cap
+executor must be a function.
+exif
+exited with code\x20
+exp field using invalid format
+expected `region` to be configured for `aws.auth#sigv4`
+expected break marker.
+expected header name to be a string
+export conversations.json is not valid JSON
+export file exceeds MAX_EXPORT_BYTES
+export file is not valid JSON
+export stream exceeded its overall deadline
+exportIntervalMillis must be greater than 0
+exportIntervalMillis must be greater than or equal to exportTimeoutMillis
+exportTimeoutMillis must be greater than 0
+extend
+extend must be a string
+extendWith
+extension level must be\x20
+extension name required
+extra data found
+failOn
+failOnError
+fatalError
+fetch() returned undefined
+fetchAndStoreChangelog: v5 write failed
+fetchMethod must be a function if specified
+fetchOutcomeBranches: hardenedGitUrl and governedAuth are mutually exclusive
+field must be a Field
+fieldNames must be an Array
+file exceeds IMPORT_MAX_FILE_BYTES; refusing to load
+first parameter to parse must be array or undefined
+firstParty sink killswitch active
+fit
+flat
+fleet view transcript tail read failed
+fleet view transcript tail: stream not found
+forked-skill provenance marker write failed
+forked-skill scoping record write failed
+format
+fromJSONSchema input is not valid JSON (possibly cyclic); use $defs/$ref for recursive schemas
+fromTemporaryCredentials recursion in callerClientConfig.credentials
+gamma
+gammaOut
+gateway device authorization endpoint returned malformed response
+gateway token endpoint returned malformed response
+generateCodeVerifier is removed, please use generateCodeVerifierAsync instead.
+get requires trigger_id
+getConfig called before start
+getContextUsage: no turn received yet
+getHostAuthToken callback is not provided.
+getInputPrompt: piped stdin unreadable
+getInputPrompt: stream-json stdin unreadable
+getOAuthToken callback is not provided.
+getProto: not an object
+getSessionRemoteConfig returned no inference_auth.access_token
+getStreamAsBuffer() is only supported in Node.js
+getTeammateModeFromSnapshot called before capture - this indicates an initialization bug
+get_run_log requires session_id
+git did not exit after SIGTERM
+git-proxy credential requested but CLAUDE_CODE_SESSION_ACCESS_TOKEN is unset \u2014 token issue/refresh failed?
+git-proxy: sanitize refused \u2014 control char in origin URL
+git-subdir plugin source requires git to be installed and on PATH. Install git (version 2.25 or later for sparse-checkout cone mode) and try again.
+gitdir back-link is a symlink
+giving up: turn still paused after max_restarts
+global config not readable through storage
+google token endpoint returned no access_token
+governed git credential requested but no session token is available \u2014 token issue/refresh failed?
+gravity
+handleEvent property of event handler object isnot a function.
+handleEvent property of event listener object is not a function.
+handshake timeout
+header name must be a non-empty string
+height
+heredoc delimiter contains astral/surrogate code unit
+heredoc delimiter contains substitution/escape chars
+heredoc delimiter word continues past scanned segment
+hint must be a string
+history readRecords cursor failed to advance
+history readRecords failed
+hkdf: cannot expand more
+home directory realpath unavailable
+host tombstone write failed
+host-creds file re-read failed (missing/stale/expired)
+host-creds refresh dropped the bearer key
+host-creds refresh rejected: endpoint changed
+hostMatchesAny: non-string pattern in list
+hue
+iTerm2 detected but it2 CLI not installed. Install it2 with: pip install it2
+iat field using invalid format
+icc
+id
+id must be a non-negative integer
+id must be an integer
+id\x20
+id_token email is not verified
+id_token missing email claim \u2014 configure your IdP to include `email`\x20
+id_token not present in TokenSet
+ids of tool_result blocks and tool_use blocks from previous message do not match
+ignoreIcc
+illegal buffer
+illegal label:\x20
+illegal path
+illegal tag: field no\x20
+illegal tag: varint overflows uint32
+illegal type name:\x20
+illegal type:\x20
+illegal\x20
+image to composite
+images to composite
+implement() must be called with a function
+implementAsync() must be called with a function
+import() is not available in workflow scripts.
+importSessionToStore: subagent listing did not end (scope cap reached)
+importSessionToStore: subagent listing failed
+in-place invalidation needs O_NOFOLLOW
+in-use listing failed
+inbound frame exceeded the device bridge size cap
+incoming message body missing, include a body parser prior to this method call
+incomplete data
+incomplete float16 at end of buf.
+incomplete float32 at end of buf.
+incomplete float64 at end of buf.
+index file oversized
+index out of range:\x20
+index\x20
+initSync does not support encrypted payloads
+inode changed during read; retry
+input color type:
+input must be a string
+inputMatrix
+inputRequired() requires at least one of inputRequests (with at least one entry) or requestState (spec: every InputRequiredResult MUST include at least one of the two)
+inputSchema must be a Zod schema or raw shape, received an unrecognized object
+insertChild: child was created with a different Config
+installed plugins registry read settled without an outcome for its key
+installed plugins registry update settled without an outcome
+instantiate Stack using Stack.create(n)
+int32 out of range
+interFrameMaxError
+interPaletteMaxError
+interaction schema island id already owned \u2014 one island id, one grammar
+interaction schema name already registered
+interior hyphen
+interrupt rejected
+invalid IncomingMessage body object
+invalid IncomingMessage method
+invalid access token provided
+invalid addKeywords parameters
+invalid attribute:
+invalid base64 string
+invalid comprehension
+invalid constant
+invalid constructor call
+invalid end group tag
+invalid entry
+invalid feedback draft id
+invalid float32:\x20
+invalid increment argument: identifier already exists
+invalid increment argument: identifier is empty
+invalid indefinite form length
+invalid int32:\x20
+invalid int64:\x20
+invalid key type:\x20
+invalid max value:\x20
+invalid media type
+invalid optional index
+invalid or unsupported token_endpoint_auth_method
+invalid parameter format
+invalid paste-content hash
+invalid resource attribute key
+invalid resource attribute value
+invalid select
+invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.
+invalid state, fork stack empty
+invalid tagName:
+invalid throttle
+invalid uint32:\x20
+invalid uint64:\x20
+invalid varint
+invalid varint encoding
+invalid wire type\x20
+invalid\x20
+ipaddr: address outside defined range
+ipaddr: cannot match CIDR for objects with different lengths
+ipaddr: cannot match ipv4 address with non-ipv4 one
+ipaddr: cannot match ipv6 address with non-ipv6 one
+ipaddr: invalid IPv4 prefix length
+ipaddr: ipv4 octet count should be 4
+ipaddr: ipv4 octet should fit in 8 bits
+ipaddr: ipv6 part count should be 8 or 16
+ipaddr: ipv6 part should fit in 16 bits
+ipaddr: string is not formatted like an IPv4 CIDR range
+ipaddr: string is not formatted like an IPv6 CIDR range
+ipaddr: string is not formatted like ip address
+ipaddr: the address does not have IPv4 CIDR format
+ipaddr: the address has neither IPv6 nor IPv4 CIDR format
+ipaddr: the address has neither IPv6 nor IPv4 format
+ipaddr: the binary input is neither an IPv6 nor IPv4 address
+ipaddr: trying to convert a generic ipv6 address to ipv4
+isInstance must be called on the class (e.g. `SdkError.isInstance(value)`); for callbacks use `v => SdkError.isInstance(v)`
+jagged
+join.across
+join.animated
+join.halign
+join.shim
+join.valign
+jp2.oneshot
+jwks is required
+jwks must be a JSON Web Key Set formatted object
+jwks must only contain private keys
+keepDuplicateFrames
+kept link could not be re-checked after conversion
+kernel
+keyCertPairs must be an array
+keyType must be a string
+keys exceed the units display budget
+keys that don
+keys that end with\x20
+keyword with\x20
+latest pointer returned empty body
+latinLetterConfusableClass: expected one ASCII lowercase letter
+layout
+left
+level
+lightness
+limitInputPixels
+link does not resolve while another pass is live
+list_runs requires trigger_id
+listen error
+loadTranscriptFile: transcript unreadable via storage backend
+local entry absent via storage
+local file unreadable
+log(
+logger must implement log, warn and error methods
+logout: secure storage could not be read, so the device identity is not carried across the wipe
+logout: the device identity could not be written back after the credential wipe
+loop
+lossless
+lower
+macOS only
+malformed connector response
+malformed doc entry
+malformed doc metadata
+malformed index shape
+malformed posting data
+malformed posting positions
+malformed search response
+malformed term entry
+map is read-only
+marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise.
+marked(): input parameter is of type\x20
+marked(): input parameter is undefined or null
+marker is not the single-named regular file seen
+marker name is not a regular file
+matrix
+max depth exceeded
+max must be a non-negative number
+max option must be a nonnegative integer
+maxAge must be a non-negative number
+maxAge must be a number
+maxConcurrency must be greater than zero.
+maxConcurrentStreams must be greater than zero.
+maxDecompressedLength must be 0, a positive safe integer, or Infinity
+maxEntrySize must be a positive integer if specified
+maxSize must be a positive integer if specified
+maxSlope
+max_tokens overflow adjustment made no progress
+maximum nesting depth exceeded
+mcp task metadata delete failed
+mcp task metadata list exceeded the page cap
+mcp task metadata list failed
+mcp task metadata write failed
+memoMethod must be a function if defined
+memory file vanished between list and read
+memory head read carried no mtime
+message field with implicit presence
+metadata was null
+methods/accessors not allowed in meta
+mime-types.
+minAmplitude
+minTimeout is greater than maxTimeout
+mintDisplayedUpdates: non-integer length in mint input \u2014 plain data only
+mintDisplayedUpdates: non-plain array in mint input \u2014 plain data only
+mintDisplayedUpdates: sparse mint input \u2014 plain data only
+missing channel labels property:\x20
+missing channels property:\x20
+missing field id
+missing oneof
+missing root element
+missing\x20
+model catalog: provider id collision across distinct entries
+modulePath must be provided as a string
+mount dir holds another store
+mount_path contains null bytes
+mount_path must be absolute
+mozjpeg
+multi-hop symlink chain
+multipartBody and regular body cannot be set at the same time
+mutual-TLS certificate and key not set
+name and prompt are required for spawn operation
+name must be a string
+name\x20
+names.claim must be a non-empty string
+names.source must be a non-empty string
+native clipboard reader unavailable
+needs usage-credits consent \u2014 run /model first
+neither code_challenge_method supported by the client is supported by the issuer
+nested indefinite string.
+nested key exceeds the display bound
+network-spelled original cwd (screened, never touched)
+network-spelled output path
+network-spelled symlink hop
+network-spelled symlink target
+network.tlsTerminate and network.mitmProxy are mutually exclusive
+newlineIsToken may not be used with patch-generation functions, only with diffing functions
+no access token provided
+no client jwks provided for signing a client assertion with
+no file path could be derived from the hook-rewritten input
+no hostname
+no memoMethod provided to constructor
+no memory cgroup hierarchy
+no parameters provided
+no such Enum\x20
+no such Service\x20
+no such Type or Enum\x20
+no such enum:\x20
+no such type:\x20
+non-ASCII string encountered in encode()
+non-contained doc path
+non-extractable CryptoKey cannot be exported as a JWK
+not a node
+not a pipe
+not a regular file
+not an element
+not is not supported in Zod (except { not: {} } for never)
+not supported
+nothing to move at the old home
+object must be a ReflectionObject
+object must be a valid nested object
+observer marker read-back failed
+oidc.google_groups is configured but the id_token has no email \u2014 check oidc.email_claim and that the email scope is requested
+only negative-number unary allowed in meta
+only plain properties allowed in meta
+only prompt commands are supported in streaming mode
+only valid absolute URLs can be requested
+opaque
+openSlide.level
+operation
+operator
+option bit depth:
+option color type:
+option input color type:
+options
+options must be an object
+options.idx
+options.idy
+options.interpolator
+options.loadSchema should be a function
+options.m1
+options.m2
+options.odx
+options.ody
+options.sigma
+options.x1
+options.y2
+options.y3
+orchestrator mode is not supported on Windows: it is driven by the spawn-runner lifecycle hook, and lifecycle hooks currently require a Linux or macOS host because they are POSIX executables spawned directly (no shell, no .cmd/.ps1/.exe resolution). Run the orchestrator on a Linux or macOS host; the runners it provisions are unaffected. See docs/self-hosted-runners-guide.md \xA7 Lifecycle hooks.
+orchestrator requires --hooks-dir (or SELF_HOSTED_RUNNER_HOOKS_DIR) \u2014 no spawn-runner hook directory configured
+orientation
+otelHeadersHelper did not return a valid value
+otelHeadersHelper must return a JSON object with string key-value pairs
+outlier detection config child_policy must be an array
+outlier detection config child_policy: no valid recognized policy found
+outlier detection config failure_percentage_ejection must be an object
+outlier detection config success_rate_ejection must be an object
+outlier_detection LB policy cannot have a pick_first child policy
+output path traverses a junction to remote UNC
+outputHelp callback must return a string or a Buffer
+overlap
+page
+pages
+parallel() expects an array of functions
+parallel() expects an array of functions, not promises. Wrap each call: () => agent(...)
+parameter count mismatch
+params must be a plain object
+parseEpochTimestamp - numeric string invalid.
+parseInt, Number.parseInt, window.parseInt are not supported
+parser must be boolean|regexp|function
+paste write refused by the storage backend
+path conflicts with non-namespace objects
+path contains null bytes
+path escaped the configured origin
+path must be absolute
+path must be relative
+path must be specified
+path must be under the working sync dir
+payload exceeds the element serialization wall
+payload exceeds the serialization budget
+payload exceeds the serialization depth wall
+payload is required
+payload length is not an honest array length
+payload must be a plain object
+payload must be an instance of Uint8Array
+persistAgentMetadata: storage write failed
+pick_first config field shuffleAddressList must be a boolean if provided
+pipeline() expects an array as the first argument
+pipeline() stages must be functions: pipeline(items, item => ..., result => ...)
+plaintext must be an instance of Uint8Array
+plugin cache version path is occupied
+plugin download stream stalled
+plugin must be a Function or an Array of Functions
+plugin zip exceeds download byte cap
+policy webhook decision has no boolean block field
+policy webhook returned a non-OK status
+policy webhook returned a non-object decision
+poll event: content or element is required
+poll event: pass content or element, not both
+poll stopped by caller
+poll-event command without pollEvent payload
+port must be a string
+position
+position space exhausted
+posting docId out of order
+posting references unknown docId
+potential infinite loop, way more iterations than matches
+precision
+predictor
+premature EOF
+premultiplied
+preset
+processing instruction at position\x20
+processing instruction is not well-formed at position\x20
+profile name is empty
+project_read: downloaded bytes do not match the reported file size (corrupt response, or the file is being modified\x20
+project_read: server returned a different file.
+project_read: server returned a malformed file id.
+project_write: local_path resolves outside the working directory.
+project_write: local_path was replaced during the upload.
+projects enumeration failed
+prop must be 1
+provide a redirect_uri or redirect_uris, not both
+provide a response_type or response_types, not both
+proxy CONNECT timed out
+quality
+quantisationTable
+queryWithObserverTap: missing terminal after completion
+quota auto-resume: a turn claimed the episode while another claim was outstanding
+radix
+range
+raw.pageHeight
+raw.premultiplied
+readAgentMetadataAtPath: storage read failed
+readFile stall: no bytes for 60s
+readMcpDirectory called on a server without directoryRead capability
+readdirp: root argument is required. Usage: readdirp(root, options)
+readdirp: root argument must be a string. Usage: readdirp(root, options)
+redirectUrl is required for authorization_code flow
+refresh_token not present in TokenSet
+refusing a directory at a value leaf
+refusing a file over the size cap
+refusing a hardened read the host cannot verify
+refusing a non-directory node on a write path
+refusing a non-regular file
+refusing a symlinked path
+refusing a value that has a second name (hard link)
+refusing a value whose opened object is no longer at its key
+refusing the in-place arm on a non-regular target
+refusing to derive a messaging key name for a non-canonical socket path
+registerPlan: plan failed shape validation
+relative srcpath does not exist
+reloadPlugins: no mcpDelegate wired
+removeService() requires object as argument
+removing node which does not belong to this list
+repeated posting docId
+replaced
+request can only be signed with `apiKey` locations `query` or `header`, but found: `
+request could not be signed with `apiKey` since the `apiKey` is not defined
+request could not be signed with `apiKey` since the `in` signer property is missing
+request could not be signed with `apiKey` since the `name` and `in` signer properties are missing
+request could not be signed with `apiKey` since the `name` signer property is missing
+request could not be signed with `token` since the `token` is not defined
+request must be specified
+requestObject must be a plain object
+requestType must be a string
+reserveTeammateIdentity: updateTeamFile returned undefined
+resetStateForTests can only be called in tests
+resolutionUnit
+resolves outside the store root
+responseType must be a string
+right
+root argument is required
+root not a node
+rootCerts must be null or a Buffer
+roster.json is not a regular file \u2014 removing
+rpcImpl must be a function
+rule must be a string rule
+run requires trigger_id
+sandbox user SID missing from `srt-win user status` (provisioned but in an inconsistent state)
+sandbox wrapWithSandboxArgv returned empty argv
+saturation
+saveFacets: cache write through the storage backend failed
+schema must be object
+schema must be object or boolean
+scm-connector dial host is not a valid URL host
+seccompConfig.argv0 requires seccompConfig.applyPath
+seconds
+secret must be a string or buffer or a KeyObject
+secretOrPrivateKey is not valid key material
+secretOrPrivateKey must have a value
+seeded file not stat-able through the storage interface
+send-claim timeout
+sendMessageonChild called with child not populated
+sequentialRead
+server is already started
+server must be bound in order to start
+sessionScopeOf: not a transcript key
+sessionStore cannot be used with persistSession: false -- the storage adapter requires local writes to mirror from. Use CLAUDE_CONFIG_DIR=/tmp for ephemeral local writes with external mirroring.
+sessionStore.listSessions is not implemented -- cannot list sessions. Provide a store with a listSessions() method.
+sessionStore.listSubkeys is not implemented -- cannot list subagents. Provide a store with a listSubkeys() method.
+set is read-only
+setContentEncryptionKey can only be called once
+setContentEncryptionKey cannot be called when using Direct Encryption
+setContentEncryptionKey cannot be called when using Direct Key Agreement
+setInitializationVector can only be called once
+setKeyManagementParameters can only be called once
+setModeRow: schema rejected a designed setMode update
+setNotificationHandler: handler is required
+setPointScaleFactor: Int32 storage supports scale 0 or 1 only
+setProtectedHeader can only be called once
+setRequestHandler: handler is required
+setSharedUnprotectedHeader can only be called once
+setUnprotectedHeader can only be called once
+setWizardOperatorToolsEnabled(false) is test-only: the wizard latch is one-way in production
+settings file present but unreadable
+settings.json absent
+sharp module loaded but its export is not callable (native libvips binding likely failed to load)
+should never happen
+sidecar absent
+sigma
+sigv4a_signing_region_set not set in profile.
+size
+sizeCalculation must be a function
+sizeCalculation return invalid (expect positive integer)
+sizeCalculation set to non-function
+skillsSync: manifest write failed
+skipBlanks
+socket closed before connect
+sockets base directory vanished while being set up
+sockets directory exists but is not a directory
+sockets directory is a symlink \u2014 refusing to use it
+sockets directory is owned by another user \u2014 refusing to use it
+sockets directory must be absolute here
+sockets-directory chain: too many levels of symlinks
+source is not a string
+sparse arrays not allowed
+spawn-hint account_email: control character
+spawn-hint attempt: unsafe value
+spawn-hint correlation_id: unsafe value
+spawn-hint repo_sources: unsafe git URL
+spawn-hint repo_sources: unsafe revision
+spawn-hint server_time: unsafe value
+spawn-hint work_order_jwt: unsafe character (not base64url + dot)
+spread not allowed in meta
+staged file did not take the mode it replaces
+staged mcp_call timed out
+staging block exited without a staging file
+staging name taken
+start must be <= end
+start must be >= zero
+start must be a Number
+stats: transcript project listing failed
+stats: transcript project listing unfinished at the page cap
+status\x20
+stopTask: no turn received yet
+string expected
+stub preview cannot render all parameters completely
+stub preview cannot render an over-bound parameter
+subifd
+subscriptions/listen: server cancelled the subscription
+subscriptions/listen: stream ended
+supportedDialogKinds requires an onUserDialog callback -- declaring dialog kinds without a handler would park dialogs nothing can answer. Provide onUserDialog, or omit supportedDialogKinds.
+surrogate code points are not allowed
+svg.highBitdepth
+svg.stylesheet
+symlink target traverses a junction to remote UNC
+sync base names a path or commit its reader would refuse
+sync base too large to store
+sync root is gone
+syncDir must be absolute
+synced item name contains display-hazard characters
+synced item name escapes the sync root
+synced item name resolves to reserved path
+synced item name resolves to sync root
+synced skills root is not a directory
+tag encountered with missing fields, need\x20
+tag must be non-empty (use null to clear)
+takes an object of state variables to update or a function which returns an object of state variables.
+target is not an object
+target must be an object
+target swapped for a link since it was resolved
+teammate inbox storage read failed
+teammate inbox storage update failed
+teammateMode is set to\x20
+template interpolation not allowed in meta
+terminal request-path condition
+text.align
+text.dpi
+text.font
+text.fontfile
+text.height
+text.justify
+text.rgba
+text.spacing
+text.width
+text.wrap
+the JSON array contains an empty element \u2014 remove it, or fill in the value it was a placeholder for
+the scratch directory is no longer the one this pass created
+the value contains an empty `
+the value contains an unquoted shell metacharacter (one of ; | & $ ( ) ` < >) \u2014 it is an argv list, not a shell command
+theme save failed
+threshold
+tiff.subifd
+tile
+tileHeight
+tileWidth
+timeout
+timestamp out of range
+title must be non-empty
+tlsTerminate: caCertPath and caKeyPath must be provided together
+token_endpoint_auth_method is required
+tool_result blocks are not matching any tool_use from the previous message
+top
+transcript ranged read failed
+transcript storage append failed
+transcript storage move failed
+transcript storage read failed
+transcript stream absent during load
+transcript stream append failed
+transcript stream replace failed
+trim
+truncateForPreview: non-object redaction round-trip failed \u2014 rendering unredacted
+truncateForPreview: redaction round-trip yielded no text for a field \u2014 rendering unredacted
+ttl must be a positive integer if specified
+type must be JSONType or JSONType[]:\x20
+type must be a string
+type: null contradicts nullable: false
+uint32 out of range
+unable to read array length across the workflow VM boundary
+unclosed xml tag(s):\x20
+unevaluatedItems is not supported
+unevaluatedProperties is not supported
+unexpected end of (decode) payload.
+unexpected end of map payload.
+unimplemented
+unknown kid
+unknown-tool stub cannot render parameters
+unlimited
+unparseable inbound frame
+unreachable
+unrecognised color Type\x20
+unrecognised content at end of stream
+unrecognised depth
+unrecognised filter types
+unrecognized crypto runtime
+unrecognized or invalid EdDSA curve provided
+unrecognized or invalid JWS algorithm provided
+unresolvable extensions:\x20
+unsupported DPoP private key
+unsupported DPoP private key curve
+unsupported Unicode single-quote in command line
+unsupported inbound payload type
+unsupported index format version
+unsupported responseType request option
+unsupported scheme or empty host
+unsupported symmetric encryption key derivation
+unterminated double quote
+update requires body
+update requires trigger_id
+updateAddressList not supported on ResolvingLoadBalancer
+upper
+url must be an instance of URL
+use regg instead of reg to wrap expressions with `|`!
+use the flattened module for creating JWS with b64: false
+useAppState/useSetAppState cannot be called outside of an <AppStateProvider />
+useAutoModeDenials cannot be called outside of an <AutoModeDenialsProvider /> (mounted by <AppStateProvider />)
+useClock must be used within a ClockProvider
+useDialogStore cannot be called outside of a DialogStoreContext provider (mounted by <AppStateProvider />)
+useFleetNudgeStore cannot be called outside of a FleetNudgeStoreContext provider (mounted by <AppStateProvider />)
+useInputSelectionBridge cannot be called outside of an <InputSelectionBridgeProvider /> (mounted by <AppStateProvider />)
+useKillRing cannot be called outside of a <KillRingProvider /> (mounted around every Ink root by src/ink.ts)
+useMailbox must be used within a MailboxProvider
+useMcpReconnect must be used within MCPConnectionManager
+useMcpToggleEnabled must be used within MCPConnectionManager
+useScrollChrome cannot be called outside of a <FullscreenLayout /> (it provides ScrollChromeContext to its scrollable slot)
+useSession cannot be called outside of a <SessionProvider />
+useSpinnerStore cannot be called outside of a SpinnerStoreContext provider (mounted by <AppStateProvider />)
+useTasksV2 cannot be called outside of a TasksV2StoreContext provider (mounted by <AppStateProvider />)
+useTerminalNotification must be used within TerminalWriteProvider
+useTerminalSize must be used within an Ink App component
+useVoiceState must be used within a VoiceProvider
+useWizard must be used within a WizardProvider
+user is not a member of an allowed group
+userinfo sub missing or does not match id_token sub
+v5 pid-file write failed
+v5 transcript stream changed between pages
+v5 transcript stream read failed
+val is not a non-empty string or a valid number. val=
+validateDirectoryForWorkspace: unexpected stat errno
+value exceeds the display depth bound
+value exceeds the element display budget
+value exceeds the units display budget
+value starts with `[` but is not valid JSON
+values must be an object
+verify callback must be a function
+verifySignedJwtWithCerts is removed, please use verifySignedJwtWithCertsAsync instead.
+visitor must be a function
+warning
+weighted round robin config error_utilization_penalty < 0
+width
+window.location is not supported.
+workflow result cannot be a function
+workflow() cannot be called from within a child workflow \u2014 nesting is limited to one level. Inline the inner script or call its agents directly.
+workflow() expects a workflow name (string) or {scriptPath: string}
+workflow({scriptPath}): this session restricts workflows to\x20
+workforcePoolUserProject should not be set for non-workforce pool credentials.
+wrapWithSandbox() returns a shell string and is not supported on Windows. Use SandboxManager.wrapWithSandboxArgv() and spawn the result with {shell: false}.
+write landed outside the sync tree
+write returned 0 bytes with data remaining
+writeRemoteAgentMetadata: storage write failed
+write_files with localPath requires a plan finalized with localDir. Re-run finalize_plan with the bundle directory.
+write_files: localPath must be a regular file.
+write_files: localPath must be inside the directory approved at finalize_plan.
+write_files: localPath resolves outside the directory approved at finalize_plan.
+xml declaration is not well-formed
+xml declaration is only allowed at the start of the document, but found at position\x20
+xmp
+xres
+yres

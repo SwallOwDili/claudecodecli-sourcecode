@@ -24,9 +24,11 @@ Read [references/snapshot-contract.md](references/snapshot-contract.md) before c
 5. Keep JavaScript, native helpers, assets, and the manifest. Add JSC bytecode and deep static-analysis artifacts when deep reverse is requested.
 6. Store the primary packed module as `extracted/cli.js`; retain every other packed filename under `extracted/`.
 7. Capture `VERSION`, `analysis/version.json`, the raw unpack manifest, exact upstream release notes for the version, a normalized CLI option/command inventory, and an evidence-based risk-control surface.
-8. Write the README with both the version-specific delta and the complete capability surface. Separate upstream notes, source evidence, and interpretation.
-9. Run `scripts/validate_snapshot.py` before committing. It also validates `reverse/` when that directory exists and rejects machine-specific home/workspace paths outside canonical packed/reverse evidence.
-10. Commit on the numeric version branch. Push and verify that the remote branch points at the local commit when the user requested publication.
+8. Run `scripts/extract_source_inventory.py <repo>` against canonical `extracted/cli.js`. Commit every generated file and `analysis/source-inventory/summary.json`; never hand-edit generated inventories.
+9. Write `analysis/telemetry.md` and `analysis/source-surface.md`. Cover every generated inventory category, all telemetry/export/log/profile paths, and the complete product capability surface. Separate product schema from dependency/embedded-doc heuristics.
+10. Write the README with the version-specific delta, complete capability surface, inventory counts/links, telemetry defaults/privacy controls, native reconstruction status, and evidence boundaries.
+11. Run `scripts/validate_snapshot.py` before committing. It regenerates source inventories in a temporary directory, validates `reverse/` when present, and rejects capture-machine home/workspace paths or credential-shaped values outside canonical packed/reverse evidence.
+12. Commit on the numeric version branch. Push, verify that the remote branch points at the local commit, then clone/fetch the remote branch into a fresh directory and rerun validation plus privacy scanning.
 
 If the executable is not a Bun standalone build, stop assuming this format and inspect its actual container/packaging before choosing an extractor.
 
@@ -71,6 +73,7 @@ Lead with observed changes:
 - permission modes, safety circuit breakers, sandbox/network/filesystem/credential controls, trust gates, and managed-policy controls;
 - provider/config/feature identifiers;
 - endpoint hosts;
+- every inventory file registered in `analysis/source-inventory/summary.json`, including event/field schemas, OTEL, Datadog, settings/schema, tools/commands, hooks/protocol, models/betas, storage, APIs, errors/diagnostics, URLs/hosts, and runtime requires;
 - source and analysis churn;
 - JSC bytecode size/hash and readable-JavaScript size;
 - native architecture, dependency, import/export, and Swift project-symbol changes;
@@ -92,10 +95,32 @@ Cover:
 - native modules and embedded assets;
 - source-reconstructed native modules, evidence classes, build commands, behavior probes, and architecture limits when present;
 - bytecode, readable-JavaScript, native reverse reports, and normalized indexes when present;
+- deterministic source inventories with counts, method boundaries, file hashes, and links;
+- first-party analytics queues/sampling/batching/retry/storage/auth fallback, third-party OTEL exporters/content controls, Datadog forwarding, GrowthBook, error reporting, Perfetto, profiling, debug logs, and diagnostics;
+- settings/env/schema, tools/slash commands/hooks/protocol, models/providers/auth/betas, session/storage/memory/cache, agents/teams/worktrees/background/cloud, integrations and UI/input/accessibility surfaces;
 - limitations of bundled/minified source;
 - validation and cross-version commands.
 
 Keep hashes and byte counts machine-readable in `analysis/version.json`; do not make the README the only evidence store.
+
+## Exhaustive source inventory
+
+`scripts/extract_source_inventory.py` is the deterministic cross-version source-surface extractor. It must read only the canonical packed bundle and emit `analysis/source-inventory/` plus a summary containing:
+
+- canonical source size/hash;
+- explicit extraction-method boundaries;
+- count per category;
+- path, line count, size, and SHA-256 for every generated file.
+
+The validator must regenerate the entire directory to a temporary location and compare exact bytes. A passing check requires the committed summary, file set, counts, hashes, and canonical source hash to match regeneration.
+
+Broad regex inventories such as environment-shaped identifiers, schema properties, storage namespaces, named components, URLs, and beta identifiers can include third-party dependencies or embedded documentation. Keep those labels heuristic. Dedicated parsers for root settings, static event callsites/fields, tool/command objects, hook events, SDK subtypes, and Claude storage namespaces have stronger evidence but still cannot expand computed keys, spreads, runtime remote config, or server-side behavior.
+
+## Publication privacy
+
+Before push, scan both tracked files and untracked publish candidates. Reject the capture user's concrete home directory, workspace/repository path, platform user-home paths, and credential-shaped values. The only path-evidence exception is canonical `extracted/` and derived `reverse/`, where upstream build paths already embedded in the shipped binary are retained as evidence.
+
+After push, use a fresh remote checkout to prove that no local-only ignored file or stale index affected the result.
 
 ## Recovery boundary
 

@@ -9,40 +9,171 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
 PERSONAL_PATH_RE = re.compile(
-    rb"(?:"
-    rb"/Users/[^/\x00]+/(?:Documents|Desktop|Downloads|Library|\.(?:codex|local|config|cache))(?:/|$)"
-    rb"|/home/[^/\x00]+/(?:Documents|Desktop|Downloads|\.(?:codex|local|config|cache))(?:/|$)"
-    rb"|[A-Za-z]:\\Users\\[^\\\x00]+\\(?:Documents|Desktop|Downloads|AppData|\.codex)(?:\\|$)"
-    rb")"
+    rb"(?:/" + rb"Users/[^/\x00\r\n]+/|/" + rb"home/[^/\x00\r\n]+/|"
+    rb"[A-Za-z]:\\" + rb"Users\\[^\\\x00\r\n]+\\)"
 )
+SECRET_RE = re.compile(
+    rb"(?:sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|"
+    rb"AKIA[A-Z0-9]{16}|AIza[A-Za-z0-9_-]{30,})"
+)
+SOURCE_INVENTORY_MINIMUMS = {
+    "environment-access-identifiers": 1,
+    "first-party-events": 1,
+    "first-party-event-fields": 1,
+    "third-party-otel-events": 1,
+    "datadog-forwarded-events": 1,
+    "otel-metrics": 1,
+    "otel-spans": 1,
+    "feature-flags": 1,
+    "root-settings-keys": 1,
+    "known-tool-catalog": 1,
+    "slash-command-identifiers": 1,
+    "hook-events": 1,
+    "sdk-control-subtypes": 1,
+    "api-paths": 1,
+    "schema-property-identifiers": 1,
+    "error-message-literals": 1,
+    "endpoint-hosts": 1,
+}
 
 
-def find_personal_paths(repo: Path) -> list[str]:
+def candidate_paths(repo: Path) -> list[str]:
+    return sorted(
+        set(
+            git(repo, "ls-files", "--cached", "--others", "--exclude-standard").splitlines()
+        )
+    )
+
+
+def find_private_capture_data(repo: Path) -> list[str]:
     failures: list[str] = []
-    text_suffixes = {
-        ".json",
-        ".md",
-        ".mjs",
-        ".py",
-        ".sh",
-        ".txt",
-        ".toml",
-        ".yaml",
-        ".yml",
-    }
-    for relative in git(repo, "ls-files").splitlines():
+    home = str(Path.home()).encode()
+    workspace = str(repo).encode()
+    for relative in candidate_paths(repo):
         if relative.startswith(("extracted/", "reverse/")):
             continue
         path = repo / relative
-        if not path.is_file() or path.suffix.lower() not in text_suffixes:
+        if not path.is_file():
             continue
-        if PERSONAL_PATH_RE.search(path.read_bytes()):
-            failures.append(relative)
+        data = path.read_bytes()
+        if b"\x00" in data[:8192]:
+            continue
+        reasons = []
+        if home and home in data:
+            reasons.append("capture home path")
+        if workspace and workspace in data:
+            reasons.append("capture workspace path")
+        if PERSONAL_PATH_RE.search(data):
+            reasons.append("concrete user-home path")
+        if SECRET_RE.search(data):
+            reasons.append("credential-shaped value")
+        if reasons:
+            failures.append(f"{relative} ({', '.join(sorted(set(reasons)))})")
     return failures
+
+
+def validate_source_inventory(repo: Path, failures: list[str]) -> int:
+    inventory = repo / "analysis/source-inventory"
+    summary_path = inventory / "summary.json"
+    extractor = (
+        repo
+        / "skill/claude-code-version-diff/scripts/extract_source_inventory.py"
+    )
+    if not summary_path.is_file():
+        failures.append("missing analysis/source-inventory/summary.json")
+        return 0
+    if not extractor.is_file():
+        failures.append("missing source inventory extractor")
+        return 0
+
+    try:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as error:
+        failures.append(f"invalid source inventory summary: {error}")
+        return 0
+
+    if summary.get("formatVersion", 0) < 2:
+        failures.append("source inventory formatVersion must be at least 2")
+    source = repo / "extracted/cli.js"
+    canonical = summary.get("canonicalSource", {})
+    if canonical.get("path") != "extracted/cli.js":
+        failures.append("source inventory canonical source path is incorrect")
+    if canonical.get("size") != source.stat().st_size:
+        failures.append("source inventory canonical source size is stale")
+    if canonical.get("sha256") != sha256(source):
+        failures.append("source inventory canonical source hash is stale")
+
+    counts = summary.get("counts", {})
+    for name, minimum in SOURCE_INVENTORY_MINIMUMS.items():
+        value = counts.get(name)
+        if not isinstance(value, int) or value < minimum:
+            failures.append(
+                f"source inventory {name!r} count is missing or below {minimum}"
+            )
+
+    entries = summary.get("files", [])
+    expected_names: set[str] = set()
+    for entry in entries:
+        relative = entry.get("path", "")
+        path = repo / relative
+        if not relative.startswith("analysis/source-inventory/"):
+            failures.append(f"invalid source inventory path: {relative!r}")
+            continue
+        expected_names.add(Path(relative).name)
+        if not path.is_file():
+            failures.append(f"missing source inventory file: {relative}")
+            continue
+        actual_lines = sum(1 for _ in path.open("r", encoding="utf-8"))
+        if entry.get("lines") != actual_lines:
+            failures.append(f"source inventory line count mismatch: {relative}")
+        if entry.get("size") != path.stat().st_size:
+            failures.append(f"source inventory size mismatch: {relative}")
+        if entry.get("sha256") != sha256(path):
+            failures.append(f"source inventory hash mismatch: {relative}")
+
+    committed_names = {
+        path.name
+        for path in inventory.iterdir()
+        if path.is_file() and path.name != "summary.json"
+    }
+    if committed_names != expected_names:
+        failures.append(
+            "source inventory file set differs from summary: "
+            f"extra={sorted(committed_names - expected_names)}, "
+            f"missing={sorted(expected_names - committed_names)}"
+        )
+
+    with tempfile.TemporaryDirectory(prefix="claude-source-inventory-") as temporary:
+        process = subprocess.run(
+            [sys.executable, str(extractor), str(repo), "--output", temporary],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if process.returncode != 0:
+            failures.append(
+                "source inventory regeneration failed: " + process.stdout.strip()
+            )
+        else:
+            generated = Path(temporary)
+            generated_names = {path.name for path in generated.iterdir() if path.is_file()}
+            committed_all = committed_names | {"summary.json"}
+            if generated_names != committed_all:
+                failures.append(
+                    "regenerated source inventory file set differs: "
+                    f"extra={sorted(generated_names - committed_all)}, "
+                    f"missing={sorted(committed_all - generated_names)}"
+                )
+            for name in sorted(generated_names & committed_all):
+                if (generated / name).read_bytes() != (inventory / name).read_bytes():
+                    failures.append(f"stale or edited source inventory artifact: {name}")
+
+    return len(entries)
 
 
 def sha256(path: Path) -> str:
@@ -82,12 +213,14 @@ def main() -> int:
         if not isinstance(value, str) or not value.startswith("$"):
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
 
-    personal_path_files = find_personal_paths(repo)
-    if personal_path_files:
+    private_capture_files = find_private_capture_data(repo)
+    if private_capture_files:
         failures.append(
-            "machine-specific home/workspace paths found in: "
-            + ", ".join(personal_path_files)
+            "private capture data found in publishable files: "
+            + ", ".join(private_capture_files)
         )
+
+    inventory_files = validate_source_inventory(repo, failures)
 
     risk_surface = repo / "analysis/risk-control-surface.txt"
     risk_entries = 0
@@ -173,6 +306,7 @@ def main() -> int:
     print(f"branch: {branch}")
     print(f"files checked: {checked}")
     print(f"risk controls checked: {risk_entries}")
+    print(f"source inventory files checked: {inventory_files}")
     print("capture path privacy: PASS")
     print(f"main source sha256: {sha256(main_source)}")
     if deep_output:

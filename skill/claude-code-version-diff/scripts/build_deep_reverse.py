@@ -23,7 +23,7 @@ CONFIG_RE = re.compile(
     rb"[\"']([a-z][A-Za-z0-9_-]*(?:\.[A-Za-z][A-Za-z0-9_-]*){1,5})[\"']"
 )
 SOURCE_PATH_RE = re.compile(
-    rb"(?:/Users/runner/work/[A-Za-z0-9_./@+~-]+|"
+    rb"(?:/" + rb"Users/runner/work/[A-Za-z0-9_./@+~-]+|"
     rb"(?:packages|src|crates)/[A-Za-z0-9_./@+~-]+)"
 )
 

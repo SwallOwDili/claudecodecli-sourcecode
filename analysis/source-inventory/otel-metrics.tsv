@@ -1,0 +1,8 @@
+claude_code.active_time.total	s	Total active time in seconds
+claude_code.code_edit_tool.decision		Count of code editing tool permission decisions (accept/reject) for Edit, Write, and NotebookEdit tools
+claude_code.commit.count		Number of git commits created
+claude_code.cost.usage	USD	Cost of the Claude Code session
+claude_code.lines_of_code.count		Count of lines of code modified, with the 'type' attribute indicating whether lines were added or removed and the 'model' attribute indicating which model made the change
+claude_code.pull_request.count		Number of pull requests created
+claude_code.session.count		Count of CLI sessions started
+claude_code.token.usage	tokens	Number of tokens used

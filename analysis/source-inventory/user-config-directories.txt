@@ -1,0 +1,13 @@
+agents
+commands
+mcp-discovery-cache
+mcp-skill-archives
+output-styles
+routines
+rules
+session-env
+skills
+themes
+uploads
+usage-data
+workflows

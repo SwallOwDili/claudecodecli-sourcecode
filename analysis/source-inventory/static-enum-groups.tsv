@@ -1,0 +1,201 @@
+60s | 5m | 10m | never
+ANTHROPIC_API_KEY | apiKeyHelper | /login managed key | none | user | project | org | temporary | oauth
+Bash
+CONFIRMED | PLAUSIBLE
+LOW | MEDIUM | HIGH
+M | A | D | R
+SIGTERM | SIGKILL
+accept | decline | cancel
+accept | decline | cancelled
+accept | hold | refuse
+acknowledged | cancelled
+act | pipeline
+active | idle | blocked
+add | remove
+agent | workflow | shell | monitor | mcp | todo
+allow | ask | blocked
+allow | deny
+allow | deny | ask
+allow | deny | ask | defer
+allowed | allowed_warning | rejected
+always_allow | always_ask | always_deny
+append | replace
+applied | skipped | missing
+approve | approve_once_resolved | request_changes
+approve | block
+approve | request_change | note
+asc | desc
+async_launched | remote_launched
+authentication_failed | oauth_org_not_allowed | account_on_hold | billing_error | rate_limit | overloaded | invalid_request | model_not_found | server_error | unknown | max_output_tokens
+auto | required | none
+available | interrupted | failed
+bad | neutral | good
+base64
+bash | powershell
+bug | idea | missing_capability
+bypass | prompting
+cache_miss | long_context | subagent_heavy | high_parallel | cron
+change | add | unlink
+chat | transcript
+check | update | create | delete
+claudeai | console | gateway
+cli | ccd | ccr | ide | sdk | cowork
+code | markdown
+commit | push | merge | rebase
+committed | amended | cherry-picked
+compact | continue | dismiss | never | cancelled
+complete | timeout | bad_manifest
+completed | cancelled
+completed | failed | stopped
+config_off | user_present | no_transport
+connected | failed | needs-auth | pending | disabled
+consent | switch_default | cancelled
+container_sync | device_tools | unspecified
+content | files_with_matches | count
+content_paint | prompt_idle
+continue | keep_waiting | skip | cancelled
+copy | link
+create | update
+created | edited | merged | commented | closed | reopened | ready | draft | auto-merge-enabled | auto-merge-disabled
+created | edited | merged | commented | closed | reopened | ready | draft | auto-merge-enabled | auto-merge-disabled | pushed | checked-out
+created | updated
+created | updated | deleted | has_existing | unavailable
+credits_required
+daemon | peer | remote
+dark | light
+debug | info | notice | warning | error | critical | alert | emergency
+default | acceptEdits | bypassPermissions | plan | dontAsk | auto
+default | fullscreen
+default | verbose | focus
+deny | mask
+deny | passthrough
+disable
+email | uri | date | date-time
+endTurn | stopSequence | maxTokens
+endTurn | stopSequence | maxTokens | toolUse
+env | settings | clientdata | experiment | model-default | unknown-model | auto
+error_during_execution | error_max_turns | error_max_budget_usd | error_max_structured_output_retries
+expired | input_missing | output_too_large | output_conflict | timeout | tool_error
+first-wins | merge
+firstParty | bedrock | vertex | foundry | anthropicAws | anthropicGoogleCloud | mantle | gateway
+five_hour | seven_day | seven_day_opus | seven_day_sonnet | seven_day_overage_included | overage
+fixed | skipped | no_change_needed
+form | url
+free | preference | extra_usage_disabled | network_error | unknown | not_first_party | disabled_by_env | model_not_allowed | sdk_opt_in_required | pending
+fresh | head
+from | up_to
+goToDefinition | findReferences | hover | documentSymbol | workspaceSymbol | goToImplementation | prepareCallHierarchy | incomingCalls | outgoingCalls
+hard_limit | compaction_window
+hold | tap
+http | streamable-http
+idle | running | requires_action
+idle | working | waiting | completed | archived | cancelled | rejected
+image/jpeg | image/png | image/gif | image/webp
+in-progress | ready | started
+info | notice | suggestion | warning
+init | maintenance
+inline | fork
+install | not_now | dont_ask_again | cancelled
+installed | use-tmux | cancelled
+invalid_grant | access_denied
+jwt
+keep | remove
+laptop | worker
+latest | stable | rc
+light | dark
+list | get | create | update | run | create_webhook_trigger | list_runs | get_run_log
+list_projects | get_project | list_files | get_file | finalize_plan | write_files | delete_files | register_assets | unregister_assets | create_project | report_validate
+local | user | project
+local | user | project | dynamic | enterprise | claudeai | managed | agent
+local_workflow | remote_agent
+low | medium | high | immediate
+low | medium | high | xhigh
+low | medium | high | xhigh | max
+main | overflow | deprecated
+managed | user | project | local
+manual | auto
+merged | rebased
+model_not_found | permission_denied | overloaded | server_error | last_resort | model_blocked
+modified | added
+new | changed | unchanged
+new | improvement
+new | modified | existing
+none | tasks | teammates
+none | thisServer | allServers
+none | worktree
+normal | proactive
+not_found | not_a_directory | blocked_by_rule | busy | unsafe_path
+notify | quiet | off
+now | next | later
+number | integer
+off | cooldown | on
+off | infinite | fixed | countdown | padded-countdown
+off | seeding | armed | stopped
+ok | conflict | missing | refused | failed
+ok | not_found | refused | failed
+ok | refused | failed
+on | name-only | user-invocable-only | off
+open | resolved
+overage_not_provisioned | org_level_disabled | org_level_disabled_until | out_of_credits | seat_tier_level_disabled | member_level_disabled | seat_tier_zero_credit_limit | group_zero_credit_limit | member_zero_credit_limit | org_service_level_disabled | no_limits_configured | fetch_error | unknown
+pending | in_progress | completed
+pending | in_progress | completed | deleted
+pending | running | completed | failed | killed | paused
+personal | team | organization
+positive | negative
+pr | frame
+pre_compact | post_compact | session_start
+project_info | project_read | project_search | project_write | project_delete
+public | private
+queued | started | completed | cancelled | discarded
+queued | submitted | discarded | expired
+refreshed | error | not_connected
+render | attach
+replace | insert | delete
+required | optional | forbidden
+resolved | blocked | failed
+retry | revert | sticky
+retry_fallback | edit_prompt | cancelled
+rw | ro
+same-dir | worktree
+scheduled-trigger | peer-send-message
+select | synthesize
+self-session | unverified
+session | local
+shared | all
+shell | slash | fleet | spare | respawn
+slash_command | mcp_prompt
+slash_command | register_repo_root
+sonnet | opus | haiku | fable
+standalone | repl
+started | api_retry
+started | installed | failed | completed
+startup | resume | clear | compact | fork
+stdio | socket
+stdio | sse | sse-ide | http | ws | sdk
+stored
+string | number | boolean | directory | file
+success | error | cancelled
+success | failed
+summarized | omitted
+supported | legacy | unknown
+tmux | screen | zellij
+tool-input | tool-use | requesting | responding | thinking
+tool_use | assistant_text
+transient | ask
+unrestricted | small | medium | large
+used | free | buffer | deferred
+user | assistant
+user | auto | collision
+user | project | local
+user | sdk | system | loop_wakeup | schedule_wakeup | poll_event
+user | team
+userSettings | projectSettings | localSettings | flagSettings | policySettings
+userSettings | projectSettings | localSettings | session | cliArg
+user_asked | proactive
+user_temporary | user_permanent | user_reject
+utf-8 | base64
+waiting_install | connecting | stalled | connected | failed
+warn | deny | error
+working | input_required | completed | failed | cancelled
+worktree | none
+worktree | remote

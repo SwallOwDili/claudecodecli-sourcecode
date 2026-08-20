@@ -1,0 +1,1150 @@
+1-indexed line the finding anchors to
+@deprecated Sessions have a single implicit team; this carries the session-derived team name and will be removed in a future release.
+@deprecated Use manifest_version instead
+@internal
+@internal A user-initiated shell command dispatched to a one-shot shell subprocess with no model turn. Input-only \u2014 sent by CCR clients that surface a dedicated terminal UI; never emitted on stdout.
+@internal API error code when is_api_error_message is true.
+@internal Absolute directory paths for the auto-memory and team-memory stores. Lets SDK renderers classify Read/Write/Edit tool calls on these paths as memory operations without re-implementing CLI path detection.
+@internal Additional MCP server names exempt from the web search / connector isolation latch. Unioned with the built-in infra-server list.
+@internal Additional system prompt appended to every Task-tool subagent (and propagated to nested subagents). Gated by CLAUDE_CODE_ENABLE_APPEND_SUBAGENT_PROMPT.
+@internal Advisor model that produced this message, when applicable.
+@internal Attribution stamp: agent name parsed from querySource (see messageAttribution.ts). May overlap with subagent_type.
+@internal Backend\u2192CLI: a server-composed coordination notice for a sealed helper session, delivered to the model over the Poll event channel as a provenance-attributed <event> envelope (never a user turn, never a synthetic message). The CLI acks processed only when the Poll delivery settles into the transcript; undelivered notices redeliver.
+@internal Backend\u2192CLI: a trigger delivery (webhook activity, scheduled trigger, agent message) queued server-side instead of injected as a user turn. The CLI buffers it, nudges the model to call the ReadNotifications tool, and acks the event processed only when drained \u2014 an undrained event redelivers on resume.
+@internal Background post-turn summary emitted after each assistant turn. summarizes_uuid points to the assistant message this summarizes.
+@internal CCR backend wire hint; folded into timeout at parse.
+@internal CCR ultraplan session marker.
+@internal CLI process PID for tmux socket isolation
+@internal Count of messages the compaction summarized.
+@internal Custom prefix for the system-reminder shown to the model when an asyncRewake hook exits with code 2. The hook output is appended after this prefix.
+@internal Deferred-tool names discovered before this compaction. extractDiscoveredToolNames reads this back on the next turn so the tool-schema filter keeps including them after the tool_reference-carrying messages were summarized away.
+@internal Display-only: rendered in the UI but filtered before API send.
+@internal Emitted after each successful local transcript write. The parent peels these off the stdout stream and batches them to the SessionStore adapter. Not exposed to public SDK consumers.
+@internal Emitted when a pre-send model consent gate swaps the session off the requested model (consent declined, dismissed, or given without the required entitlement ending up provisioned). Currently emitted by the Fable 5 usage-credit gate (`fable_overage_consent_prompt`). Session-scoped \u2014 the swap persists for the session, and additionally as the saved default when persisted_as_default is true. Absence of this message after the consent dialog resolves means the session stayed on the requested model. Not yet in the public SDKMessage union.
+@internal Empty response for message_rated.
+@internal For [Request interrupted by user] markers only: the API msg_* id that Esc cancelled.
+@internal For tool_result messages: UUID of the assistant message containing the matching tool_use block. Used for parentUuid assignment in transcript.
+@internal Fresh OAuth access token returned by the SDK host getOAuthToken callback, or null when the host has no token available.
+@internal Fresh provider bearer token returned by the SDK host getHostAuthToken callback, or null if the credential was refreshed out-of-band. materialUnchanged is only consulted when authToken is null (out-of-band delivery) \u2014 true tells the CLI to fast-fail instead of backing off.
+@internal HTTP status code of the API error when is_api_error_message is true.
+@internal Hint to expand a side panel. Enum is a superset of AppState.expandedView for back-compat; do not narrow.
+@internal IDE-side rollout kill-switch for RC auto-enable (tengu_ide_rc_auto_enable), independent of remote_control_auto_enable. Carried on the init response (not experimentGates) because the host reads it at init time, before the first-prompt-triggered gate refresh. Absent (older CLI) \u2192 treat as false.
+@internal ISO timestamp when the summary was created on the originating process. From internal ToolUseSummaryMessage.timestamp.
+@internal List price (e.g. `$3/$15`) for a model currently on a launch promo. `description` carries only the promo price so plain-text consumers read it unambiguously; rich pickers prepend this struck-through before the first `$X/$Y` in `description`. Absent when no promo is active.
+@internal MCP protocol metadata passed through to SDK consumers, never sent to the model (from internal UserMessage.mcpMeta).
+@internal MCP server config entries from --mcp-config that failed validation and were skipped (e.g. a `url` entry with no `type`). Affected servers are absent from `mcp_servers[]`. `type` is a stable category, currently one of: unknown_type, url_missing_type, invalid_config, or reserved_name. Open set \u2014 treat values you do not recognize as a generic skip. The key is omitted when there are no errors; CI can fail on `(mcp_server_errors?.length ?? 0) > 0`.
+@internal MCP server that produced this message.
+@internal MCP tool that produced this message.
+@internal Mid-turn progress line from the debounced classifier. Mirrors external_metadata.task_summary so non-CCR consumers (desktop LocalSessionManager) see the same live phrase. detail is null on the idle clear.
+@internal Monthly service spend-cap telemetry for the Claude-in-Slack surface (CLAUDE_IN_SLACK_V2): utilization is fraction-of-cap.
+@internal Moves the session to a new working directory \u2014 the headless twin of /cd, for SDK hosts like Claude Desktop. Runs the same validation, Cd(...) permission rules, and relocation path as the interactive command, with the trust prompt delegated to the host via the needs_trust response arm. Rejected while a turn is in flight.
+@internal One unified-diff hunk of the get_workspace_diff response.
+@internal Opt-in break reminder. When enabled, shows a dismissible nudge after sustained continuous use. Never blocks \u2014 just a friendly heads-up.
+@internal Opt-in quiet hours. When enabled, shows a single soft nudge per session while inside the configured local-time window. Never blocks.
+@internal Paste IDs for images in this message, in order of appearance. REPL-local state \u2014 candidate for surface-side if daemon has no use for it.
+@internal Per-Slack-channel spend-cap telemetry for the Claude-in-Slack surface (CLAUDE_IN_SLACK_V2): utilization is fraction-of-cap. Absent when the channel has no individual cap.
+@internal Permission mode active when this message was sent (for rewind restoration).
+@internal Plan to implement (cleared-context flow). When set, the message is rendered with plan styling.
+@internal Plugin authoring feedback (e.g., a default folder shadowed by a manifest key). When `plugin` matches an entry in `plugins[]`, that plugin loaded and the warning is advisory; warnings with a synthetic `plugin` source (no matching `plugins[]` entry, e.g. workspace-level suppression notices) describe content that did NOT load. The key is omitted when there are no warnings.
+@internal Plugin load-time errors (e.g., unsatisfied dependency version). Affected plugins are demoted and absent from `plugins[]`. The key is omitted when there are no errors; CI can fail on `(plugin_errors?.length ?? 0) > 0`.
+@internal Plugin that produced this message.
+@internal Present only when the feedback-survey surface is enabled for this host (GrowthBook gate, privacy level, and org policy all allow it). Absent means the host must not show the survey.
+@internal Raw API error message \u2014 preserves details (e.g. prompt-too-long token counts) that user-facing content discards.
+@internal Records a per-message thumbs up/down rating. Logs tengu_message_rated with the same shape as the in-conversation rating controls so Desktop / IDE callers can surface their own native thumbs UI.
+@internal Replaces the custom system prompt (the --system-prompt / initialize systemPrompt slot) from the next turn on. Applied only when the model request is accepted; must be non-empty (there is no revert-to-built-in form); re-send the current model for a prompt-only update. The CLAUDE_CODE_SYSTEM_PROMPT_GB_FEATURE per-turn read, where configured, still wins. Honored on the subprocess stdin transport only \u2014 other transports and older builds ack success without applying it.
+@internal Request from the CLI subprocess to the SDK host for a fresh OAuth access token after a 401 with no local refresh token.
+@internal Request from the CLI subprocess to the SDK host for a fresh provider credential after a 401 or AWS credential-expiry error when the host owns the credential (Cowork 3P).
+@internal Requests the workspace git diff for the thin-client /diff dialog. The worker resolves one base ref for both stats and hunks (working tree vs HEAD, falling back to branch-vs-default-merge-base when the tree is clean) and applies the standard caps (5s git timeout, 50 files, 1MB/file).
+@internal Result of a set_cwd request. Every non-ok outcome leaves the working directory unchanged \u2014 but trust may already have been durably recorded when the request carried a valid attestation (a busy rejection or relocation failure after the latch does not unlatch it; the consent was for the directory, not the attempt). Internal failures (e.g. the transcript move failed and was rolled back) arrive as a control_response error instead.
+@internal Result of a submit_feedback request. feedback_id is set on success; otherwise one of unavailable_reason / failure_reason explains why.
+@internal Server-asserted ingest path of the demoted delivery, copied at classification from the message-level `inbound_origin`.
+@internal Server-asserted ingest path that produced this message. Not settable by clients.
+@internal Skill that produced this message.
+@internal Structured classification of git/gh operations detected in this command (commit/push/merge/rebase/PR). Client-facing \u2014 lets clients render git activity without re-parsing stdout; not surfaced to the model.
+@internal The `anthropic-client-platform` value of the client that sent this message (e.g. `ios`, `android`, `web_claude_ai`, `desktop_app`). Injected server-side by CCR ingress from the request header.
+@internal The current plan, or exists:false when none has been written.
+@internal The summary was generated in the background at the autocompact threshold and swapped in when prompt-too-long fired; duration_ms measures user-wait from that point.
+@internal True when remote_control_auto_enable is true because of the org/GB default rather than an explicit remoteControlAtStartup setting \u2014 mirrors replBridgeAutoOnByDefault so IDE hosts can render the same disclosure notice.
+@internal True when the CLI has analytics/telemetry disabled (privacy level, DO_NOT_TRACK, or 3P provider). IDE clients use this to hide per-message thumbs feedback UI since the rating event would be a no-op.
+@internal True when the message is stored in the transcript but not rendered in the live UI.
+@internal True when the message was synthesized by the loop (not a model response).
+@internal True when the message was synthesized by the loop (not user keyboard input). From internal UserMessage.isMeta.
+@internal True when this assistant message wraps an API error (from internal AssistantMessage.isApiErrorMessage).
+@internal True when this user message is a compact-summary synthetic message.
+@internal When false, the session recap (shown when you return after being away for 5+ minutes) is disabled. When absent or true, recap is enabled. Hidden from public SDK types until external launch.
+@internal When this message was generated by a tool via newMessages, links it to that tool_use id.
+@internal When true, Claude keeps working until the PR is ready for you to merge, a cron/Monitor is armed to resume later, or it hands you a self-contained next step.
+@internal Whether the CLI resolver says Remote Control should auto-enable at session start (explicit setting \u2192 policy default \u2192 GB rollout), so IDE hosts can mirror TUI behavior. Absent (older CLI) \u2192 treat as false.
+@internal Whether the user has accepted the multi-agent workflow usage warning. Until set, auto permission mode prompts before running a workflow.
+@internal Workspace git diff for the thin-client /diff dialog. diff is null when the workspace is not a git repo or is in a transient git state (merge/rebase/cherry-pick). Paths in skippedLarge carry no hunks entry at all \u2014 membership alone marks them as too large. An entirely empty hunks array with non-empty perFileStats is not by itself a failure signal: it is the normal shape when all changes are untracked (stats only \u2014 git diff emits no hunks for untracked files) or every file was withheld, and can also occur when the hunks fetch transiently failed and only stats are available.
+@internal \u2014 bookkeeping, not surfaced to users
+@internal \u2014 display color in the agents UI
+@internal \u2014 interim defense-in-depth for thin-pointer skill stubs. If true, this skill yields to a same-suffix plugin or MCP skill (`<plugin>:<name>` / `<server>:<name>`) when one is loaded. Stubs carrying this should be deleted once their canonical plugin/MCP skill ships, not maintained.
+@internal \u2014 only meaningful for plugin-bundled styles; ignored for user styles
+@internal \u2014 provenance marker (e.g. dream-proposal)
+@internal \u2014 typed variant of argument-hint; argument-hint is the documented form
+A JSON-RPC 2.0 message as defined by the Model Context Protocol (request, notification, or response object).
+A block of keybindings for a specific context
+A brief title for the task
+A file already uploaded to the filestore (e.g. by the device attach_file tool). Passed through without local stat or upload.
+A settings file parse or validation error. When a settings.json file fails to parse (invalid JSON, JSON comments, schema mismatch), the file is skipped and any rules it contained \u2014 including permission allow/deny lists \u2014 are not applied.
+A short (3-5 word) description of the task
+A terminal escape sequence (e.g. OSC 9 / OSC 777 desktop-notification) for Claude Code to emit on your behalf. Only notification/title OSCs (0, 1, 2, 9, 99, 777) and BEL are permitted; anything else is dropped.
+API requests found in local transcripts for this window.
+Absolute or relative path to the plugin directory
+Absolute path of the directory that was added.
+Absolute path to the helper executable
+Absolute path to the installed plugin directory
+Absolute path to the versioned plugin directory
+Absolute paths to watch for FileChanged hooks
+Absolute plan-file path on the session filesystem. Present iff exists is true.
+Action input object (server-validated). Pass {} for operations that take no input.
+Action to trigger, command to invoke, or null to unbind
+Activity digest delivered to an observer agent. The message body is the self-framing digest (envelope + postamble); observed content is data, not instructions.
+Actual delay used after clamping to runtime bounds
+Add a directory as a working-directory root and optionally reload CLAUDE.md, skills, and plugins. The directory must resolve to a strict subdirectory of cwd, or of a directory passed at launch via --add-dir / the SDK additionalDirectories option. A directory that is already a registered working directory (including a duplicate of an earlier request) is denied with an error; the registration pipeline and DirectoryAdded hooks do not re-run.
+Additional directories to include in the permission scope
+Additional hooks (in addition to those in hooks/hooks.json, if it exists)
+Additional marketplaces to make available for this repository. Typically used in repository .claude/settings.json to ensure team members have required plugin sources.
+Additional paths to allow writing within the sandbox. Merged with paths from Edit(...) allow permission rules.
+Additional paths to deny reading within the sandbox. Merged with paths from Read(...) deny permission rules.
+Additional paths to deny writing within the sandbox. Merged with paths from Edit(...) deny permission rules.
+Advisor model for the server-side advisor tool.
+Advisor model that will be attached to API requests, after enablement, allowlist, and pairing validation. Null when none will be attached; absent on workers that predate the field.
+Agent identifier. Required \u2014 this is how the Agent tool and `--agent` flag address it.
+Agent type auto-spawned as a background observer whenever this agent runs.
+Agent type auto-spawned as a background observer whenever this agent runs. The observer receives read-only activity digests and reports via the ObserverReport tool; it never participates in the task.
+Agent type to spawn when `context: fork`.
+Agentic verifier hook type
+Alias for context.
+Allow Claude to push proactive mobile notifications
+Allow commands to run outside the sandbox via the dangerouslyDisableSandbox parameter. When false, the dangerouslyDisableSandbox parameter is completely ignored and all commands must run sandboxed. Default: true.
+Alternate names that resolve to this command (e.g., /cost and /stats both resolve to /usage)
+Ambient/housekeeping task. Consumers should hide this from the inline transcript; it may still appear in a tasks panel.
+An incremental streaming event for the assistant message being generated, emitted only when partial messages are requested (--include-partial-messages). The complete assistant message still follows as its own message.
+Append-only map of old plugin name \u2192 current name (or null when removed). The loader follows this on plugin-not-found and migrates user settings to the new name.
+Arbitrary metadata to attach to the task
+Array of LSP server configurations (paths or inline definitions)
+Array of MCP server configurations (paths, MCPB files, or inline definitions)
+Array of file paths that match the pattern
+Array of keybinding blocks by context
+Array of notebook cells
+Array of search hits
+Array of skill names to preload into the agent context
+Array of tool names to explicitly disallow for this agent. MCP server-level specs (mcp__server, mcp__server__*, mcp__*) remove every tool from the named server (or all MCP tools).
+Attribution text for git commits, including any trailers. Empty string hides attribution.
+Attribution text for pull request descriptions. Empty string hides attribution.
+Auto mode classifier prompt customization
+Auto-compact window size
+Auto-scroll the conversation view to bottom (fullscreen mode only)
+Auto-submitted as the first user turn when this agent is the main thread agent. Slash commands are processed. Prepended to any user-provided prompt.
+Auto-submitted first message when this agent runs as the main session (via `--agent` or settings). Not read when spawned as a subagent.
+Automatically compact conversation when context fills
+Available effort levels for this model
+Background Agent-tool runs still in flight when the turn finished.
+Background watch scripts the host arms as persistent Monitor tasks (unsandboxed, same trust tier as hooks) so plugins need not instruct the model to arm them. When omitted, monitors/monitors.json at the plugin root is loaded if present.
+Badge text. {name} placeholders filled from named capture groups; defaults to the full match.
+Base directory that relative SOURCE paths resolve against (like a bundler root) \u2014 saves retyping a long build prefix. Never changes published paths. Absolute, or relative to the working directory; must lie within it. Requires `files`.
+Base path for relative plugin sources
+Base64-encoded PDF data
+Base64-encoded image data
+Behavioral characteristics of local usage. Categories overlap \u2014 this is not a partition, so percentages do not sum to 100.
+Breakdown of current context window usage by category (system prompt, tools, messages, etc.).
+Brief, user-facing explanation of what the plugin provides
+Brief, user-facing explanation of what these hooks provide
+Budget-nudge count this turn.
+CCR session URL when status is remote_launched
+CLAUDE.md-style instructions injected as organization-managed memory. Only honored from managed/policy settings.
+Canonical (normalized) alias of `disallowed-tools`.
+Canonical (realpath) working directory the session now runs in.
+Canonical target directory. Nothing changed; show a trust dialog for exactly this string and, on accept, re-send with trust_accepted: true and trusted_directory echoing it verbatim. Safe to render verbatim in the dialog, by construction: every character is a visible, space-distinguishable glyph. Targets whose canonical path contains control (Cc), format (Cf), default-ignorable, line/paragraph-separator (Zl/Zp), non-ASCII-space Zs, or braille-blank code points are rejected (reason: unsafe_path) before this arm can carry them.
+Captured console.error output
+Captured console.log output
+Card dimensions in the Design System pane
+Case insensitive search (rg -i)
+Channels this plugin provides. Each entry declares an MCP server as a message channel and optionally specifies user configuration to prompt for at enable time.
+Child MIME type
+Child resource URI
+Child resource name
+Chosen by the sender, unique among its in-flight requests; the control_response (and any control_cancel_request) for this request echoes it.
+City and state, e.g., San Francisco, CA
+Classification of this permission decision for telemetry. SDK hosts that prompt users (desktop apps, IDEs) should set this to reflect what actually happened: user_temporary for allow-once, user_permanent for always-allow (both the click and later cache hits), user_reject for deny. If unset, the CLI infers conservatively (temporary for allow, reject for deny). The vocabulary matches tool_decision OTel events (monitoring-usage docs).
+Claude Code keybindings configuration. Customize keyboard shortcuts by context.
+Claude decides when and how much to think (Opus 4.6+).
+Clear, concise description of what this command does in active voice.
+Cloud session configuration
+Collection of available plugins in this marketplace
+Color theme for the UI
+Command array [command, ...args] to match exactly for allowed stdio servers
+Command array [command, ...args] to match exactly for blocked stdio servers
+Command description override
+Command to refresh GCP authentication (e.g., gcloud auth application-default login)
+Command-line arguments to pass to the server
+Communication transport mechanism
+Company announcements to display at startup (one will be randomly selected if multiple are provided)
+Components whose manifest shape may change without a deprecation cycle. Move a key out of here once it is promoted to stable.
+Compressed label for compact UI (\u226460 chars): the claim alone, no rationale or consequence clause
+Concrete inputs/state \u2192 wrong output/crash
+Config scope for settings.
+Config variant discriminator for entries this client does not understand; the entry is preserved as-is and skipped at runtime.
+Configuration for loading a plugin.
+Configuration for matching and routing hook callbacks.
+Configuration scope (e.g., project, user, local, claudeai, managed)
+Confirmation that plan mode was entered
+Contact email for support or feedback
+Control requests a client sends to drive the loop \u2014 the client\u2192loop command slice of SDKControlRequestInner. The remaining members are loop\u2192client RPCs that block on a reply (see AgentOriginatedControlRequest).
+Control requests the agent loop originates and needs a reply to \u2014 the loop\u2192client RPC slice of SDKControlRequestInner. The remaining members are client\u2192loop commands (set/get/mcp/auth/etc).
+Controls the output style for assistant responses
+Corporate launcher argv prefix for the background-agent supervisor, the sessions and workers it hosts, and the other covered background processes listed in the Claude Code corporate-launcher documentation. Equivalent to the CLAUDE_CODE_PROCESS_WRAPPER environment variable, which takes precedence when set. Honored from managed settings, a --settings/SDK-supplied settings file, and user settings, in that precedence order; project and local settings are ignored.
+Cost and usage accumulated by the current session.
+Credential files or directories to protect. `deny` blocks reads inside the sandbox; `mask` substitutes a sentinel inside the sandbox (whole-file, or per-`extract` capture) and injects the real value at the proxy. On macOS and Windows `mask` degrades to `deny`.
+Current connection status
+Currently installed version
+Custom HTTP headers (e.g., for authentication)
+Custom NPM registry URL (defaults to using system default, likely npmjs.org)
+Custom commands to run before/after tool executions
+Custom directory for plan files, relative to project root. If not set, defaults to ~/.claude/plans/
+Custom directory path for auto-memory storage. Supports ~/ prefix for home directory expansion. Ignored if set in projectSettings (checked-in .claude/settings.json) for security. When unset, defaults to ~/.claude/projects/<sanitized-cwd>/memory/.
+Custom file suggestion configuration for @ mentions
+Custom per-subagent status line shown in the agent panel; receives row context as JSON on stdin
+Custom reminder text. Leave unset for a rotating set of friendly nudges.
+Custom session title. When provided, the session uses this title and skips automatic title generation. Has no effect on the persisted title when resuming an existing session.
+Custom status line display configuration
+Custom status message to display in spinner while hook runs
+Custom workflow body for the plan-mode system reminder. Replaces the default code-implementation phases; the CLI still wraps it with the read-only enforcement preamble and the ExitPlanMode protocol footer.
+Customize attribution text for commits and PRs. Each field defaults to the standard Claude Code attribution if not set.
+Declaring input_files or output_files makes this a STAGED call: rows are fetched from the synced-file lane into a private per-request temp dir the WORKER chooses (random, per-UID \u2014 the caller never sees or computes paths; it references files via tokens in arguments), the tool runs, and declared outputs are written back as lane rows (durable-at-ack PUT). The response then carries a `staging` result the caller switches on.
+Decoded message body with the peer envelope stripped \u2014 byte-exact with what the model sees. Present only when the turn is exactly one harness-formed envelope (or an in-process agent message); render this instead of re-parsing the message text.
+Dedupes progress messages for the same tool use.
+Default 1.
+Default environment ID to use for cloud sessions
+Default model for this command
+Default transcript view mode on startup
+Default transcript view: chat (SendUserMessage checkpoints only) or transcript (full)
+Default value used when the user provides nothing
+Default working directory on the remote host. Supports tilde expansion (e.g. ~/projects). If not specified, defaults to the remote user home directory. Can be overridden by the [dir] positional argument in `claude ssh <config> [dir]`.
+Definition for a custom subagent that can be invoked via the Agent tool.
+Delivers a hook callback with its input data.
+Deprecated: no longer used.
+Deprecated: use task_id instead
+Deprecated; ignored. The session has a single implicit team.
+Description of the subagent task that produced this message.
+Description of what the skill does
+Description of when to use this agent
+Dialog-specific data passed to the host renderer. Shape is defined per dialog_kind; the protocol transports it opaquely.
+Dialog-specific result payload. Opaque to the protocol; the caller and dialog renderer agree on the shape per dialog_kind.
+Diff patch showing the changes
+Direct URL to marketplace.json file
+Directory containing extracted page images
+Directory of eval cases for the plugin evaluation harness, relative to the plugin root (default: evals/). A list is accepted; its first entry is the case directory.
+Directory where subagent transcripts are written during execution
+Disable Remote Control (claude.ai/code, `claude remote-control`, `--remote-control`/`--rc`, auto-start, and the in-session toggle). Typically set in managed settings.
+Disable agent view (`claude agents`, `--bg`, /background, the on-demand daemon). Typically set in managed settings. Equivalent to CLAUDE_CODE_DISABLE_AGENT_VIEW=1.
+Disable all hooks and statusLine execution
+Disable auto mode
+Disable inline shell execution in skills and custom slash commands from user, project, or plugin sources. Commands are replaced with a placeholder instead of being run.
+Disable the Artifact tool (also via CLAUDE_CODE_DISABLE_ARTIFACT).
+Disable the Workflows feature (also via CLAUDE_CODE_DISABLE_WORKFLOWS).
+Disable the ability to bypass permission prompts
+Disable the skills and workflows that ship with Claude Code: bundled skills and workflows are removed entirely; built-in slash commands stay typable but are hidden from the model. Plugins, .claude/skills/, and .claude/commands/ are unaffected. Equivalent to CLAUDE_CODE_DISABLE_BUNDLED_SKILLS=1.
+Display name for the SSH connection
+Display name of the plugin author or organization
+Display name. Defaults to the filename without extension.
+Display names of the commands that were allowed.
+Display title for the session: custom title, auto-generated summary, or first prompt.
+Displayed image height in pixels (after resizing)
+Displayed image width in pixels (after resizing)
+Distinct sessions observed in this window.
+Documentation URL
+Domains that are always blocked, even if matched by allowedDomains. Supports the same wildcard syntax as allowedDomains. Merged from all settings sources regardless of allowManagedDomainsOnly.
+Dot-notation path to the field with the error, or empty string for whole-file errors.
+Drops a pending async user message from the command queue by uuid. No-op if already dequeued for execution.
+Echoed for the result body
+Effective merged settings plus raw per-source settings in merge order.
+Effort level the review ran at
+Emit OSC 9;4 progress sequences during long operations
+Emitted by the bridge on opt-in graceful worker teardown (only when the teardown caller supplied a reason), before the heartbeat stops, so remote clients can show why the worker went away instead of waiting for heartbeat timeout. Absence is NOT a dead-host signal: handoffs (/update, /teleport, respawn), auto-disable, mode transitions, and internal fatal-error paths emit nothing by design. A dead host (battery, OOM, kill -9) never reaches teardown and never sends this either. NOTE: this event lands in the durable per-session event stream \u2014 a session that is later resumed may carry historical instances mid-stream. Clients MUST treat it as a live-tail signal only (honored when no further activity follows), not a one-shot session-lifetime fact. CC-2656.
+Emitted when SessionStore.append() rejects or times out for a transcript-mirror batch after bounded retry (3 attempts with short backoff; timeouts are not retried). The batch is then dropped; this surfaces the failure so consumers are not silent on data loss.
+Emitted when an API request fails with a retryable error and will be retried after a delay. error_status is null for connection errors (e.g. timeouts) that had no HTTP response.
+Emitted when an MCP server confirms that a URL-mode elicitation is complete.
+Enable auto-memory for this project. When false, Claude will not read from or write to the auto-memory directory.
+Enable background memory consolidation (auto-dream). When set, overrides the server-side default.
+Enable multiline mode where . matches newlines and patterns can span lines (rg -U --multiline-dotall). Default: false.
+Enable or disable the Artifact tool for this user. Unset defaults to enabled once the feature is available.
+Enable or disable the Workflows feature for this user. Unset = default by plan once the feature is available.
+Enable the todo / task tracking panel
+Enable voice mode (hold-to-talk dictation)
+Enables or disables an MCP server.
+Enterprise allowlist of MCP servers that can be used. Applies to all scopes including enterprise servers from managed-mcp.json. If undefined, all servers are allowed. If empty array, no servers are allowed. Denylist takes precedence - if a server is on both lists, it is denied.
+Enterprise denylist of MCP servers that are explicitly blocked. If a server is on the denylist, it will be blocked across all scopes including enterprise. Denylist takes precedence over allowlist - if a server is on both lists, it is denied.
+Envelope for the single reply to a control_request, sent by whichever side received the request.
+Environment variable name.
+Environment variables to protect. `deny` unsets the variable for sandboxed commands; `mask` substitutes a sentinel inside the sandbox and injects the real value at the proxy.
+Environment variables to set for Claude Code sessions
+Environment variables to set when starting the server
+Epoch ms timestamp when the next wakeup will fire
+Error message if execution failed
+Error message if the operation failed
+Estimated tokens in use, unclamped \u2014 may exceed raw_max_tokens when over limit.
+Every conversational and informational message the CLI emits on its output stream, discriminated by type (and subtype for system/result messages). Consumers should ignore types and subtypes they do not recognize: the set grows over time.
+Every live background task after the change. REPLACE semantics: swap your set for this payload.
+Exactly the text that would previously have been injected as a user turn, framing included.
+Executable that computes managed settings at startup. Honored only from admin-controlled policy sources.
+Execution status
+Exit with an error at startup if sandbox.enabled is true but the sandbox cannot start (missing dependencies or unsupported platform). When false (default), a warning is shown and commands run unsandboxed. Intended for managed-settings deployments that require sandboxing as a hard gate.
+Experimental: Critical reminder added to system prompt
+Explanation for the decision
+Explanation of what this option means or what will happen if chosen. Useful for providing context about trade-offs or implications.
+Explicit list of environment variable names that may be interpolated in header values. Only variables listed here will be resolved; all other $VAR references are left as empty strings. Required for env var interpolation to work.
+Extra clickable footer badges that appear when a regex matches turn output (tool results and assistant responses). Read from user, flag, and managed settings only; ignored in project .claude/settings.json and local .claude/settings.local.json. At most 5 badges render; the oldest is displaced by newer matches and /clear removes them. Use to surface IDs printed by project CLIs as session links.
+False for one-shot wakeups whose cron field encodes a single fire time; true for tasks that re-fire on every match.
+False when plan rate limits do not apply (API key, Bedrock, Vertex, or missing profile scope) \u2014 rate_limits will be null.
+False when the target already was the working directory \u2014 a successful no-op with no side effects.
+Fast mode state: off, in cooldown after rate limit, or actively enabled.
+Fields to prompt the user for when enabling this plugin in assistant mode. Saved values are substituted into ${user_config.KEY} references in the mcpServers env.
+File contents for the remote sidebar viewer.
+File or directory to search in (rg PATH). Defaults to current working directory.
+File paths (absolute or relative to cwd) to send to the user. Always pass an array, even for a single file.
+File paths (absolute or relative to cwd) to send. Always pass an array, even for a single file.
+File size in bytes. Only populated for local JSONL storage.
+File type to search (rg --type). Common types: js, py, rust, go, java, etc. More efficient than include for standard file types.
+Filesystem isolation: `worktree` runs in a temporary git worktree.
+Fire-and-forget push of the full slash-command list after a mid-session change (e.g. skills discovered dynamically as the agent works in a subdirectory). Clients should REPLACE their cached command list with this payload; supportedCommands() tracks the latest push, so a re-fetch returns the same fresh list.
+First meaningful user prompt in the session.
+Fixed loopback callback port for the IdP OIDC login. Only needed if the IdP does not honor RFC 8252 port-any matching.
+Fixed thinking token budget (older models)
+Flag to indicate if sandbox mode was overridden
+Flag to indicate if stdout contains image data
+For string type: allow an array of strings
+Formatted list of reachable agents
+Formatted session cost text, ANSI-stripped.
+Fraction of the context window (in characters) reserved for the skill listing sent to Claude (default: 0.01 = 1%). When the listing exceeds this, descriptions are shortened to fit. Raise to opt in to higher per-turn context cost.
+Free-text notes the user added to their selection.
+Freeform text the user typed instead of selecting a structured option
+Full git repository URL
+Full git repository URL (https:// or git@)
+Full text content to write (UTF-8). Replaces the entire document \u2014 any line you omit is deleted. Line endings are normalized to LF, invisible/format characters are stripped, and other control characters are replaced with U+FFFD. Empty or whitespace-only content is rejected. Capped at 100KB per document.
+Fully-qualified MCP tool name, e.g. mcp__server__tool_name. Plugin-hosted servers are ordinary MCP servers here \u2014 e.g. mcp__plugin_documents_docs__doc_export (server names are normalized: non-[a-zA-Z0-9_-] becomes _).
+Git branch at the end of the session.
+Git commit SHA for git-based plugins
+Git commit SHA for git-based plugins (for version tracking)
+Git repository: GitHub owner/repo shorthand, https://, or git@ URL
+Git worktree configuration for --worktree flag.
+GitHub owner/repo when available
+GitHub repository in owner/repo format
+Glob patterns this skill applies to. The skill only loads when the model touches matching files.
+Guidance for when the model should reach for this skill. Becomes part of the tool description.
+HTTP hook type
+HTTP response code
+HTTP response code text
+Headless plugin installation progress (CLAUDE_CODE_SYNC_PLUGIN_INSTALL). started/completed bracket the whole install; installed/failed carry a per-marketplace name.
+Help text shown beneath the field in the config dialog
+Hide stdout from transcript (default: false)
+Hide the built-in `-- INSERT --` / `-- VISUAL --` indicator below the prompt. Use this when your status line script renders `vim.mode` itself.
+Hook input for the Elicitation event. Fired when an MCP server requests user input. Hooks can auto-respond (accept/decline) instead of showing the dialog.
+Hook input for the ElicitationResult event. Fired after the user responds to an MCP elicitation. Hooks can observe or override the response before it is sent to the server.
+Hook input for the MessageDisplay event. Fired with each batch of newly completed lines while an assistant message streams. Display-only: the stored message and what the model sees are untouched.
+Hook input for the PostToolBatch event. Fired once after every tool call in a batch has resolved, before the next model request. PostToolUse fires per-tool and may run concurrently for parallel tool calls; PostToolBatch fires exactly once with the full batch.
+Hook-specific output for the Elicitation event. Return this to programmatically accept or decline an MCP elicitation request.
+Hook-specific output for the ElicitationResult event. Return this to override the action or content before the response is sent to the MCP server.
+Hook-specific output for the MessageDisplay event. Display-only: replaces the delta on screen without changing the stored message.
+Hook-specific output for the Stop event. additionalContext is non-error feedback delivered to the model; the conversation continues so the model can act on it.
+Hook-specific output for the SubagentStop event. additionalContext is non-error feedback delivered to the subagent; the subagent continues so it can act on it.
+Hook-specific output for the WorktreeCreate event. Provides the absolute path to the created worktree directory. Command hooks print the path on stdout instead.
+Hooks registered while this agent runs.
+Hooks registered while this skill is active. Same shape as settings.json `hooks`.
+How many pending dynamic-loop wakeups stop:true cancelled. 0 means nothing was pending \u2014 a recurring /loop cron is not cancelled by stop:true.
+How spawned teammates execute (tmux, iterm2, in-process, auto)
+Human-readable description of this marketplace
+Human-readable display name
+Human-readable display string for the error.
+Human-readable error message.
+Human-readable error when the server could not list the directory
+Human-readable error when the server could not read the resource
+Human-readable failure description.
+Human-readable label shown in the config dialog
+Human-readable reason /feedback is disabled in this session (3P provider, org policy, env var). When set, no submission was attempted.
+Human-readable reason from the deciding component, when available.
+Human-readable, ANSI-free explanation.
+ID of the background monitor task.
+ID of the background task if command is running in background
+ID of the tool use
+ISO 8601 timestamp of installation
+ISO 8601 timestamp of last marketplace refresh
+ISO 8601 timestamp of last update
+ISO 8601 timestamp when the window resets.
+ISO timestamp captured at tool execution on the emitting process. Optional \u2014 resumed sessions replay pre-sentAt outputs verbatim.
+ISO timestamp when the message was created on the originating process. Older emitters omit it; consumers should fall back to receive time.
+Id of the connected memory store to list. Omit to list the memory stores connected to this session (id, description, writable or read-only, and the path of its index document).
+IdP issuer URL for OIDC discovery
+Identifier for this monitor, unique within the plugin. Used to dedupe so re-arming (plugin reload, repeat skill invoke) does not spawn duplicates.
+If false, hides the slash command from users; only the model can invoke it via the Skill tool.
+If false, subagents this agent spawns do not inherit its observer. Defaults to true.
+If true, allow all Unix sockets (disables blocking on both platforms).
+If true, hook runs in background and wakes the model on exit code 2 (blocking error). Implies async.
+If true, hook runs in background without blocking
+If true, hook runs once and is removed after execution
+If true, masks dialog input and stores value in secure storage (keychain/credentials file) instead of settings.json
+If true, the agent runs in the background by default.
+If true, the default coding instructions stay in the system prompt alongside this style.
+If true, the model cannot invoke this via the Skill tool; only users can type the slash command.
+If true, validation fails when this field is empty
+Image dimension info for coordinate mapping
+Images returned by inner Read calls \u2014 surfaced as image content blocks
+In-memory message count at turn end; used by resume-consistency telemetry to detect write\u2192load round-trip drift.
+In-progress compaction lifecycle event.
+Information about an available model.
+Information about an available skill (invoked via /command syntax).
+Information about an available subagent that can be invoked via the Task tool.
+Information about the plugin creator or maintainer
+Initialization options passed to the server during initialization
+Initializes the SDK session with hooks, MCP servers, and agent configuration.
+Injected turn whose ingress classification found no provenance. Framed by the harness as a non-user source in both drains; never presumed human, never host-replayed.
+Inline LSP server configurations
+Inline MCP server configurations
+Inline helper script, delivered to the fixed interpreter over stdin (never written to disk)
+Inline markdown content for the command
+Inline marketplace manifest defined directly in settings.json. The reconciler writes a synthetic marketplace.json to the cache; diffMarketplaces detects edits via isEqual on the stored source (the plugins array is inside this object, so edits surface as sourceChanged).
+Installation scope
+Internal Attachment discriminated union (at-mentioned files, IDE selections, pasted images, structured output, deferred tool-use). Wire shape pending a dedicated SDKAttachment schema.
+Internal share URL for the conversation. Only set in internal builds when the upload succeeded; absent otherwise.
+Internal: pre-computed sed edit result from preview
+Interrupts the currently running conversation turn.
+JSON Schema URL for editor validation
+JSON Schema reference for Claude Code settings
+JSON Schema reference for editor autocomplete/validation; ignored at load time
+JavaScript code to execute. Supports top-level await. State persists across calls.
+Job ID returned by CronCreate.
+Key binding mode for the prompt input
+LLM prompt hook type
+LSP server configurations keyed by server name
+Lane etag each staged input actually carried.
+Last 24 hours.
+Last 7 days.
+Last modified time in integer milliseconds since epoch.
+Link target. {name} placeholders are filled from named regex capture groups, e.g. (?<id>...) -> {id}. Values are URL-encoded; the origin must be literal in the template. The scheme must be https, http, or a recognized editor or workspace deep-link scheme: vscode, vscode-insiders, cursor, windsurf, zed, jetbrains, idea, slack, linear, notion, figma.
+Linux/WSL only: Absolute path to the bwrap (bubblewrap) binary. Overrides auto-detection via PATH. Only honored from admin-controlled managed settings.
+Linux/WSL only: Absolute path to the socat binary used for the sandbox network proxy. Overrides auto-detection via PATH. Only honored from admin-controlled managed settings.
+List of agent file paths. When set, the agents/ directory is not auto-loaded.
+List of approved MCP servers from .mcp.json
+List of command file or skill directory paths. When set, the commands/ directory is not auto-loaded.
+List of hooks to execute when the matcher matches
+List of output-style directory or file paths. When set, the output-styles/ directory is not auto-loaded.
+List of permission rules for allowed operations
+List of permission rules for denied operations
+List of permission rules that should always prompt for confirmation
+List of rejected MCP servers from .mcp.json
+List of skill directory paths, loaded in addition to the skills/ directory (except: for a marketplace entry whose source resolves to the marketplace root, declaring specific subdirectories replaces the skills/ scan).
+List of theme directory or file paths. When set, the themes/ directory is not auto-loaded.
+List of workflow directory or .js file paths. When set, the workflows/ directory is not auto-loaded.
+Live thinking-token estimate, digested from thinking_delta.estimated_tokens during the redacted-thinking phase (where the API otherwise streams only pings). estimated_tokens is the running total for the current thinking block; estimated_tokens_delta is the increment carried by this frame. Approximate progress for spinners/pills, not the authoritative billed output_tokens.
+Liveness heartbeat with no payload. Either side may send it at any time (the CLI emits it periodically, for example while a long-running control request is in progress); receivers must ignore it.
+Local cache path where marketplace manifest is stored
+Local cache path where marketplace manifest is stored (auto-generated if not provided)
+Local directory containing .claude-plugin/marketplace.json
+Local file path to marketplace.json
+Local workflow run identifier for resumeFromRunId. Absent for remote_launched (the CCR session URL is the resume handle there) and on transcripts written before this field existed.
+Loop-side text notification. Mirrors the interactive REPL notification queue (key/priority/timeout). JSX notifications are not emitted on this channel.
+MAIN AGENT LOOP ONLY \u2014 excludes Task subagent, sidechain, and auxiliary model calls, and is per-turn in streaming-input sessions. Prefer modelUsage for token/cost accounting.
+MCP server configurations keyed by server name
+MCP servers to connect when this agent runs.
+MCP servers to include in the plugin (in addition to those in the .mcp.json file, if it exists)
+MCP tool execution result
+MCP tool hook type
+MIME type of the content
+MIME type of the resource
+Main-loop model the usage was computed for.
+Managed-org opt-in for channel notifications (MCP servers with the claude/channel capability pushing inbound messages). claude.ai Teams/Enterprise: default off. Console: default on unless managed settings exist. Set true to allow; users then select servers via --channels.
+Map of keystroke patterns to actions
+Map of plugin IDs to arrays of installation entries
+Map of plugin IDs to their installation metadata
+Map of server names to error messages for servers that failed to connect
+Map of tool-name aliases applied before name resolution. When the model emits a tool_use whose name is a key in this map, the tool execution path resolves the mapped name instead. Single-hop (no chains). See Options.toolAliases.
+Mapping from file extension to LSP language ID. File extensions and languages are derived from this mapping.
+Marketplace description
+Marketplace maintainer or curator information
+Marketplace manifest version
+Marketplace names whose plugins may surface as contextual install suggestions (relevance-based tips). No marketplace-declared suggestions surface without this allowlist; the built-in first-party frontend-design tip is unaffected. Only honored when set in managed settings (policy scope); the key is ignored in user, project, and local settings. A name only takes effect when the marketplace is registered on the machine AND its registered source is also declared in managed settings, either as the extraKnownMarketplaces entry for that name or as an entry of strictKnownMarketplaces. A marketplace registered from a different source under an allowlisted name is ignored. The official marketplace is exempt from the source requirement: allowlisting its name alone suffices, since that name can only register from the official Anthropic source.
+Marketplace version
+Matchers that determine when the plugin is relevant.
+Max wait time in ms
+Maximum Claude Code version allowed to start. If the running version is newer, Claude Code exits at startup with instructions to install an approved version. Only enforced from managed (policy) settings.
+Maximum conversation turns before the agent stops.
+Maximum number of agentic turns (API round-trips) before stopping
+Maximum number of restart attempts before giving up
+Maximum number of results to return (default: 5)
+Maximum time to wait for graceful shutdown (milliseconds)
+Maximum time to wait for server startup (milliseconds)
+Maximum value (number type only)
+Memory scope: `user`, `project`, or `local`.
+Merges the provided settings into the flag settings layer, updating the active configuration.
+Message shown when continue is false
+Metadata keys to merge into the task. Set a key to null to delete it.
+Minimum Claude Code version required to start. If the running version is older, Claude Code exits at startup with instructions to update. Only enforced from managed (policy) settings.
+Minimum value (number type only)
+Minimum version to stay on - prevents downgrades when switching to stable channel
+Minutes of continuous use before the reminder fires (default 30). Re-fires every interval until you take a break.
+Minutes of inactivity that count as a break and reset the timer (default 10)
+Mirror local sessions to claude.ai as view-only (no remote control)
+Model identifier to use in API calls
+Model in use at the backgrounding transition (a pre-background swap is reflected here)
+Model override (`haiku`, `sonnet`, `opus`, `fable`, or a full ID). Use `inherit` to match the parent conversation.
+Model override for this agent. Use `inherit` to match the spawning conversation.
+Model override if specified
+Model-facing note listing readFileState entries whose mtime bumped during this command (set when WRITE_COMMAND_MARKERS matches)
+Model-facing note that the session cwd was not changed by a backgrounded command containing a directory-change builtin (cd/pushd/popd/chdir)
+Model-facing system-reminder appended when a gh command reports a GitHub API rate-limit error
+NPM package as plugin source
+NPM package containing marketplace.json
+Name for the spawned agent. Makes it addressable via SendMessage({to: name}) while running.
+Name of a predefined workflow (built-in or from .claude/workflows/). Resolves to a self-contained script.
+Name of an already-configured MCP server to invoke
+Name of the MCP server that is explicitly blocked
+Name of the MCP server that users are allowed to configure
+Name of the masked env var holding the AWS access key id.
+Name of the masked env var holding the AWS secret access key.
+Name of the tool on that server to call
+Names of servers that were added
+Names of servers that were removed
+Names of tools registered during this execution
+Names of top-level payload claims to mask inside each decoded value, instead of replacing the whole token. Each named claim present with a string value gets its own sentinel and the token is rebuilt around the modified payload; all other claims are preserved so a tool that decodes the token and reads a non-secret claim keeps working. Requires `decode`. If no named claim matches in any verified token, behavior is governed by `onExtractNoMatch` (default `warn`). Only meaningful when mode is `mask`; accepted but ignored for `deny`.
+Names of top-level payload claims to mask inside the decoded value, instead of replacing the whole token. Each named claim present with a string value gets its own sentinel and the token is rebuilt around the modified payload; all other claims are preserved so claim-reading clients keep working. Requires `decode`. If no named claim matches, the variable is left unmasked with a stderr warning (fail-open). Only meaningful when mode is `mask`; accepted but ignored for `deny`.
+Natural language description of when to use this agent
+Never include search results from these domains
+New description for the task
+New owner for the task
+New status for the task
+New subject for the task
+No extended thinking
+No timeout \u2014 runs until TaskStop or session end.
+Non-blocking heads-up (e.g. local git state diverges from the pushed branch the cloud session will clone)
+Non-error feedback from hookSpecificOutput.additionalContext \u2014 kept separate from hook_errors so the sanctioned feedback channel is not labeled an error. Absent in sessions persisted before this field existed.
+Non-sensitive option values from plugin manifest userConfig, keyed by option name. Sensitive values go to secure storage instead.
+Not available in this build; leave unset.
+Notifications still queued after this drain (drains are size-budgeted); call the tool again to read them.
+Number of days to retain chat transcripts before automatic cleanup (default: 30). Minimum 1. Use a large value for long retention; use --no-session-persistence to disable transcript writes entirely.
+Number of file paths returned (after any truncation)
+Number of files containing results
+Number of findings reported
+Number of lines in the returned content
+Number of pages extracted
+Number of proposals shown on the review card
+Number of results (definitions, references, symbols)
+Number of tools now available from this server
+Number of web searches performed
+Observational messages the agent loop emits \u2014 fire-and-forget, no reply expected. The remaining StdoutMessage members are control-protocol traffic (requests the loop originates and needs a reply to, responses to client-originated requests, keep-alives). This sub-union is the target for QueryEvent convergence so a Transport-shaped REPL can consume events without filtering control noise.
+Omitted when no skills contribute tokens.
+One Anthropic Messages API streaming event (message_start, content_block_start, content_block_delta, content_block_stop, message_delta, message_stop) as defined for the streaming Messages API.
+One row of the /context usage-by-category breakdown. Rows may carry zero tokens; renderers typically hide those.
+One short sentence explaining the chosen delay. Goes to telemetry and is shown to the user. Be specific. Required unless `stop` is true.
+One-line summary shown in listings and the Skill tool.
+One-sentence statement of the defect
+One-sentence subtitle shown on the gallery card. Say what the page is or does.
+Only for `context: fork`. Forks run as background agents that report back as a task notification instead of blocking the turn; set `false` to keep the caller waiting for the result in-line.
+Only include search results from these domains
+Opaque ids chosen by the client, one per hook function it registered for this matcher. When the hook fires the CLI sends a hook_callback control request carrying one of these ids as callback_id; the client maps it back to its function.
+Opaque lane etag returned by the durable-at-ack PUT.
+Opaque lane etag the output row must still carry for the write to land (CAS). Omitted = unconditional last-writer-wins (an empty string is rejected, not treated as unconditional). A row that moved since fails that output with staging error_code=output_conflict and the requested bytes are not written. Redelivery of a completed CAS write re-runs and conflicts with its own prior write \u2014 treat output_conflict on a retry as possible-prior-success and reconcile by etag.
+Optional arguments for the skill
+Optional attachments for the user to see alongside your message. Each entry is either a file path (absolute or relative to cwd) for a file you can read locally, or a pre-resolved {file_uuid, file_name, size, is_image} object you obtained from a device tool such as attach_file.
+Optional directory prefix to list only documents under it (e.g. /project/<project-id>/ lists only that project). Matching is directory-aligned (/x is the same as /x/). Omit to list the whole store.
+Optional encoded-credential format for `mask` mode. `jwt`: candidates are located with a built-in JWT regex (or the explicit `extract` pattern, if set), verified to actually be JWTs before masking, and replaced with a structurally valid fake JWT so client-side token parsing inside the sandbox keeps working. If no candidate verifies, behavior is governed by `onExtractNoMatch` (default `warn`). Accepted but ignored for `deny`.
+Optional filter; omit to list everything.
+Optional marketplace metadata
+Optional metadata for tracking and analytics purposes. Not displayed to user.
+Optional name of the masked env var holding the AWS session token (temporary credentials). When set, the proxy sends the real token as x-amz-security-token on re-signed requests and adds it to the signed header set if the client did not.
+Optional per-question annotations from the user (e.g., notes on preview selections). Keyed by question text.
+Optional preview content rendered when this option is focused. Use for mockups, code snippets, or visual comparisons that help users compare options. See the tool description for the expected content format.
+Optional server name to filter resources by
+Optional server name: refresh only this server. Omit to refresh all connected servers.
+Optional short caption for the file(s).
+Optional short message delivered alongside the files
+Optional timeout in milliseconds (default 30000, max 600000)
+Ordered distinct models used before backgrounding (length > 1 means a mid-run swap)
+Ordered low-to-high priority \u2014 later entries override earlier ones.
+Organization UUID to require for OAuth login. Accepts a single UUID string or an array of UUIDs (any one is permitted). When set in managed settings, login fails if the authenticated account does not belong to a listed organization.
+Original file path (for debugging).
+Original file size in bytes
+Original image height in pixels
+Original image width in pixels
+Output from a local slash command (e.g. /voice, /usage). Displayed as assistant-style text in the transcript.
+Output tokens spent this turn toward the token budget.
+Override spinner tips. tips: array of tip strings. excludeDefault: if true, only show custom tips (default: false).
+Override the default model used by Claude Code
+PDFs returned by inner Read calls \u2014 surfaced as document content blocks
+Package name (or url, or local path, or anything else that can be passed to `npm` as a package)
+Path of the document to create or update (e.g. /project/<project-id>/feedback/testing.md).
+Path of the last entry from a previous call. Returns entries after this path.
+Path of the memory document to read (e.g. /project/<project-id>/MEMORY.md).
+Path on disk to read file contents from, relative to the localDir approved at finalize_plan. Preferred for anything you have on disk: the tool reads, encodes, and uploads directly so the contents never enter the model context. Mutually exclusive with data.
+Path or URL to MCPB file
+Path or URL to MCPB file containing MCP server configuration
+Path relative to the working directory (or `root`); the file is served at this same path next to the page.
+Path to .lsp.json configuration file relative to plugin root
+Path to LSP configuration file
+Path to MCP servers configuration file
+Path to MCPB file relative to plugin root
+Path to SSH identity file (private key)
+Path to a JSON file containing the monitors array, relative to the plugin root
+Path to a command file or skill directory, relative to the plugin root. When set, the commands/ directory is not auto-loaded \u2014 list its files here if you want both.
+Path to a credential file or directory. Same resolution as sandbox.filesystem.* paths: absolute, ~ expanded, or relative to the settings file root (project root for project settings, ~/.claude for user settings).
+Path to a script that exports AWS credentials
+Path to a script that outputs OpenTelemetry headers
+Path to a script that outputs authentication values
+Path to a script that refreshes AWS authentication
+Path to a themes directory or file, relative to the plugin root. When set, the themes/ directory is not auto-loaded \u2014 list its files here if you want both.
+Path to a workflow script file on disk. Every Workflow invocation persists its script under the session directory and returns the path in the tool result. To iterate, edit that file with Write/Edit and re-invoke Workflow with the same `scriptPath` instead of re-sending the full script. Takes precedence over `script` and `name`.
+Path to a workflows directory or .js file, relative to the plugin root. When set, the workflows/ directory is not auto-loaded \u2014 list its files here if you want both.
+Path to an agent file, relative to the plugin root. When set, the agents/ directory is not auto-loaded \u2014 list its files here if you want both.
+Path to an existing worktree to switch into instead of creating a new one. Must appear in `git worktree list` for the current repo \u2014 or, on first entry from the launch directory, for a repo nested inside it (multi-repo workspace). Mutually exclusive with `name`.
+Path to an output-styles directory or file, relative to the plugin root. When set, the output-styles/ directory is not auto-loaded \u2014 list its files here if you want both.
+Path to command markdown file, relative to plugin root
+Path to file with additional hooks (in addition to those in hooks/hooks.json, if it exists), relative to the plugin root
+Path to marketplace.json within repo (defaults to .claude-plugin/marketplace.json)
+Path to persisted full output when too large for inline
+Path to raw output file for large MCP tool outputs
+Path to the environment secret the operator saved from the Admin UI.
+Path to the output file for checking agent progress
+Path to the persisted full output in tool-results dir (set when output is too large for inline)
+Path to the persisted workflow script for this invocation. Editable via Write/Edit; pass back as `scriptPath` to re-run without resending the script.
+Path to the plugin root, relative to the marketplace root (the directory containing .claude-plugin/, not .claude-plugin/ itself)
+Path to the settings file that failed to parse or validate.
+Path where binary blob content was saved
+Path within the project, e.g. components/button/index.html
+Paths to re-allow reading within denyRead regions. Takes precedence over denyRead for matching paths.
+Paths whose diff text exceeded the per-file or aggregate size cap, so they have stats but no hunks.
+Paths whose hunk content was withheld by read-permission rules (same gate as read_file); stats remain visible.
+Per-API-call OTPS/TTFT lifecycle event. Optional id correlates parallel subagent start/end; serial callers omit it.
+Per-file transfer outcome
+Per-model weekly windows from the server limits[] array, filtered by the overage-included-models allowlist. Additive \u2014 present only when the server emits them.
+Per-plugin configuration including MCP server user configs, keyed by plugin ID (plugin@marketplace format)
+Per-server HTTP request timeout in milliseconds, set by the host on the mcp_set_servers control event. Raises the per-request fetch first-byte budget and the tool-call watchdog for this server. Capped at 5 minutes. Ignored when `timeout` is also set.\n@internal
+Per-server tool-call timeout in milliseconds. Overrides the MCP_TOOL_TIMEOUT environment variable for this server. Hard wall-clock limit per call; progress notifications do not extend it. Values below 1000ms are ignored (falls through to MCP_TOOL_TIMEOUT or the default).
+Per-skill description character cap in the skill listing sent to Claude (default: 1536). Descriptions longer than this are truncated. Raise to opt in to higher per-turn context cost.
+Per-tool permission policy carried on mcp_set_servers for remote servers.
+Percentage of the window used, 0-100.
+Permission mode controlling how tool executions are handled
+Permission mode the agent runs in.
+Permission requests still awaiting a response. Sent on the `initialize` response so a client joining an already-initialized session learns about in-flight prompts.
+Persisted effort level for supported models.
+Placeholder text shown after the slash command name.
+Plain text message content
+Plain-data snapshot of the APIError \u2014 the class instance cannot cross the wire.
+Plain-text detail for the requesting client. May carry user-document content (tool output, lane paths) \u2014 surface it to the user where helpful, but do not log it verbatim or feed it to analytics.
+Plan markdown. Present iff exists is true.
+Plan rate-limit utilization windows from the claude.ai usage endpoint, or null when unavailable.
+Plugin directory produced by a locally installed tool (e.g. an IDE that renders its plugin for the currently selected SDK). Claude Code runs the command, copies the directory it prints, and re-runs it in the background at startup to pick up changes.
+Plugin entries declared inline in settings.json
+Plugin homepage or documentation URL
+Plugin located in a subdirectory of a larger repository (monorepo). Only the specified subdirectory is materialized; the rest of the repo is not downloaded.
+Plugin name as it appears in the target repository
+Plugins sourced from SearchPlugins results.
+Policy for SigV4A (AWS4-ECDSA-P256-SHA256) asymmetric signatures: there is no shared-key HMAC to recompute. `deny` (default) or `passthrough`.
+Policy for aws-chunked streaming uploads (x-amz-content-sha256: STREAMING-*): per-chunk signatures chain off the seed signature, so re-signing would require rewriting the body. `deny` (default) fails closed with a 403; `passthrough` forwards the request unre-signed (the upstream will reject its signature).
+Policy for presigned URLs (X-Amz-Algorithm/X-Amz-Signature in the query, no Authorization header): the signature lives in the URL itself. `deny` (default) or `passthrough`.
+Policy-list sentinel for the ~/.claude/skills/ auto-load (@skills-dir plugins). In strictKnownMarketplaces: opt the scan back IN (by default any allowlist blocks it). In blockedMarketplaces: turn the scan OFF without otherwise restricting marketplaces. Only meaningful in those two managed-settings lists (areLocalPluginDirsAllowedByPolicy); known_marketplaces.json / marketplace add etc. ignore it.
+Precompute the compaction summary in the background before it is needed. Only applies when auto-compact is on.
+Predicted next user prompt, emitted after each turn when promptSuggestions is enabled.
+Preferred OS notification channel
+Present exactly when the request used any staged-call field (input_files, output_files, expires_at, timeout_ms) \u2014 such calls run through the staging engine even with no files, so expires_at is always honored. The error_code set is a stable cross-repo contract \u2014 extend it, never rename or repurpose members. A failure makes no guarantee about partial effects: earlier outputs may already have landed; retry with the same request_id is safe for outputs without if_match (unconditional PUTs re-land the same bytes), while if_match outputs surface output_conflict against their own prior write \u2014 reconcile by etag. On staged failures the tool may never have run, so content/structuredContent may be absent.
+Present only when the request named a tool_use_id: whether a matching foreground task was found and backgrounded. Empty object when all foreground tasks were backgrounded.
+Present when `directory` sits inside a git repository whose canonical root differs from it (a subdirectory or a linked worktree). Accepting trust grants that whole repository \u2014 every subdirectory and linked worktree of the root \u2014 so the trust dialog should name this root alongside `directory`. Informational only: the attestation echo still pins `trusted_directory` to `directory`. Vetted by the same visible-glyph rule as `directory`; a canonical root that fails it is omitted rather than carried.
+Present when the failure class is known (lane transport verdict, CAS rejection): true = safe to re-drive with the same request_id, false = deterministic. Absent = unknown; treat as non-retryable and switch on error_code.
+Prevent claude-cli:// protocol handler registration with the OS
+Probability (0\u20131) that the session quality survey appears when eligible. 0.05 is a reasonable starting point.
+Processed result from applying the prompt to the content
+Producer directories this installation was resolved to before the current one (most recent last, bounded). A concurrent older session may still serve one of them, so the sandbox keeps write-denying them too.
+Project path (required for project/local scopes)
+Project-relative path to the preview/spec file this card renders
+Prompt to evaluate with LLM. Use $ARGUMENTS placeholder for hook input JSON.
+Provider-native change identifier \u2014 the PR/MR (or other change) number as a string.
+Push to mobile when a permission prompt or question is waiting
+Quota-429 headers surfaced by the retry banner; null when not a quota 429.
+RFC3339 deadline, REQUIRED when output_files are declared (a stale buffered drain must not overwrite rows written since). Sending expires_at routes the call through the staging engine, same as timeout_ms \u2014 the response gains a staging result. UNDELIVERED requests buffer durably and drain after reattach; a drain past this instant is dropped with staging error_code=expired instead of executing stale. Once delivered to a live worker the request is acked immediately and never redelivered \u2014 a worker killed mid-run surfaces as a missing response (apply your own deadline), not a later drain. An unparseable value is treated as already expired (fail closed).
+RFC3339 timestamp of when the backend queued it.
+Ramp mouse-wheel scroll speed during fast scrolls (fullscreen mode only)
+Rate limit event emitted when rate limit info changes.
+Rate limit information for claude.ai subscription users.
+Re-run the status line command every N seconds in addition to event-driven updates
+Re-scan skill and command directories after SessionStart hooks complete, so skills installed by the hook are available in the same session
+Read a file from the session filesystem for the remote sidebar viewer. Path is resolved against cwd and gated by the same read-permission rules as the Read tool.
+Reason, if the condition was not met
+Reasoning effort applied to the current turn. Same shape as StatusLineCommandInput.effort. Present for hooks that fire within a tool-use context (PreToolUse, PostToolUse, Stop, SubagentStop, etc.) on a model that supports the effort parameter; absent for session-lifecycle hooks and models without effort support.
+Reasoning effort level for this agent. Either a named level or an integer
+Reconnects a disconnected or failed MCP server.
+Reduce or disable animations for accessibility (spinner shimmer, flash effects, etc.)
+Refreshed commands, agents, plugins, and MCP server status after reload.
+Refreshed skill commands after reload.
+Regex matched against turn output (tool results and assistant text)
+Release channel for auto-updates (latest or stable)
+Relink info for messagesToKeep. Loaders splice the preserved segment at anchor_uuid (summary for suffix-preserving, boundary for prefix-preserving partial compact) so resume includes preserved content. Unset when compaction summarizes everything (no messagesToKeep).
+Reloads plugins from disk and returns the refreshed session components.
+Reloads skills from disk and returns the refreshed skill list.
+Render screen-reader friendly output (flat text, no decorative borders or animations). Overridden by the CLAUDE_AX_SCREEN_READER env var and the --ax-screen-reader CLI flag.
+Replace all occurrences of old_string (default false)
+Replaces the output for MCP tools only. Prefer updatedToolOutput, which works for all tools
+Replaces the set of dynamically managed MCP servers.
+Replaces the tool output before it is sent to the model
+Repo-relative path of the file the finding is in
+Report from a background observer agent to the agent it observes. One-way by construction \u2014 the observed agent must not reply.
+Repository path from the URL (owner/name on GitHub; may carry more segments on GitLab). Shape-validated (forge path segments only; exactly owner/name except on GitLab) but not verified against any forge \u2014 on GitLab a leading segment can be a nested group, so never interpret it as a host.
+Request API-side thinking summaries and show them in the conversation and in the transcript view (ctrl+o). Set explicitly to override the default for your install.
+Requests a breakdown of current context window usage by category.
+Requests at-mention file autocomplete suggestions for a partial path prefix. Returns the same fuzzy-matched results the TUI shows.
+Requests in this window exhibiting the behavior.
+Requests permission to use a tool with the given input.
+Requests the SDK consumer to handle an MCP elicitation (user input request).
+Requests the SDK consumer to render a tool-driven blocking dialog and return the user choice. Used by tools that previously rendered Ink JSX via setToolJSX with an onDone callback.
+Requests the current status of all MCP server connections.
+Requests the formatted session cost summary (the same text /usage prints in non-interactive mode). Used by the thin-client /usage dialog to show the remote container cost instead of the local $0.00.
+Requests the structured /usage data: session cost/usage totals plus claude.ai plan rate-limit utilization when available. Experimental \u2014 the response shape may change.
+Require explicit approval before SendMessage can reach a peer session on another machine via Remote Control
+Require the plugin manifest to be present in the plugin folder. If false, the marketplace entry provides the manifest.
+Required for all methods except list_projects and create_project
+Required for create and update; optional for run
+Required for get, update, run, and list_runs
+Required for get_run_log: a run session id (cse_\u2026 or session_\u2026, from list_runs)
+Required whenever trust_accepted is true: the exact directory string from the needs_trust response being answered. This pins the attestation to the canonical path the user was shown \u2014 if the raw path canonicalizes differently by the time the re-send arrives (e.g. a symlink component changed during the dialog), nothing is latched and a fresh needs_trust carries the new canonical directory.
+Resolved attachment metadata
+Resolved file metadata
+Resource URI
+Resource description
+Resource name
+Response containing fuzzy-ranked file path suggestions (capped at the same limit as the TUI typeahead).
+Response containing the current status of all MCP server connections.
+Response from session initialization with available commands, models, and account info.
+Response from the SDK consumer for a request_user_dialog request.
+Response from the SDK consumer for an elicitation request.
+Result of a cancel_async_message operation. cancelled=false means the message was not in the queue (already dequeued or never enqueued).
+Result of a rewindFiles operation.
+Result of a setMcpServers operation.
+Result of an interrupt operation. Advertised by the interrupt_receipt_v1 capability on system/init; older CLIs send an empty success response with no still_queued field.
+Result of replacing the set of dynamically managed MCP servers.
+Return value from the code execution
+Returns the effective merged settings and the raw per-source settings.
+Rewinds file changes made since a specific user message.
+Rounded total_tokens / raw_max_tokens, 0-100+.
+Run for the lifetime of the session (no timeout). Use for session-length watches like PR monitoring or log tails. Stop with TaskStop.
+Run this agent as a background task (non-blocking, fire-and-forget) when invoked
+Runtime-resolved values after env overrides, session state, and model-specific defaults are applied. Unlike `effective` (disk merge), these reflect what will actually be sent to the API.
+SPDX license identifier (e.g., MIT, Apache-2.0)
+SSH connection configurations for remote environments. Typically set in managed settings by enterprise administrators to pre-configure SSH connections for team members.
+SSH port (default: 22)
+Sanitized one-line summary from the SendFeedback tool call.
+Schema version 1
+Schema version 2
+Search results and/or text commentary from the model
+Seconds from now to wake up. Clamped to [60, 3600] by the runtime. Required unless `stop` is true.
+Seconds to wait for the command before giving up (default: 60)
+Seeds the readFileState cache with a path+mtime entry. Use when a prior Read was removed from context so Edit validation would fail despite the client having observed the Read. The mtime lets the CLI detect if the file changed since the seeded Read \u2014 same staleness check as the normal path.
+Self-contained workflow script. Must begin with `export const meta = { name, description, phases }` (pure literal, no computed values) followed by the script body using agent()/parallel()/pipeline()/phase().
+Semantic interpretation for non-error exit codes with special meaning
+Semantic version (e.g., 1.2.3) following semver.org specification
+Sender display name, normalized by the harness: Unicode control, format, surrogate, and line/paragraph-separator code points stripped (categories Cc/Cf/Cs/Zl/Zp \u2014 covers bidi controls, zero-width characters, and tag characters), trimmed, at most 64 code points (+ ellipsis, never splitting a surrogate pair). Sender-asserted display text (the addressable identity is `from`) \u2014 render it as reported speech, but no client-side character sanitization is needed. Absent when the wire is not exactly one harness-formed envelope and on messages from older senders.
+Servable media type; inferred from the PUBLISHED extension for common types \u2014 pass explicitly otherwise.
+Servable media type; inferred from the extension for common types (css/js/json/png/\u2026) \u2014 pass explicitly otherwise.
+Server configuration (includes URL for HTTP/SSE servers)
+Server information (available when connected)
+Server name
+Server name as configured
+Server names to wait for (default: all pending)
+Server that provides this resource
+Server-asserted ingest-path marker, same strip-and-restamp discipline as isSynthetic.
+Server-asserted synthetic stamp \u2014 stripped from inbound copies at CCR ingress and re-stamped only by the notice composer.
+Server-assigned stable id \u2014 the dedup key across redeliveries.
+Server-verified sender session id.
+Session metadata returned by listSessions and getSessionInfo.
+Session metadata the CLI emits at the start of each turn, normally ahead of every other message of that turn: session_id, model, working directory, tools, MCP servers, slash commands, permission mode, and the capabilities list for feature detection.
+Session-scoped cron tasks (CronCreate, ScheduleWakeup, /loop) that will wake this session later. Empty array when none are scheduled.
+Set ONLY when re-reporting after applying fixes: what happened to this finding
+Set if syntax check failed
+Set the session title
+Set this to true to dangerously override sandbox mode and run commands without sandboxing.
+Set to false to turn off syncing of the skills you have enabled on claude.ai. In your user settings (or managed settings): nothing more is downloaded, previously synced skills (~/.claude/skills/synced) can no longer be run, are hidden from every session started afterwards, and are moved to ~/.claude/skills/.trash at the next launch (deleted after cleanupPeriodDays; re-downloaded, not restored, if you re-enable). In .claude/settings.local.json or --settings: downloads stop and synced skills are blocked and hidden for sessions in that workspace or invocation only (nothing is moved). Not read from project settings (.claude/settings.json). Only false is honored \u2014 the feature is enabled server-side for your account, so setting true does not turn it on early. While it is on, synced skills are available in every session, re-synced every 10 minutes, and removed when you disable them on claude.ai. Only applies when signed in with your Claude account.
+Set to null to unbind a default shortcut
+Set to true to allow the user to select multiple options instead of just one. Use when choices are not mutually exclusive.
+Set to true to end the dynamic loop immediately instead of scheduling another wakeup. When true, all other fields are ignored and no further wakeups fire.
+Set to true to run this command in the background.
+Set when a safetyCheck is present anywhere in the decision reason (including nested inside subcommandResults for compound bash). false = at least one safety check requires manual approval (e.g. Windows path bypass, dangerous rm); true = all safety checks MAY be classifier-approved (e.g. sensitive-file paths). Absent when no safetyCheck is involved.
+Set when a verify pass ran; absent on inline-only reviews
+Set when the command hit its timeout and was auto-backgrounded; the timeout value in ms
+Set when the dedup matched a startup-seeded entry (CLAUDE.md / nested memory) rather than a prior Read tool_result
+Set when the dialog auto-resolved after this many milliseconds of idle (user away from keyboard). Absent on every human-resolved path.
+Sets the maximum number of thinking tokens for extended thinking. When max_thinking_tokens is omitted or null, thinking resets to the session default: any mid-session budget override is cleared (back to the spawn-time budget, if one was set), and thinking stays off for sessions that have it disabled. thinking_display optionally sets the thinking display mode for the rest of the session: a value replaces the session display mode, null clears it back to the API default, and when omitted the display mode from session start (--thinking-display) is kept.
+Sets the model to use for subsequent conversation turns.
+Sets the permission mode for tool execution handling.
+Sets the user-facing title for the current session.
+Settings parse and validation errors. When non-empty, the listed files were skipped during the merge above \u2014 their settings are not reflected in `effective` or `sources`.
+Settings passed to the server via workspace/didChangeConfiguration
+Settings to merge into the user settings while this plugin is enabled. Only the documented allowlisted keys are applied.
+Shallow-merge flag-settings patch \u2014 same shape as SDKControlApplyFlagSettingsRequest.settings.
+Share of the weighted local usage attributed to this behavior, 0-100.
+Share of the weighted local usage attributed to this item, 0-100.
+Shell command hook type
+Shell command that outputs a Proxy-Authorization header value (EAP)
+Shell command to execute
+Shell command to execute verbatim via a one-shot `/bin/sh -c` (or `pwsh`) subprocess, bypassing the model. Trust model matches the local TUI `!cmd` path (no sandbox, no per-command prompt); unlike `!cmd`, output is not appended to the conversation transcript and there is no persistent shell state across calls.
+Shell for `!`-command blocks: `bash` or `powershell`. Defaults to bash regardless of platform.
+Short code of a specific guide to target (returned by a previous call). Honored by check, update, and delete \u2014 skips the org-wide lookup and targets this guide directly.
+Short header tying the suggestion to the user request.
+Short human-readable description of what is being monitored (shown in task panel and notification summary).
+Short human-readable description of what you are monitoring (shown in notifications).
+Short notes for the user: sections that were NOT GATHERED / INCOMPLETE, slots left at the shipped default because nothing was found, and anything you would have asked about.
+Short, specific one-line summary of the issue.
+Show a friendly nudge after sustained continuous use (default false). Must be true for the reminder to fire.
+Show a one-time nudge when you start or keep using the CLI inside your quiet-hours window (default false).
+Show full tool output instead of truncated summaries
+Shown in the Output style picker in `/config`.
+Size of the fetched content in bytes
+Skill name (without the leading slash)
+Skills preloaded for this agent.
+Skip Git LFS smudge during clone and update (sets GIT_LFS_SKIP_SMUDGE=1) so LFS pointer files stay as pointers instead of downloading their content. Use for marketplaces hosted in repos with large LFS objects.
+Skip the WebFetch blocklist check for enterprise environments with restrictive security policies
+Snapshot files before edits so /rewind can restore them
+Source code repository URL
+Source file path \u2014 relative to `root` (default: the working directory), or absolute under the working directory.
+Specific commit SHA to use
+Specific version or version range (e.g., ^1.0.0, ~2.1.0)
+Stamp each message with its arrival time
+Start Remote Control bridge automatically each session
+Status information for an MCP server connection.
+Status message about the operation
+Stops a running task.
+Structured /usage data: session cost/usage totals plus claude.ai plan rate-limit utilization. Experimental \u2014 the shape may change.
+Structured content blocks
+Structured output tool result
+Structured twin of the /context report \u2014 the data a client needs to render the context-usage card without parsing the markdown table. Evolves additively (new optional fields); a breaking reshape would ship as a sibling field, so consumers can trust the fields they know.
+Structured twin of the /context report, carried on the synthetic assistant message that delivers the markdown table. Present only on /context results from CLIs new enough to attach it; the markdown in message.content remains the canonical fallback. Wrapper-level sibling \u2014 never inside `message.content` \u2014 so it is not replayed to the model.
+Style name used in the Output style picker in `/config` and in settings. Defaults to the filename.
+Subagent ID when the denied tool call originated inside a subagent. Mirrors can_use_tool for host-side routing.
+Subagent identifier. Present only when the hook fires from within a subagent (e.g., a tool called by an AgentTool worker). Absent for the main thread, even in --agent sessions. Use this field (not agent_type) to distinguish subagent calls from main-thread calls.
+Subagent type for Task tool subagents.
+Subagent type that produced this message.
+Submit the prompt when hold-to-talk is released (hold mode only)
+Subset of slash_commands whose UX is bound to the local terminal (e.g. exit, statusline). Phone/remote UIs should hide these from command menus; desktop surfaces may keep them. Present only when non-empty; absent on CLIs that predate the field, and on sessions where no advertised command carries the tag.
+Success payload answering an mcp_message request.
+Success payload answering background_tasks.
+Success payload answering register_repo_root.
+Success payload answering set_permission_mode.
+Supplemental postamble appended (after the harness-owned default) to each activity digest sent to the observer.
+Supplemental postamble appended (after the harness-owned default) to each activity digest sent to the observer. Blank values are ignored.
+Synced-file lane row to stage, e.g. /working/.cowork/originals/a.docx. A missing row fails with staging error_code=input_missing; the etag actually staged is echoed back in staging.inputs_used.
+Synced-file lane row to write, e.g. /working/report.cd. Unique within the request (two outputs on one row would self-conflict under CAS). Outputs over the 25 MiB lane cap fail with staging error_code=output_too_large.
+Tag-derived semver this install resolved to
+Tag-derived semver this install resolved to (when fetched via a version constraint). Used by verifyAndDemote in preference to manifest.version, since the upstream may have forgotten to bump plugin.json.
+Tagged environment id (ccpool_\u2026).
+Tagged runner id (ccrunner_\u2026) the caller observed failing. Server verifies this still matches the session assignment; mismatch returns Conflict. For a stuck session whose runner is gone, any value is accepted.
+Tagged session id (ccsess_\u2026).
+Tags for plugin discovery and categorization
+Tags for searchability and discovery
+Target directory. Tilde-expanded and realpath-canonicalized by the CLI, exactly like an interactive /cd argument.
+Task IDs that block this task
+Task IDs that this task blocks
+Task id of the in-process background subagent that sent this message, stamped by the harness from the sending loop (never from tool input). Absent for cross-session peers.
+Tells the other side that the sender no longer needs the answer to one of its own in-flight control_requests (for example a pending can_use_tool prompt after the turn was interrupted, or one that another client already answered). Either side may send it for a request it originated. The sender stops waiting at once and ignores any control_response that still arrives for that request_id; a receiver that can abort the work does so and may still reply (typically with an error), otherwise it simply completes the request. There is no reply to the cancel itself.
+Text content of the last assistant message before stopping. Avoids the need to read and parse the transcript file.
+Text content of the resource
+Text displayed in place of the delta. Omit (or return the delta unchanged) to display the original.
+The ID of the async agent
+The ID of the background task to stop. Agent-team teammates and named background agents are also accepted by agent ID or name.
+The ID of the cell that was edited
+The ID of the cell to edit. When inserting a new cell, the new cell will be inserted after the cell with this ID, or at the beginning if not specified.
+The ID of the remote agent task
+The ID of the sub-agent that executed the skill
+The ID of the task that was stopped
+The ID of the task to retrieve
+The ID of the task to update
+The JSON-RPC response the SDK-hosted server produced for the delivered message (for a JSON-RPC notification, a response with an empty result). Present when the client answers a CLI-sent mcp_message; absent when the CLI acknowledges a client-sent one.
+The LSP operation that was performed
+The LSP operation to perform
+The MCP server name
+The MIME type of the image
+The PowerShell command to execute
+The URL of the cloud session
+The URL of the search result
+The URL that was fetched
+The URL to fetch content from
+The `command`-source command the user accepted at explicit install/update. The once-per-session background re-resolve only runs while the marketplace entry still declares this exact command; a changed command (or an entry that became command-sourced later) is skipped with a warning until the user runs an explicit update.
+The absolute or relative path to the file
+The absolute path to the Jupyter notebook file to edit (must be absolute, not relative)
+The absolute path to the file to modify
+The absolute path to the file to read
+The absolute path to the file to write (must be absolute, not relative)
+The answers provided by the user (question text -> answer string; multi-select answers are comma-separated)
+The branch a commit landed on (from the commit summary line git prints per commit) or a push updated (from the ref-update line git prints per pushed ref, e.g. `HEAD -> other`). Commit and push events carry it. A best-effort hint: absent whenever attribution is uncertain (a push whose output was redirected still emits, with no branch), and never a required key.
+The character offset (1-based, as shown in editors)
+The code that was executed
+The command or description of the stopped task
+The command to execute
+The condition shown to the user for approval, or set directly when ask_user was false
+The content of the file
+The content that was written to the file
+The content to write to the file
+The conversation summary produced by compaction
+The description of the task
+The directory a `command`-source plugin was last resolved to (what its command printed). Served in place in link mode and re-copied every session in copy mode, so the sandbox write-denies it; refreshed on every install/update, including no-op updates that resolve to a new location.
+The directory resource URI to list
+The directory the shell was in when the command finished (so an inner cd is reflected; a git -C target is not) \u2014 a hint about where to look, never proof of what moved: confirm against the repository itself.
+The display text for this option that the user will see and select. Should be concise (1-5 words) and clearly describe the choice.
+The edit mode that was used
+The effort level the session will send on its next request \u2014 after env overrides, session state, org caps and model-support downgrades; the same value get_settings reports as applied.effort. null when no effort parameter will be sent (a model without effort, CLAUDE_CODE_EFFORT_LEVEL=unset, or an internal numeric budget). Present on Remote Control bridge init frames (terminal- and Desktop/VS Code-hosted sessions); absent on hosts that do not publish it and on CLIs that predate the field. Re-emitted inits carry the current value \u2014 the newest frame wins.
+The file path that was edited
+The file path the operation was performed on
+The file path where the plan was saved
+The formatted result of the LSP operation
+The full callback URL from the browser address bar after authorizing, e.g. http://localhost:<port>/callback?code=...&state=...
+The glob pattern to match files against
+The hooks provided by the plugin, in the same format as the one used for settings
+The input for the tool
+The internal Message being tombstoned. Wire shape pending a dedicated schema.
+The line number (1-based, as shown in editors)
+The line number to start reading from. Only provide if the file is too large to read at once
+The message
+The name of a skill from the available-skills list. Do not guess names.
+The name of the skill
+The name of the tool requesting permission
+The new source code that was written to the cell
+The new source for the cell
+The new string that replaced it
+The newly completed lines since the prior flush. Always whole lines, except on the final flush which may end mid-line. The delta of the final flush is empty when the message ends on a newline; treat final as the end-of-message signal regardless.
+The notification body. Keep it under 200 characters; mobile OSes truncate.
+The number of lines to read. Only provide if the file is too large to read at once.
+The original file content before the write (null for new files)
+The original file contents before editing
+The original notebook content before modification
+The original string that was replaced
+The path to the PDF file
+The path to the file
+The path to the file that was read
+The path to the file that was written
+The path to the notebook file
+The permission mode now in effect. Headless CLIs echo it; other hosts may acknowledge with an empty object.
+The plan content (injected by normalizeToolInput from disk)
+The plan file path (injected by normalizeToolInput)
+The plan that was presented to the user
+The preview content of the selected option, if the question used previews.
+The previous cell source (replace/delete only). Enables cell-relative diff rendering without re-reading the notebook.
+The programming language of the notebook
+The prompt for the agent
+The prompt to enqueue at each fire time.
+The prompt to run on the fetched content
+The questions that were asked
+The registered root as a resolved absolute path.
+The regular expression pattern to search for in file contents
+The rejection message returned to the model in the tool_result.
+The report to deliver to your report target. Be concise and specific.
+The request failed or was rejected (unknown subtype, invalid arguments, or an error while handling it).
+The request was handled.
+The request_id of the control_request being withdrawn.
+The request_id of the control_request this answers.
+The resource URI to read
+The result from the forked skill execution
+The search query that was executed
+The search query to use
+The standard error output of the command
+The standard output of the command
+The starting line number
+The symbol name or partial name to search for (workspaceSymbol only). Most language servers return no results for an empty query, so always provide it when using workspaceSymbol.
+The symbol name or partial name to search for. Most language servers return no results for an empty query.
+The task ID to get output from
+The task for the agent to perform
+The text to replace
+The text to replace it with (must be different from old_string)
+The title of the search result
+The todo list after the update
+The todo list before the update
+The token count where threshold-triggered compaction fires on the worker \u2014 effective_window minus the summary buffer, lowered further by CLAUDE_AUTOCOMPACT_PCT_OVERRIDE when set.
+The tool this prompt applies to
+The type of edit to make (replace, insert, delete). Defaults to replace.
+The type of specialized agent to use for this task
+The type of the cell
+The type of the cell (code or markdown). If not specified, it defaults to the current cell type. If using edit_mode=insert, this is required.
+The type of the task that was stopped
+The unique identifier for the corresponding tool call.
+The unique tool use request ID
+The updated notebook content after modification
+The updated todo list
+Thinking effort for the model: `low`, `medium`, `high`, `max`, or an integer.
+Thinking effort: `low`, `medium`, `high`, `max`, or an integer.
+Time taken to complete the search operation
+Time taken to execute the search in milliseconds
+Time taken to fetch and process the content
+Timeout deadline in milliseconds (0 when persistent).
+Timeout in seconds for agent execution (default 60)
+Timeout in seconds for this specific command
+Timeout in seconds for this specific prompt evaluation
+Timeout in seconds for this specific request
+Timeout in seconds for this specific tool call
+Title for the artifact \u2014 the name shown in the browser tab and gallery. A short, distinctive noun-phrase name \u2014 not a generic label, a summary, or a name with an appended explainer. Prefer a <title> tag at the top of the HTML itself; this parameter fills in only when the file lacks one in the first 8KB of the file, and never overrides the tag. HTML publishes only \u2014 Markdown pages keep their filename identity. Content always comes from file_path \u2014 there is no inline content parameter.
+Tool execution time in milliseconds. Excludes permission-prompt and hook time.
+Tool names this refresh added
+Tool names this refresh removed
+Tool usage permissions configuration
+Tool-execution timeout (staging and collection have their own transport timeouts). Clamped to [1000, 600000]; default 120000. Sending timeout_ms routes the call through the staging engine \u2014 so it is always enforced when present and the response carries a staging result; omit it for a plain call. Staged calls are POSIX-worker-only: on a Windows worker any staged-field call fails with a typed staging refusal.
+Tools allowed by this skill
+Tools allowed when command runs
+Tools available to the model while this file is active. Comma-separated string or YAML list.
+Tools available to this agent. Replaces the default set.
+Tools provided by this server (available when connected)
+Tools removed from the default set. Ignored if `tools` is set.
+Tools removed from the model while this file is active. Comma-separated string or YAML list. Cleared when the user sends the next message.
+Total number of lines in the file
+Total number of matching files before truncation. A lower bound when countIsComplete is false. Absent on results persisted by CLI versions predating this field.
+Total output size in bytes when persisted
+Total size of the output in bytes (set when output is too large for inline)
+True if the requested delaySeconds was outside [60, 3600]
+True if the user manually backgrounded the command with Ctrl+B
+True on an async-dispatch receipt or refusal: the script was handed to the async dispatcher (queued \u2014 outcome arrives later as a poll event \u2014 or refused at the queue cap), so this Output carries no execution output and resume replay must skip the block
+True when a whole-file read was auto-paginated because it exceeded the token cap (the content is a partial first page). A programmatic signal for internal consumers; survives output reconstruction (unlike the render-time banner).
+True when pulled in as a dependency. Eligible for orphan sweep.
+True when the caller is un-rating a message (clicking the same control a second time).
+True when the decline also rewrote the saved default model (explicit switch_default with the consent-gated model as the saved default).
+True when the model ended the loop via `stop: true`
+True when the sub-agent was launched in the background: `result` describes the launch, and the skill outcome arrives later as a task notification.
+True when the transcript lives in the project slot derived from cwd (the normal case, and the no-op case). False only on the documented edge where the move completed but the transcript move failed AND the rollback chdir failed \u2014 a cwd-derived resume lookup will then miss the session.
+True when the user edited the plan (CCR web UI or Ctrl+G); determines whether the plan is echoed back in tool_result
+True when the user edited the proposed content in the permission dialog before accepting
+True when this assistant message was truncated by an interrupt/abort before the stream completed: stop_reason was never received and the content may end mid-word. Absent on normally completed messages.
+True when this backgrounded command is owned by a synchronous subagent and is therefore terminated when that agent gives its final response; absent when the command survives (main loop, async subagents)
+True when this plugin was pulled in as a dependency rather than installed explicitly. Auto-installed plugins are eligible for removal by the orphan sweep when nothing depends on them. Absent = manual (preserves pre-flag installs).
+Turn on spell checking of the prompt input (default: false)
+Turn token-budget ceiling.
+Type of the configuration value
+UI context where these bindings apply. Global bindings work everywhere.
+URL to MCPB file
+URL to POST the hook input JSON to
+UUID correlating a user prompt with all subsequent events until the next prompt. Same value emitted on OpenTelemetry events as the `prompt.id` attribute, so hook output can be joined to OTel events at prompt grain. Absent until the first user input of the process lifetime.
+UUID of the assistant message being rated.
+UUID of the current turn.
+UUID of the on-disk draft file under ~/.claude/feedback/drafts/ \u2014 the identity for discard and submit.
+Unique identifier for the plan approval request
+Unique identifier for the plugin, used for namespacing (prefer kebab-case)
+Unique identifier for this SSH config. Used to match configs across settings sources.
+Unique identifier matching the plugin name
+Unique session identifier (UUID).
+Updates environment variables at runtime.
+User answers collected by the permission component
+User configuration values for MCP servers keyed by server name
+User rating: positive (thumbs up) or negative (thumbs down).
+User-configurable values this plugin needs. Prompted at enable time. Non-sensitive values saved to settings.json; sensitive values to secure storage. Available as ${user_config.KEY} in MCP/LSP server config, hook commands, and (non-sensitive only) skill/agent content. Keep sensitive value counts small.
+User-set session tag.
+User-set session title via /rename.
+Verbatim notification body.
+Verified findings, most-severe first; empty if none survived
+Voice mode settings (hold-to-talk / tap-to-toggle dictation)
+Warning message shown to the user
+Web URL of the published change, as printed in the command output. Unverified \u2014 do not route authenticated requests to this host without your own validation.
+WebSocket to open. Each text frame is an event; binary frames are reported as a placeholder line. Socket close ends the watch. Cannot be combined with command.
+Website, GitHub profile, or organization URL
+What class of mutation was observed. New kinds may be added \u2014 treat an unrecognized kind exactly like a recognized one (something changed, go look).
+What kind of feedback this is.
+What kind of task the session was doing when the issue occurred \u2014 or `other` when it is a clear task that fits no listed value. Omit only if genuinely unclear.
+What needs to be done
+When a claude.ai usage limit stops your session, wait for the limit to reset and continue the task automatically. When off, the limit dialog offers the wait as a choice instead.
+When false, prompt suggestions are disabled. When absent or true, prompt suggestions are enabled.
+When false, the :emoji: shortcode typeahead (the suggestion popup and the :name: inline replacement) is disabled. When absent or true, it is enabled.
+When false, the message is appended to the transcript without triggering an assistant turn. It will be merged into the next user message that does query.
+When false, thinking is disabled. When absent or true, thinking is enabled automatically for supported models.
+When safeguards flag a message, automatically switch to a different model to keep chatting. When off, your session will pause instead.
+When set in managed settings, the CLI blocks startup until remote managed settings are freshly fetched, and exits if the fetch fails
+When set to true in either admin-only Windows source \u2014 the HKLM SOFTWARE/Policies/ClaudeCode registry key or C:/Program Files/ClaudeCode/managed-settings.json \u2014 WSL reads managed settings from the full Windows policy chain (HKLM, C:/Program Files/ClaudeCode via DrvFs, HKCU) in addition to /etc/claude-code. Windows sources take priority. The flag is also required in HKCU itself for HKCU policy to apply on WSL (double opt-in: admin enables the chain, user confirms HKCU). On native Windows the flag has no effect.
+When set, backgrounds only the task whose originating tool_use block has this id. When omitted, backgrounds all foreground tasks (Ctrl+B semantics).
+When the report is about MODEL BEHAVIOR (not a product bug), the closest failure mode \u2014 or `other` when it is a model-behavior issue that fits no listed value. Omit only when the report is a product/tool bug with no model-behavior component.
+When to use this agent. Required \u2014 shown in the Agent tool listing.
+When true (and set in managed settings), allowedMcpServers is only read from managed settings. deniedMcpServers still merges from all sources, so users can deny servers for themselves. Users can still add their own MCP servers, but only the admin-defined allowlist applies.
+When true (and set in managed settings), claude.ai cloud MCP connectors load alongside managed-mcp.json instead of being suppressed by its exclusive-control lockdown. Default off preserves the lockdown. Read from managed settings only.
+When true (and set in managed settings), only allowedDomains and WebFetch(domain:...) allow rules from managed settings are respected. User, project, local, and flag settings domains are ignored. Denied domains are still respected from all sources.
+When true (and set in managed settings), only hooks from managed settings run. User, project, and local hooks are ignored.
+When true (and set in managed settings), only permission rules (allow/deny/ask) from managed settings are respected. User, project, local, and CLI argument permission rules are ignored.
+When true (and set in managed settings), rejects the --plugin-dir, --plugin-url, --agents, and non-sdk --mcp-config CLI flags at startup. Closes the CLI-flag bypass of strictKnownMarketplaces. Pair with allowedMcpServers for per-server MCP control; this setting does not gate other MCP entry points (SDK setMcpServers, claude mcp add, .mcp.json). Also blocks surfaces that spawn the CLI with these flags internally (see settings documentation). Only honored from managed settings; ignored in user/project/local settings.
+When true (set in managed settings), only allowRead paths from policySettings are used.
+When true and availableModels is a non-empty array, the Default model selection is also constrained: if the default model for the user tier is not in availableModels, Default resolves to the first allowed availableModels entry instead. Has no effect when availableModels is unset or an empty array. Typically set in managed settings by enterprise administrators.
+When true, all tools from this server are always included in the prompt and never deferred behind tool search. Equivalent to setting defer_loading: false on the API. Default: tools are deferred when tool search is enabled. As a side effect this also blocks startup until the server is connected (capped at the standard 5s connect timeout) even though MCP startup is otherwise non-blocking by default, since the tools must be present when the turn-1 prompt is built.
+When true, every Bash/PowerShell allow rule is suspended while auto mode is active so all shell commands are routed through the classifier (higher safety, more classifier calls). Default: false.
+When true, execution stops after this message (e.g. a Stop hook denied continuation).
+When true, fast mode does not persist across sessions. Each session starts with fast mode off.
+When true, fast mode is enabled. When absent or false, fast mode is off.
+When true, omit per-user dynamic sections (working directory, auto-memory path) from the cached system prompt and re-inject them as the first user message. Lets cross-user prompt caching hit on a static system prompt prefix. Tradeoff: the model sees this context slightly later in the prompt, so steering on the working directory and memory location is marginally less authoritative. Has no effect when a custom (non-preset) system prompt is in use.
+When true, plugins removed from this marketplace will be automatically uninstalled and flagged for users
+When true, the teammate has sent a plan approval request to the team leader
+Where the skill runs: `inline` expands into the current conversation; `fork` spawns a subagent.
+Where to fetch the marketplace from
+Where to fetch the plugin from
+Whether /rename updates the terminal tab title (defaults to true). Set to false to keep auto-generated topic titles.
+Whether Claude responds after an input-box ! bash command runs. Set to false to add the command output to context without a response. Default: true.
+Whether Claude should continue after hook (default: true)
+Whether a new file was created or an existing file was updated
+Whether all occurrences were replaced
+Whether auto-compact is enabled on the worker (autoCompactEnabled setting + DISABLE_AUTO_COMPACT / DISABLE_COMPACT env; DISABLE_COMPACT also disables manual /compact).
+Whether file picker should respect .gitignore files (default: true). Note: .ignore files are always respected.
+Whether plan mode uses auto mode semantics when auto mode is available (default: true)
+Whether results were truncated (limited to 100 files)
+Whether the Agent tool is available in the current context
+Whether the calling agent has Read/Bash tools to check progress
+Whether the command is expected to produce no output on success
+Whether the command was interrupted
+Whether the condition can never be satisfied (only meaningful when ok is false)
+Whether the condition was met
+Whether the plugin starts enabled when the user has no explicit enabled/disabled setting for it (default: true). Explicit enabledPlugins values always win, and a plugin required by an enabled dependent is enabled regardless of this value.
+Whether the skill completed successfully
+Whether the skill is valid
+Whether the user has accepted the auto mode opt-in dialog
+Whether the user has accepted the bypass permissions mode dialog
+Whether the user modified the proposed changes
+Whether the user was asked for approval (true) or the goal was set directly (false)
+Whether this model supports adaptive thinking (Claude decides when and how much to think)
+Whether this model supports auto mode
+Whether this model supports effort levels
+Whether this model supports fast mode
+Whether to append the claude.ai session link to commits and PRs created from web or Remote Control sessions (default: true). Set to false to omit the Claude-Session trailer and PR-body link.
+Whether to automatically approve all MCP servers in the project
+Whether to automatically update this marketplace and its installed plugins on startup
+Whether to disable syntax highlighting in diffs
+Whether to push publishDiagnostics into the agent context after edits. Set to false to keep LSP navigation (goToDefinition, hover, etc.) but suppress automatic diagnostic injection. Defaults to true.
+Whether to restart the server if it crashes
+Whether to show tips in the spinner
+Whether to wait for completion
+Whether totalMatches is the exact total (true) or a floor because the underlying search truncated its own output (false). Absent on results persisted by CLI versions predating this field.
+Whether ultracode (xhigh effort plus standing dynamic-workflow orchestration) is active for the session. Set per session via the `ultracode` settings key (--settings or apply_flag_settings).
+Which in-conversation surface the rating came from. If omitted, logged as tool_use.
+Which input decided the window (resolveAutoCompactWindow precedence order).
+Who authored/injected the prompt: `user` = submitted from the interactive composer, `sdk` = non-interactive entrypoint (`-p` / Agent SDK), `loop_wakeup` = dynamic /loop wakeup, `schedule_wakeup` = scheduled-task fire (CronCreate/routine), `system` = other machine-injected turns (peer/channel messages, task notifications, auto-continuation), `poll_event` = the poll-event channel enqueue-time pass (the hook fires when the host submits an event, before its delivery ack exists \u2014 a blocking verdict rejects the event). Currently only set for Anthropic-internal sessions while the field is trialed; external payloads omit it.
+Why the query loop terminated. Unset when the loop was bypassed (local slash command).
+Why the refresh failed or the server was unavailable
+Wire uuids of previously-delivered messages that this message replaces (refusal-fallback supersede). The list can include tombstoned tool_result frames from the refused leg, not only assistant frames. Evict the named messages on arrival and treat this frame as their canonical replacement. Idempotent with the end-of-turn model_refusal_fallback notice, whose retracted_message_uuids remains the complete audit record for the turn.
+Wire uuids of the already-streamed messages this refusal concerns. Evict on RESOLUTION (your own response \u2014 any choice \u2014 or control_cancel_request retirement), never on receipt; a turn torn down mid-dialog keeps the partials. Eviction is idempotent.
+Wire uuids of the messages this fallback retracted \u2014 the refused partial as the consumer received it (one uuid per normalized SDK message; multi-block messages carry per-block derived uuids) plus any tombstoned tool_results. Emitted AFTER the retraction, so this is a resolution-time eviction signal: remove these messages from transcript state on receipt. Eviction is idempotent \u2014 unknown or already-removed uuids are a no-op. Absent when emitted by an older CLI.
+Wire-safe subset of TaskState fields that changed. Excludes abortController, messages, result. Clients merge into their local task map.
+Workflow-tool runs still in flight when the turn finished.
+Working directory for the command. Falls back to the session cwd when omitted.
+Working directory for the session.
+Workspace folder path to use for the server
+XAA (SEP-990) IdP connection. Configure once; all XAA-enabled MCP servers reuse this.
+Zero-based index of this delta within the message. Increments by one per flush.
+complete SKILL.md draft (frontmatter + Trigger/Steps/Verification body)
+create_project: name for the new design-system project
+directoryUuid or server_id values to resolve.
+errno/SSL code extracted from the cause chain; null when absent.
+finalize_plan: directory the bundle was built into. write_files with localPath may only read files inside this directory. Defaults to the current working directory. Resolved to an absolute path and shown in the permission prompt.
+finalize_plan: exact paths or glob patterns that will be deleted (same syntax and limits as writes).
+get_file: file path to read
+kebab-case skill slug
+list only: maximum artifacts to return (default 25).
+list_assets only: the `next` value from a previous list_assets result, to continue that listing.
+macOS only: Unix socket paths to allow. Ignored on Linux (seccomp cannot filter by path).
+memory file paths where this procedure was observed
+meta.name from the workflow script \u2014 same value as task_started.workflow_name. Set on all new writes; absent only on transcripts written before this field existed.
+next_cursor from a previous list_runs or get_run_log page
+one line shown on the card
+project_search: knowledge-base query
+project_search: number of hits (default 5)
+project_write: inline doc text. Mutually exclusive with local_path. Use local_path for anything you have on disk.
+read_asset only: directory to save the file into (default: the working directory). The file is named by the asset id plus the extension for its type.
+refreshed: tool list re-queried and applied. error: the re-query failed and the previous tool set was kept. not_connected: the server has no live connection to query (this tool never dials).
+register_assets: cards to register in the Design System pane. Each path must be in the finalized plan. Run after write_files succeeds. Max 256 per call.
+reply only: the reply text. Plain text, at most 4096 bytes of UTF-8.
+request_id of the in-flight control_request this progress belongs to.
+request_user_dialog requests still awaiting a response. Sent on the `initialize` response (sibling of pending_permission_requests) so a client joining an already-initialized session can re-arm in-flight dialogs. Receivers must tolerate the same request_id also arriving as a live or replayed control_request frame and render it once.
+sha256-pinned files to fetch into bin/ at install time, keyed by basename (target triple encoded in the name)
+stop_details.explanation from the refused API response (client lane only \u2014 the server-lane trigger carries no explanation). Unstable human prose \u2014 display only, never parse. null/absent when the response carried none, and always null on server-lane banners.
+write_files/delete_files/register_assets/unregister_assets: token from a prior finalize_plan call

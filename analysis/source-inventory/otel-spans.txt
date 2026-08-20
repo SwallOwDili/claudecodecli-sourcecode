@@ -1,0 +1,10 @@
+claude_code.bash.subprocess
+claude_code.compaction
+claude_code.hook
+claude_code.interaction
+claude_code.llm_request
+claude_code.mcp.rpc
+claude_code.subagent.spawn
+claude_code.tool
+claude_code.tool.blocked_on_user
+claude_code.tool.execution

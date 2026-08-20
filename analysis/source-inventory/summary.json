@@ -1,0 +1,356 @@
+{
+  "formatVersion": 2,
+  "version": "2.1.235",
+  "canonicalSource": {
+    "path": "extracted/cli.js",
+    "size": 27305344,
+    "sha256": "22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e"
+  },
+  "methods": {
+    "environmentAccessIdentifiers": "union of direct process.env accesses, the bundle's environment proxy property accesses, and environment-shaped static identifiers; this is not a claim that every identifier is a user-supported Claude Code setting",
+    "directProcessEnvironmentAccesses": "static property and bracket accesses on process.env",
+    "environmentProxyAccesses": "static uppercase properties read from the minified environment proxy object K; dependency and application accesses may both be present",
+    "environmentLikeIdentifiers": "uppercase static tokens with selected environment prefixes; intentionally broad and may include dependency constants and dynamic prefixes",
+    "firstPartyEvents": "static string first arguments to H/Fv analytics calls",
+    "firstPartyEventTemplates": "template-literal first arguments to H/Fv with expressions normalized to ${}",
+    "firstPartyEventFields": "union of explicit top-level object keys at static H/Fv event callsites; rows with no explicit keys use <no-static-fields>, while computed spreads and variable payloads are not expanded",
+    "firstPartySchemas": "static top-level fields from the bundled first-party environment, internal event, and GrowthBook protobuf-compatible object schemas",
+    "thirdPartyOtelEvents": "static string first arguments to Nd structured event calls",
+    "thirdPartyOtelEventFields": "union of explicit top-level object keys at static Nd callsites; computed spreads are not expanded",
+    "featureFlags": "static string first arguments to et feature checks",
+    "growthbookKeys": "static string first arguments to CB GrowthBook config reads",
+    "builtinTools": "known first-party tool names recovered from static variable assignments; dynamic MCP/plugin tools are outside this set",
+    "knownToolCatalog": "union of the bundled tool normalization catalog and exported BUILTIN_TOOL_NAMES arrays; includes internal, hosted, and selected static MCP tool identifiers",
+    "namedComponents": "static name fields immediately followed by a description field; includes built-in commands/tools plus named bundled dependency components",
+    "slashCommands": "static name fields in command objects whose type is local, local-jsx, or prompt",
+    "rootSettingsKeys": "top-level static keys in the M7t Claude Code settings schema object",
+    "schemaProperties": "static property identifiers whose value begins with a recognized bundled schema-builder call; includes Claude Code and bundled dependency schemas",
+    "staticEnumGroups": "static string arrays passed to the bundled Nr enum schema helper",
+    "storageNamespaces": "static namespace field literals; includes Claude Code storage plus bundled dependency namespaces",
+    "claudeStorageNamespaces": "namespace literals in the Claude Code storage key factory from globalConfig through sessionAliases",
+    "apiPathsAndRoutes": "static API path literals plus separately listed METHOD /path route identifiers; dynamic path templates remain in canonical source",
+    "protocolEvents": "known user/agent/session/span domain event identifiers found as static strings; documentation strings embedded in the bundle may contribute identifiers",
+    "anthropicBetas": "date-suffixed lowercase identifiers embedded in the bundle; includes Anthropic API beta identifiers and provider API-version identifiers",
+    "schemaDescriptions": "unique static .describe() literals; includes settings and protocol schemas",
+    "errorsAndDiagnostics": "unique static Error/TypeError/RangeError and T() message literals; dynamic templates remain in canonical source"
+  },
+  "counts": {
+    "environment-access-identifiers": 1300,
+    "direct-process-environment-accesses": 453,
+    "environment-proxy-accesses": 589,
+    "environment-like-identifiers": 1048,
+    "otel-environment-variables": 77,
+    "tengu-identifiers": 1939,
+    "first-party-events": 1436,
+    "first-party-event-templates": 3,
+    "first-party-event-fields": 1411,
+    "first-party-event-families": 40,
+    "first-party-event-schema-fields": 34,
+    "first-party-environment-fields": 36,
+    "third-party-otel-events": 26,
+    "third-party-otel-event-fields": 26,
+    "datadog-forwarded-events": 181,
+    "datadog-tag-fields": 34,
+    "datadog-redacted-fields": 26,
+    "otel-metrics": 8,
+    "otel-spans": 10,
+    "feature-flags": 355,
+    "growthbook-keys": 6,
+    "growthbook-event-fields": 15,
+    "model-identifiers": 37,
+    "anthropic-beta-identifiers": 53,
+    "builtin-tool-identifiers": 29,
+    "known-tool-catalog": 188,
+    "named-component-identifiers": 182,
+    "slash-command-identifiers": 103,
+    "root-settings-keys": 156,
+    "schema-property-identifiers": 1971,
+    "static-enum-groups": 201,
+    "sdk-control-subtypes": 89,
+    "output-protocol-event-identifiers": 44,
+    "hook-events": 31,
+    "storage-namespaces": 41,
+    "claude-storage-namespaces": 29,
+    "user-config-directories": 13,
+    "api-paths": 99,
+    "http-route-identifiers": 19,
+    "runtime-requires": 54,
+    "schema-descriptions": 1150,
+    "error-message-literals": 2248,
+    "diagnostic-message-literals": 830,
+    "urls": 557,
+    "endpoint-hosts": 179
+  },
+  "files": [
+    {
+      "path": "analysis/source-inventory/anthropic-beta-identifiers.txt",
+      "lines": 53,
+      "size": 1376,
+      "sha256": "32e05619f510fe0117ad3ca97f51cf06bf723afd7e0366e2c1fe12dfb7589983"
+    },
+    {
+      "path": "analysis/source-inventory/api-paths.txt",
+      "lines": 99,
+      "size": 2990,
+      "sha256": "897cb89b4b307f2f45b51b51d68870e462dc0d92c0090a3d9286f1640661d3c7"
+    },
+    {
+      "path": "analysis/source-inventory/builtin-tool-identifiers.txt",
+      "lines": 29,
+      "size": 269,
+      "sha256": "c296803c42a21edab846cbcb6e375286ed6fd971b35ba5f0eaf0e0561f85a536"
+    },
+    {
+      "path": "analysis/source-inventory/claude-storage-namespaces.txt",
+      "lines": 29,
+      "size": 281,
+      "sha256": "a9fd5ceb3e71bcc512375cafbe539f93c3cbcd2c018597cbce5c0548b0862b2e"
+    },
+    {
+      "path": "analysis/source-inventory/datadog-forwarded-events.txt",
+      "lines": 181,
+      "size": 5224,
+      "sha256": "10f343ff1ce2cbed8202c61ca7515d204239f58e8c6ad0791c2b7169b449005b"
+    },
+    {
+      "path": "analysis/source-inventory/datadog-redacted-fields.txt",
+      "lines": 26,
+      "size": 460,
+      "sha256": "46f2676e88ecc79dc472af81c5fce39bdc3c70f878d808013c42b7764a9b05ef"
+    },
+    {
+      "path": "analysis/source-inventory/datadog-tag-fields.txt",
+      "lines": 34,
+      "size": 357,
+      "sha256": "b7f3f93def016e17391e2927aa8224079010e65dbd97ce964980f28e36a88fb4"
+    },
+    {
+      "path": "analysis/source-inventory/diagnostic-message-literals.txt",
+      "lines": 830,
+      "size": 54319,
+      "sha256": "098fc3417babdbc8d0cb5968ce0475a7406673df482b65dea9ccebd3c89c3919"
+    },
+    {
+      "path": "analysis/source-inventory/direct-process-environment-accesses.txt",
+      "lines": 453,
+      "size": 10856,
+      "sha256": "783a385ad77273c1ca01a7d1f7293aea68520573d5165fc2c0d7dc311ff72d96"
+    },
+    {
+      "path": "analysis/source-inventory/endpoint-hosts.txt",
+      "lines": 179,
+      "size": 3246,
+      "sha256": "9b7f569baf37859fd554f6873202a7f78abcae0bf6105b43f5734b8f8743415c"
+    },
+    {
+      "path": "analysis/source-inventory/environment-access-identifiers.txt",
+      "lines": 1300,
+      "size": 34177,
+      "sha256": "5332e7d8a812eea20cee8acecd00ae5f240f2d6ac451c691de3ea80346367676"
+    },
+    {
+      "path": "analysis/source-inventory/environment-like-identifiers.txt",
+      "lines": 1048,
+      "size": 29679,
+      "sha256": "000691f322106ef8073bddcf9fc5f30c69a208b62c075704a16eeb10415ddd93"
+    },
+    {
+      "path": "analysis/source-inventory/environment-proxy-accesses.txt",
+      "lines": 589,
+      "size": 16283,
+      "sha256": "9098e8869eaa9241896c4f63dc083774a25674bb11cdd9e13081255fff0771d1"
+    },
+    {
+      "path": "analysis/source-inventory/error-message-literals.txt",
+      "lines": 2248,
+      "size": 104848,
+      "sha256": "d9045aea97085bffeb7a9857cf6e61a0729e01ec35d6d62d9e6a9000a9911c5b"
+    },
+    {
+      "path": "analysis/source-inventory/feature-flags.txt",
+      "lines": 355,
+      "size": 8670,
+      "sha256": "b9d277d776ef18cfab23f6e0807f6f8e1e77db89ffcf2bb230d02e6390def48f"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-environment-fields.txt",
+      "lines": 36,
+      "size": 569,
+      "sha256": "4ad8dea538edc5dac6918cd51e75e324f61e57ae4f05d628d2d5fc2c4e13592f"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-event-families.tsv",
+      "lines": 40,
+      "size": 622,
+      "sha256": "fdda13c4ee22bf16f4ebf4fc059f4a1e882cb2cc1631cf955700b46c449302ed"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-event-fields.tsv",
+      "lines": 1411,
+      "size": 100255,
+      "sha256": "13c44ae5f11bd84f94fff1839e9867630dd21b4aeaf5c2ccad31d74979b8b969"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-event-schema-fields.txt",
+      "lines": 34,
+      "size": 427,
+      "sha256": "576af32121dede30823ccde4d59b69ac604eb5c94059d391de58f0e43880adc1"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-event-templates.txt",
+      "lines": 3,
+      "size": 57,
+      "sha256": "22d7bd9e67596988a196a3f636f1cc72dce01914c83297f9399158f60d5957a6"
+    },
+    {
+      "path": "analysis/source-inventory/first-party-events.txt",
+      "lines": 1436,
+      "size": 43997,
+      "sha256": "d3dee23167e114a9a66b71f2b29ab5b25401d4b955d887881fd1c07ad1323ba5"
+    },
+    {
+      "path": "analysis/source-inventory/growthbook-event-fields.txt",
+      "lines": 15,
+      "size": 205,
+      "sha256": "8603dd4e5b1e66bc86797fba9a331674bb8c7166bc770afd9701771a5ecb12d7"
+    },
+    {
+      "path": "analysis/source-inventory/growthbook-keys.txt",
+      "lines": 6,
+      "size": 149,
+      "sha256": "f99f64c086c7f353b8c2e439409dace2d3ab46d61eb248b769e49d8c44047740"
+    },
+    {
+      "path": "analysis/source-inventory/hook-events.txt",
+      "lines": 31,
+      "size": 422,
+      "sha256": "4936226b007e7cbcc710bbe9f386979dc1cbfbc72f3a387b1637776a74ee7299"
+    },
+    {
+      "path": "analysis/source-inventory/http-route-identifiers.txt",
+      "lines": 19,
+      "size": 416,
+      "sha256": "56e9bfedab2bf6a58433e2f2432f2e9ce17571f38fd65cc4f07d592598952556"
+    },
+    {
+      "path": "analysis/source-inventory/known-tool-catalog.txt",
+      "lines": 188,
+      "size": 4608,
+      "sha256": "f562020157ba56969af8f15174917f8d753e46c34e1b041c7991a4a5d08006d3"
+    },
+    {
+      "path": "analysis/source-inventory/model-identifiers.txt",
+      "lines": 37,
+      "size": 773,
+      "sha256": "c80fd665505b6db8e533141f9534bb442a7d751c68a653fa38e7a705c886329e"
+    },
+    {
+      "path": "analysis/source-inventory/named-component-identifiers.txt",
+      "lines": 182,
+      "size": 2004,
+      "sha256": "63479e2c3b2c00ee3ed36c93cd7817b14dcf8e411f5b0e7a08725f851117dcb7"
+    },
+    {
+      "path": "analysis/source-inventory/otel-environment-variables.txt",
+      "lines": 77,
+      "size": 2295,
+      "sha256": "e94011076815b9872a16fc264013a444a41786073c84e07720e8219383b914e3"
+    },
+    {
+      "path": "analysis/source-inventory/otel-metrics.tsv",
+      "lines": 8,
+      "size": 695,
+      "sha256": "f8e160bef5efee3a1c61cb9414b03e7858411014479a76b20ba9c2ead1e82a49"
+    },
+    {
+      "path": "analysis/source-inventory/otel-spans.txt",
+      "lines": 10,
+      "size": 240,
+      "sha256": "42205c73feb8444187ea9c13a459bb2514585648d0767e6577c756466d5e669c"
+    },
+    {
+      "path": "analysis/source-inventory/output-protocol-event-identifiers.txt",
+      "lines": 44,
+      "size": 1037,
+      "sha256": "acf16507e6a12820ee17a3625875d3c6b23c16126d5de0baf49e0c378052a7cb"
+    },
+    {
+      "path": "analysis/source-inventory/root-settings-keys.txt",
+      "lines": 156,
+      "size": 2883,
+      "sha256": "4c1a97025a2bdef5c8daf92e4dde6676e16706a87e00a6e1ab5a6cdc65b77b68"
+    },
+    {
+      "path": "analysis/source-inventory/runtime-requires.txt",
+      "lines": 54,
+      "size": 678,
+      "sha256": "dde077d74f8a63507d2294876aa18859a49c89826aca850820359b4d8291583f"
+    },
+    {
+      "path": "analysis/source-inventory/schema-descriptions.txt",
+      "lines": 1150,
+      "size": 121461,
+      "sha256": "0f033acebe890264fd9306f80a4af082c438c6d4b05f144d42413059e425a8ff"
+    },
+    {
+      "path": "analysis/source-inventory/schema-property-identifiers.txt",
+      "lines": 1971,
+      "size": 26349,
+      "sha256": "9621821837159cab2d5f083b23d159c71281a5645d8c156bd106b4f61d368e18"
+    },
+    {
+      "path": "analysis/source-inventory/sdk-control-subtypes.txt",
+      "lines": 89,
+      "size": 1381,
+      "sha256": "af7eecf96cbecd63eadd62533ba703c3a5824b0d1a89015c793253adeae06058"
+    },
+    {
+      "path": "analysis/source-inventory/slash-command-identifiers.txt",
+      "lines": 103,
+      "size": 935,
+      "sha256": "8391290a41f2b0134d7439c7e666e13ecc325272e7c5640b19819b77f9efe250"
+    },
+    {
+      "path": "analysis/source-inventory/static-enum-groups.tsv",
+      "lines": 201,
+      "size": 7390,
+      "sha256": "fff2cf1f849748160ee234bdc2b90e6d30c516147cc8f4e8d6b5ac9812e04ac8"
+    },
+    {
+      "path": "analysis/source-inventory/storage-namespaces.txt",
+      "lines": 41,
+      "size": 389,
+      "sha256": "64bc12dc8a7dedac4d7fc3c508cce8c24bc4f7e8b312e49b55da8441d4a190e4"
+    },
+    {
+      "path": "analysis/source-inventory/tengu-identifiers.txt",
+      "lines": 1939,
+      "size": 56929,
+      "sha256": "ecd9e4805a23707b5ef3274e478919f69c5c7997a151de3e94c7fc7a98b114b7"
+    },
+    {
+      "path": "analysis/source-inventory/third-party-otel-event-fields.tsv",
+      "lines": 26,
+      "size": 2042,
+      "sha256": "bf8856fa89655feeec3909a3f5b3f2d1af5313b2b44bab6916cc1cd4f7f4d6b9"
+    },
+    {
+      "path": "analysis/source-inventory/third-party-otel-events.txt",
+      "lines": 26,
+      "size": 399,
+      "sha256": "71438bb641b55fc399bf4850cd5da0caabbf7771c91ab430bc6465fdfb9e2065"
+    },
+    {
+      "path": "analysis/source-inventory/urls.txt",
+      "lines": 557,
+      "size": 25946,
+      "sha256": "b84cc7e4a2f43c3a29296310ffb3b31d31517f32a66c250338fa713d98cc3585"
+    },
+    {
+      "path": "analysis/source-inventory/user-config-directories.txt",
+      "lines": 13,
+      "size": 139,
+      "sha256": "56b4e2a000dcb8c06a353938b795781e5bce8d0414312fc1a6a80fda0233a73e"
+    }
+  ]
+}

@@ -46,7 +46,10 @@
 |   |-- unpack-manifest.json           每个文件的偏移和哈希
 |   |-- release-notes.md               2.1.235 官方变更记录
 |   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
-|   `-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
+|   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
+|   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
+|   |-- source-surface.md              全产品能力面和证据边界
+|   `-- source-inventory/              45 类确定性机器清单及逐文件哈希
 |-- reverse/
 |   |-- summary.json                   深度逆向机器摘要
 |   |-- manifest.json                  全部派生产物的大小与 SHA-256
@@ -57,6 +60,29 @@
 |-- reconstructed/                    5 个原生模块的可编译 Rust/Swift 兼容重建
 `-- skill/claude-code-version-diff/    可复用的快照、深度逆向与版本对比 skill
 ```
+
+## 一次性全量静态提取
+
+除 packed bytes、bytecode、native reverse 和人工能力说明外，本分支还从 canonical `extracted/cli.js` 确定性生成 45 类机器清单。清单不是挑选出来的“亮点”，而是后续每个版本必须重跑和逐项 diff 的归档合同。
+
+| 能力面 | 本版本计数 | 机器证据 |
+| --- | --- | --- |
+| 环境访问 | 并集 1,300；direct `process.env` 453；环境代理 589；广义环境标识 1,048 | [`environment-access-identifiers.txt`](analysis/source-inventory/environment-access-identifiers.txt)、[`summary.json`](analysis/source-inventory/summary.json) |
+| 遥测变量与事件 | OTEL env 77；一方事件 1,436；动态模板 3；一方 event-field 行 1,411；`tengu_*` 1,939 | [`first-party-events.txt`](analysis/source-inventory/first-party-events.txt)、[`first-party-event-fields.tsv`](analysis/source-inventory/first-party-event-fields.tsv) |
+| 第三方观测 | OTEL event 26、metric 8、span 10；Datadog allowlist 181、tag 34、删除字段 26 | [`third-party-otel-events.txt`](analysis/source-inventory/third-party-otel-events.txt)、[`otel-metrics.tsv`](analysis/source-inventory/otel-metrics.tsv)、[`datadog-forwarded-events.txt`](analysis/source-inventory/datadog-forwarded-events.txt) |
+| Feature/实验 | feature key 355；GrowthBook key 6；GrowthBook event field 15 | [`feature-flags.txt`](analysis/source-inventory/feature-flags.txt)、[`growthbook-keys.txt`](analysis/source-inventory/growthbook-keys.txt) |
+| Settings/schema | 根 settings 156；schema property 1,971；description 1,150；enum group 201 | [`root-settings-keys.txt`](analysis/source-inventory/root-settings-keys.txt)、[`schema-property-identifiers.txt`](analysis/source-inventory/schema-property-identifiers.txt) |
+| 工具与命令 | built-in tool 29；known-tool catalog 188；named component 182；slash command 103 | [`known-tool-catalog.txt`](analysis/source-inventory/known-tool-catalog.txt)、[`slash-command-identifiers.txt`](analysis/source-inventory/slash-command-identifiers.txt) |
+| 协议与 hooks | SDK control subtype 89；output protocol event 44；hook event 31 | [`sdk-control-subtypes.txt`](analysis/source-inventory/sdk-control-subtypes.txt)、[`hook-events.txt`](analysis/source-inventory/hook-events.txt) |
+| 模型与 beta | model literal 37；date-suffixed beta/API version 53 | [`model-identifiers.txt`](analysis/source-inventory/model-identifiers.txt)、[`anthropic-beta-identifiers.txt`](analysis/source-inventory/anthropic-beta-identifiers.txt) |
+| API/runtime | API path 99；HTTP method route 19；runtime require 54 | [`api-paths.txt`](analysis/source-inventory/api-paths.txt)、[`http-route-identifiers.txt`](analysis/source-inventory/http-route-identifiers.txt) |
+| 存储 | Claude storage namespace 29；全 bundle namespace 41；用户配置目录名 13 | [`claude-storage-namespaces.txt`](analysis/source-inventory/claude-storage-namespaces.txt)、[`storage-namespaces.txt`](analysis/source-inventory/storage-namespaces.txt) |
+| 错误与诊断 | error literal 2,248；diagnostic literal 830 | [`error-message-literals.txt`](analysis/source-inventory/error-message-literals.txt)、[`diagnostic-message-literals.txt`](analysis/source-inventory/diagnostic-message-literals.txt) |
+| 网络 | URL 557；归一化 endpoint host 179 | [`urls.txt`](analysis/source-inventory/urls.txt)、[`endpoint-hosts.txt`](analysis/source-inventory/endpoint-hosts.txt) |
+
+45 类清单的逐项表、定义和证据等级见 [`analysis/source-surface.md`](analysis/source-surface.md)。环境、schema、namespace、named component 等广义集合会混入依赖和内嵌文档；它们被明确标为 heuristic/candidate，不冒充全部都是 Claude Code 用户配置。根 settings、一方事件、tool/command、hook、SDK subtype 等有专用解析器，证据边界更强。
+
+校验器会在临时目录重新执行提取器，比较 `summary.json`、canonical source hash、文件集合、每个文件内容、行数、大小和 SHA-256。手改清单、漏跑生成器或 source 变化后未更新清单都会失败。
 
 ## 完整逆向包含什么
 
@@ -231,6 +257,30 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 标准化后的完整顶层选项和命令保存在 [`analysis/cli-surface.txt`](analysis/cli-surface.txt)。后续版本对比不会受到帮助文本换行或终端宽度影响。
 
+### 遥测、日志、实验和性能诊断
+
+完整数据流、字段和隐私控制见 [`analysis/telemetry.md`](analysis/telemetry.md)。本版本不是只有一个“是否有遥测”的布尔开关，而是多条独立链路：
+
+- 一方 analytics 在 sink 安装前保留 1,000 条全局事件，在一方 provider 初始化前再保留 1,024 条；provider 默认 queue 为 8,192。
+- `DISABLE_TELEMETRY`、`DO_NOT_TRACK`、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 进入共享非必要流量/遥测门；error reporting 另有 `DISABLE_ERROR_REPORTING` 和组织 policy/compliance 门。
+- 一方采样由 `tengu_event_sampling_config` 按事件控制；被采中事件会把实际 `sample_rate` 写入 metadata。
+- 一方 batch config 为 `tengu_1p_event_batch_config`；默认 10 s flush、200 batch、10 s request timeout、100 ms batch delay、8 attempts、500 ms 到 30 s 二次 backoff。
+- 默认一方 endpoint 为 `https://api.anthropic.com/api/event_logging/v2/batch`。失败事件保存为 `1p_failed_events.<session>.<run>.json` 或 v5 `log/telemetry` stream，后续启动会重试遗留 batch。
+- 带 auth 的一方请求收到 401 时，会用基础 headers、不带 auth 再试一次。
+- 一方 envelope 可承载 event/session/model、device/email/account/org、platform/runtime/CI/remote、process memory/CPU、skill/plugin/MCP/team/head SHA 和 event-specific metadata；不是每个事件都会填满全部字段。
+- 第三方 OTEL 由 `CLAUDE_CODE_ENABLE_TELEMETRY` 显式启用。metrics 支持 console/OTLP/Prometheus，logs 支持 console/OTLP，traces 支持 console/OTLP；OTLP 支持 grpc、http/json、http/protobuf。
+- OTEL 支持 global 和 signal-specific endpoint/header/protocol/cert/key/compression。metrics temporality 未显式设置时强制为 `delta`；默认 flush timeout 5 s、shutdown timeout 2 s。
+- 静态恢复出 8 个 metric、10 个 span 和 26 个 structured event，名称和逐事件字段已全部生成清单。
+- OTEL user prompt 默认 `<REDACTED>`；assistant、tool content/details、raw API bodies 均需对应开关。内容长度受 Claude Code limit 和 OTEL 各类 attribute limit 的最小值约束。
+- Datadog 只运行于 first-party provider，受 `tengu_log_datadog_events` 和 181 项 allowlist 控制；默认 15 s flush、100 batch、5 s timeout。
+- Datadog 发送前删除 26 个字段，选择 34 个 tag，折叠 MCP/skill tool name，归一化 Claude model/version/HTTP status，并对 peer 事件做每 event/server 每分钟 10 条限制。
+- GrowthBook experiment 复用一方批量 transport，包含 experiment/variation、device/session、account/org 和序列化 attributes/metadata。
+- 还恢复出 error reporting、secret scrubber、Perfetto、startup/query profiling、debug logs、diagnostics file、frame timing、session/JSONL/PTY recording 等观测面；本地 debug/profile 文件不能自动等同为网络上报。
+
+### 其余完整系统面
+
+[`analysis/source-surface.md`](analysis/source-surface.md) 还逐层整理了 build/runtime、CLI/protocol、settings/env/schema、models/providers/auth、session/transcript/memory/cache/storage、agent/team/worktree/background、MCP/hooks/plugins/skills/LSP、IDE/Chrome/Computer Use、cloud/remote/CCR/BYOC/workflow/artifacts、install/update/doctor、UI/accessibility/voice，以及 API/error/retry/rate-limit/compact。每一层都区分 Observed、Derived、Compatible 和 Heuristic。
+
 ## 打包与技术细节
 
 ### Bun standalone 格式
@@ -302,16 +352,16 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 - 新增、删除和内容变化的内嵌文件；
 - 新增或删除的 CLI option/command；
 - 新增或删除的权限模式、风控 circuit breaker、沙箱/凭据/信任和企业治理控制；
-- 新增或删除的 `ANTHROPIC_*`、`CLAUDE_CODE_*` 和 `ENABLE_*` 标识符；
-- 新增或删除的 endpoint host；
+- `analysis/source-inventory/summary.json` 中全部 45 类清单的 count delta、added 和 removed，包括事件/字段、OTEL、Datadog、settings/schema、tools/commands、hooks/protocol、models/betas、storage、API、errors、URLs/hosts；
+- 老分支没有全量 inventory 时，才回退到 `ANTHROPIC_*`、`CLAUDE_CODE_*`、`ENABLE_*` 和 endpoint host 的旧式扫描；
 - JSC bytecode 与可读化 JavaScript 大小/哈希变化；
 - 原生架构、动态库、import/export、N-API 和 Swift 项目符号变化；
 - 主 bundle 与分析文件的 Git 行数变化。
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、45 类 source inventory 的确定性重生成和逐文件哈希、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 
-仓库元数据使用 `$CLAUDE_INSTALL_ROOT` 和 `$CLAUDE_ENTRYPOINT` 表示本机安装位置，不提交用户名、home 目录或 Codex 工作区绝对路径。`extracted/` 与 `reverse/` 中由发布二进制自身携带的上游构建路径属于原始证据，不属于采集机器信息。
+仓库元数据使用 `$CLAUDE_INSTALL_ROOT` 和 `$CLAUDE_ENTRYPOINT` 表示本机安装位置，不提交用户名、home 目录或 Codex 工作区绝对路径。隐私校验覆盖 Git 已跟踪文件和待提交的未跟踪文件，拒绝采集机 home/workspace 路径和 credential-shaped value。`extracted/` 与 `reverse/` 中由发布二进制自身携带的上游构建路径属于原始证据，不属于采集机器信息。

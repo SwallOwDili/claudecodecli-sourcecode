@@ -12,6 +12,10 @@ analysis/unpack-manifest.json
 analysis/release-notes.md
 analysis/cli-surface.txt
 analysis/risk-control-surface.txt
+analysis/telemetry.md
+analysis/source-surface.md
+analysis/source-inventory/summary.json
+analysis/source-inventory/*.{txt,tsv}
 skill/claude-code-version-diff/...
 reverse/...                        Required when deep reverse is requested
 reconstructed/...                  Required when native source reconstruction is requested
@@ -39,6 +43,9 @@ Required top-level fields:
 - Do not claim the bundle reproduces upstream TypeScript modules or source names when source maps are absent.
 - Deep-reverse outputs are derived evidence and must remain separate from `extracted/`.
 - Native source reconstruction must remain under `reconstructed/`, carry evidence labels, and never replace the packed `.node` baseline.
+- Generated source inventories must come only from canonical `extracted/cli.js`; do not generate them from the readable JavaScript view or hand-edit them.
+- `analysis/source-inventory/summary.json` must record the canonical source hash plus every generated file's path, line count, size, and SHA-256.
+- Broad inventories must document dependency/embedded-document contamination boundaries. Do not label all environment-shaped tokens, schema properties, namespaces, URLs, or named components as user-facing Claude Code settings.
 
 ## Deep-reverse files
 
@@ -69,6 +76,28 @@ Keep stable, evidence-backed tokens under sections for permission modes and flag
 
 Include a boundary stating that local CLI execution controls do not prove server-side account risk scoring or abuse-detection rules. Do not infer a control from a generic security-related string; require a CLI flag, settings schema field, decision branch, concrete rejection message, or reachable policy path.
 
+## Telemetry and source-surface documents
+
+`analysis/telemetry.md` must cover every network and local observability path found in the bundle:
+
+- first-party queues, enable/disable gates, sampling, batch defaults, endpoint, persistence, retry/backoff, auth fallback, envelopes, and event-field inventories;
+- third-party OTEL metrics/logs/traces, exporter/protocol matrix, global/signal-specific config, temporality, timeouts, structured events, content controls, length limits, and spans;
+- Datadog provider restriction, feature gate, allowlist, redacted/tag fields, normalization, rate bounds, batch defaults, and endpoint;
+- GrowthBook transport/fields;
+- error reporting, policy/compliance gates, secret scrubbing, Perfetto, startup/query profiling, debug/diagnostic/session/frame recording.
+
+`analysis/source-surface.md` must map build/runtime, CLI/protocol, settings/env/schema, models/providers/auth, session/storage/memory/cache, agents/teams/worktrees/background, risk controls, MCP/hooks/plugins/skills/LSP, native/IDE/Chrome/Computer Use, cloud/remote/BYOC/workflows/artifacts, telemetry, update/doctor, UI/accessibility/voice, and API/error/retry/compact. Label each conclusion Observed, Derived, Compatible, or Heuristic.
+
+## Deterministic source inventory
+
+Run:
+
+```bash
+python3 skill/claude-code-version-diff/scripts/extract_source_inventory.py <repo>
+```
+
+The validator must regenerate into a temporary directory and compare exact bytes for the summary and every inventory file. It must also check required non-empty categories and reject stale, missing, extra, or manually edited artifacts.
+
 ## Native reconstruction files
 
 When `reconstructed/` exists, require:
@@ -91,10 +120,13 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 
 ## Completion checks
 
-1. Snapshot validator exits zero.
-2. Skill validator exits zero.
-3. Deep-reverse validator exits zero when `reverse/` exists.
-4. Git branch name equals `VERSION`.
-5. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
-6. Working tree contains only intended snapshot files before commit.
-7. Local commit is present on the requested remote branch after push.
+1. Source inventory extractor reruns deterministically.
+2. Snapshot validator exits zero and reports source inventory files checked plus capture-path privacy PASS.
+3. Skill validator exits zero.
+4. Deep-reverse validator exits zero when `reverse/` exists.
+5. Git branch name equals `VERSION`.
+6. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
+7. Privacy scanning covers tracked files and untracked publish candidates, not only the current Git index.
+8. Working tree contains only intended snapshot files before commit.
+9. Local commit is present on the requested remote branch after push.
+10. A fresh remote checkout passes validation and contains no capture-machine home/workspace path.

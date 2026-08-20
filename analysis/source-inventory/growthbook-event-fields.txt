@@ -1,0 +1,15 @@
+anonymous_id
+auth
+client_reported_auth
+device_id
+environment
+event_id
+event_metadata_vars
+experiment_id
+experiment_metadata
+server_timestamp
+session_id
+timestamp
+user_attributes
+variation_id
+variation_key

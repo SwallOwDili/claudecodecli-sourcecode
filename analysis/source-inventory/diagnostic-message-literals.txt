@@ -1,0 +1,830 @@
+--agents: ignored in safe mode (user-supplied custom agents are disabled)
+--managed-settings ignored: invalid JSON object
+AWS auth refresh completed successfully
+AWS credential provider cache refreshed
+AWS credentials retrieved from awsCredentialExport
+All plugins already exist, skipping migration
+Another process is currently installing an update
+Applied original permissions to temp file
+Attempting manual removal due to ENOTEMPTY error
+Attempting to auto-install official marketplace
+Auth token expired or invalid
+Auto mode classifier (XML): aborted by user
+Auto mode classifier request refused by the safety safeguard, denying (exempt from the denial counter)
+Auto mode classifier transcript too long for AskUserQuestion, falling back to the question dialog
+Auto mode classifier transcript too long, falling back to normal permission handling
+Auto mode classifier unavailable for AskUserQuestion, falling back to the question dialog
+Auto mode classifier unavailable, denying with retry guidance (fail closed)
+Auto-registered claude-cli:// deep link protocol handler
+AutoUpdater: Cannot auto-update development build
+AutoUpdater: Skipping update check (claude.exe locked by another process; damped for this session)
+AutoUpdater: Skipping update check (no_permissions persists this session)
+AutoUpdater: Unexpected native installation in non-native updater
+AutoUpdater: Unknown installation type, falling back to config
+AutoUpdater: Using global update method
+AutoUpdater: Using local update method
+BigQuery metrics export: trust not established, skipping
+BigQuery metrics exported successfully
+BigQuery metrics exporter flush complete
+BigQuery metrics exporter shutdown complete
+CA certs: skipping settings-sourced NODE_EXTRA_CA_CERTS under host-managed provider
+CA certs: stores=system but system CA API unavailable, deferring to runtime
+CCR auth refresh: delivered session token is not a decodable JWT, keeping current credentials
+CCR auth refresh: delivered token does not extend expiry, keeping current credentials
+CCR auth refresh: delivered token expiry does not match the advertised lifetime, keeping current credentials
+CCR auth refresh: token-file pair unreadable or incomplete, keeping current credentials
+CCR v2 internal event reader registered for session resume
+CCR v2 internal event writer cleared
+CCR v2 internal event writer registered for transcript persistence
+CCR v2 subagent event reader registered for session resume
+CCRClient: GET retries exhausted
+CCRClient: Heartbeat sent
+CLAUDE_CODE_USE_GATEWAY is set but ANTHROPIC_BASE_URL or ANTHROPIC_AUTH_TOKEN is missing; ignoring
+Cannot submit feedback because custom data retention settings are enabled
+Checking GCP credentials validity for auth refresh
+Checking if GitHub token is synced via web-setup
+Cleared CA certificates cache
+Cleared installed plugins cache
+Cleared mTLS configuration cache
+Cleared proxy agent cache
+Clearing AWS credential provider cache
+Collecting transcript for sharing
+Consumed bg auth snapshot from sockDir
+Design OAuth refresh succeeded but persist failed; continuing with in-memory token.
+Detected MDM settings change via poll
+Dropping malformed user frame: content must be a string or an array of block objects
+EPIPE error while writing to hook stdin (hook command likely closed early)
+Error details:
+Error log sink initialized
+Failed to clear AWS credential cache (this is expected if no credentials are configured)
+Failed to load marketplace configuration: the backend returned no item for the registry key
+Failed to load stats cache: not found
+Failed to mirror internal entry to CCR
+Failed to read internal events for resume
+Failed to refetch full read after incoherent local tail
+Failed to write transcript as internal event
+Fast mode cooldown expired, re-enabling fast mode
+Fast mode credits rejection already surfaced this turn, suppressing repeat
+Fast mode prefetch in progress, returning in-flight promise
+Feedback title generation via Haiku aborted, using fallback
+Fetched AWS caller identity, skipping AWS auth refresh command
+Fetching AWS caller identity for AWS auth refresh command
+File descriptor contained empty token
+FileChanged: dropped remote UNC watch path(s)
+FileHistory: Error finding the backup file to apply
+FileHistory: Missing most recent snapshot
+GCP auth refresh completed successfully
+GCP credentials are valid, skipping auth refresh command
+Git Bash not found; BashTool will be unavailable
+Git not available, skipping official marketplace auto-install
+Graceful shutdown initiated, skipping further initialization
+Grove: Cache stale, returning cached data and refreshing in background
+Grove: No cache, fetching config in background (dialog skipped this session)
+Grove: Using fresh cached config
+HTTP hook returned empty body, treating as empty JSON object
+Handoff classifier request refused by the safety safeguard, allowing sub-agent output with an unreviewed warning
+Handoff classifier unavailable or failed closed without a verdict, allowing sub-agent output with warning
+Hook output does not start with {, treating as plain text
+Hooks: Agent hook condition was met
+Hooks: Agent hook did not complete within 50 turns
+Hooks: Agent hook did not return structured output
+Hooks: Detected async hook but forceSyncExecution is true, waiting for completion
+Hooks: Initial response is not async, continuing normal processing
+Ignoring permission update: setMode\x20
+Install: Already up to date
+Install: Cleaning up npm installations after successful install
+Install: Failed to retrieve version information during install
+Install: Shell PATH already configured
+Insufficient permissions for global npm install.
+Invalidating session env cache after SessionStart hook completed
+Invalidating session environment cache
+LSP Diagnostics: No new diagnostics to deliver (all filtered by deduplication)
+LSP Diagnostics: getLSPDiagnosticAttachments called
+LSP server manager initialized successfully
+LSP server manager shut down successfully
+LSP: dropped message body that is not an object
+Linked worktree cleaned up completely
+Local GitHub repo: unknown
+Lock acquisition took longer than expected - another Claude instance may be running
+MCP: draft 2020-12 meta-validator unavailable \u2014 tool schema checks fail open
+Metrics export disabled by organization setting
+NODE_EXTRA_CA_CERTS detected - Node.js will automatically append to built-in CAs
+Native installer does not support architecture: arm64
+Native installer: Set installMethod to\x20
+No CLAUDE.md/rules files found
+No branch specified, staying on current branch
+No git remote URL found
+No internal event reader registered for CCR v2 resume
+No session environment scripts found
+No session token available for fetching session logs
+No session token available for session persistence
+No stderr output captured
+No stdout output captured
+No terminal emulator detected
+Not forwarding marketplace headers to plugin archive on a different origin
+Not in a GitHub repository, skipping path mapping update
+OAuth 401 unrecovered past CLAUDE_CODE_AUTH_FAIL_EXIT_MS \u2014 exiting so the runner recycles this session with fresh credentials
+OAuth 401: keeping the user-supplied CLAUDE_CODE_OAUTH_TOKEN instead of adopting the stored credential. Mint a fresh token with `claude setup-token` and restart with it, or unset the variable and run /login.
+OAuth dead-token disk clear: backend write failed
+OAuth profile fetch succeeded, overriding env var account info
+Official marketplace GCS failed; falling back to git
+Official marketplace GCS failed; git fallback disabled by flag \u2014 skipping install
+Official marketplace auto-install disabled via env var, skipping
+Official marketplace auto-install: git is a non-functional macOS xcrun shim, treating as git_unavailable
+Official marketplace blocked by enterprise policy, skipping
+PR Attribution: returning default (no data)
+Passes: Cache stale, returning cached data and refreshing in background
+Passes: No cache, fetching eligibility in background (command unavailable this session)
+Passes: Reusing in-flight eligibility fetch
+Passes: Using fresh cached eligibility data
+Permission explainer: no parsed output in response
+PermissionDenied hooks cancelled (control stream closed)
+PermissionRequest hooks cancelled (control stream closed)
+Plan file recovery failed: no file snapshot or plan content found in message history
+Plan mode: the haiku plan upgrade model is not permitted by the org model restrictions (availableModels allowlist or model_access entitlement); planning uses the newest permitted Sonnet instead
+Plan mode: the opusplan upgrade model is not permitted by the org model restrictions (availableModels allowlist or model_access entitlement); planning uses the newest permitted Opus instead
+Plugin archive entry paths resolve at the archive root; using it instead of the promoted subdirectory
+Plugin autoupdate: checking installed plugins
+Plugin autoupdate: skipped (auto-updater disabled)
+Plugin catalog cache has invalid structure
+Plugin catalog cache is stale (>24 h old)
+Plugin hooks: reloading due to plugin-affecting settings change
+Plugin hooks: skipping reload, plugin-affecting settings unchanged
+Plugin skills failed to load, continuing without them
+Policy limits: Cache still valid (304 Not Modified)
+Policy limits: Changed during background poll
+Policy limits: Fetched successfully
+Policy limits: Loading promise timed out, resolving anyway
+Policy limits: No restrictions found (404)
+Policy limits: Refreshed after auth change
+Policy limits: Using cached restrictions (304)
+Policy limits: Using stale cache after error
+Policy limits: Using stale cache after fetch failure
+Policy limits: prime skipped (oversize cache); raw cache read stays
+PostToolBatch hooks cancelled (control stream closed)
+PostToolUse hook cancelled (control stream closed)
+PostToolUse hook timed out (per-hook abort)
+PostToolUseFailure hook cancelled (control stream closed)
+PostToolUseFailure hook cancelled (parent abort)
+PostToolUseFailure hook timed out (per-hook abort)
+PowerShell parser: empty stdout from pwsh
+PreToolUse hook cancelled (control stream closed)
+PreToolUse hook cancelled (parent abort)
+PreToolUse hook timed out (per-hook abort)
+Pro trial started
+REPL Bash sandbox violation \u2014 auto-retrying unsandboxed
+Reactive compact: fewer than 2 groups, nothing to compact
+Reactive compact: no assistant messages in summarize set, bailing
+Reactive compact: summarize hit media-size error, retrying stripped
+Released computer-use lock
+Remote settings: Applied for this non-interactive run; consent deferred \u2014 not persisting the disk cache as consented
+Remote settings: Applied new settings successfully
+Remote settings: Background poll superseded by a login/logout reset; not notifying
+Remote settings: Cache still valid (304 Not Modified)
+Remote settings: Cache was reset (login/logout) during this fetch; discarding its result
+Remote settings: Changed during background poll
+Remote settings: Fetched successfully
+Remote settings: Loading promise timed out, resolving anyway
+Remote settings: Loading promise timeout deferred \u2014 consent dialog pending
+Remote settings: Login identity changed mid-fetch; not recording org consent
+Remote settings: No consent surface in this interactive session; keeping the consented baseline
+Remote settings: Refresh superseded by a login/logout reset; not notifying
+Remote settings: Refreshed after auth change
+Remote settings: Saved empty sentinel (404 response)
+Remote settings: Saved via storage backend
+Remote settings: Settings validation failed - no fields could be salvaged
+Remote settings: User rejected new settings, using cached settings
+Remote settings: Using cached settings (304)
+Remote settings: Using stale cache after error
+Remote settings: the cache file is a symlink; not read with the storage flag on (strict rule for files only Claude Code writes)
+Renamed installed_plugins_v2.json to installed_plugins.json
+Restarting sleep inhibitor to maintain prevention
+Returning empty skills array due to load failure
+Running AWS auth refresh command
+Running AWS credential export command
+Running GCP auth refresh command
+SSETransport: Connected
+SSETransport: Frame has data: but no event: field \u2014 dropped
+SSETransport: Liveness timeout, reconnecting
+SSETransport: No response body
+SSETransport: No session token available for POST
+SSETransport: Refreshed headers for reconnect
+SSETransport: Stream ended, reconnecting
+Safe mode: skipping plugin hook registration
+Sandbox configuration updated from settings change
+Sed-edit permission reprompt: rewritten command no longer parses as a sed edit; denying instead of showing a stale preview
+Server approval observed but parked: session is in plan mode
+Session token expired or invalid
+SessionStart hooks cancelled (control stream closed)
+Setup hooks cancelled (control stream closed)
+Skill directory commands failed to load, continuing without them
+Skipping FileSuggestion command execution - workspace trust not accepted
+Skipping StatusLine command execution - workspace trust not accepted
+Skipping cleanup: a settings file could not be read or parsed, so cleanupPeriodDays may be set to a value that cannot be seen. Fix the settings file (see /doctor) to re-enable cleanup.
+Skipping cleanup: settings have validation errors but cleanupPeriodDays was explicitly set. Fix settings errors to enable cleanup.
+Skipping fast mode prefetch, fetched recently
+Skipping migrationVersion bump: a settings-writing migration failed to persist; the set re-runs next startup.
+Skipping official marketplace bulk refresh: GCS failed, git fallback disabled
+Skipping retention cleanup: userSettings source is disabled (--setting-sources) and no enabled source provides cleanupPeriodDays.
+Skipping settings.local.json copy: destination escapes worktree via committed symlink
+Skipping subagentStatusLine execution - workspace trust not accepted
+Spawning shell without login (-l flag skipped)
+Stale connection \u2014 disabling keep-alive for retry
+Stale connection \u2014 reloaded rotated mTLS client material
+Starting background plugin installations
+Startup profiling report:
+Stashing changes before teleport...
+Stats cache empty, processing all historical data
+Stats cache has invalid structure, returning empty cache
+Status line command skipped: workspace trust not accepted
+Status line is configured but disableAllHooks is true
+Still too large, compressing with JPEG
+Stop hook cancelled (abort or stream teardown)
+Stopped sleep inhibitor, allowing sleep
+Stream started - received first chunk
+Streaming endpoint returned 404, falling back to non-streaming mode
+SubagentStart hooks cancelled (control stream closed)
+Successfully auto-installed official marketplace
+Successfully parsed and validated hook JSON output
+Successfully stashed changes
+Swallowed unhandled AbortError rejection (not exiting bg/supervised worker)
+Swallowed unhandled http.Server ECONNRESET rejection (not exiting bg/supervised worker)
+Task list lock is busy (another session or process sharing this task list, or an in-flight task write, holds it); completed tasks stay visible and the reset is retried on the next refresh
+Task list reset still in flight; not arming another hide until it settles
+TaskCompleted hooks cancelled (control stream closed)
+TaskCreated hooks cancelled (control stream closed)
+Telemetry flushed successfully
+Tool search disabled: ToolSearchTool is not available (may have been disallowed via disallowedTools).
+Tool search disabled: no deferred tools available to search
+ToolSearchTool: cache invalidated - deferred tools changed
+Transcript shared successfully
+Trust not accepted for current directory - skipping plugin installations
+Unable to get Windows USERPROFILE via PowerShell - IDE detection may be incomplete
+Unexpected error in getSkills, returning empty
+Unknown platform detected, using default paths
+Usage fetch returned a fieldless or non-object body (in-band error)
+UserPromptExpansion hooks cancelled (control stream closed)
+UserPromptSubmit hooks cancelled (control stream closed)
+Watching ~/.claude.json for other processes through the storage interface
+Windows NPM detected in WSL environment
+XTVERSION: no reply (terminal ignored query)
+[3P telemetry] Event logger set successfully
+[3P telemetry] Remote managed settings loaded, initializing telemetry
+[3P telemetry] Waiting for remote managed settings before telemetry init
+[API:auth] AWS credential resolve start
+[AdvisorTool] Advisor tool called
+[AdvisorTool] Advisor tool result received
+[BackendRegistry] ERROR: No pane backend available
+[BackendRegistry] ERROR: iTerm2 detected but no it2 CLI and no tmux
+[BackendRegistry] Marking in-process fallback as active
+[BackendRegistry] Selected: iterm2 (explicit teammateMode)
+[BackendRegistry] Selected: iterm2 (native iTerm2 with it2 CLI)
+[BackendRegistry] Selected: tmux (external session mode)
+[BackendRegistry] Selected: tmux (fallback in iTerm2, it2 setup recommended)
+[BackendRegistry] Selected: tmux (running inside tmux session)
+[BackendRegistry] Starting backend detection...
+[BackendRegistry] User prefers tmux over iTerm2, skipping iTerm2 detection
+[BackendRegistry] isInProcessEnabled: true (fallback after pane backend unavailable)
+[BackendRegistry] isInProcessEnabled: true (non-interactive session)
+[Bootstrap] Cache unchanged, skipping write
+[Bootstrap] Cache updated, persisting to disk
+[Bootstrap] Discarding response fetched under a superseded credential
+[Bootstrap] Fetch ok
+[Bootstrap] Fetching
+[Bootstrap] No auth available on retry, aborting
+[Bootstrap] Skipped gateway /v1/models (CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY not set)
+[Bootstrap] Skipped: 3P provider
+[Bootstrap] Skipped: 403 for OAuth token without profile scope
+[Bootstrap] Skipped: Nonessential traffic disabled
+[Bootstrap] Skipped: no usable OAuth, WIF, or API key
+[Bootstrap] Skipped: unix-socket-proxied session
+[Claude in Chrome] Disabled: OAuth token has no scope accepted by /api/oauth/validate (needs user:profile, user:office, or user:ccr_inference; env-var and setup-token sessions default to user:inference only)
+[Claude in Chrome] First-time install detected, but extension not installed, skipping reconnect
+[Claude in Chrome] First-time install detected, opening reconnect page in browser
+[Claude in Chrome] Install setup stopped: managed policy denied the chrome MCP server during the install wait
+[Claude in Chrome] MCP server started
+[Claude in Chrome] No compatible browser found
+[Claude in Chrome] Skill invoked while the chrome MCP client is in a dead state; steering away from browser tools
+[Claude in Chrome] Skipping chrome wiring: --safe-mode disables MCP
+[Claude in Chrome] Skipping chrome wiring: blocked by enterprise MCP config or managed deniedMcpServers policy
+[Claude in Chrome] Skipping install upsell: blocked by managed deniedMcpServers policy
+[Claude in Chrome] Skipping install upsell: no Chromium-family browser detected
+[Claude in Chrome] Skipping install upsell: session auto-allows tool calls with no prompt (bypass or plan+bypass)
+[Claude in Chrome] Skipping offer: blocked by enterprise MCP config or managed deniedMcpServers policy
+[Claude in Chrome] Skipping offer: decision already recorded (another instance answered)
+[Claude in Chrome] Skipping offer: extension not present locally (stale cache)
+[Claude in Chrome] Skipping offer: tengu_chrome_auto_enable no longer set (stale GB cache)
+[Claude in Chrome] Starting MCP server
+[Computer Use MCP] MCP server started
+[Computer Use MCP] Starting MCP server
+[DirectConnect] Dropping control_request without a request object / request_id
+[FileIndex] discarding refresh results \u2014 cache was reset mid-refresh
+[FileIndex] getFilesUsingGit called
+[FileIndex] git ls-files returned null, falling back to ripgrep
+[FileIndex] not a git repo, returning null
+[FileIndex] skipped index rebuild \u2014 merged paths unchanged
+[FileIndex] skipped index rebuild \u2014 tracked paths unchanged
+[FileIndex] skipped path normalization \u2014 raw git paths unchanged
+[ITermBackend] First split from active session (no leader ID)
+[ITermBackend] Subsequent split from active session (no teammate ID)
+[ITermBackend] isAvailable: false (not in iTerm2)
+[InboxPoller] Dropping team_permission_update message: permission rules are never accepted from the inbox
+[InboxPoller] Ignoring plan approval response while not in plan mode
+[InboxPoller] Invalid sandbox permission request: missing hostPattern.host
+[InboxPoller] Session busy, queuing for later delivery
+[InboxPoller] Session idle, submitting immediately
+[InboxPoller] Submission rejected, keeping messages queued
+[InboxPoller] Submission rejected, queuing for later delivery
+[LSP MANAGER] Already initialized or initializing, skipping
+[LSP MANAGER] Created manager instance, state=pending
+[LSP MANAGER] initializeLspServerManager() called
+[LSP MANAGER] reinitializeLspServerManager() called
+[MCP] Retry: all remote servers recovered, stopping
+[PERF:bg-attach-end]
+[PERF:bg-attach-start]
+[PERF:bg-claim-end]
+[PERF:bg-claim-start]
+[PERF:bg-dispatch-end]
+[PERF:bg-dispatch-start]
+[PERF:bg-leftarrow-mounted]
+[PERF:bg-leftarrow-start]
+[PERF:bg-remount-end]
+[PERF:bg-remount-start]
+[PermissionSync] Cannot send permission request: leader name not found
+[PermissionSync] Cannot send permission response: team name not found
+[PermissionSync] Cannot send sandbox permission request: leader name not found
+[PermissionSync] Cannot send sandbox permission request: team name not found
+[PermissionSync] Cannot send sandbox permission request: worker ID or name not found
+[PermissionSync] Cannot send sandbox permission response: team name not found
+[Query.readMessages] First result received for single-turn query, closing stdin
+[Query.streamInput] Has bidirectional needs, waiting for first result
+[Query.streamInput] Starting to process input stream
+[Query.waitForFirstResult] Result already received, returning immediately
+[Query] Calling transport.endInput() to close stdin to CLI process
+[Query] Ignoring prompt-redelivery fields on awaitControlResponse response
+[REPL:unmount] REPL unmounting
+[Reconnection] computeInitialTeamContext: No teammate context set (not a teammate)
+[RemoteSessionManager] Catch-up truncated
+[RemoteSessionManager] Connected
+[RemoteSessionManager] Disconnected
+[RemoteSessionManager] Disconnecting
+[RemoteSessionManager] Dropped own set_model breadcrumb echo
+[RemoteSessionManager] Reconnecting
+[RemoteSessionManager] Reconnecting SSE stream
+[RemoteSessionManager] Sending interrupt signal
+[STARTUP] Loading MCP configs...
+[STARTUP] Loading commands and agents...
+[STARTUP] Running setup()...
+[STARTUP] Running showSetupScreens()...
+[ScheduledTasks] released scheduler lock
+[SessionsV2Client] 401 on POST \u2014 refreshing + retry
+[SessionsV2Client] 401 on SSE connect \u2014 refreshing
+[SessionsV2Client] Already connecting/connected
+[SessionsV2Client] Cannot send control_request: closed
+[SessionsV2Client] Cannot send: closed
+[SessionsV2Client] Closing
+[SessionsV2Client] Connected
+[SessionsV2Client] Dropping malformed stream_event on ephemeral channel
+[SessionsV2Client] Force reconnect
+[SessionsV2Client] Liveness timeout, reconnecting
+[SessionsV2Client] Sending control_response
+[SessionsV2Client] Stream ended
+[SessionsV2Client] catch_up_truncated \u2014 transcript gap
+[SessionsV2Client] issuedRequestIds overflow \u2014 evicting oldest unanswered request_id
+[TeammateInit] This agent is the team leader - skipping idle notification hook
+[TeammateMailbox] markMessagesAsRead: acquiring lock...
+[TeammateMailbox] markMessagesAsRead: lock acquired
+[TeammateMailbox] markMessagesAsRead: no messages to mark
+[TeammateMailbox] readMailbox: file does not exist
+[TeammateMailbox] writeToMailbox: created new inbox file
+[TeammateTool] removeTeammateFromTeamFile called with no identifier
+[TransportPermissionDispatcher] Dropping can_use_tool whose request_id is not a string \u2014 no response is possible
+[adopt] deferred resume skipped: takeover released or replaced during MCP-settle wait
+[agent-proxy] CCR_AGENT_PROXY_RELAY_MODE=selective but include-host\x20
+[agent-proxy] CLAUDE_CODE_REMOTE_SESSION_ID unset; proxy disabled
+[agent-proxy] certutil not found; skipping NSS trust for browsers
+[agent-proxy] client sent TLS to the relay port (HTTPS_PROXY must be an http:// URL)
+[agent-proxy] governed git config arm set but GIT_CONFIG_GLOBAL is unset; skipping (refusing to write a shared global config)
+[agent-proxy] governed git: CA bundle path contains a newline or quote; skipping git config arm
+[agent-proxy] governed git: gh not found on PATH; skipping gh shim
+[agent-proxy] governed git: path contains a single quote; skipping gh shim
+[agent-proxy] no keytool found; skipping JVM truststore
+[agent-proxy] no session token; proxy disabled
+[agent-proxy] startup reachability probe: ok
+[agent-proxy] token file unlink failed
+[agent-proxy] tunnel protocol v2 negotiated
+[agent-proxy] ws open timeout
+[artifact] /deploy/direct retry cancelled by user
+[artifact] CP rejected force/baseVersion as unknown \u2014 retrying without them
+[artifact] pre-relaxation CP rejected force+baseVersion \u2014 retrying without the precondition
+[artifact] thumbnail skipped: index_put_failed
+[artifact] thumbnail skipped: total upload budget exhausted
+[artifact] thumbnail upload timed out
+[asciicast] Could not write the recording header; this session is not recorded
+[attachRemote] session reported a UNC cwd \u2014 not adopting
+[auto-mode] server rejected afk-mode beta \u2014 dropping header and circuit-breaking auto for this session
+[autoDream] aborted by user
+[awaySummary] ccr recap dropped: new turn already running
+[awaySummary] no CacheSafeParams saved, skipping
+[awaySummary] skipped: StructuredOutput recap present
+[awaySummary] skipped: at or near rate limit
+[awaySummary] skipped: background work pending
+[awaySummary] skipped: cache age unknown
+[awaySummary] skipped: cache stale
+[awaySummary] skipped: draft input present
+[awaySummary] skipped: loop wakeup pending
+[bg-attach] legacy client (no control key) \u2014 allowed via peerUid
+[bg-pty] dropped by host; reconnecting
+[bg-spare] tokens file unreadable; claim gate degraded
+[bg] v5 jobs listing failed: cursor did not advance
+[binaryCheck] Empty command provided, returning false
+[bridge:core] --project ignored: reattached to existing session (Project is fixed at create)
+[bridge:core] persisted Project no longer available; recreated session outside it
+[bridge:init] reconnectSession transient failure; session will be picked up passively once its lease expires
+[bridge:owner-pin] identity file names another account but the credential is unchanged \u2014 ignoring the rewrite
+[bridge:owner-pin] identity file names another account but the server attributes the credential to the owner \u2014 re-baselining
+[bridge:owner-pin] identity sources disagree and the credential could not be validated \u2014 session runs unpinned
+[bridge:peers] list body `data` not an array; stopping
+[bridge:population] failed walk \u2014 cleared the printed set (going cold, never sticky)
+[bridge:population] forgot the recorded set (an unrecordable listing superseded it)
+[bridge:population] walk ran under a previous identity \u2014 ignoring its outcome for the current handle
+[bridge:repl] Account changed via /login \u2014 disconnecting Remote Control session
+[bridge:repl] Auth-revive watcher: credential belongs to a different account \u2014 disarming
+[bridge:repl] Auth-revive watcher: fresh same-account credential \u2014 re-enabling Remote Control
+[bridge:repl] Auto-revive aborted: stash owner vs current account mismatch/unreadable at init
+[bridge:repl] CCR v2: heartbeats failing while SSE healthy \u2014 closing for transport rebuild
+[bridge:repl] Cannot respond to control_request: transport not configured
+[bridge:repl] Chokepoint veto under a TORN entry pair: precautionary suppression only, no permanent taint write
+[bridge:repl] Dropping inbound rename mirror: foreign binding with no bound-sid exposure \u2014 the live conversation is not the one the phone renamed
+[bridge:repl] Env-handoff reattach vetoed: the credential store account changed since the handoff was recorded \u2014 minting fresh, history channels suppressed
+[bridge:repl] Env-handoff reattach: owner identity unavailable \u2014 reattach-or-fail
+[bridge:repl] Hook: init cancelled during flight, tearing down
+[bridge:repl] Hook: previous teardown complete, proceeding with re-init
+[bridge:repl] Hook: waiting for previous teardown to complete before re-init
+[bridge:repl] Host-directed reattach: this conversation\u2019s recorded owner could not be confirmed as the current login \u2014 attaching with history channels suppressed
+[bridge:repl] Host-directed target on a recorded conversation: owner re-verified immediately before connecting
+[bridge:repl] Ingress message type=control_response
+[bridge:repl] Persistence backfill suppressed (cross-account veto or foreign binding) \u2014 installing live writer only
+[bridge:repl] Remote interrupt \u2192 onCancel()
+[bridge:repl] Session persistence enabled \u2014 transcript writer + hydrate readers registered
+[bridge:repl] Transport torn down during sync \u2014 skipping writer install
+[bridge:sdk] Reattach was vetoed on owner identity \u2014 the transcript record is left in place; this bridge is not persisted
+[bridge:sdk] The login changed since this bridge was enabled \u2014 its transcript record is left as last written
+[bridge:shutdown] Environment deregistered, bridge offline
+[bridge:shutdown] SIGINT received, shutting down
+[bridge:shutdown] SIGTERM received, shutting down
+[bridge:work] Healthcheck received
+[bridge] No access token for session creation
+[bridge] No access token for session fetch
+[bridge] No org UUID for session creation
+[bridge] No org UUID for session fetch
+[bridge] No session ID in response
+[bridge] Prerequisites passed, enabling bridge
+[bridge] Session create skipped on non-firstParty provider
+[cache-diagnosis] server rejected beta \u2014 dropping header latch
+[cache-evict] server rejected prompt-caching-evict beta \u2014 dropping for this conversation
+[classifier] dropped stale mid-turn result (turn ended)
+[claudeCodeHints] dropped hint with empty value
+[claudeai-mcp] Disabled in safe mode
+[claudeai-mcp] Disabled on third-party provider
+[claudeai-mcp] Disabled: API-key auth precedence active
+[claudeai-mcp] No access token
+[claudeai-mcp] client capabilities header exceeds size limit \u2014 omitting init-projection headers
+[computer-use] clipboard restore after paste failed
+[computer-use] pbpaste before paste failed; proceeding without restore
+[concurrentSessions] updatePidFile failed: pid file not found
+[cross-session-inbound] headless: held peer message expired (no approval surface) \u2014 dropped with an expired receipt
+[cross-session-inbound] held peer message APPROVED \u2014 released to queue
+[cross-session-inbound] permission-mode getter not wired (fail-closed \u2192 hold)
+[cu-esc] registerEscape returned false
+[cu-esc] registered
+[cu-esc] unregistered
+[cu-esc] user escape with no CU call in flight; consumed only
+[cu-esc] user escape, aborting turn
+[deviceBind] create returned 200 but the session is not bound to this device; continuing unbound
+[deviceBridge] access token resolution timed out
+[deviceBridge] dropping unparseable inbound frame
+[deviceBridge] dropping unsupported inbound payload type
+[deviceBridge] refusing dial: bridge URL failed validation
+[deviceBridge] skipped: no device bridge for this OAuth environment
+[deviceBridge] skipped: non-essential egress disabled, non-first-party provider, or remote sessions policy-denied
+[deviceBridge] stopping: the gate turned off
+[deviceRegistry] stored device key is unreadable; minting a new one
+[drainRunLoop] pump started
+[drainRunLoop] pump stopped
+[engine] dropped turn intent received after close()
+[engine] set_permission_mode rejected \u2014 unrecognized mode
+[engine] set_permission_mode:auto rejected \u2014 gate not enabled
+[engine] set_permission_mode:bypassPermissions rejected \u2014 disabled by settings
+[engine] yield system/init (first)
+[engine] yield system/init (re-emit)
+[engine] yield-twin assistant (local_command)
+[engine] yield-twin system/thinking_tokens
+[engine] yield-twin tool_progress
+[engine] yield-twin tool_progress heartbeat
+[engine] yield-twin tool_progress repl_call
+[engine] yield-twin tool_progress subagent_retry
+[externalMetadataToAppState] Refusing restored mode\x20
+[extractMemories] extraction in progress \u2014 stashing for trailing run
+[extractMemories] no memories saved this run
+[extractMemories] running trailing extraction for stashed context
+[extractMemories] skipping \u2014 conversation already wrote to memory files
+[extractMemories] skipping \u2014 no user prose since last extraction
+[gateway-refresh] IdP rejected refresh token; clearing it
+[gateway-refresh] auth changed during persist; discarding outcome
+[gateway-refresh] auth changed mid-refresh; discarding
+[gateway-refresh] auth changed mid-refresh; discarding invalid_grant
+[gateway-refresh] malformed response; will retry later
+[gateway-refresh] refreshed gateway JWT
+[gatewayDiscovery] 0 usable models after filter
+[gatewayDiscovery] response body failed validation
+[gateway] HTTPS proxy configured \u2014 per-request cert pin not applied to managed-settings fetch (known gap)
+[gitBundle] forceScope=squashed \u2014 skipping --all and HEAD tiers
+[goal] evaluation deferred \u2014 background work still running
+[init] configureGlobalAgents complete
+[init] configureGlobalAgents starting
+[init] configureGlobalMTLS complete
+[init] configureGlobalMTLS starting
+[it2Setup] Found pip package manager
+[it2Setup] Found pip3 package manager
+[it2Setup] Found pipx package manager
+[it2Setup] Found uv (will use uv tool install)
+[it2Setup] Marked it2 setup as complete
+[it2Setup] No Python package manager found
+[it2Setup] Python API not enabled in iTerm2
+[it2Setup] Verifying it2 setup...
+[it2Setup] it2 installed successfully
+[it2Setup] it2 setup verified successfully
+[keybindings] Chord timeout - cancelling
+[keybindings] Invalid keybindings.json: keybindings.json must have a\x20
+[keybindings] Skipping file watcher - user customization disabled
+[keychain] read failed; serving stale cache
+[keychain] readAsync failed; not caching a null
+[loop] ScheduleWakeup({stop:true}) after loop already ended \u2014 cleanup only, terminal event suppressed
+[loop] keepalive budget exhausted (model declined to reschedule twice) \u2014 ending loop
+[lspRecommendation] Incremented ignored count
+[lspRecommendation] No file extension found
+[lspRecommendation] Recommendations are disabled
+[lspRecommendation] Skipping string path lspServers (not readable from marketplace)
+[mcp-policy-cold-start] skipped \u2014 no MCP server source visible
+[mcp-policy-cold-start] waiting on remote managed-settings load
+[memdir] selectRelevantMemories returned no text block
+[memdir] selectRelevantMemories truncated at max_tokens
+[mid-conv-system] proxy rejected cache_control on the api_system tail \u2014 demoting the breakpoint to the trailing message for this conversation
+[modelCapabilities] cache unchanged, skipping write
+[orphan-resume] deferred auto-resume skipped: takeover released or replaced during MCP-settle wait
+[peer-guard] tengu_harbor_kite_limits is not an object; using defaults
+[persist-remote] Skipping compact-pair upload: conversation carries a history-suppression taint
+[persistence-sync] Main transcript tainted: aborting sync (subagents included), healing the in-memory flag
+[persistence-sync] Refusing backfill: conversation carries a history-suppression taint
+[persistence-sync] Refusing backfill: foreign binding or suppression carrier present at the post-await re-consult
+[persistence-sync] Refusing backfill: history-suppression entry in transcript
+[persistence-sync] Refusing backfill: pre-boundary taint sweep exhausted its line budget without a verdict
+[persistence-sync] Refusing backfill: session id changed since the scan anchor was pinned (mid-scan /resume) \u2014 pinned content is not the current conversation
+[persistence-sync] Skipping subagent backfill: session id changed during the main read (mid-sync /resume)
+[persistence-sync] Taint sweep budget exhausted: refusing this backfill (precautionary hold, no durable stamp)
+[persistence-sync] transcript stream changed between pages; abandoning the scan
+[plugins] skills-dir plugin adoption skipped: sync manifest unreadable or malformed (fail-closed until a sync round repairs it)
+[presence] client-presence-marker active \u2192 pulse
+[presence] pulse skipped (terminal blurred)
+[print.ts] Input closed with active swarm, injected shutdown prompt \u2014 teardown handed to its lineage
+[print.ts] Input closed with active teammates, injected shutdown prompt
+[print.ts] No more active teammates, stopping poll
+[print.ts] orphaned-task notification delivery unconfirmed; keeping orphans pending for re-emit
+[print.ts] restored /pause-memory toggle from prior worker epoch
+[print.ts] stale\x20
+[query] turn-start poll_events build aborted \u2014 leaving events queued
+[queued-notifications] dropping malformed queued_notification payload
+[reduced mode] Skipping skill dir discovery
+[remote agent] isolation:
+[remote-bridge] Dropping control_response during 401 recovery
+[remote-bridge] Dropping result during 401 recovery
+[remote-bridge] No OAuth token
+[remote-bridge] Proactive /bridge re-mint failed (transient); fallback refresh will retry
+[remote-bridge] Proactive /bridge re-mint rejected (oauth_rejected) \u2014 attempting forced OAuth refresh
+[remote-bridge] Proactive post-refresh re-mint failed (transient); fallback refresh will retry
+[remote-bridge] Re-mint rejected after outage \u2014 OAuth refresh succeeded; retrying with the refreshed credential
+[remote-bridge] Reattach-or-fail: no reattach pointer for this init; failing terminally instead of minting fresh
+[remote-bridge] Recovery already in flight, skipping proactive refresh
+[remote-bridge] Sent control_response
+[remote-bridge] Sent result
+[remote-bridge] Transport rebuilt (proactive refresh after forced OAuth refresh)
+[remote-bridge] Transport rebuilt (proactive refresh)
+[remote-bridge] v2 transport connected
+[remote-io] No session ingress token available
+[remote-io] keep_alive sent
+[reply-on-resume] \u2192 markReplayNoOp
+[reply-on-resume] \u2192 onQuery
+[reply-on-resume] unmounted during awaits \u2014 skip
+[sandbox] implicit AWS credential pair:\x20
+[sandbox] settings tlsTerminate has no CA paths and the managed sandbox CA is gated off on Windows \u2014 ignoring tlsTerminate (an ephemeral CA cannot pass srt-win user trust-ca)
+[sdkMessageAdapter] Dropping compact_boundary frame without compact_metadata
+[sdkMessageAdapter] Dropping conversation_reset frame without a string new_conversation_id
+[sdkMessageAdapter] Dropping malformed autocompact_state frame
+[sdkMessageAdapter] Dropping tool_progress frame with a non-string tool_name/tool_use_id or non-finite elapsed_time_seconds
+[sdkMessageAdapter] Ignoring auth_status message
+[sdkMessageAdapter] Ignoring heartbeat/subagent-retry tool_progress frame
+[sdkMessageAdapter] Ignoring rate_limit_event message
+[sdkMessageAdapter] Ignoring tool_use_summary message
+[sdkMessageAdapter] env_manager_log without data.content \u2014 orchestrator wire change?
+[sdkMessageAdapter] frame uuid missing or not a string \u2014 minting one
+[sdkMessageAdapter] init frame cwd is not a string \u2014 not adopting
+[sdkMessageAdapter] init frame mcp_servers is not an array \u2014 ignoring
+[sdkMessageAdapter] init frame slash_commands is not an array \u2014 keeping the local command list
+[sdkMessageAdapter] init frame tools is not an array \u2014 ignoring
+[session-notices] dropping malformed session_notice payload
+[session-notices] duplicate redelivery while delivery in flight \u2014 suppressed
+[session-notices] enqueue hook pass aborted
+[session-notices] session_notice on a non-RemoteIO transport \u2014 dropping without ack
+[sessionRestore] Auto-resuming interrupted turn for bg crash-respawn
+[sessionRestore] transcript path is a network/NT-namespace path \u2014 not chdir-ing
+[skills] Dynamic skill discovery skipped: projectSettings disabled or plugin-only policy
+[stdin] resumeStdin: called with no stored listeners and wasRawMode=false (possible desync)
+[structuredIO] dropped control_response with malformed response payload
+[structuredIO] dropped update_environment_variables: variables must be an object of string values
+[tasks] carry to fork stopped at the cap
+[teleportToRemote] Auto-created default cloud env
+[teleportToRemote] No repository detected \u2014 session will have an empty sandbox
+[teleportToRemote] reuse-outcome-branch collision guard: default branch unknown (no preflight answer, origin/HEAD\x20
+[teleport] phase: POST-sent
+[teleport] phase: branch-detect
+[teleport] phase: bundle-upload
+[teleport] phase: env-select
+[teleport] v2 endpoint returned null, trying session-ingress
+[thinking] server rejected a thinking block; stripping all thinking blocks and retrying.
+[trusted-device] CLAUDE_TRUSTED_DEVICE_TOKEN env var is set, skipping enrollment (env var takes precedence)
+[trusted-device] Enrollment response missing device_token field
+[trusted-device] Essential traffic only, skipping enrollment
+[trusted-device] No OAuth token, skipping enrollment
+[trusted-device] Not enrolled, attempting lazy enrollment with OAuth token
+[trusted-device] Same account+org re-login with existing token, skipping re-enrollment
+[trusted-device] Token changed after untrusted_device 403 (cache bust or lazy enrollment); caller will retry
+[uds-messaging] Client connected
+[uds-messaging] Client disconnected
+[uds-messaging] Ignoring message without valid type field
+[uds-messaging] Ignoring user message with missing or non-string content
+[uds-messaging] Late bind: gate enabled by a GrowthBook refresh after startup
+[uds-messaging] Shutting down
+[uds-messaging] Skipped: cross-session messaging gate off
+[uds-messaging] Skipped: cross-session messaging gate off (will late-bind if a GrowthBook refresh enables it)
+[uds-messaging] Skipped: remote thin client
+[useRemoteSession] Cannot send - no manager
+[useRemoteSession] Catch-up truncated \u2014 transcript gap
+[useRemoteSession] Cleanup - disconnecting
+[useRemoteSession] Connected
+[useRemoteSession] Disconnected
+[useRemoteSession] Dropping malformed notification frame
+[useRemoteSession] Ignoring fast_mode_state that is not on/cooldown/off
+[useRemoteSession] Reconnecting
+[useRemoteSession] Response timeout - attempting reconnect
+[useRemoteSession] init reported a UNC cwd \u2014 not adopting
+[useThinClientSession] Dropping malformed notification frame
+[voice] Failed to connect to voice_stream (no OAuth token?)
+[voice] Focus gained, starting recording session
+[voice] Focus lost, finishing recording
+[voice] Focus mode disabled during recording, finishing
+[voice] Focus silence timeout \u2014 tearing down session
+[voice] No auto-repeat seen, arming release timer via fallback
+[voice] Re-arming focus recording after silence timeout
+[voice] Recording failed \u2014 no audio tool found
+[voice] Recording stopped
+[voice] Starting recording session, connecting voice stream
+[voice] Toggle max-duration cap \u2014 auto-finishing
+[voice] Toggle silence timeout \u2014 auto-finishing
+[voice] cancelRecording: discarding without submit
+[voice] finishRecording: stopping recording, transitioning to processing
+[voice] handleKeyEvent: idle, starting recording session immediately
+[voice] startRecording called, platform=darwin
+[voice] startRecording: buffering audio while WebSocket connects
+[voice] toggle: finishing recording
+[voice] toggle: starting recording
+[voice_stream] No OAuth token available
+[voice_stream] Sending CloseStream (finalize)
+[voice_stream] Sending initial KeepAlive
+[voice_stream] Sending periodic KeepAlive
+[voice_stream] WebSocket connected
+[voice_stream] unexpected-response fired with 101; ignoring
+[web-fetch agent] isolation:
+[wireFrameShape] can_use_tool request dropped \u2014 tool_name/tool_use_id not strings, input not an object, or nested too deep
+[worktree] exit: the recorded original cwd has a network spelling; staying put
+[worktree] resume: the recorded project path has a network spelling; staying put
+[worktree] resuming a session whose worktree record was cleared (exited or scrubbed): running without isolation
+agent frontmatter requested auto mode but circuit breaker active \u2014 falling through
+assemblePluginLoadResult: originalCwd changed mid-scan; skipping side-effects (stale early-kick)
+async REPL settle PostToolUse pass aborted
+async REPL settle hook pass aborted
+auto mode circuit breaker active (cached) \u2014 falling back to default
+auto mode disabled: disableAutoMode in settings
+auto mode disabled: tengu_auto_mode_config.enabled ===\x20
+auto-mode-setup propose: primary model failed; retrying on fallback
+bg auth snapshot missing accessToken
+bypassPermissions mode is disabled by settings
+checkGithubAppInstalled: No access token found, assuming app not installed
+checkGithubTokenSynced: No access token found
+checkGithubTokenSynced: No org UUID found
+deleteCurrentProjectConfigFields fallback: merge base is missing auth the cache has, but an in-process write is queued behind this one; re-basing on the enqueue-time cache snapshot. See GH #3117.
+deleteCurrentProjectConfigFields fallback: re-read config is missing auth that cache has; refusing to write. See GH #3117.
+deleteProjectConfig fallback: merge base is missing auth the cache has, but an in-process write is queued behind this one; re-basing on the enqueue-time cache snapshot. See GH #3117.
+deleteProjectConfig fallback: re-read config is missing auth that cache has; refusing to write. See GH #3117.
+draft transcript withheld from feedback submit: contains_3p_transcript_markers
+draft transcript withheld from feedback submit: identity_not_corroborated
+enforceAvailableModels: a policy source exists but failed to load; refusing cascade-trust mode (model enforcement from user/project settings is disabled until the policy source is fixed)
+enforceAvailableModels: the policy view sets the enforce flag but not availableModels; enforcement is disabled (the flag requires a policy-owned allowlist)
+feedbackDrafts: draft listing kept offering cursors past the page cap; treating it as failed
+formatCallHierarchyItem: CallHierarchyItem has undefined URI
+formatIncomingCallsResult: CallHierarchyIncomingCall has undefined from field
+formatOutgoingCallsResult: CallHierarchyOutgoingCall has undefined to field
+formatUri called with undefined URI - indicates malformed LSP server response
+fullscreen disabled: Windows over SSH (ConPTY re-rendering) detected \xB7 set CLAUDE_CODE_NO_FLICKER=1 to override
+fullscreen disabled: tmux -CC (iTerm2 integration mode) detected \xB7 set CLAUDE_CODE_NO_FLICKER=1 to override
+getAgentTranscript: agent transcript path is outside the storage keyspace; reading it raw
+getAgentTranscript: the storage backend cannot serve this agent transcript (permission); not resumable
+getAgentTranscript: the storage backend does not hold this agent transcript
+handleOrphanedPermission: dropping orphaned permission \u2014 permissionResult is missing toolUseID
+handleReadable: re-attaching stdin readable listener after error recovery
+ignoring CLAUDE_CODE_HOST_CREDS_FILE with group/other-readable mode or wrong owner
+installLatest: joining in-flight call
+installPluginsForHeadless: no marketplaces declared
+installed_plugins.json already cached before this storage-interface load; serving the cached copy
+installed_plugins.json doesn
+listSessionSummaries without listSessions: gap-fill skipped; sessions lacking a sidecar will be omitted
+loadTranscriptFile: v5 read inaccessible (permission) \u2014 empty result
+logind KillUserProcesses=yes \u2014 SSH disconnect will kill the transient daemon and its background jobs. Run `loginctl enable-linger $USER` or `claude daemon install` to keep it alive across logout.
+mTLS: Creating HTTPS agent with custom certificates
+mTLS: Ignoring mismatched client cert/key pair \u2014 mid-rotation read
+mTLS: Using client key passphrase
+mcp add-json: user-provided JSON was empty, invalid, or null
+memory-skills: not loaded under skills-as-tools (no surface reads the registry)
+memory-skills: not loaded under strictPluginOnlyCustomization (memoryStore is not an admin-trusted source)
+memory-skills: not loaded with slash commands disabled (no surface reads the registry)
+memory-skills: store skills are not loaded on Windows (no O_NOFOLLOW)
+memory-watcher: started with the storage interface
+migrateEnableAllProjectMcpServersToSettings: deferring \u2014 settings.local.json carries validation errors a write could compound; will retry next startup
+migrateEnableAllProjectMcpServersToSettings: settings copy landed but legacy projectConfig fields could not be removed (unwritable config?); will retry next startup
+multi-store-sync: team memory root escapes its canonical location \u2014 failing all stores closed
+npm stderr: (empty)
+org-memory-credential: 401 \u2014 retrying once
+org-memory-discovery: cached stores payload failed validation \u2014 refetching
+org-memory-discovery: granted grouping path failed the partition pin \u2014 not mounting
+org-memory-discovery: granted grouping-root path failed the partition pin \u2014 not mounting
+org-memory-discovery: granted silo entry failed the tag or partition pin \u2014 not mounting
+org-memory-discovery: granted silo path failed the partition pin \u2014 not mounting
+org-memory-discovery: identity unresolved at decision time \u2014 org memory off for this session
+performBackgroundPluginInstallations called
+performStartupChecks called
+plan artifact: unavailable at review selection (gate off or empty plan)
+policyHelper refresh: helper recovered; its output replaces the static default settings payload
+policyHelper: remote arming revoked during exec; discarding output
+policyHelper: remote-armed helper deactivated
+poll-event enqueue hook pass aborted
+propagateNestedMemory: parent context has no pendingNestedMemoryTriggers; skipping
+proxyAuthHelper configured in project/local settings but workspace trust not yet accepted \u2014 skipping
+rawTranscriptJsonl withheld from feedback draft submit: contains_3p_transcript_markers
+rawTranscriptJsonl withheld from session history: contains_3p_transcript_markers
+rawTranscriptJsonl withheld from transcript share: contains_3p_transcript_markers
+refreshActivePlugins: clearing all plugin caches
+remote policyHelpers names no entry for this platform
+rewind persist-failure remote heal failed (persistence already degraded)
+rewind-refusal heal aborted by stream teardown
+rg EAGAIN error detected, retrying with single-threaded mode (-j 1)
+runHeadless rejected during shutdown
+runHeadless: no result message returned from query
+saveConfigWithLock: merge base is missing auth the cache has, but an in-process write is queued behind this one; re-basing on the enqueue-time cache snapshot so the pending auth and this write both land. See GH #3117.
+saveConfigWithLock: re-read config is missing auth that cache has; refusing to write to avoid wiping ~/.claude.json. See GH #3117.
+saveConfigWithLock: re-read hit a parse error; auto-repairing from cached config under lock. See GH #3117.
+saveCurrentProjectConfig fallback: merge base is missing auth the cache has, but an in-process write is queued behind this one; re-basing on the enqueue-time cache snapshot. See GH #3117.
+saveCurrentProjectConfig fallback: re-read config is missing auth that cache has; refusing to write. See GH #3117.
+saveGlobalConfig fallback: merge base is missing auth the cache has, but an in-process write is queued behind this one; re-basing on the enqueue-time cache snapshot so the pending auth and this write both land. See GH #3117.
+saveGlobalConfig fallback: re-read config is missing auth that cache has; refusing to write. See GH #3117.
+selectAndResumeTeleportTask: Starting teleport flow...
+server_fallback: silent stitch already pending \u2014 skipping seam merge
+sessionStore with custom spawnClaudeCodeProcess: ensure the subprocess CLAUDE_CONFIG_DIR matches the parent (same path, same separators) or transcript_mirror frames will be dropped.
+settings defaultMode\x20
+settingsPrime: store already primed through another backend; second prime ignored
+shell cwd read-back contains a dot-segment; ignoring
+shell cwd read-back crosses a foreign automount host; ignoring
+shell cwd read-back is a network path; ignoring
+shell cwd read-back is an NT-namespace device path; ignoring
+shell cwd read-back is not a directory; ignoring
+shell cwd read-back is not an absolute path; ignoring
+shell cwd read-back is not readable; ignoring
+shell cwd read-back resolves through a network symlink/junction; ignoring
+tengu_official_plugin_prompt_overrides: GB payload is not an object; ignoring
+tengu_saffron_credits_only_tiers: unparseable value, using default
+tengu_saffron_ladder: unparseable value or no recognized keys, ignoring
+truncateForPreview: field serialization threw (depth) \u2014 rendering a loud unserializable marker
+truncateForPreview: non-object input exceeds the serialization depth probe \u2014 rendering a loud unserializable marker
+truncateForPreview: non-object input serialization threw \u2014 rendering a loud unserializable marker
+truncateForPreview: non-object redaction round-trip failed \u2014 rendering unredacted
+truncateForPreview: non-object redaction round-trip threw \u2014 rendering unredacted
+ultraplan: failed to archive orphaned session
+update: Calling installGlobalPackage() for global update
+update: Calling installOrUpdateClaudePackage() for local update
+update: Checking npm registry for latest version
+update: Detected native installation, using native updater
+update: Failed to get latest version from npm registry
+update: Running diagnostic
+update: Starting update check
+wif: adopting sibling-rotated access token from credentials file; skipping refresh grant
+wire-heartbeat: _chunkTimes absent on a Bedrock stream with the byte watchdog enabled \u2014 heartbeat side-channel unavailable for this stream (bedrock-sdk \u22650.32.0 eventstream\u2192SSE transcode drops it; also expected if the response was not vnd.amazon.eventstream, e.g. behind a header-rewriting proxy)
+workshopBlessedScriptHashes: a runtime leg degraded \u2014 returning an incomplete (stricter) allowlist for this call only

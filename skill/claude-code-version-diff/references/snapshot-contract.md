@@ -12,6 +12,9 @@ analysis/unpack-manifest.json
 analysis/release-notes.md
 analysis/cli-surface.txt
 analysis/risk-control-surface.txt
+analysis/technical-architecture.md
+analysis/context-governance-and-caching.md
+analysis/inventory-field-guide.md
 analysis/telemetry.md
 analysis/source-surface.md
 analysis/source-inventory/summary.json
@@ -78,6 +81,27 @@ Keep stable, evidence-backed tokens under sections for permission modes and flag
 
 Include a boundary stating that local CLI execution controls do not prove server-side account risk scoring or abuse-detection rules. Do not infer a control from a generic security-related string; require a CLI flag, settings schema field, decision branch, concrete rejection message, or reachable policy path.
 
+## Human explanation documents
+
+`README.md` must start with a reading guide and a plain request-lifecycle overview. Inventory counts are machine-evidence navigation, not the main explanation.
+
+`analysis/technical-architecture.md` must connect input/resume, message graph, system/user context, tools/agents/skills/MCP, permissions/policy/hooks/sandbox, cache markers, API request/stream/tool loop, persistence, compaction, telemetry, native modules, and UI. It should let a reader follow the system without opening JSONL.
+
+`analysis/context-governance-and-caching.md` must cover:
+
+- system prompt stable/dynamic segmentation and cache scope;
+- process-local schema/model cache versus API prompt cache;
+- message breakpoints, fork pinning, skip-cache-write, family disable switches, and 5m/1h TTL precedence;
+- tool search/deferred schema eligibility and provider/model fallback;
+- context hint, keep-recent tool-result cleanup, persistence, thresholds, and status-specific fallback;
+- auto-compact window source priority, model cap, output reservation, precompute/warn/compact/blocked thresholds, hooks, and failures;
+- precomputed summary persistence/rehydration, compact boundary fields, JSONL parent repair, resume, transcript, and memory;
+- one threshold example and one cache-cost example using the version's model catalog.
+
+`analysis/inventory-field-guide.md` must explain JSONL/TSV/TXT formats, comparison fields, source locations/hashes, callsite and payload fields, environment/settings/model records, telemetry field families, heuristic boundaries, and how to translate a record into a product conclusion.
+
+Read [human-analysis.md](human-analysis.md) for the full writing and cross-version comparison contract.
+
 ## Telemetry and source-surface documents
 
 `analysis/telemetry.md` must cover every network and local observability path found in the bundle:
@@ -127,11 +151,12 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 1. Source inventory extractor reruns deterministically.
 2. Snapshot validator exits zero and reports source inventory files checked plus capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
-4. Skill validator exits zero.
-5. Deep-reverse validator exits zero when `reverse/` exists.
-6. Git branch name equals `VERSION`.
-7. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
-8. Privacy scanning covers tracked files and untracked publish candidates, not only the current Git index.
-9. Working tree contains only intended snapshot files before commit.
-10. Local commit is present on the requested remote branch after push.
-11. A fresh remote checkout passes validation and contains no capture-machine home/workspace path.
+4. README links every required human document; the validator confirms each document is substantive and covers its required mechanism/field families.
+5. Skill validator exits zero.
+6. Deep-reverse validator exits zero when `reverse/` exists.
+7. Git branch name equals `VERSION`.
+8. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
+9. Privacy scanning covers tracked files and untracked publish candidates, not only the current Git index.
+10. Working tree contains only intended snapshot files before commit.
+11. Local commit is present on the requested remote branch after push.
+12. A fresh remote checkout passes validation and contains no capture-machine home/workspace path.

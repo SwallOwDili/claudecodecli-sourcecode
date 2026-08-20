@@ -2,6 +2,8 @@
 
 本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
+本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术架构导读](technical-architecture.md)，上下文/cache/compact/resume 看 [上下文治理专题](context-governance-and-caching.md)，JSONL 和字段含义看 [机器清单字段指南](inventory-field-guide.md)，再回到下面的 70 类索引定位原始证据。
+
 ## 证据等级
 
 | 等级 | 定义 | 可以如何表述 |

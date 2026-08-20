@@ -1,8 +1,39 @@
 # Claude Code CLI 2.1.235 深度逆向快照
 
-本分支是本机 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
+本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
+
+## 先读什么
+
+这个仓库同时服务两类读者：人需要理解系统为什么这样设计，比较器需要稳定、无遗漏地逐版本 diff。不要从 70 个 JSONL/TXT 文件开始读。
+
+| 入口 | 解决的问题 |
+| --- | --- |
+| [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整系统图 |
+| [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md) | 上下文装配、多层缓存、5m/1h TTL、tool search、microcompaction、auto-compact、resume 和成本算例 |
+| [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
+| [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
+| [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
+
+一次主线程请求的实际路径可以概括为：
+
+```text
+输入/resume JSONL
+  -> 恢复会话消息图
+  -> 装配固定 system prompt + 动态机器/项目上下文
+  -> 装配内置工具、MCP、skills、commands、agents
+  -> 延迟不需要的工具 schema
+  -> 规范化消息并执行 permission/policy/hook/sandbox 门控
+  -> 切分 stable/org system 前缀并插入消息 cache breakpoint
+  -> 构造 model/beta/thinking/tools/context-management 请求
+  -> 流式响应与工具循环
+  -> 写 usage、telemetry、JSONL transcript
+  -> 需要时清理旧 tool result、预计算或执行 compact
+  -> 写 compact boundary，供下次 resume 修复逻辑消息链
+```
+
+这里的“多层缓存”不是一个模糊名词：进程内工具 schema/model config cache 降低本地重复计算；API prompt cache 复用 system/message 前缀；tool search 避免未使用 schema 常驻；precomputed compact cache 提前准备摘要。Transcript 和 memory 是持久状态，不是 prompt cache。每层的命中、失效和费用影响见上下文专题。
 
 ## 快照信息
 
@@ -47,7 +78,10 @@
 |   |-- release-notes.md               2.1.235 官方变更记录
 |   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
 |   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
+|   |-- technical-architecture.md       面向人的完整技术架构导读
+|   |-- context-governance-and-caching.md 上下文治理、多层缓存、压缩与恢复
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
+|   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
 |   |-- source-surface.md              全产品能力面和证据边界
 |   `-- source-inventory/              70 类确定性机器清单及逐文件哈希
 |-- reverse/
@@ -61,7 +95,9 @@
 `-- skill/claude-code-version-diff/    可复用的快照、深度逆向与版本对比 skill
 ```
 
-## 一次性全量静态提取
+## 机器证据层：一次性全量静态提取
+
+下面的计数表是完整性索引，不是阅读入口。字段含义先看 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)，系统行为先看上面的三份架构文档。
 
 除 packed bytes、bytecode、native reverse 和人工能力说明外，本分支还从 canonical `extracted/cli.js` 确定性生成 70 类机器清单。清单不是挑选出来的“亮点”，而是后续每个版本必须重跑和逐项 diff 的归档合同。
 
@@ -81,7 +117,7 @@
 | 全词法表面 | quoted string 260,838 次、85,095 个唯一值；template 30,114 次、25,187 个唯一值 | [`static-string-literals.jsonl`](analysis/source-inventory/static-string-literals.jsonl)、[`template-literals.jsonl`](analysis/source-inventory/template-literals.jsonl) |
 | 网络 | URL 557；URL template 236；API/path template 119；归一化 endpoint host 179 | [`urls.txt`](analysis/source-inventory/urls.txt)、[`url-templates.jsonl`](analysis/source-inventory/url-templates.jsonl)、[`endpoint-hosts.txt`](analysis/source-inventory/endpoint-hosts.txt) |
 
-70 类清单的逐项表、定义和证据等级见 [`analysis/source-surface.md`](analysis/source-surface.md)。v3 提取器固定使用仓库内置 Acorn `8.15.0` 解析整个 canonical bundle，精确定位调用、参数、词法作用域、赋值、字符串、模板和环境访问；JSONL 用稳定的 `comparisonKey` / `comparisonValue` 做跨版本语义比较，offset/line 只作定位证据。环境、schema、namespace、named component 等广义集合会混入依赖和内嵌文档，因此仍明确标为 heuristic/candidate。
+70 类清单的逐项表、定义和证据等级见 [`analysis/source-surface.md`](analysis/source-surface.md)，字段逐项解释见 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)。v3 提取器固定使用仓库内置 Acorn `8.15.0` 解析整个 canonical bundle，精确定位调用、参数、词法作用域、赋值、字符串、模板和环境访问；JSONL 用稳定的 `comparisonKey` / `comparisonValue` 做跨版本语义比较，offset/line 只作定位证据。环境、schema、namespace、named component 等广义集合会混入依赖和内嵌文档，因此仍明确标为 heuristic/candidate。
 
 `summary.json` 的完成审计确认：目标调用点全部记录、全部词法字符串/模板均计数、动态表达式保留、根 settings 的 key 与结构化行一致、模型目录完整解析，`knownStaticExtractionGaps` 为空。这里的“完成”指发布 bundle 中仍存在的静态信息；远程配置返回值、用户文件/环境的运行时值、服务端规则，以及构建前已经删除的源码不在发布产物中。
 
@@ -215,9 +251,17 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 ### 模型与上下文控制
 
 - 支持模型别名或完整模型 ID、print 模式下的 fallback model 链，以及 `low` 到 `max` 的 effort 级别。
-- Auto-compact 支持自动模式或显式 100k-1M token 窗口。
+- System prompt 不是单块字符串：客户端将 billing/identity、global 稳定前缀和 org 动态后缀分段，并分别决定是否写 `cache_control`。
+- 消息 cache breakpoint 会向后寻找合法 user/assistant/api-system block；fork 可额外 pin 分叉点，`skipCacheWrite` 会主动退后，避免错误写入本轮尾部。
+- Prompt cache 默认 5 分钟；1 小时 TTL 受强制开关、provider、订阅/overage 和 query-source allowlist 控制。Sonnet 4.6 的 baked 价格为普通输入 `$3/MTok`、5m 写入 `$3.75/MTok`、1h 写入 `$6/MTok`、读取 `$0.30/MTok`。
+- Tool Search 将大工具目录标记为 `defer_loading`，初始只驻留工具名，需要时再追加完整 schema；旧 Vertex/不支持的 Foundry/model 会明确关闭并记录原因。
+- Context hint 在潜在可清理旧工具结果达到 20k token 时才发送；本地 microcompaction 默认保留最近 5 个结果，旧结果可持久化到文件后替换为短引用。
+- Auto-compact 支持自动模式或显式 100k-1M token 窗口。以 200k 模型为例，输出预留后默认约在 144k 预计算、147k warning、167k compact、177k blocked，而不是等到 200k 才处理。
+- compact boundary 保存 pre/post token、摘要消息数、保留 UUID、logical parent 和是否预计算；resume 会据此修复消息图，不是简单拼接 JSONL 文本。
 - 可将 cwd、环境、memory path、Git 状态等机器动态段从 system prompt 移到第一条 user message，提高跨用户 prompt cache 复用率。
 - 支持替换或追加 system prompt、JSON Schema 结构化输出、美元预算上限、prompt suggestion 和 partial message streaming。
+
+完整调用链、优先级、失败回退、设置/环境变量和成本算例见 [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md)。
 
 ### 工具、权限与隔离
 
@@ -262,7 +306,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 ### 遥测、日志、实验和性能诊断
 
-完整数据流、字段和隐私控制见 [`analysis/telemetry.md`](analysis/telemetry.md)。本版本不是只有一个“是否有遥测”的布尔开关，而是多条独立链路：
+完整数据流、字段和隐私控制见 [`analysis/telemetry.md`](analysis/telemetry.md)，字段的人类解释见 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)。本版本不是只有一个“是否有遥测”的布尔开关，而是多条独立链路：
 
 - 一方 analytics 在 sink 安装前保留 1,000 条全局事件，在一方 provider 初始化前再保留 1,024 条；provider 默认 queue 为 8,192。
 - Acorn AST 找到一方 `H` 2,162 次、`Fv` 32 次、OTEL `Nd` 52 次、feature `et` 498 次和 GrowthBook `CB` 12 次；静态名、模板、变量/条件表达式、完整参数、函数作用域、payload property/spread 和 unresolved spread 都写入 JSONL。
@@ -284,7 +328,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 ### 其余完整系统面
 
-[`analysis/source-surface.md`](analysis/source-surface.md) 还逐层整理了 build/runtime、CLI/protocol、settings/env/schema、models/providers/auth、session/transcript/memory/cache/storage、agent/team/worktree/background、MCP/hooks/plugins/skills/LSP、IDE/Chrome/Computer Use、cloud/remote/CCR/BYOC/workflow/artifacts、install/update/doctor、UI/accessibility/voice，以及 API/error/retry/rate-limit/compact。每一层都区分 Observed、Derived、Compatible 和 Heuristic。
+[`analysis/technical-architecture.md`](analysis/technical-architecture.md) 先把这些系统串成一条可读调用链；[`analysis/source-surface.md`](analysis/source-surface.md) 再逐层整理 build/runtime、CLI/protocol、settings/env/schema、models/providers/auth、session/transcript/memory/cache/storage、agent/team/worktree/background、MCP/hooks/plugins/skills/LSP、IDE/Chrome/Computer Use、cloud/remote/CCR/BYOC/workflow/artifacts、install/update/doctor、UI/accessibility/voice，以及 API/error/retry/rate-limit/compact。每一层都区分 Observed、Derived、Compatible 和 Heuristic。
 
 ## 打包与技术细节
 
@@ -332,6 +376,13 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 可复用 skill 位于 [`skill/claude-code-version-diff`](skill/claude-code-version-diff)，并已安装到本机，可通过 `$claude-code-version-diff` 使用。
 
+从本版本开始，skill 的交付合同分成两层：
+
+- **机器证据层**：packed bytes、bytecode、native reports、结构化 inventory 和稳定语义 diff，保证没有靠人工挑选遗漏字段。
+- **人类解释层**：技术架构、上下文治理/缓存、遥测、风控、字段字典和版本专题，必须解释触发条件、调用链、默认值、优先级、状态变化、失败回退、成本和用户影响。
+
+后续版本不能只更新 count table。任何新增 settings/env/model/event 字段都要说明字段语义、来源、默认/约束、谁读取、何时生效、如何失效、用户怎样观察；任何上下文/cache/compact 变化都要给出旧版和新版的状态机与成本影响。
+
 验证任意版本分支：
 
 ```bash
@@ -358,6 +409,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 - 新增或删除的 CLI option/command；
 - 新增或删除的权限模式、风控 circuit breaker、沙箱/凭据/信任和企业治理控制；
 - `analysis/source-inventory/summary.json` 中全部 70 类清单的 count delta、added 和 removed，包括调用点、动态表达式、事件/payload、OTEL、Datadog、typed env、settings schema、模型目录/pricing/alias、全部字符串/模板、tools/commands、hooks/protocol、storage、API、errors、URLs/hosts；
+- 人类解释层的章节级变化：请求装配、上下文预算、cache scope/TTL/breakpoint、tool deferral、microcompaction、auto-compact、resume、遥测 transport/privacy、风险控制与字段语义；
 - 老分支没有全量 inventory 时，才回退到 `ANTHROPIC_*`、`CLAUDE_CODE_*`、`ENABLE_*` 和 endpoint host 的旧式扫描；
 - JSC bytecode 与可读化 JavaScript 大小/哈希变化；
 - 原生架构、动态库、import/export、N-API 和 Swift 项目符号变化；

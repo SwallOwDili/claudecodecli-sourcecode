@@ -15,6 +15,8 @@ Create reproducible version snapshots from the installed Claude Code executable,
 
 Read [references/snapshot-contract.md](references/snapshot-contract.md) before creating or repairing a snapshot. For requests containing "完整逆向", "全量逆向", bytecode, native symbols, or disassembly, also read [references/deep-reverse.md](references/deep-reverse.md). When the request asks for `.node` C/C++/Rust/Swift source, "尽可能重建", or runnable native replacements, read [references/native-reconstruction.md](references/native-reconstruction.md).
 
+Every snapshot or comparison intended for human readers must also follow [references/human-analysis.md](references/human-analysis.md). Machine inventories prove coverage; they do not replace architecture, field semantics, lifecycle, cost, failure, and user-impact explanations.
+
 ## Snapshot workflow
 
 1. Record the resolved binary path locally, plus version output, size, SHA-256, container, architecture, code signature, and current Git remote/branches. Replace the committed source/entrypoint path with stable placeholders such as `$CLAUDE_INSTALL_ROOT` and `$CLAUDE_ENTRYPOINT`.
@@ -25,8 +27,8 @@ Read [references/snapshot-contract.md](references/snapshot-contract.md) before c
 6. Store the primary packed module as `extracted/cli.js`; retain every other packed filename under `extracted/`.
 7. Capture `VERSION`, `analysis/version.json`, the raw unpack manifest, exact upstream release notes for the version, a normalized CLI option/command inventory, and an evidence-based risk-control surface.
 8. Run `scripts/extract_source_inventory.py <repo>` against canonical `extracted/cli.js`. It requires Node or Bun and the vendored Acorn 8.15.0 parser. Commit every generated file and `analysis/source-inventory/summary.json`; never hand-edit generated inventories.
-9. Write `analysis/telemetry.md` and `analysis/source-surface.md`. Cover every generated inventory category, all telemetry/export/log/profile paths, and the complete product capability surface. Separate product schema from dependency/embedded-doc heuristics.
-10. Write the README with the version-specific delta, complete capability surface, inventory counts/links, telemetry defaults/privacy controls, native reconstruction status, and evidence boundaries.
+9. Write `analysis/technical-architecture.md`, `analysis/context-governance-and-caching.md`, `analysis/inventory-field-guide.md`, `analysis/telemetry.md`, and `analysis/source-surface.md`. Cover every generated inventory category, the complete product capability surface, context/cache/compact/resume call chains, telemetry/export/log/profile paths, and field semantics. Separate product schema from dependency/embedded-doc heuristics.
+10. Write the README as the reading router: lead with what to read and a request-lifecycle overview, then version delta and major behavior. Keep inventory counts as machine evidence, not the primary explanation.
 11. Run `scripts/validate_snapshot.py` before committing. It regenerates source inventories in a temporary directory, validates `reverse/` when present, and rejects capture-machine home/workspace paths or credential-shaped values outside canonical packed/reverse evidence.
 12. Commit on the numeric version branch. Push, verify that the remote branch points at the local commit, then clone/fetch the remote branch into a fresh directory and rerun validation plus privacy scanning.
 
@@ -81,12 +83,15 @@ Lead with observed changes:
 - reconstructed native contracts, source files, languages, and implementation churn when present;
 - upstream release notes corroborated by reachable source strings or structures.
 
+After the deterministic report, write a human comparison for every materially changed subsystem. Explain old behavior, new behavior, trigger/priority/default, state transition, failure fallback, user-visible effect, token/latency/cost impact, and exact evidence. Do not publish a count-only report when settings, context, cache, telemetry, permissions, tools, models, storage, or protocol changed.
+
 Do not infer a feature change only because a minified symbol, bytecode hash, address, or disassembly blob changed. Prefer a public CLI change, stable literal/config key, native API/dependency change, reachable validation branch, or official release note plus matching source evidence.
 
 ## README expectations
 
 Cover:
 
+- a first-screen reading guide and a plain request-lifecycle diagram;
 - binary and extraction facts;
 - payload structure and fidelity;
 - exact release delta;
@@ -103,6 +108,22 @@ Cover:
 - validation and cross-version commands.
 
 Keep hashes and byte counts machine-readable in `analysis/version.json`; do not make the README the only evidence store.
+
+Put numeric inventories after the human entry points and label them as machine evidence. Link detailed architecture documents instead of duplicating every field in the README.
+
+## Human explanation contract
+
+Read [references/human-analysis.md](references/human-analysis.md) before writing or comparing the human layer. Every important mechanism must answer:
+
+- what problem it solves and what object/state it governs;
+- where it enters the request or runtime lifecycle;
+- enable/disable gates, source precedence, defaults, thresholds, and limits;
+- success state, failure states, retry/fallback, invalidation, and persistence;
+- user-visible behavior and token/latency/cost/privacy/security impact;
+- which fields prove each conclusion and how a reader should interpret them;
+- what changed from the previous version and what did not.
+
+For context governance, trace system prompt segmentation, user/system context, tool schema residency/deferral, prompt-cache scopes and message breakpoints, 5m/1h TTL eligibility, context hints, tool-result cleanup, precomputed/reactive/manual compaction, compact boundaries, transcripts, resume, and memory. Include at least one concrete window-threshold example and one cache-cost example using the version's baked model catalog.
 
 ## Exhaustive source inventory
 

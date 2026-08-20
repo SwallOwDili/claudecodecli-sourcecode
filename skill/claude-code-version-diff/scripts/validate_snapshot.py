@@ -59,6 +59,34 @@ SOURCE_INVENTORY_MINIMUMS = {
     "model-pricing-tiers": 1,
     "model-aliases": 1,
 }
+HUMAN_ANALYSIS_DOCS = {
+    "analysis/technical-architecture.md": (
+        "request",
+        "context",
+        "telemetry",
+    ),
+    "analysis/context-governance-and-caching.md": (
+        "prompt cache",
+        "microcompaction",
+        "auto-compact",
+        "compact boundary",
+    ),
+    "analysis/inventory-field-guide.md": (
+        "comparisonKey",
+        "comparisonValue",
+        "unresolvedSpreads",
+    ),
+    "analysis/telemetry.md": (
+        "OpenTelemetry",
+        "Datadog",
+        "GrowthBook",
+    ),
+    "analysis/source-surface.md": (
+        "Observed",
+        "Derived",
+        "Heuristic",
+    ),
+}
 
 
 def candidate_paths(repo: Path) -> list[str]:
@@ -299,6 +327,23 @@ def main() -> int:
         value = metadata.get("binary", {}).get(key, "")
         if not isinstance(value, str) or not value.startswith("$"):
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
+
+    readme = (repo / "README.md").read_text(encoding="utf-8")
+    for relative, required_terms in HUMAN_ANALYSIS_DOCS.items():
+        path = repo / relative
+        if not path.is_file():
+            failures.append(f"missing human analysis document: {relative}")
+            continue
+        content = path.read_text(encoding="utf-8")
+        if len(content) < 1000:
+            failures.append(f"human analysis document is too small: {relative}")
+        for term in required_terms:
+            if term not in content:
+                failures.append(
+                    f"human analysis document {relative} does not cover {term!r}"
+                )
+        if relative not in readme:
+            failures.append(f"README does not link human analysis document: {relative}")
 
     private_capture_files = find_private_capture_data(repo)
     if private_capture_files:

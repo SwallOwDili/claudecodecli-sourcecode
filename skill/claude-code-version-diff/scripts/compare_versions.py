@@ -15,6 +15,14 @@ from urllib.parse import urlparse
 ENV_RE = re.compile(rb"\b(?:ANTHROPIC|CLAUDE_CODE)_[A-Z][A-Z0-9_]{2,}\b")
 FEATURE_RE = re.compile(rb"\bENABLE_[A-Z][A-Z0-9_]{2,}\b")
 URL_RE = re.compile(rb"https?://[A-Za-z0-9._:-]+")
+HUMAN_ANALYSIS_PATHS = (
+    "README.md",
+    "analysis/technical-architecture.md",
+    "analysis/context-governance-and-caching.md",
+    "analysis/inventory-field-guide.md",
+    "analysis/telemetry.md",
+    "analysis/source-surface.md",
+)
 
 
 def git(repo: Path, *args: str, text: bool = True):
@@ -97,6 +105,77 @@ def read_inventory_lines(repo: Path, branch: str, path: str) -> set[str]:
 def tree_paths(repo: Path, branch: str, prefix: str) -> set[str]:
     output = git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix, text=True)
     return {line.strip() for line in output.splitlines() if line.strip()}
+
+
+def markdown_headings(repo: Path, branch: str, path: str) -> set[str]:
+    return {
+        line.strip()
+        for line in show(repo, branch, path, text=True).splitlines()
+        if re.match(r"^#{1,4}\s+\S", line)
+    }
+
+
+def human_analysis_report(repo: Path, old_branch: str, new_branch: str) -> list[str]:
+    lines = [
+        "## Human explanation layer",
+        "",
+        "Machine inventory deltas are evidence, not the final explanation. The following documents must be reviewed for lifecycle, field semantics, fallback, cost, and user impact.",
+        "",
+        "| Document | Old lines | New lines | Changed |",
+        "| --- | ---: | ---: | --- |",
+    ]
+    changed_paths: list[str] = []
+    for path in HUMAN_ANALYSIS_PATHS:
+        old_exists = has_path(repo, old_branch, path)
+        new_exists = has_path(repo, new_branch, path)
+        old_lines = len(show(repo, old_branch, path, text=True).splitlines()) if old_exists else 0
+        new_lines = len(show(repo, new_branch, path, text=True).splitlines()) if new_exists else 0
+        if old_exists and new_exists:
+            changed = subprocess.run(
+                ["git", "-C", str(repo), "diff", "--quiet", old_branch, new_branch, "--", path]
+            ).returncode != 0
+            changed_label = "yes" if changed else "no"
+        elif new_exists:
+            changed = True
+            changed_label = "added"
+        elif old_exists:
+            changed = True
+            changed_label = "removed"
+        else:
+            changed = False
+            changed_label = "missing"
+        lines.append(f"| `{path}` | {old_lines} | {new_lines} | {changed_label} |")
+        if changed:
+            changed_paths.append(path)
+    lines.append("")
+
+    for path in changed_paths:
+        if not has_path(repo, old_branch, path) or not has_path(repo, new_branch, path):
+            continue
+        lines.extend(
+            bullet_diff(
+                f"Human document headings: {path}",
+                markdown_headings(repo, old_branch, path),
+                markdown_headings(repo, new_branch, path),
+            )
+        )
+
+    lines.extend(
+        [
+            "### Required interpretation",
+            "",
+            "For each material machine delta, complete the human comparison with:",
+            "",
+            "- old and new reachable call paths/state transitions;",
+            "- trigger, precedence, default, threshold, cap, TTL, or queue/retry value;",
+            "- failure, strip, retry, fallback, invalidation, and persistence behavior;",
+            "- user-visible quality, token, latency, cost, privacy, and security impact;",
+            "- field meanings and the exact source/inventory evidence;",
+            "- unchanged behavior and server/runtime-only boundaries.",
+            "",
+        ]
+    )
+    return lines
 
 
 def contract_inventory(value, prefix: str = "") -> set[str]:
@@ -348,6 +427,8 @@ def main() -> int:
                 new_inventory["hosts"],
             )
         )
+
+    lines.extend(human_analysis_report(repo, args.old_branch, args.new_branch))
 
     old_deep = has_path(repo, args.old_branch, "reverse/summary.json")
     new_deep = has_path(repo, args.new_branch, "reverse/summary.json")

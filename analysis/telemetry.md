@@ -2,6 +2,8 @@
 
 本文只记录发布 bundle 中可以静态证实的客户端行为。它覆盖一方事件、OpenTelemetry、Datadog、GrowthBook、错误上报、Perfetto、启动/查询 profiling、本地 debug/diagnostic 日志，以及对应的门控、字段、队列、重试和隐私控制。
 
+如果你先要理解这些通道在整个请求生命周期中的位置，读 [技术架构导读](technical-architecture.md)；如果你在问 `request_id`、`cache_read_input_tokens`、`comparisonKey` 或 payload spread 是什么意思，读 [机器清单字段指南](inventory-field-guide.md)。
+
 完整事件名、调用表达式、payload、环境 schema、默认值和消息模板不在本文手工复制。机器清单是最终证据：
 
 - [一方事件 1,436 项](source-inventory/first-party-events.txt)

@@ -8,6 +8,7 @@ Every full snapshot includes:
 
 ```text
 analysis/technical-architecture.md
+analysis/agent-loop.md
 analysis/context-governance-and-caching.md
 analysis/inventory-field-guide.md
 analysis/telemetry.md
@@ -34,6 +35,24 @@ For each important mechanism, answer in this order:
 12. **Boundary**: what remains server-side, runtime-only, removed before shipping, or compatible rather than original.
 
 Do not replace these answers with counts, identifier lists, or field dumps.
+
+## Agent Loop chapter
+
+Trace one complete execution turn through the actual loop entrypoints and state object. Distinguish user turn, model/agent iteration, API attempt, and tool batch. Cover:
+
+- the outer lifecycle wrapper, optional observer tap, and core loop generator;
+- loop-carried messages, tool context, turn count, compact tracking, recovery counters, Stop hook state, pending summaries, and transition reasons;
+- queue absorption before the first request and between tool batches, including fail-without-drop behavior;
+- the exact stream event at which a complete `tool_use` becomes executable;
+- streaming model/tool interleaving and progress delivery;
+- per-input concurrency-safe classification, unsafe ordering barriers, drain behavior, and result pairing by `tool_use_id`;
+- tool lookup, parse/coercion/schema, custom validation, PreToolUse, permission/policy/classifier, updated-input validation, call, PostToolUse, output validation, and error mapping;
+- normal completion, tool end-turn, hook stop/defer, Stop hook blocking re-entry, default/overridden caps, and max-turn accounting;
+- prompt-too-long/reactive compact, max-output recovery, malformed tool retry, thinking-only nudge, transport retry, model/refusal/server fallback, abort, and terminal reasons;
+- main/sub/background Agent reuse of the loop with model/tool/permission/worktree/transcript isolation;
+- the boundary that tombstones and abort signals restore message consistency but do not roll back completed external side effects.
+
+Include at least one concrete multi-tool timeline showing which calls overlap, which form barriers, when queued user input enters, and what `maxTurns=1` does after tool execution.
 
 ## Context and cache chapter
 
@@ -129,6 +148,7 @@ Before publication, verify:
 
 - README first screen links all human documents;
 - a reader can follow one request without opening JSONL;
+- Agent Loop explains streaming tool start, concurrency barriers, permission order, result feedback, max turns, Stop hook re-entry, fallback side effects, and every terminal class;
 - context/cache contains real thresholds and a cost example;
 - inventory field guide explains unresolved dynamic data honestly;
 - telemetry distinguishes first-party, OTEL, Datadog, GrowthBook, error reporting, and local diagnostics;

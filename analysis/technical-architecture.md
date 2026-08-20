@@ -169,6 +169,16 @@ catalog 是客户端离线基线。代码也存在动态 model config fetch，�
 
 这些字段都受模型 capability、provider、认证类型、query source、feature/client data 和错误 latch 影响。字段存在不等于每次发送。
 
+## Agent Loop 是执行引擎，不是一个 API 调用
+
+主链 `USe -> HGS -> tdf` 用异步生成器维护一个显式状态机。每轮先吸收队列消息并检查 compact，再调用模型；完整 `tool_use` content block 一出现就加入 streaming tool executor，不必等待整个 response 结束。执行器只让 `concurrency-safe` 工具重叠，非安全工具形成顺序屏障。
+
+单个工具依次经过 input parse/schema、工具自定义校验、PreToolUse、permission/policy/classifier、updatedInput 复验、实际调用、PostToolUse 和 output schema 复验。成功、拒绝和异常最终都变成按 `tool_use_id` 配对的 `tool_result`。工具批次完成后，循环再检查 abort、defer、hook stop、tool endsTurn、PostToolBatch、MCP/tool refresh、中途用户消息和 `maxTurns`，最后才决定结束或再次请求模型。
+
+`maxTurns` 统计模型轮次，不统计每次 HTTP retry。Stop hook blocking 会增加轮次并重入，默认连续超过 8 次时被客户端覆盖。模型 fallback 会 tombstone 当前消息并 abort 未完成工具，但不能撤销已发生的文件或远端副作用。主 Agent 和子 Agent 共享这套核心循环，各自拥有 model、tools、permissions、worktree、abort 和 transcript 状态。
+
+完整状态字段、流式时序、并发规则、失败恢复、terminal reason 和源码证据见 [`agent-loop.md`](agent-loop.md)。
+
 ## 工具、MCP、Skill 与 Agent
 
 ### 内置工具
@@ -327,13 +337,14 @@ TUI 处理：
 ## 建议阅读顺序
 
 1. 本文：先建立系统图。
-2. [`context-governance-and-caching.md`](context-governance-and-caching.md)：理解最长、最容易被误写浅的技术链。
-3. [`telemetry.md`](telemetry.md)：理解网络出口、默认值和隐私控制。
-4. [`inventory-field-guide.md`](inventory-field-guide.md)：学会读机器记录。
-5. [`source-surface.md`](source-surface.md)：按全产品能力面查索引。
-6. [`risk-control-surface.txt`](risk-control-surface.txt)：查本地风控决策面。
-7. `reverse/javascript/cli.readable.js`：沿本文给出的函数/行定位实现。
-8. `extracted/cli.js`：最终 canonical packed bytes。
+2. [`agent-loop.md`](agent-loop.md)：理解模型、工具、权限、重试和终止如何组成持续执行状态机。
+3. [`context-governance-and-caching.md`](context-governance-and-caching.md)：理解上下文、缓存、压缩和恢复。
+4. [`telemetry.md`](telemetry.md)：理解网络出口、默认值和隐私控制。
+5. [`inventory-field-guide.md`](inventory-field-guide.md)：学会读机器记录。
+6. [`source-surface.md`](source-surface.md)：按全产品能力面查索引。
+7. [`risk-control-surface.txt`](risk-control-surface.txt)：查本地风控决策面。
+8. `reverse/javascript/cli.readable.js`：沿本文给出的函数/行定位实现。
+9. `extracted/cli.js`：最终 canonical packed bytes。
 
 ## 证据等级
 

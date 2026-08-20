@@ -65,6 +65,13 @@ HUMAN_ANALYSIS_DOCS = {
         "context",
         "telemetry",
     ),
+    "analysis/agent-loop.md": (
+        "tool_use_id",
+        "concurrency-safe",
+        "maxTurns",
+        "Stop hook",
+        "terminal reason",
+    ),
     "analysis/context-governance-and-caching.md": (
         "prompt cache",
         "microcompaction",

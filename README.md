@@ -11,6 +11,7 @@
 | 入口 | 解决的问题 |
 | --- | --- |
 | [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整系统图 |
+| [`analysis/agent-loop.md`](analysis/agent-loop.md) | Agent Loop 状态机、流中工具执行、并发屏障、权限管线、Stop hook、maxTurns、fallback 和子 Agent |
 | [`analysis/context-governance-and-caching.md`](analysis/context-governance-and-caching.md) | 上下文装配、多层缓存、5m/1h TTL、tool search、microcompaction、auto-compact、resume 和成本算例 |
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
 | [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
@@ -27,7 +28,10 @@
   -> 规范化消息并执行 permission/policy/hook/sandbox 门控
   -> 切分 stable/org system 前缀并插入消息 cache breakpoint
   -> 构造 model/beta/thinking/tools/context-management 请求
-  -> 流式响应与工具循环
+  -> Agent Loop 流式解析 content block
+  -> tool_use block 完成即进入并发/串行执行器
+  -> schema、hook、permission、sandbox 门控后执行
+  -> tool_result 按 ID 回灌，决定结束或下一轮模型请求
   -> 写 usage、telemetry、JSONL transcript
   -> 需要时清理旧 tool result、预计算或执行 compact
   -> 写 compact boundary，供下次 resume 修复逻辑消息链
@@ -79,6 +83,7 @@
 |   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
 |   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
 |   |-- technical-architecture.md       面向人的完整技术架构导读
+|   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义
 |   |-- context-governance-and-caching.md 上下文治理、多层缓存、压缩与恢复
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
 |   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
@@ -248,6 +253,20 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - 支持自定义 Agent、指定当前 Agent、在 stream JSON 中转发子 Agent 文本/思考块，以及跨会话通信。
 - 支持 cloud session、自托管环境、teleport/resume、Remote Control、从 PR 恢复会话，以及云端多 Agent `ultrareview`。
 
+### Agent Loop 执行引擎
+
+- 主执行链是异步生成器 `USe -> HGS -> tdf`。一次用户请求可以包含多次模型轮次、API retry/fallback 和多个工具批次，它们不是同一个“turn”概念。
+- `tool_use` 不必等整个 assistant message 结束：单个 content block 完成且 JSON 可解析后就进入 streaming tool executor；模型继续流式输出时，工具 progress/result 可以同步回到 UI/SDK。
+- 多个 `concurrency-safe` 工具可以重叠执行；非并发安全工具形成顺序屏障，后续工具不能越过它。并发资格由工具和本次 input 共同判断。
+- 单工具必须经过工具/alias 查找、isolation latch、JSON/schema、自定义 validate、PreToolUse、permission/policy/classifier、updatedInput 复验、tool.call、PostToolUse 和 output schema 复验。
+- 工具异常、拒绝、取消和不存在都会生成带原 `tool_use_id` 的 error `tool_result`，保证下一轮消息仍能正确配对。
+- `maxTurns` 从第一次模型请求的 1 开始，只在工具结果或 blocking Stop hook 准备触发下一次模型调用时增加；API retry、流转非流和同轮纠错不等于增加 turn。
+- Stop/SubagentStop hook 可以阻止结束并让模型继续；连续阻止默认超过 8 次时客户端覆盖 hook，避免永久循环。
+- fallback 会 tombstone 当前消息、abort 未完成工具并清理 UI 状态，但无法自动撤销已经完成的文件、Git 或远端副作用。
+- custom/subagent 使用同一个核心循环，但拥有独立 model/effort/maxTurns、工具、权限上下文、abort controller、worktree 和 transcript。
+
+完整状态字段、时序图、终止原因和一个 Read/Edit/Bash 的执行例子见 [`analysis/agent-loop.md`](analysis/agent-loop.md)。
+
 ### 模型与上下文控制
 
 - 支持模型别名或完整模型 ID、print 模式下的 fallback model 链，以及 `low` 到 `max` 的 effort 级别。
@@ -379,7 +398,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 从本版本开始，skill 的交付合同分成两层：
 
 - **机器证据层**：packed bytes、bytecode、native reports、结构化 inventory 和稳定语义 diff，保证没有靠人工挑选遗漏字段。
-- **人类解释层**：技术架构、上下文治理/缓存、遥测、风控、字段字典和版本专题，必须解释触发条件、调用链、默认值、优先级、状态变化、失败回退、成本和用户影响。
+- **人类解释层**：技术架构、Agent Loop、上下文治理/缓存、遥测、风控、字段字典和版本专题，必须解释触发条件、调用链、默认值、优先级、状态变化、失败回退、成本和用户影响。
 
 后续版本不能只更新 count table。任何新增 settings/env/model/event 字段都要说明字段语义、来源、默认/约束、谁读取、何时生效、如何失效、用户怎样观察；任何上下文/cache/compact 变化都要给出旧版和新版的状态机与成本影响。
 
@@ -410,6 +429,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 - 新增或删除的权限模式、风控 circuit breaker、沙箱/凭据/信任和企业治理控制；
 - `analysis/source-inventory/summary.json` 中全部 70 类清单的 count delta、added 和 removed，包括调用点、动态表达式、事件/payload、OTEL、Datadog、typed env、settings schema、模型目录/pricing/alias、全部字符串/模板、tools/commands、hooks/protocol、storage、API、errors、URLs/hosts；
 - 人类解释层的章节级变化：请求装配、上下文预算、cache scope/TTL/breakpoint、tool deferral、microcompaction、auto-compact、resume、遥测 transport/privacy、风险控制与字段语义；
+- Agent Loop 的主状态字段、流中工具启动点、并发屏障、tool pipeline、Stop hook、maxTurns、fallback sweep、terminal reason 和子 Agent 隔离变化；
 - 老分支没有全量 inventory 时，才回退到 `ANTHROPIC_*`、`CLAUDE_CODE_*`、`ENABLE_*` 和 endpoint host 的旧式扫描；
 - JSC bytecode 与可读化 JavaScript 大小/哈希变化；
 - 原生架构、动态库、import/export、N-API 和 Swift 项目符号变化；

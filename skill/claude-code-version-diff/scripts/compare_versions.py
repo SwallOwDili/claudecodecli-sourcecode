@@ -18,6 +18,7 @@ URL_RE = re.compile(rb"https?://[A-Za-z0-9._:-]+")
 HUMAN_ANALYSIS_PATHS = (
     "README.md",
     "analysis/technical-architecture.md",
+    "analysis/agent-loop.md",
     "analysis/context-governance-and-caching.md",
     "analysis/inventory-field-guide.md",
     "analysis/telemetry.md",
@@ -167,6 +168,7 @@ def human_analysis_report(repo: Path, old_branch: str, new_branch: str) -> list[
             "For each material machine delta, complete the human comparison with:",
             "",
             "- old and new reachable call paths/state transitions;",
+            "- Agent Loop turn/API-attempt boundaries, streaming tool start, concurrency barriers, tool pipeline order, max-turn/Stop-hook behavior, terminal reasons, and fallback side-effect boundaries;",
             "- trigger, precedence, default, threshold, cap, TTL, or queue/retry value;",
             "- failure, strip, retry, fallback, invalidation, and persistence behavior;",
             "- user-visible quality, token, latency, cost, privacy, and security impact;",

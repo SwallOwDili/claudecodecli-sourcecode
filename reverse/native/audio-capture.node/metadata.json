@@ -1,0 +1,12 @@
+{
+  "name": "audio-capture.node",
+  "sourcePath": "extracted/audio-capture.node",
+  "size": 438064,
+  "sha256": "bbc49385641d14c07673d8d953f06f15a0da71a22e0058325381400efeee1dd4",
+  "architectures": [
+    {
+      "architecture": "arm64",
+      "swiftSymbolCount": 0
+    }
+  ]
+}

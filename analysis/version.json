@@ -1,0 +1,47 @@
+{
+  "version": "2.1.235",
+  "branch": "2.1.235",
+  "capturedAt": "2026-08-20T16:13:44+08:00",
+  "binary": {
+    "sourcePath": "$CLAUDE_INSTALL_ROOT/versions/2.1.235",
+    "entrypointPath": "$CLAUDE_ENTRYPOINT",
+    "size": 313334608,
+    "sha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748",
+    "container": "Mach-O",
+    "architecture": "arm64",
+    "codeSigningIdentity": "Developer ID Application: Anthropic PBC (Q6L2SF6YDW)",
+    "teamIdentifier": "Q6L2SF6YDW"
+  },
+  "extraction": {
+    "tool": "bun-unpacker",
+    "toolVersion": "0.10.1",
+    "toolCommit": "a1bdf5488e16b41792062d60bb52d72c1c5326ea",
+    "pathPatching": false,
+    "bytecodeDumped": true,
+    "payloadOffset": 69107720,
+    "payloadSize": 243390734,
+    "trailerOffset": 312498486,
+    "moduleEntrySize": 52,
+    "fileCount": 15,
+    "extractedBytes": 38648719,
+    "skippedBytecodeBytes": 0,
+    "dumpedBytecodeBytes": 204740576
+  },
+  "mainSource": {
+    "packedPath": "/$bunfs/root/cli",
+    "repositoryPath": "extracted/cli.js",
+    "size": 27305344,
+    "lines": 65943,
+    "sha256": "22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e",
+    "banner": "// @bun @bytecode @bun-cjs"
+  },
+  "deepReverse": {
+    "enabled": true,
+    "summary": "reverse/summary.json",
+    "manifest": "reverse/manifest.json",
+    "bytecodeCommitted": true,
+    "readableJavaScriptCommitted": true,
+    "nativeModulesAnalyzed": 5,
+    "architectureSlicesAnalyzed": 7
+  }
+}

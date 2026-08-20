@@ -1,0 +1,12 @@
+{
+  "name": "url-handler.node",
+  "sourcePath": "extracted/url-handler.node",
+  "size": 336864,
+  "sha256": "e1884007eddee7d6a8afde602eff85c5b315c29b59c2cc24ae2b223d28ba21f1",
+  "architectures": [
+    {
+      "architecture": "arm64",
+      "swiftSymbolCount": 0
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "source": "Bun standalone JSC bytecode cache for /$bunfs/root/cli",
+  "sourceOffsetInBinary": 69107840,
+  "uncompressedSize": 204740576,
+  "uncompressedSha256": "7b21c8166859f877db611d1aa3b22754b1777faa878b4ab58bb752f0f432da59",
+  "gzipPath": "reverse/bytecode/cli.jsc.gz",
+  "gzipSize": 47461235,
+  "gzipSha256": "8f846bf9698cb7d998e951d18b10b36e2ee8ea0d85d136a7b5d671926192d611",
+  "compression": "gzip level 9, mtime 0"
+}

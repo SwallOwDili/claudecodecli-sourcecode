@@ -1,0 +1,17 @@
+[package]
+name = "url-handler-reconstructed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi.workspace = true
+napi-derive.workspace = true
+once_cell.workspace = true
+tokio.workspace = true
+
+[build-dependencies]
+napi-build.workspace = true

@@ -1,0 +1,4 @@
+command: /usr/bin/file extracted/audio-capture.node
+exitStatus: 0
+--- output ---
+extracted/audio-capture.node: Mach-O 64-bit dynamically linked shared library arm64

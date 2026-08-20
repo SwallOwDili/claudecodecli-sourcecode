@@ -1,0 +1,6 @@
+command: /usr/bin/otool -arch arm64 -L extracted/url-handler.node
+exitStatus: 0
+--- output ---
+extracted/url-handler.node:
+	@rpath/url-handler.node (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)

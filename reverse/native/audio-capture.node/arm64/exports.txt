@@ -1,0 +1,4 @@
+command: /usr/bin/nm -arch arm64 -gU extracted/audio-capture.node
+exitStatus: 0
+--- output ---
+00000000000275d0 T _rust_eh_personality

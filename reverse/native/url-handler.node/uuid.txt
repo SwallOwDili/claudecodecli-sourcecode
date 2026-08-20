@@ -1,0 +1,4 @@
+command: /usr/bin/dwarfdump --uuid extracted/url-handler.node
+exitStatus: 0
+--- output ---
+UUID: 81858483-8DB8-3B0A-9F29-3CB9E4C3FCF0 (arm64) extracted/url-handler.node

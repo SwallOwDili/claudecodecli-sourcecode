@@ -1,0 +1,17 @@
+[package]
+name = "audio-capture-reconstructed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+cpal = "0.15.3"
+napi.workspace = true
+napi-derive.workspace = true
+once_cell.workspace = true
+
+[build-dependencies]
+napi-build.workspace = true

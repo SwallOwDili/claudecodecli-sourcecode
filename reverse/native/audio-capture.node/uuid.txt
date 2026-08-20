@@ -1,0 +1,4 @@
+command: /usr/bin/dwarfdump --uuid extracted/audio-capture.node
+exitStatus: 0
+--- output ---
+UUID: 8758029D-B831-3EC4-90B5-DFF7EC342BD4 (arm64) extracted/audio-capture.node

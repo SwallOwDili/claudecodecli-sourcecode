@@ -1,0 +1,7 @@
+command: /usr/bin/otool -arch x86_64 -hv extracted/computer-use-input.node
+exitStatus: 0
+--- output ---
+extracted/computer-use-input.node:
+Mach header
+      magic  cputype cpusubtype  caps    filetype ncmds sizeofcmds      flags
+MH_MAGIC_64   X86_64        ALL  0x00       DYLIB    22       2920   NOUNDEFS DYLDLINK TWOLEVEL NO_REEXPORTED_DYLIBS MH_HAS_TLV_DESCRIPTORS

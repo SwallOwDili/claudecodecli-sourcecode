@@ -1,0 +1,4 @@
+command: /usr/bin/codesign -dvvv extracted/computer-use-input.node
+exitStatus: 1
+--- output ---
+extracted/computer-use-input.node: code object is not signed at all

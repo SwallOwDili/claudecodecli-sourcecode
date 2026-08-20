@@ -1,0 +1,17 @@
+[package]
+name = "computer-use-input-reconstructed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+enigo = "0.6.1"
+napi.workspace = true
+napi-derive.workspace = true
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSRunningApplication", "NSWorkspace"] }
+
+[build-dependencies]
+napi-build.workspace = true

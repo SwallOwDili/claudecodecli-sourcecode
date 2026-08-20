@@ -1,0 +1,19 @@
+command: /usr/bin/codesign -dvvv extracted/audio-capture.node
+exitStatus: 0
+--- output ---
+Executable=extracted/audio-capture.node
+Identifier=audio-capture.node
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=3531 flags=0x20002(adhoc,linker-signed) hashes=107+0 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=3d7624a51532f2ae14da5b21de224e012cb7a152
+CandidateCDHashFull sha256=3d7624a51532f2ae14da5b21de224e012cb7a1525a084a7c2ee1305c141efe92
+Hash choices=sha256
+CMSDigest=3d7624a51532f2ae14da5b21de224e012cb7a1525a084a7c2ee1305c141efe92
+CMSDigestType=2
+CDHash=3d7624a51532f2ae14da5b21de224e012cb7a152
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none

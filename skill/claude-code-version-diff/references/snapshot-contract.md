@@ -1,0 +1,100 @@
+# Snapshot contract
+
+## Required files
+
+```text
+VERSION
+README.md
+extracted/cli.js
+extracted/<all other packed files>
+analysis/version.json
+analysis/unpack-manifest.json
+analysis/release-notes.md
+analysis/cli-surface.txt
+analysis/risk-control-surface.txt
+skill/claude-code-version-diff/...
+reverse/...                        Required when deep reverse is requested
+reconstructed/...                  Required when native source reconstruction is requested
+```
+
+## `analysis/version.json`
+
+Required top-level fields:
+
+- `version`, `branch`, `capturedAt`
+- `binary`: redacted/symbolic source path, redacted/symbolic entrypoint path, size, SHA-256, container, architecture, signing identity
+- `extraction`: tool, tool version/commit, path-patching flag, payload offsets/sizes, file count, extracted bytes, skipped bytecode
+- `mainSource`: packed path, repository path, size, line count, SHA-256, Bun banner
+
+## Fidelity rules
+
+- The installed executable is read-only input.
+- The executable SHA-256 must match before and after extraction.
+- Never commit the capture machine's username, home directory, Codex workspace, cache directory, or concrete install path. Use `$CLAUDE_INSTALL_ROOT`, `$CLAUDE_ENTRYPOINT`, or another stable symbolic placeholder in metadata and verification records.
+- Absolute paths embedded in the shipped executable may remain only in canonical `extracted/` bytes and evidence derived directly under `reverse/`; label them as upstream build evidence rather than capture-machine metadata.
+- Extraction uses packed bytes with path patching disabled.
+- Every committed extracted file must match `sha256Packed` in the manifest.
+- Renaming the primary packed path `cli` to repository path `extracted/cli.js` is allowed; its contents must not change.
+- Do not commit generated formatting as the canonical source. A separately generated analysis view may be added only when clearly labeled.
+- Do not claim the bundle reproduces upstream TypeScript modules or source names when source maps are absent.
+- Deep-reverse outputs are derived evidence and must remain separate from `extracted/`.
+- Native source reconstruction must remain under `reconstructed/`, carry evidence labels, and never replace the packed `.node` baseline.
+
+## Deep-reverse files
+
+When `reverse/` exists, require:
+
+```text
+reverse/summary.json
+reverse/manifest.json
+reverse/bytecode/cli.jsc.gz
+reverse/bytecode/metadata.json
+reverse/javascript/cli.readable.js
+reverse/javascript/metadata.json
+reverse/index/summary.json
+reverse/index/*.txt
+reverse/native/<module>.node/metadata.json
+reverse/native/<module>.node/<arch>/...
+```
+
+`reverse/manifest.json` hashes every deep-reverse artifact except itself. Bytecode metadata records both gzip and decompressed sizes/hashes. Native reports include every architecture present in the packed module.
+
+## Normalized CLI surface
+
+Keep one token per line under stable sections such as `[options]`, `[commands]`, and command-specific option sections. Remove aliases, wrapping, descriptions, and terminal-width effects so Git set diffs represent actual surface changes.
+
+## Normalized risk-control surface
+
+Keep stable, evidence-backed tokens under sections for permission modes and flags, permission decision sources, safety circuit breakers, sandbox runtime/network/filesystem controls, credential controls, trust gates, extension governance, enterprise governance, fail-closed behavior, and evidence boundaries.
+
+Include a boundary stating that local CLI execution controls do not prove server-side account risk scoring or abuse-detection rules. Do not infer a control from a generic security-related string; require a CLI flag, settings schema field, decision branch, concrete rejection message, or reachable policy path.
+
+## Native reconstruction files
+
+When `reconstructed/` exists, require:
+
+```text
+reconstructed/README.md
+reconstructed/EVIDENCE.md
+reconstructed/contracts/module-exports.json
+reconstructed/scripts/validate_contracts.mjs
+reconstructed/scripts/compare_behaviors.mjs
+reconstructed/scripts/build_and_validate.sh
+reconstructed/<language projects and lockfiles>
+```
+
+The build script must use a unique load directory. Document original/reconstructed contract results, behavior comparison results, and architecture coverage.
+
+## Release evidence
+
+Store the exact version's upstream release-note bullets. In the README, connect a note to source evidence only when the relevant setting, error, command, validation branch, or implementation literal is present in the extracted bundle.
+
+## Completion checks
+
+1. Snapshot validator exits zero.
+2. Skill validator exits zero.
+3. Deep-reverse validator exits zero when `reverse/` exists.
+4. Git branch name equals `VERSION`.
+5. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.
+6. Working tree contains only intended snapshot files before commit.
+7. Local commit is present on the requested remote branch after push.

@@ -1,0 +1,122 @@
+{
+  "formatVersion": 1,
+  "version": "2.1.235",
+  "canonicalBundle": {
+    "path": "extracted/cli.js",
+    "size": 27305344,
+    "sha256": "22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e"
+  },
+  "bytecode": {
+    "source": "Bun standalone JSC bytecode cache for /$bunfs/root/cli",
+    "sourceOffsetInBinary": 69107840,
+    "uncompressedSize": 204740576,
+    "uncompressedSha256": "7b21c8166859f877db611d1aa3b22754b1777faa878b4ab58bb752f0f432da59",
+    "gzipPath": "reverse/bytecode/cli.jsc.gz",
+    "gzipSize": 47461235,
+    "gzipSha256": "8f846bf9698cb7d998e951d18b10b36e2ee8ea0d85d136a7b5d671926192d611",
+    "compression": "gzip level 9, mtime 0"
+  },
+  "readableJavaScript": {
+    "canonicalSource": "extracted/cli.js",
+    "canonicalSourceSha256": "22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e",
+    "path": "reverse/javascript/cli.readable.js",
+    "size": 34418467,
+    "lines": 638179,
+    "sha256": "99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4",
+    "generator": "esbuild",
+    "generatorVersion": "0.25.10",
+    "semanticInventoryCheck": {
+      "environmentIdentifiersEqual": true,
+      "environmentIdentifierCount": 538,
+      "endpointHostsEqual": true,
+      "endpointHostCount": 179
+    },
+    "role": "analysis view only; canonical packed bytes remain extracted/cli.js"
+  },
+  "index": {
+    "environmentIdentifiers": 538,
+    "featureIdentifiers": 12,
+    "endpointHosts": 179,
+    "urls": 557,
+    "probableConfigKeys": 1567,
+    "embeddedSourcePaths": 57,
+    "configKeyMethod": "quoted dotted identifiers minus common file extensions; heuristic",
+    "cliSurfaceSha256": "80282da894fdf2b3b404335adbb26510aa0fb1ef448a5c95dc7430d9b0879e25",
+    "nativeArchitectureEntries": 7,
+    "nativeDependencies": 102,
+    "nativeExports": 16,
+    "nativeImports": 1479,
+    "nativeNapiImports": 246,
+    "nativeSwiftProjectSymbols": 1382
+  },
+  "nativeModules": [
+    {
+      "name": "audio-capture.node",
+      "sourcePath": "extracted/audio-capture.node",
+      "size": 438064,
+      "sha256": "bbc49385641d14c07673d8d953f06f15a0da71a22e0058325381400efeee1dd4",
+      "architectures": [
+        {
+          "architecture": "arm64",
+          "swiftSymbolCount": 0
+        }
+      ]
+    },
+    {
+      "name": "computer-use-input.node",
+      "sourcePath": "extracted/computer-use-input.node",
+      "size": 1692096,
+      "sha256": "55bd5d0da1d7f6d1afa92de91c20957a77b4a25483562d2dac433cb3370344da",
+      "architectures": [
+        {
+          "architecture": "x86_64",
+          "swiftSymbolCount": 0
+        },
+        {
+          "architecture": "arm64",
+          "swiftSymbolCount": 0
+        }
+      ]
+    },
+    {
+      "name": "computer-use-swift.node",
+      "sourcePath": "extracted/computer-use-swift.node",
+      "size": 879672,
+      "sha256": "5ce6c0773d532cd629dd4bd0eab9516dce20a5d66c6631f6be18f639d6a88524",
+      "architectures": [
+        {
+          "architecture": "x86_64",
+          "swiftSymbolCount": 1237
+        },
+        {
+          "architecture": "arm64",
+          "swiftSymbolCount": 1237
+        }
+      ]
+    },
+    {
+      "name": "image-processor.node",
+      "sourcePath": "extracted/image-processor.node",
+      "size": 1249368,
+      "sha256": "191c4f27ac11ea1125beff9b8f80cecc557c3dcbcaba648099e10095c942c85e",
+      "architectures": [
+        {
+          "architecture": "arm64",
+          "swiftSymbolCount": 0
+        }
+      ]
+    },
+    {
+      "name": "url-handler.node",
+      "sourcePath": "extracted/url-handler.node",
+      "size": 336864,
+      "sha256": "e1884007eddee7d6a8afde602eff85c5b315c29b59c2cc24ae2b223d28ba21f1",
+      "architectures": [
+        {
+          "architecture": "arm64",
+          "swiftSymbolCount": 0
+        }
+      ]
+    }
+  ]
+}

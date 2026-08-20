@@ -1,0 +1,12 @@
+{
+  "name": "image-processor.node",
+  "sourcePath": "extracted/image-processor.node",
+  "size": 1249368,
+  "sha256": "191c4f27ac11ea1125beff9b8f80cecc557c3dcbcaba648099e10095c942c85e",
+  "architectures": [
+    {
+      "architecture": "arm64",
+      "swiftSymbolCount": 0
+    }
+  ]
+}

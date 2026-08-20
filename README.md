@@ -1,0 +1,317 @@
+# Claude Code CLI 2.1.235 深度逆向快照
+
+本分支是本机 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
+
+`extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
+
+## 快照信息
+
+| 项目 | 值 |
+| --- | --- |
+| Git 分支 | `2.1.235` |
+| 本机 CLI 输出 | `2.1.235 (Claude Code)` |
+| 原始程序 | arm64 Mach-O，`313,334,608` 字节 |
+| 原始程序 SHA-256 | `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` |
+| 代码签名 | Anthropic PBC，Team ID `Q6L2SF6YDW` |
+| Bun 载荷 | 从文件偏移 `69,107,720` 开始，共 `243,390,734` 字节 |
+| 模块表 | 15 个文件，每项 52 字节 |
+| 实际解包内容 | `38,648,719` 字节 |
+| 主 JavaScript | `27,305,344` 字节，65,943 行 |
+| 主源码 SHA-256 | `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e` |
+| JSC bytecode | `204,740,576` 字节，SHA-256 `7b21c8166859f877db611d1aa3b22754b1777faa878b4ab58bb752f0f432da59` |
+| bytecode 提交形式 | gzip `47,461,235` 字节，SHA-256 `8f846bf9698cb7d998e951d18b10b36e2ee8ea0d85d136a7b5d671926192d611` |
+| 可读化 JavaScript | `34,418,467` 字节，638,179 行，SHA-256 `99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4` |
+| 原生模块逆向 | 5 个 `.node`，共 7 个架构 slice |
+| 解包工具 | `bun-unpacker 0.10.1`，提交 `a1bdf5488e16b41792062d60bb52d72c1c5326ea` |
+| 解包模式 | `--path-patching false`，不改写打包字节 |
+
+完整机器可读记录见 [`analysis/version.json`](analysis/version.json)。所有内嵌文件的偏移、大小、类型和哈希见 [`analysis/unpack-manifest.json`](analysis/unpack-manifest.json)。
+
+## 目录结构
+
+```text
+.
+|-- VERSION
+|-- README.md
+|-- extracted/
+|   |-- cli.js                         Claude Code 主应用 bundle
+|   |-- *-processor.js / *-capture.js 原生模块加载器
+|   |-- *.node                         图像、音频、URL、Computer Use 原生桥接
+|   |-- chart.umd.min.js               Chart.js 渲染运行时
+|   |-- hljsBundle.generated.min.js    Highlight.js 语法高亮运行时
+|   |-- mermaid.min.js                 Mermaid 渲染运行时
+|   `-- payload.template.html.asset    Artifact/报告使用的 HTML 载荷
+|-- analysis/
+|   |-- version.json                   二进制与解包元数据
+|   |-- unpack-manifest.json           每个文件的偏移和哈希
+|   |-- release-notes.md               2.1.235 官方变更记录
+|   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
+|   `-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
+|-- reverse/
+|   |-- summary.json                   深度逆向机器摘要
+|   |-- manifest.json                  全部派生产物的大小与 SHA-256
+|   |-- bytecode/                      完整 JSC bytecode 与字符串
+|   |-- javascript/                    可读化 JS 分析视图
+|   |-- index/                         稳定标识符和原生 API 对比索引
+|   `-- native/<module>.node/<arch>/   符号、依赖、段表和反汇编
+|-- reconstructed/                    5 个原生模块的可编译 Rust/Swift 兼容重建
+`-- skill/claude-code-version-diff/    可复用的快照、深度逆向与版本对比 skill
+```
+
+## 完整逆向包含什么
+
+### 1. 原始 Bun 模块图
+
+`extracted/` 是最重要的保真基线。15 个文件全部按可执行文件中的 packed bytes 保存，清单哈希逐项一致：主应用 bundle、5 个原生 loader、5 个 `.node`、Chart.js、Highlight.js、Mermaid 和 HTML payload。主模块没有经过 prettier、变量改名或人工拆分。
+
+### 2. 完整 JSC bytecode
+
+`reverse/bytecode/cli.jsc.gz` 是可执行文件偏移 `69,107,840` 处、长度 `204,740,576` 的完整 JavaScriptCore bytecode cache，使用 gzip level 9、mtime 0 确定性压缩。校验器会流式解压并重新计算原始 SHA-256，证明提交文件可以无损恢复原 bytecode。
+
+同时保存 `strings.txt.gz`，用于搜索 JSC 中保留的函数名、配置键、错误消息和运行时标识符。bytecode 是和 Bun/JSC 版本、CPU 架构绑定的执行缓存，不是另一份 TypeScript 源码，但它是发布程序实际携带内容的一部分，现已完整纳入快照。
+
+### 3. 可读化 JavaScript
+
+`reverse/javascript/cli.readable.js` 使用 `esbuild 0.25.10` 对原始 bundle 重新解析并展开为 638,179 行，便于定位调用链、分支和常量。它的角色是分析视图，原始比较基线仍然是 `extracted/cli.js`。
+
+解析验证确认可读版和原始版的 538 个 `ANTHROPIC_*`/`CLAUDE_CODE_*` 标识符集合一致，endpoint host 集合一致。esbuild 可重新解析生成文件，并保留了原 bundle 的 3 个静态警告：一个永远不成立的 `typeof x === "null"` 分支、两个重复的 DOM class member。stock Node 的语法检查不适用于 bundle 中 Bun 支持的 `using` 语法。
+
+### 4. 五个原生模块
+
+每个 `.node` 都保存了文件类型、UUID、签名状态、Mach-O header/load commands、动态库依赖、导入/导出符号、完整符号表、字符串、Objective-C runtime 数据、间接符号和 text section 反汇编。universal 文件分别分析 x86-64 和 arm64：
+
+- `audio-capture.node`：arm64 Rust/N-API 模块。字符串恢复出录音、播放、状态查询、写入播放数据和麦克风授权接口，并能看到 CoreAudio/AudioUnit 调用。
+- `image-processor.node`：arm64 Rust/N-API 模块。恢复出 `process_image`、`ImageProcessor`、剪贴板图像读取/探测、resize/fit/withoutEnlargement、JPEG/PNG/GIF/TIFF/WebP 等格式路径和 CoreGraphics/ImageIO 依赖。
+- `url-handler.node`：arm64 Rust/N-API 模块。恢复出 `wait_for_url_event` / `waitForUrlEvent` 和 macOS Apple Event handler 路径。
+- `computer-use-input.node`：x86-64 + arm64 Rust/N-API 模块。恢复出文本输入、按键按下/释放/组合键、鼠标移动/按钮/滚轮/位置和辅助功能权限处理，底层直接导入 `CGEvent*`。
+- `computer-use-swift.node`：x86-64 + arm64 Swift/N-API 模块。每个 slice 保留 1,237 个 Swift 符号；demangle 后可以看到屏幕区域捕获、窗口/显示器选择、允许应用过滤、JPEG 质量、缩放结果、已安装应用、ESC event tap 和 bundle ID 解析等实现结构。
+
+### 5. 可跨版本稳定索引
+
+`reverse/index/` 不是简单的全文字符串 dump，而是用于版本差异的归一化集合：
+
+- 环境变量和 feature identifiers；
+- 完整 URL 与 endpoint host；
+- probable dotted config keys（启发式集合，单独标明，不冒充 schema）；
+- 打包残留的源码/构建路径；
+- 原生架构、依赖、全部 import/export、N-API import；
+- 仅属于 `ComputerUseSwift` 的 demangled project symbols；
+- 标准化 CLI option/command surface。
+
+地址变化和整块反汇编变化噪声很大；长期对比优先使用这些索引，再回到压缩的完整报告确认实现细节。
+
+### 6. 可编译的原生源码重建
+
+[`reconstructed/`](reconstructed/) 在静态逆向证据之上，提供 5 个 `.node` 模块的可编译 Rust/Swift 重建：4 个 Rust crate 和 1 个 Swift Package。它们不是从调试信息直接导出的原文件，而是按 `Observed`、`Derived`、`Compatible` 三类证据编写，并用原版模块做接口与行为双跑。
+
+已经恢复和验证的细节包括：
+
+- 5 个模块的完整 N-API 导出和 `computerUse` 嵌套对象树；
+- 图像链式 API、一次性消费错误，以及固定输入 JPEG/PNG/WebP 的逐字节一致输出；
+- 输入模块空组合键、非法 key/action/button/axis 的原版错误文本；
+- AVFoundation 麦克风授权查询、NSWorkspace 前台应用、GURL Apple Event 超时；
+- Spotlight 本地化应用列表、重复项保留、64x64 PNG 图标、窗口命中和隐藏预览；
+- ScreenCaptureKit 全屏/区域截图的 Promise、字段、尺寸和裸 JPEG base64。
+
+验证脚本每次创建新的 `.node` 加载目录，不覆盖已映射的 Mach-O：
+
+```bash
+reconstructed/scripts/build_and_validate.sh extracted /tmp
+```
+
+当前 arm64 macOS 实测为 5 个模块契约通过、23 项行为双跑通过。详细源码边界和逐模块证据见 [`reconstructed/EVIDENCE.md`](reconstructed/EVIDENCE.md)。
+
+## 2.1.235 的版本变化
+
+### 输入框拼写检查
+
+本版本增加了可选的实时拼写检查。实现可在 [`extracted/cli.js`](extracted/cli.js) 中检索 `spellcheck`、`aspell`、`hunspell` 和 `ispell`：
+
+- 自动按 `aspell`、`hunspell`、`ispell` 顺序探测，也支持显式指定检查器。
+- 配置包含 `spellcheck.enabled`、`spellcheck.checker`、`spellcheck.language` 和 `spellcheck.color`。
+- `language` 只接受普通词典名称，并分别传给 `aspell --lang`、`hunspell -d` 或 `ispell -d`。
+- 拼错的单词会显示下划线，颜色支持终端颜色名、RGB/hex、ANSI-256 和 ANSI 命名颜色。
+- 检查器以长驻子进程运行，使用 Ispell `-a` 协议，不会为每个单词启动一个新进程。
+- 对响应设置超时；慢批次会被跳过；进程失败后重启一次；连续失败后只关闭本次会话的拼写检查。
+- 项目级和 local 级 `spellcheck` 配置会被忽略，这项配置被限定为用户级设置。
+
+### Prompt Cache 与 LSP
+
+语言服务器在会话中途断开或重连时，不再让整个 prompt cache 失效。LSP 在线状态属于机器动态状态，而长会话中稳定、昂贵的 prompt 前缀可以继续复用。
+
+### 终端渲染与输入正确性
+
+- Markdown 列表在第 3 层及更深层级时能够正确对齐。
+- 自动换行的列表项使用悬挂缩进。
+- 多行输入中的 slash command、关键词和 mention 高亮不再发生字符偏移。
+- 快速按方向键后紧接 Enter，会选择屏幕上当前高亮项，不再选择旧状态。
+- Vim NORMAL 模式和光标位置在切换详细 transcript 或关闭面板后保持不变。
+- Claude 回复过程中执行 slash command 时，HTML entity 会被还原成实际字符。
+
+### 权限与审批
+
+- 在权限弹窗的备注输入框中按 Shift+Tab，只关闭输入框，不再误触发编辑批准并授予整次会话编辑权限。
+- 权限弹窗的说明文字、授权范围和 `don't ask again` 选项保持一致。
+- 当提议内容无法完整展示时，不提供持久授权选项。
+- Notebook 单元格删除/替换审批无法读取旧内容时，会明确说明原因，不再静默省略旧内容。
+
+### Agent、云任务与跨会话消息
+
+- 当会话中不存在通用默认 Agent 时，省略 `subagent_type` 会明确报错并列出可用 Agent。
+- `/ultrareview`、`/autofix-pr` 等后台云任务不再在每次更新时重新扫描和渲染完整事件流，降低长任务的 CPU 和内存增长。
+- `SendMessage` 在发送前检查跨会话消息大小，超限时返回可见错误，不再静默丢弃。
+- `claude rc` 与交互式 Remote Control 启动使用同一套企业网关可用性检查。
+
+### 原生工具与细节修复
+
+- 内嵌 `grep` 遇到病态模式时会快速失败，不再持续耗尽内存。
+- `grep -m N` 与 `-A`/`-C` 组合时能够返回正确的上下文。
+- 达到上下文上限且 auto-compact 被关闭时，错误会明确说明并提示到 `/config` 重新启用。
+- 后台自动更新完成后，输入框底部会保留 `Update installed` 重启提示。
+- 恢复仍有未完成任务的会话时，`ctrl+t` 任务列表会恢复之前的展开状态。
+- VS Code 恢复多个 Claude 面板时，不再在标签页之间自动抢焦点。
+
+官方原始条目保存在 [`analysis/release-notes.md`](analysis/release-notes.md)。
+
+## 本版本的完整能力面
+
+### 会话与 Agent 生命周期
+
+- 支持交互式终端会话和非交互 `--print` 模式。
+- 支持按 ID resume、继续当前目录最近会话、resume 时 fork、显式 session ID，以及关闭会话持久化。
+- 支持会话命名、后台 Agent、可脚本化的 `agents --json`、Git worktree 隔离，以及 tmux/iTerm2 worktree 窗格。
+- 支持自定义 Agent、指定当前 Agent、在 stream JSON 中转发子 Agent 文本/思考块，以及跨会话通信。
+- 支持 cloud session、自托管环境、teleport/resume、Remote Control、从 PR 恢复会话，以及云端多 Agent `ultrareview`。
+
+### 模型与上下文控制
+
+- 支持模型别名或完整模型 ID、print 模式下的 fallback model 链，以及 `low` 到 `max` 的 effort 级别。
+- Auto-compact 支持自动模式或显式 100k-1M token 窗口。
+- 可将 cwd、环境、memory path、Git 状态等机器动态段从 system prompt 移到第一条 user message，提高跨用户 prompt cache 复用率。
+- 支持替换或追加 system prompt、JSON Schema 结构化输出、美元预算上限、prompt suggestion 和 partial message streaming。
+
+### 工具、权限与隔离
+
+- 支持 tool allow/deny、内置工具选择，以及 `acceptEdits`、`auto`、`bypassPermissions`、`manual`、`dontAsk`、`plan` 权限模式。
+- Safe mode 会关闭 `CLAUDE.md`、skills、plugins、hooks、MCP、custom commands、agents、主题等自定义内容，但保留认证、模型、内置工具和权限系统。
+- Bare mode 会跳过 hooks、LSP、plugin sync、attribution、auto-memory、后台预取、keychain 和自动 `CLAUDE.md` 发现，但仍接受显式传入的配置。
+- 支持额外可读目录、隔离 worktree、strict MCP config 和企业托管设置。
+
+### 风控、安全与企业治理
+
+这里的“风控”是 CLI 在本机执行 Agent、工具、Shell、MCP 和扩展时实施的风险控制，不等于 Anthropic 服务端的账号风控、滥用检测或封禁评分。发布 bundle 能直接证实以下控制面：
+
+| 控制层 | 已恢复的能力 | 微小但重要的行为 |
+| --- | --- | --- |
+| 工具审批 | `--allowed-tools`、`--disallowed-tools`、工具级 allow/ask/deny 规则，以及 `default`、`acceptEdits`、`auto`、`dontAsk`、`plan`、`bypassPermissions` 六种模式 | `dontAsk` 遇到未授权操作会拒绝而不是弹窗；`bypassPermissions` 有单独的危险开关，帮助文本只建议在无外网沙箱中使用 |
+| Auto 风险判定 | Auto mode 会把待执行动作交给 classifier；决策原因区分 rule、mode、hook、sandbox、safety check、classifier 等来源 | 无法评估时使用 `blocking it for safety` 路径；对话超过 classifier 窗口时回退人工审批；`dangerousRemoval`、`isolatePeerMachines` 等 circuit breaker 中存在不受 bypass 影响的类别 |
+| Shell/Git 防护 | Bash command clamp、只读命令识别、复合命令拆分检查、工作目录和 Git 元数据检查 | 权限检查崩溃走 fail-closed；`cd` 后执行 Git、可植入的 `.git` 文件/符号链接、bare-repo 指示物和可能触发不可信 hook 的路径会重新要求审批 |
+| 文件与进程沙箱 | `allowWrite`、`denyWrite`、`denyRead`、`allowRead`，并支持 `failIfUnavailable`、禁止 unsandboxed command、Linux seccomp/bwrap、macOS sandbox 和 Windows 隔离用户路径 | 管理策略一旦配置文件限制，用户可写设置不能关闭它；Apple Events 和 weaker network isolation 被显式标为降低隔离强度的选项 |
+| 网络出口 | 域名 allow/deny、strict allowlist、managed-domain-only、Unix socket、本地监听和 macOS Mach/XPC service allowlist | denied domain 优先；strict allowlist 未匹配时直接拒绝；managed-domain-only 会忽略用户、项目和 CLI 临时放宽的域名，只接受策略层许可 |
+| 凭据防泄漏 | 对文件和环境变量支持 `deny` 或 `mask`；可用 regex 只遮蔽捕获片段，也可识别 JWT、按 claim 遮蔽、处理重复 secret，并用 `injectHosts` 限定真实凭据注入目标 | Agent/命令看到 sentinel 或假 JWT，宿主代理只在许可出口替换为真实值；macOS/Windows 的文件 `mask` 当前会降级为 `deny`；配置可选择 no-match 时 warn、deny 或 error |
+| Workspace 与扩展信任 | workspace trust、`--strict-mcp-config`、safe mode、bare mode、MCP tool permission、PreToolUse hook 的 allow/deny/ask/defer | MCP `headersHelper` 在 workspace trust 确认前会被阻止；hook 改写后的 tool input 会重新进入权限检查；HTTP hook 只有 `allowedEnvVars` 列出的变量可以进入 header |
+| 企业治理 | managed/policy settings、`policyHelper(s)`、`allowManagedPermissionRulesOnly`、`allowedMcpServers`、`availableModels`、`forceLoginOrgUUID`、`processWrapper` | admin policy 可以锁定权限来源、MCP、模型、组织登录、文件读取范围和网络域名；Safe mode 仍保留 policy 层，不会绕过管理员配置 |
+
+此外还存在两个启动前输入防护：凭据文件若 group/world 可读或可写会拒绝使用并要求修正为 `0600`；`--handle-uri` 后出现额外参数会按 URL 参数注入处理并拒绝启动。
+
+结构化清单保存在 [`analysis/risk-control-surface.txt`](analysis/risk-control-surface.txt)。它用于长期版本对比，记录稳定的权限模式、circuit breaker、sandbox 设置、凭据控制、信任门和企业策略键；不把 bundle 中没有证据的服务端账号评分、关联检测或滥用规则写成已恢复能力。
+
+### 扩展与集成
+
+- 支持 skills/slash commands、目录/ZIP/URL 插件、MCP server 配置和 setting source 选择。
+- 支持 IDE 自动连接、Chrome 集成、终端 screen reader 模式和 VS Code 会话。
+- 支持 Anthropic API、Claude 订阅、Bedrock、Vertex AI、Foundry 和企业 gateway 路径。
+- 顶层命令包含 gateway、project purge、auth、install/update、setup-token、plugin、MCP、import、auto-mode 和 doctor。
+
+### 输入输出协议
+
+- 输出支持文本、单个 JSON 结果或实时 stream JSON。
+- 输入支持文本或 stream JSON，并可回放用户消息用于确认。
+- Stream 模式可以输出 hook 生命周期、partial assistant chunk、子 Agent 转发内容和结构化任务进度。
+
+标准化后的完整顶层选项和命令保存在 [`analysis/cli-surface.txt`](analysis/cli-surface.txt)。后续版本对比不会受到帮助文本换行或终端宽度影响。
+
+## 打包与技术细节
+
+### Bun standalone 格式
+
+本机安装包是签名的 arm64 Mach-O 文件，包含 `__BUN.__bun` 段。Bun 在这里保存序列化的 standalone module graph，同时保留 bundle 后的 JavaScript 和 JavaScriptCore bytecode cache。
+
+主模块开头为：
+
+```js
+// @bun @bytecode @bun-cjs
+```
+
+含义如下：
+
+- `@bun`：这是 Bun 打包模块。
+- `@bytecode`：可执行文件还包含 JSC bytecode cache，用于缩短启动时间。
+- `@bun-cjs`：源码依赖 Bun 内部 CommonJS wrapper 约定。
+
+本分支同时提交 bytecode cache 的无损 gzip 形式和可读化 JavaScript，但两者都不会覆盖逐字节 JavaScript 基线。跨版本源码级比较以 `extracted/cli.js` 和 `reverse/index/` 为主；bytecode 哈希用于确认运行时生成物是否变化。
+
+### 解出的模块图
+
+15 个内嵌文件并不是 Anthropic 原始源码目录，而是产品构建完成后实际写入可执行文件的 bundle：
+
+- 1 个 26.0 MB 主应用 bundle。
+- 5 个约 2.1 KB 的原生能力 JavaScript loader。
+- 5 个 `.node` 原生模块，负责图像处理、音频采集、URL handling、Swift Computer Use 和输入注入。
+- Chart.js、Highlight.js、Mermaid 浏览器运行时。
+- 1 个 2.13 MB 的 Artifact/报告 HTML 模板。
+
+图像、音频和 URL 原生模块是 arm64 Mach-O；两个 Computer Use 模块是同时包含 x86-64 和 arm64 slice 的 universal Mach-O。
+
+### 保真度与可运行性
+
+解包时使用 `--path-patching false`。清单中每个文件的 `sha256` 都等于 `sha256Packed`，证明仓库内容与本机可执行文件内的原始打包字节一致。
+
+主 bundle 可用于全文检索和跨分支对比，但不是普通独立 `cli.js`。直接交给 stock Bun 运行，会在 Bun 内部 CommonJS wrapper 边界报错。已验证的运行行为仍来自原始签名程序；本仓库是分析快照。
+
+主 bundle 没有内嵌 source map，5 个原生模块也没有可用的源码级 debug information。生产构建已经丢弃的原始 TypeScript 文件名、注释、格式、bundle 前模块边界、被压缩改写的局部变量名，以及 tree shaking 删除的代码，无法从发布可执行文件精确反推出原值。
+
+因此，本仓库的“完整”定义是：发布可执行文件中仍存在的 packed 文件和 bytecode 全量保留，对 JavaScript 和所有原生模块生成可复现的最大静态分析视图，并为 5 个原生模块提供可编译、双跑验证的兼容源码重建；不把重建目录冒充 Anthropic 原始源码仓库。
+
+## 长期版本对比
+
+可复用 skill 位于 [`skill/claude-code-version-diff`](skill/claude-code-version-diff)，并已安装到本机，可通过 `$claude-code-version-diff` 使用。
+
+验证任意版本分支：
+
+```bash
+python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
+```
+
+单独验证深度逆向，包括流式解压 bytecode 后重新计算哈希：
+
+```bash
+python3 skill/claude-code-version-diff/scripts/validate_deep_reverse.py .
+```
+
+对比两个版本分支并输出 Markdown 报告：
+
+```bash
+python3 skill/claude-code-version-diff/scripts/compare_versions.py \
+  . 2.1.234 2.1.235 --output comparison-2.1.234-to-2.1.235.md
+```
+
+对比器会输出：
+
+- 版本元数据、二进制大小和载荷大小变化；
+- 新增、删除和内容变化的内嵌文件；
+- 新增或删除的 CLI option/command；
+- 新增或删除的权限模式、风控 circuit breaker、沙箱/凭据/信任和企业治理控制；
+- 新增或删除的 `ANTHROPIC_*`、`CLAUDE_CODE_*` 和 `ENABLE_*` 标识符；
+- 新增或删除的 endpoint host；
+- JSC bytecode 与可读化 JavaScript 大小/哈希变化；
+- 原生架构、动态库、import/export、N-API 和 Swift 项目符号变化；
+- 主 bundle 与分析文件的 Git 行数变化。
+
+## 验证结论
+
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+
+本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
+
+仓库元数据使用 `$CLAUDE_INSTALL_ROOT` 和 `$CLAUDE_ENTRYPOINT` 表示本机安装位置，不提交用户名、home 目录或 Codex 工作区绝对路径。`extracted/` 与 `reverse/` 中由发布二进制自身携带的上游构建路径属于原始证据，不属于采集机器信息。

@@ -1,0 +1,16 @@
+{
+  "name": "computer-use-swift.node",
+  "sourcePath": "extracted/computer-use-swift.node",
+  "size": 879672,
+  "sha256": "5ce6c0773d532cd629dd4bd0eab9516dce20a5d66c6631f6be18f639d6a88524",
+  "architectures": [
+    {
+      "architecture": "x86_64",
+      "swiftSymbolCount": 1237
+    },
+    {
+      "architecture": "arm64",
+      "swiftSymbolCount": 1237
+    }
+  ]
+}

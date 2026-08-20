@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Code Version Diff"
+  short_description: "Unpack, reconstruct, and compare Claude Code releases"
+  default_prompt: "Use $claude-code-version-diff to create a deep snapshot and native source reconstruction of the installed Claude Code version, then compare it with the previous version branch."

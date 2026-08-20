@@ -1,0 +1,16 @@
+{
+  "name": "computer-use-input.node",
+  "sourcePath": "extracted/computer-use-input.node",
+  "size": 1692096,
+  "sha256": "55bd5d0da1d7f6d1afa92de91c20957a77b4a25483562d2dac433cb3370344da",
+  "architectures": [
+    {
+      "architecture": "x86_64",
+      "swiftSymbolCount": 0
+    },
+    {
+      "architecture": "arm64",
+      "swiftSymbolCount": 0
+    }
+  ]
+}

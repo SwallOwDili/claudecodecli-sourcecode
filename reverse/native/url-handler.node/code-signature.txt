@@ -1,0 +1,19 @@
+command: /usr/bin/codesign -dvvv extracted/url-handler.node
+exitStatus: 0
+--- output ---
+Executable=extracted/url-handler.node
+Identifier=url-handler.node
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=2729 flags=0x20002(adhoc,linker-signed) hashes=82+0 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=798165aee8f4bd3853985e81f37f8f8e9c4ef648
+CandidateCDHashFull sha256=798165aee8f4bd3853985e81f37f8f8e9c4ef648f49eb52ae023d317ad79d888
+Hash choices=sha256
+CMSDigest=798165aee8f4bd3853985e81f37f8f8e9c4ef648f49eb52ae023d317ad79d888
+CMSDigestType=2
+CDHash=798165aee8f4bd3853985e81f37f8f8e9c4ef648
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none

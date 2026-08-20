@@ -1,0 +1,4 @@
+command: /usr/bin/dwarfdump --uuid extracted/image-processor.node
+exitStatus: 0
+--- output ---
+UUID: B4AC3E05-A09E-3BD1-BA49-043535915D82 (arm64) extracted/image-processor.node

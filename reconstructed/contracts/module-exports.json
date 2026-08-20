@@ -1,0 +1,47 @@
+{
+  "audio-capture.node": {
+    "functions": [
+      "isPlaying",
+      "isRecording",
+      "microphoneAuthorizationStatus",
+      "startPlayback",
+      "startRecording",
+      "stopPlayback",
+      "stopRecording",
+      "writePlaybackData"
+    ]
+  },
+  "computer-use-input.node": {
+    "functions": [
+      "getFrontmostAppInfo",
+      "key",
+      "keys",
+      "mouseButton",
+      "mouseLocation",
+      "mouseScroll",
+      "moveMouse",
+      "typeText"
+    ]
+  },
+  "computer-use-swift.node": {
+    "objects": {
+      "computerUse": {
+        "functions": ["_drainMainRunLoop", "_testEchoOptionalInt", "resolvePrepareCapture"],
+        "objects": {
+          "apps": ["appUnderPoint", "findWindowDisplays", "iconDataUrl", "listInstalled", "listRunning", "open", "prepareDisplay", "previewHideSet", "resolveBundleIds", "unhide"],
+          "display": ["getSize", "listAll"],
+          "hotkey": ["notifyExpectedEscape", "registerEscape", "unregister"],
+          "screenshot": ["captureExcluding", "captureRegion"],
+          "tcc": ["checkAccessibility", "checkScreenRecording", "requestAccessibility", "requestScreenRecording"]
+        }
+      }
+    }
+  },
+  "image-processor.node": {
+    "functions": ["ImageProcessor", "hasClipboardImage", "processImage", "readClipboardImage"],
+    "prototype": ["dispose", "jpeg", "metadata", "png", "resize", "toBuffer", "webp"]
+  },
+  "url-handler.node": {
+    "functions": ["waitForUrlEvent"]
+  }
+}

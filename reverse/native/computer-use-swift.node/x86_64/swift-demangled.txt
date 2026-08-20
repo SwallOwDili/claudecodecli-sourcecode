@@ -1,0 +1,1237 @@
+dispatch thunk of Foundation.JSONEncoder.encode<A where A: Swift.Encodable>(A) throws -> Foundation.Data
+Foundation.JSONEncoder.init() -> Foundation.JSONEncoder
+type metadata accessor for Foundation.JSONEncoder
+static Foundation.Notification._unconditionallyBridgeFromObjectiveC(__C.NSNotification?) -> Foundation.Notification
+reabstraction thunk helper from @escaping @callee_guaranteed @Sendable (@in_guaranteed Foundation.Notification) -> () to @escaping @callee_unowned @convention(block) @Sendable (@unowned __C.NSNotification) -> ()
+type metadata accessor for Foundation.Notification
+protocol descriptor for Foundation.LocalizedError
+method descriptor for Foundation.LocalizedError.helpAnchor.getter : Swift.String?
+method descriptor for Foundation.LocalizedError.failureReason.getter : Swift.String?
+method descriptor for Foundation.LocalizedError.errorDescription.getter : Swift.String?
+method descriptor for Foundation.LocalizedError.recoverySuggestion.getter : Swift.String?
+(extension in Foundation):Foundation.LocalizedError.helpAnchor.getter : Swift.String?
+(extension in Foundation):Foundation.LocalizedError.failureReason.getter : Swift.String?
+(extension in Foundation):Foundation.LocalizedError.recoverySuggestion.getter : Swift.String?
+base conformance descriptor for Foundation.LocalizedError: Swift.Error
+Foundation.URL._bridgeToObjectiveC() -> __C.NSURL
+static Foundation.URL._unconditionallyBridgeFromObjectiveC(__C.NSURL?) -> Foundation.URL
+type metadata accessor for Foundation.URL
+outlined consume of Foundation.Data._Representation
+outlined copy of Foundation.Data._Representation
+Foundation.Data._bridgeToObjectiveC() -> __C.NSData
+Foundation.Data.base64EncodedString(options: __C.NSDataBase64EncodingOptions) -> Swift.String
+static Foundation.Data._unconditionallyBridgeFromObjectiveC(__C.NSData?) -> Foundation.Data
+static Foundation.Date.distantPast.getter : Foundation.Date
+Foundation.Date.timeIntervalSince(Foundation.Date) -> Swift.Double
+Foundation.Date._bridgeToObjectiveC() -> __C.NSDate
+Foundation.Date.init() -> Foundation.Date
+type metadata accessor for Foundation.Date
+nominal type descriptor for Foundation.Date
+_$s10Foundation4DateVSgMR
+_$s10Foundation4DateVSgMd
+merged outlined init with copy of Foundation.Date?
+outlined assign with take of Foundation.Date?
+merged outlined destroy of Foundation.Date?
+nominal type descriptor for CoreGraphics.CGFloat
+type metadata for CoreGraphics.CGFloat
+associated type descriptor for Swift._ObjectiveCBridgeable._ObjectiveCType
+protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+base witness table accessor for Swift.Error in ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.helpAnchor.getter : Swift.String? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.failureReason.getter : Swift.String? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.errorDescription.getter : Swift.String? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.recoverySuggestion.getter : Swift.String? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Foundation.LocalizedError in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError and conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError and conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError and conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError and conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+type metadata accessor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+full type metadata for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+nominal type descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+type metadata for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Equatable in ComputerUseSwift
+value witness table for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._getEmbeddedNSError() -> Swift.AnyObject? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._code.getter : Swift.Int in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._domain.getter : Swift.String in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._userInfo.getter : Swift.AnyObject? in conformance ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError : Swift.Error in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+storeEnumTagSinglePayload value witness for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+getEnumTag value witness for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+destructiveInjectEnumTag value witness for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+destructiveProjectEnumData value witness for ComputerUseSwift.ScreenshotForComputerUse.ScreenshotError
+static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+(2) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+(4) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+(1) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+(3) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+async function pointer to static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+partial apply forwarder for closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+closure #2 @Sendable (__C.CGImageRef?, Swift.Error?) -> () in closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+partial apply forwarder for closure #2 @Sendable (__C.CGImageRef?, Swift.Error?) -> () in closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+closure #1 () -> () in closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+partial apply forwarder for closure #1 () -> () in closure #1 (Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>) -> () in static ComputerUseSwift.ScreenshotForComputerUse.(captureImage in _914F85BCB5DE148AD0E1D5470A904047)(filter: __C.SCContentFilter, configuration: __C.SCStreamConfiguration) async throws -> __C.CGImageRef
+static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(2) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(4) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(1) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(3) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(5) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(6) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(7) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+async function pointer to static ComputerUseSwift.ScreenshotForComputerUse.captureScreenRegion(displayId: Swift.UInt32, sourceRect: __C.CGRect, outputWidth: Swift.Int, outputHeight: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+function signature specialization <Arg[3] = Dead> of closure #1 (__C.SCRunningApplication) -> Swift.Bool in static ComputerUseSwift.ScreenshotForComputerUse.computeExcludedApps(from: __C.SCShareableContent, allowedBundleIds: [Swift.String]) -> [__C.SCRunningApplication]
+function signature specialization <Arg[2] = Dead> of static ComputerUseSwift.ScreenshotForComputerUse.computeExcludedApps(from: __C.SCShareableContent, allowedBundleIds: [Swift.String]) -> [__C.SCRunningApplication]
+static ComputerUseSwift.ScreenshotForComputerUse.systemChromeBundleIds : Swift.Set<Swift.String>
+one-time initialization function for systemChromeBundleIds
+outlined variable #0 of one-time initialization function for systemChromeBundleIds
+one-time initialization token for systemChromeBundleIds
+static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(2) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(4) await resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(1) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(3) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(5) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(6) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+(7) suspend resume partial function for static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+async function pointer to static ComputerUseSwift.ScreenshotForComputerUse.captureScreenWithExclusion(displayId: Swift.UInt32, width: Swift.Int, height: Swift.Int, allowedBundleIds: [Swift.String], jpegQuality: CoreGraphics.CGFloat) async -> (dataUrl: Swift.String, width: Swift.Int, height: Swift.Int)?
+direct field offset for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047).lock : __C.NSLock
+generic specialization <__C.CGImageRef> of ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047).resume(with: Swift.Result<A, Swift.Error>) -> ()
+reflection metadata field descriptor ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+type metadata instantiation cache for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+generic type metadata pattern for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+anonymous descriptor ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+type metadata accessor for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+type metadata instantiation function for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+nominal type descriptor for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+type metadata completion function for ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047)
+ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047).__deallocating_deinit
+ComputerUseSwift.ScreenshotForComputerUse.(Once in _914F85BCB5DE148AD0E1D5470A904047).deinit
+_$s16ComputerUseSwift013ScreenshotForaB0O4Once33_914F85BCB5DE148AD0E1D5470A904047LLCy_So10CGImageRefaGMR
+_$s16ComputerUseSwift013ScreenshotForaB0O4Once33_914F85BCB5DE148AD0E1D5470A904047LLCy_So10CGImageRefaGMd
+reflection metadata field descriptor ComputerUseSwift.ScreenshotForComputerUse
+type metadata accessor for ComputerUseSwift.ScreenshotForComputerUse
+full type metadata for ComputerUseSwift.ScreenshotForComputerUse
+nominal type descriptor for ComputerUseSwift.ScreenshotForComputerUse
+type metadata for ComputerUseSwift.ScreenshotForComputerUse
+static ComputerUseSwift.ComputerUseBindings.createObject(env: Swift.OpaquePointer) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of static ComputerUseSwift.ComputerUseBindings.createObject(env: Swift.OpaquePointer) -> Swift.OpaquePointer?
+reflection metadata field descriptor ComputerUseSwift.ComputerUseBindings
+type metadata accessor for ComputerUseSwift.ComputerUseBindings
+full type metadata for ComputerUseSwift.ComputerUseBindings
+nominal type descriptor for ComputerUseSwift.ComputerUseBindings
+type metadata for ComputerUseSwift.ComputerUseBindings
+function signature specialization <Arg[1] = Dead> of ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(stringValue: Swift.String) -> ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+lazy protocol witness table cache variable for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+type metadata accessor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+full type metadata for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+nominal type descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+value witness table for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomStringConvertible in ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomDebugStringConvertible in ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.stringValue.getter : Swift.String in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(stringValue: Swift.String) -> A? in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.intValue.getter : Swift.Int? in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(intValue: Swift.Int) -> A? in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomStringConvertible.description.getter : Swift.String in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+getEnumTag value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveInjectEnumTag value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveProjectEnumData value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A).encode(to: Swift.Encoder) throws -> ()
+lazy protocol witness table cache variable for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+protocol witness for Swift.Encodable.encode(to: Swift.Encoder) throws -> () in conformance ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+value witness table for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(ZoomResult in _F0D7456C3431600D602D928F8E56929A)
+ComputerUseSwift.(makePromise in _F0D7456C3431600D602D928F8E56929A)(_: Swift.OpaquePointer, resourceName: Swift.String) -> (promise: Swift.OpaquePointer, deferred: Swift.OpaquePointer, tsfn: Swift.OpaquePointer)?
+reflection metadata field descriptor ComputerUseSwift.InstalledApp
+type metadata accessor for ComputerUseSwift.InstalledApp
+full type metadata for ComputerUseSwift.InstalledApp
+nominal type descriptor for ComputerUseSwift.InstalledApp
+type metadata for ComputerUseSwift.InstalledApp
+value witness table for ComputerUseSwift.InstalledApp
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.InstalledApp
+assignWithCopy value witness for ComputerUseSwift.InstalledApp
+initializeWithCopy value witness for ComputerUseSwift.InstalledApp
+getEnumTagSinglePayload value witness for ComputerUseSwift.InstalledApp
+storeEnumTagSinglePayload value witness for ComputerUseSwift.InstalledApp
+assignWithTake value witness for ComputerUseSwift.InstalledApp
+destroy value witness for ComputerUseSwift.InstalledApp
+ComputerUseSwift.(onEscapeTsfn in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : Swift.OpaquePointer?
+ComputerUseSwift.(cuDisplayInfo in _F0D7456C3431600D602D928F8E56929A)(forDisplayID: Swift.UInt32?) -> ComputerUseSwift.(CUDisplayInfo in _F0D7456C3431600D602D928F8E56929A)?
+findScreen #1 (for: Swift.UInt32) -> __C.NSScreen? in ComputerUseSwift.(cuDisplayInfo in _F0D7456C3431600D602D928F8E56929A)(forDisplayID: Swift.UInt32?) -> ComputerUseSwift.(CUDisplayInfo in _F0D7456C3431600D602D928F8E56929A)?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> () in variable initialization expression of ComputerUseSwift.(escTsfnCallJs in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> ()
+ComputerUseSwift.(runLoopSource in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : __C.CFRunLoopSourceRef?
+ComputerUseSwift.(setStringProp in _F0D7456C3431600D602D928F8E56929A)(Swift.OpaquePointer, Swift.OpaquePointer, Swift.String, Swift.String) -> ()
+function signature specialization <Arg[0] = Dead, Arg[3] = Dead> of ComputerUseSwift.(escTapCallback in _69FE33DC5ED00AA4B7A4DDAE3939C3ED)(proxy: Swift.OpaquePointer, type: __C.CGEventType, event: __C.CGEventRef, userInfo: Swift.UnsafeMutableRawPointer?) -> Swift.Unmanaged<__C.CGEventRef>?
+@objc ComputerUseSwift.(escTapCallback in _69FE33DC5ED00AA4B7A4DDAE3939C3ED)(proxy: Swift.OpaquePointer, type: __C.CGEventType, event: __C.CGEventRef, userInfo: Swift.UnsafeMutableRawPointer?) -> Swift.Unmanaged<__C.CGEventRef>?
+ComputerUseSwift.(getStringArray in _F0D7456C3431600D602D928F8E56929A)(Swift.OpaquePointer, Swift.OpaquePointer) -> [Swift.String]?
+ComputerUseSwift.(expectedEscapes in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : Swift.Int
+ComputerUseSwift.resolveBundleId(for: Swift.Int32, maxDepth: Swift.Int) -> Swift.String?
+function signature specialization <Arg[1] = Dead> of ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(stringValue: Swift.String) -> ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+lazy protocol witness table cache variable for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+type metadata accessor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+full type metadata for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+nominal type descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+value witness table for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomStringConvertible in ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomDebugStringConvertible in ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.stringValue.getter : Swift.String in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(stringValue: Swift.String) -> A? in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.intValue.getter : Swift.Int? in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(intValue: Swift.Int) -> A? in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomStringConvertible.description.getter : Swift.String in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+merged getEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+merged storeEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+getEnumTag value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveInjectEnumTag value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveProjectEnumData value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A).encode(to: Swift.Encoder) throws -> ()
+lazy protocol witness table cache variable for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+type metadata for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+protocol witness for Swift.Encodable.encode(to: Swift.Encoder) throws -> () in conformance ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+value witness table for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)
+function signature specialization <Arg[1] = Dead> of ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(stringValue: Swift.String) -> ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+lazy protocol witness table cache variable for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+type metadata accessor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+full type metadata for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+nominal type descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+merged protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+merged protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+value witness table for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomStringConvertible in ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomDebugStringConvertible in ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.stringValue.getter : Swift.String in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(stringValue: Swift.String) -> A? in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.intValue.getter : Swift.Int? in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(intValue: Swift.Int) -> A? in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomStringConvertible.description.getter : Swift.String in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+getEnumTag value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveInjectEnumTag value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveProjectEnumData value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A).encode(to: Swift.Encoder) throws -> ()
+lazy protocol witness table cache variable for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+protocol witness for Swift.Encodable.encode(to: Swift.Encoder) throws -> () in conformance ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+value witness table for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(ScreenshotResult in _F0D7456C3431600D602D928F8E56929A)
+function signature specialization <Arg[1] = Dead> of static ComputerUseSwift.AppBundleResolver.bundleIds(forAppNames: [Swift.String]) -> [Swift.String]
+ComputerUseSwift.(cuTargetImageSize in _F0D7456C3431600D602D928F8E56929A)(physW: Swift.Int, physH: Swift.Int) -> (Swift.Int, Swift.Int)
+nTokensForImg #1 (Swift.Int, Swift.Int) -> Swift.Int in ComputerUseSwift.(cuTargetImageSize in _F0D7456C3431600D602D928F8E56929A)(physW: Swift.Int, physH: Swift.Int) -> (Swift.Int, Swift.Int)
+ComputerUseSwift.(escHotkeyTeardown in _69FE33DC5ED00AA4B7A4DDAE3939C3ED)() -> ()
+ComputerUseSwift.(getOptionalIntArg in _F0D7456C3431600D602D928F8E56929A)(_: Swift.OpaquePointer, _: [Swift.OpaquePointer?], _: Swift.Int, at: Swift.Int) -> Swift.Int?
+direct field offset for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A).payload : ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+direct field offset for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A).deferred : Swift.OpaquePointer
+reflection metadata field descriptor ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+metaclass for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+type metadata for ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A)
+ComputerUseSwift.(ChicagoPromiseData in _F0D7456C3431600D602D928F8E56929A).__deallocating_deinit
+function signature specialization <Arg[1] = Dead> of static ComputerUseSwift.InstalledAppsCache.(isBackgroundOrAgent in _5AD9C8B52326D6B8DC8EE0E21F502E21)(Any?) -> Swift.Bool
+static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(2) await resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(4) await resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(1) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(3) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(5) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+(6) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+async function pointer to static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+closure #1 (Swift.CheckedContinuation<[ComputerUseSwift.InstalledApp], Swift.Error>) -> () in static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+partial apply forwarder for closure #1 (Swift.CheckedContinuation<[ComputerUseSwift.InstalledApp], Swift.Error>) -> () in static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+closure #1 @Sendable (Foundation.Notification) -> () in closure #1 (Swift.CheckedContinuation<[ComputerUseSwift.InstalledApp], Swift.Error>) -> () in static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+partial apply forwarder for closure #1 @Sendable (Foundation.Notification) -> () in closure #1 (Swift.CheckedContinuation<[ComputerUseSwift.InstalledApp], Swift.Error>) -> () in static ComputerUseSwift.InstalledAppsCache.(performSpotlightQuery in _5AD9C8B52326D6B8DC8EE0E21F502E21)() async throws -> [ComputerUseSwift.InstalledApp]
+static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+partial apply forwarder for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(1) await resume partial function for partial apply forwarder for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+async function pointer to partial apply forwarder for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(1) await resume partial function for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(2) suspend resume partial function for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(3) suspend resume partial function for closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+async function pointer to closure #1 () async throws -> [ComputerUseSwift.InstalledApp] in static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(2) await resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(4) await resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(1) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(3) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(5) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(6) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+(7) suspend resume partial function for static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+async function pointer to static ComputerUseSwift.InstalledAppsCache.list() async throws -> [ComputerUseSwift.InstalledApp]
+static ComputerUseSwift.InstalledAppsCache.(cached in _5AD9C8B52326D6B8DC8EE0E21F502E21) : [ComputerUseSwift.InstalledApp]?
+static ComputerUseSwift.InstalledAppsCache.(cachedAt in _5AD9C8B52326D6B8DC8EE0E21F502E21) : Foundation.Date?
+one-time initialization function for (cachedAt in _5AD9C8B52326D6B8DC8EE0E21F502E21)
+one-time initialization token for (cachedAt in _5AD9C8B52326D6B8DC8EE0E21F502E21)
+static ComputerUseSwift.InstalledAppsCache.(inFlight in _5AD9C8B52326D6B8DC8EE0E21F502E21) : Swift.Task<[ComputerUseSwift.InstalledApp], Swift.Error>?
+protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+base witness table accessor for Swift.Error in ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.helpAnchor.getter : Swift.String? in conformance ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.failureReason.getter : Swift.String? in conformance ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.errorDescription.getter : Swift.String? in conformance ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+protocol witness for Foundation.LocalizedError.recoverySuggestion.getter : Swift.String? in conformance ComputerUseSwift.InstalledAppsError : Foundation.LocalizedError in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.InstalledAppsError and conformance ComputerUseSwift.InstalledAppsError : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.InstalledAppsError and conformance ComputerUseSwift.InstalledAppsError : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.InstalledAppsError and conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.InstalledAppsError and conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.InstalledAppsError
+type metadata accessor for ComputerUseSwift.InstalledAppsError
+full type metadata for ComputerUseSwift.InstalledAppsError
+nominal type descriptor for ComputerUseSwift.InstalledAppsError
+type metadata for ComputerUseSwift.InstalledAppsError
+protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.InstalledAppsError : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.InstalledAppsError : Swift.Equatable in ComputerUseSwift
+value witness table for ComputerUseSwift.InstalledAppsError
+protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._getEmbeddedNSError() -> Swift.AnyObject? in conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._code.getter : Swift.Int in conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._domain.getter : Swift.String in conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+protocol witness for Swift.Error._userInfo.getter : Swift.AnyObject? in conformance ComputerUseSwift.InstalledAppsError : Swift.Error in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.InstalledAppsError
+storeEnumTagSinglePayload value witness for ComputerUseSwift.InstalledAppsError
+getEnumTag value witness for ComputerUseSwift.InstalledAppsError
+destructiveInjectEnumTag value witness for ComputerUseSwift.InstalledAppsError
+destructiveProjectEnumData value witness for ComputerUseSwift.InstalledAppsError
+ComputerUseSwift.napiRegisterModule(Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoUnhideMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+outlined variable #0 of ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(rawValue: Swift.String) -> ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+lazy protocol witness table cache variable for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+type metadata accessor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+full type metadata for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+nominal type descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+reflection metadata associated type descriptor ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol witness for Swift.RawRepresentable.rawValue.getter : A.RawValue in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol witness for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A? in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+value witness table for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomStringConvertible in ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomDebugStringConvertible in ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.stringValue.getter : Swift.String in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(stringValue: Swift.String) -> A? in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.intValue.getter : Swift.Int? in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(intValue: Swift.Int) -> A? in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomStringConvertible.description.getter : Swift.String in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+getEnumTag value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveInjectEnumTag value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveProjectEnumData value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A).encode(to: Swift.Encoder) throws -> ()
+lazy protocol witness table cache variable for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+protocol witness for Swift.Encodable.encode(to: Swift.Encoder) throws -> () in conformance ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+value witness table for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+merged initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(2) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(3) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(4) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoOpenAppMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead, Arg[2] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> () in variable initialization expression of ComputerUseSwift.(chicagoPromiseCallJs in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> ()
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> () in variable initialization expression of ComputerUseSwift.(chicagoPromiseCallJs in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?, Swift.UnsafeMutableRawPointer?, Swift.UnsafeMutableRawPointer?) -> ()
+ComputerUseSwift.(resolveTargetDisplay in _F0D7456C3431600D602D928F8E56929A)(allowedBundleIds: Swift.Set<Swift.String>, preferredDisplayID: Swift.UInt32?, autoResolve: Swift.Bool) -> ComputerUseSwift.(CUDisplayInfo in _F0D7456C3431600D602D928F8E56929A)?
+displayFor #1 (__C.CGRect) -> Swift.UInt32? in ComputerUseSwift.(resolveTargetDisplay in _F0D7456C3431600D602D928F8E56929A)(allowedBundleIds: Swift.Set<Swift.String>, preferredDisplayID: Swift.UInt32?, autoResolve: Swift.Bool) -> ComputerUseSwift.(CUDisplayInfo in _F0D7456C3431600D602D928F8E56929A)?
+frameIfNormal #1 ([Swift.String : Any]) -> __C.CGRect? in ComputerUseSwift.(resolveTargetDisplay in _F0D7456C3431600D602D928F8E56929A)(allowedBundleIds: Swift.Set<Swift.String>, preferredDisplayID: Swift.UInt32?, autoResolve: Swift.Bool) -> ComputerUseSwift.(CUDisplayInfo in _F0D7456C3431600D602D928F8E56929A)?
+reflection metadata builtin descriptor ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+reflection metadata field descriptor ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+outlined consume of ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+outlined copy of ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+value witness table for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+merged initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+getEnumTag value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+destructiveInjectEnumTag value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+destructiveProjectEnumData value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(ChicagoPromisePayload in _F0D7456C3431600D602D928F8E56929A)
+ComputerUseSwift.(computeHideCandidates in _F0D7456C3431600D602D928F8E56929A)(exemptBundleIds: Swift.Set<Swift.String>, displayFrame: __C.CGRect) -> [__C.NSRunningApplication]
+outlined variable #0 of ComputerUseSwift.(computeHideCandidates in _F0D7456C3431600D602D928F8E56929A)(exemptBundleIds: Swift.Set<Swift.String>, displayFrame: __C.CGRect) -> [__C.NSRunningApplication]
+ComputerUseSwift.installedAppIconDataUrl(forPath: Swift.String) -> Swift.String?
+ComputerUseSwift.(chicagoDefocusSystemApps in _F0D7456C3431600D602D928F8E56929A) : Swift.Set<Swift.String>
+one-time initialization function for (chicagoDefocusSystemApps in _F0D7456C3431600D602D928F8E56929A)
+outlined variable #0 of one-time initialization function for (chicagoDefocusSystemApps in _F0D7456C3431600D602D928F8E56929A)
+one-time initialization token for (chicagoDefocusSystemApps in _F0D7456C3431600D602D928F8E56929A)
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoIconDataUrlMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoIconDataUrlMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListRunningMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListRunningMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoAppUnderPointMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+getDoubleArg #1 (Swift.Int) -> Swift.Double? in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoAppUnderPointMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoAppUnderPointMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(2) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(3) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureRegionMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(2) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(3) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoListInstalledMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(rawValue: Swift.String) -> ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+outlined variable #0 of ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.init(rawValue: Swift.String) -> ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys?
+merged ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys.rawValue.getter : Swift.String
+lazy protocol witness table cache variable for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+lazy protocol witness table cache variable for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+type metadata accessor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+full type metadata for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+nominal type descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+base witness table accessor for Swift.Equatable in ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Hashable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.Equatable in ComputerUseSwift
+reflection metadata associated type descriptor ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol witness for Swift.RawRepresentable.rawValue.getter : A.RawValue in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+protocol witness for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A? in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.RawRepresentable in ComputerUseSwift
+value witness table for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomStringConvertible in ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+base witness table accessor for Swift.CustomDebugStringConvertible in ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.stringValue.getter : Swift.String in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(stringValue: Swift.String) -> A? in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.intValue.getter : Swift.Int? in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol witness for Swift.CodingKey.init(intValue: Swift.Int) -> A? in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CodingKey in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomStringConvertible.description.getter : Swift.String in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomStringConvertible in ComputerUseSwift
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+protocol witness for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys : Swift.CustomDebugStringConvertible in ComputerUseSwift
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+getEnumTag value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveInjectEnumTag value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+destructiveProjectEnumData value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).CodingKeys
+ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A).encode(to: Swift.Encoder) throws -> ()
+lazy protocol witness table cache variable for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+lazy protocol witness table accessor for type ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) and conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+reflection metadata field descriptor ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+anonymous descriptor ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+type metadata accessor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+full type metadata for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+nominal type descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+metadata instantiation cache for protocol conformance descriptor for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+protocol witness for Swift.Encodable.encode(to: Swift.Encoder) throws -> () in conformance ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A) : Swift.Encodable in ComputerUseSwift
+outlined destroy of ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+value witness table for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+initializeBufferWithCopyOfBuffer value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithCopy value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+initializeWithCopy value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+getEnumTagSinglePayload value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+storeEnumTagSinglePayload value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+assignWithTake value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+destroy value witness for ComputerUseSwift.(ResolvePrepareCaptureResult in _F0D7456C3431600D602D928F8E56929A)
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoGetDisplaySizeMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoGetDisplaySizeMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+ComputerUseSwift.(chicagoHitTestSkipBundleIds in _F0D7456C3431600D602D928F8E56929A) : Swift.Set<Swift.String>
+one-time initialization function for (chicagoHitTestSkipBundleIds in _F0D7456C3431600D602D928F8E56929A)
+outlined variable #0 of one-time initialization function for (chicagoHitTestSkipBundleIds in _F0D7456C3431600D602D928F8E56929A)
+one-time initialization token for (chicagoHitTestSkipBundleIds in _F0D7456C3431600D602D928F8E56929A)
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (ComputerUseSwift.(PrepareDisplayResult in _F0D7456C3431600D602D928F8E56929A)) -> Swift.String in closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPrepareDisplayMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPreviewHideSetMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoPreviewHideSetMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoRegisterEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoRegisterEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(2) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(3) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCaptureExcludingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoDrainMainRunLoopMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoDrainMainRunLoopMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolveBundleIdsMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolveBundleIdsMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoUnregisterEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCheckAccessibilityMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoFindWindowDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoFindWindowDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoTestEchoOptionalIntMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoTestEchoOptionalIntMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCheckScreenRecordingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+merged @objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoCheckScreenRecordingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoNotifyExpectedEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoNotifyExpectedEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 @Swift.MainActor () -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.chicagoNotifyExpectedEscapeMethod : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+function signature specialization <Arg[1] = Dead> of closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoRequestAccessibilityMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoRequestAccessibilityMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+frontmostHasWindowOnTargetDisplay #1 () -> Swift.Bool in closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+closure #1 ([Swift.String : Any]) -> Swift.Bool in closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to partial apply forwarder for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(12) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(2) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(4) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(6) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(8) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(10) await resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(1) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(11) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(13) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(14) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(15) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(16) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(17) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(18) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(3) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(5) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(7) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+(9) suspend resume partial function for closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+async function pointer to closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+outlined variable #0 of closure #1 () async -> () in closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+@objc closure #1 (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer? in variable initialization expression of ComputerUseSwift.(chicagoRequestScreenRecordingMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?
+ComputerUseSwift.(setFn in _F0D7456C3431600D602D928F8E56929A)(Swift.OpaquePointer, Swift.OpaquePointer, Swift.String, @convention(c) (Swift.OpaquePointer?, Swift.OpaquePointer?) -> Swift.OpaquePointer?) -> ()
+ComputerUseSwift.(escEpoch in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : Swift.UInt64
+ComputerUseSwift.(eventTap in _69FE33DC5ED00AA4B7A4DDAE3939C3ED) : __C.CFMachPortRef?
+ComputerUseSwift.(getString in _F0D7456C3431600D602D928F8E56929A)(Swift.OpaquePointer, Swift.OpaquePointer) -> Swift.String?
+module descriptor ComputerUseSwift
+module descriptor AppKit
+Darwin.stderr.getter : Swift.UnsafeMutablePointer<__C.__sFILE>
+enum case for Dispatch.DispatchTimeInterval.milliseconds(Dispatch.DispatchTimeInterval.Type) -> (Swift.Int) -> Dispatch.DispatchTimeInterval
+type metadata accessor for Dispatch.DispatchTimeInterval
+lazy protocol witness table cache variable for type Dispatch.DispatchWorkItemFlags and conformance Dispatch.DispatchWorkItemFlags : Swift.SetAlgebra in Dispatch
+lazy protocol witness table accessor for type Dispatch.DispatchWorkItemFlags and conformance Dispatch.DispatchWorkItemFlags : Swift.SetAlgebra in Dispatch
+type metadata accessor for Dispatch.DispatchWorkItemFlags
+nominal type descriptor for Dispatch.DispatchWorkItemFlags
+protocol conformance descriptor for Dispatch.DispatchWorkItemFlags : Swift.SetAlgebra in Dispatch
+enum case for Dispatch.DispatchQoS.QoSClass.default(Dispatch.DispatchQoS.QoSClass.Type) -> Dispatch.DispatchQoS.QoSClass
+type metadata accessor for Dispatch.DispatchQoS.QoSClass
+static Dispatch.DispatchQoS.unspecified.getter : Dispatch.DispatchQoS
+type metadata accessor for Dispatch.DispatchQoS
+static Dispatch.DispatchTime.now() -> Dispatch.DispatchTime
+type metadata accessor for Dispatch.DispatchTime
+Dispatch.DispatchWorkItem.init(flags: Dispatch.DispatchWorkItemFlags, block: @convention(block) () -> ()) -> Dispatch.DispatchWorkItem
+dispatch thunk of Dispatch.DispatchWorkItem.cancel() -> ()
+type metadata accessor for Dispatch.DispatchWorkItem
+nominal type descriptor for Dispatch.DispatchWorkItem
+Dispatch.+ infix(Dispatch.DispatchTime, Dispatch.DispatchTimeInterval) -> Dispatch.DispatchTime
+Dispatch.+ infix(Dispatch.DispatchTime, Swift.Double) -> Dispatch.DispatchTime
+associated type descriptor for Swift.RawRepresentable.RawValue
+value witness table for Builtin.UnknownObject
+value witness table for Builtin.NativeObject
+reabstraction thunk helper from @escaping @callee_guaranteed () -> () to @escaping @callee_unowned @convention(block) () -> ()
+lazy protocol witness table cache variable for type Swift.String and conformance Swift.String : Swift.StringProtocol in Swift
+lazy protocol witness table accessor for type Swift.String and conformance Swift.String : Swift.StringProtocol in Swift
+lazy protocol witness table cache variable for type Swift.String and conformance Swift.String : Swift.CVarArg in Foundation
+lazy protocol witness table accessor for type Swift.String and conformance Swift.String : Swift.CVarArg in Foundation
+lazy protocol witness table cache variable for type Swift.MainActor and conformance Swift.MainActor : Swift.Actor in Swift
+(extension in Foundation):Swift.Dictionary._bridgeToObjectiveC() -> __C.NSDictionary
+static (extension in Foundation):Swift.Dictionary._unconditionallyBridgeFromObjectiveC(__C.NSDictionary?) -> [A : B]
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.String, Swift.Bool> of Swift.Dictionary.init(dictionaryLiteral: (A, B)...) -> [A : B]
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.String, Swift.Set<Swift.Int32>> of Swift.Dictionary.init(dictionaryLiteral: (A, B)...) -> [A : B]
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <__C.NSBitmapImageRepPropertyKey, Any> of Swift.Dictionary.init(dictionaryLiteral: (A, B)...) -> [A : B]
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.Int32, Swift.Set<Swift.UInt32>> of Swift.Dictionary.init(dictionaryLiteral: (A, B)...) -> [A : B]
+_$sSDySSypGMR
+_$sSDySSypGMd
+method descriptor for Swift.Encodable.encode(to: Swift.Encoder) throws -> ()
+protocol descriptor for Swift.Encodable
+method descriptor for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int
+method descriptor for Swift.Hashable.hash(into: inout Swift.Hasher) -> ()
+method descriptor for Swift.Hashable.hashValue.getter : Swift.Int
+protocol descriptor for Swift.Hashable
+base conformance descriptor for Swift.Hashable: Swift.Equatable
+method descriptor for static Swift.Equatable.== infix(A, A) -> Swift.Bool
+protocol descriptor for Swift.Equatable
+(extension in Foundation):Swift.String._bridgeToObjectiveC() -> __C.NSString
+static (extension in Foundation):Swift.String._forceBridgeFromObjectiveC(_: __C.NSString, result: inout Swift.String?) -> ()
+static (extension in Foundation):Swift.String._conditionallyBridgeFromObjectiveC(_: __C.NSString, result: inout Swift.String?) -> Swift.Bool
+static (extension in Foundation):Swift.String._unconditionallyBridgeFromObjectiveC(__C.NSString?) -> Swift.String
+(extension in Foundation):Swift.String.init(data: __shared Foundation.Data, encoding: (extension in Foundation):Swift.String.Encoding) -> Swift.String?
+static (extension in Foundation):Swift.String.Encoding.utf8.getter : (extension in Foundation):Swift.String.Encoding
+type metadata accessor for (extension in Foundation):Swift.String.Encoding
+Swift.String.lowercased() -> Swift.String
+Swift.String.uppercased() -> Swift.String
+Swift.String.utf8CString.getter : Swift.ContiguousArray<Swift.Int8>
+static Swift.String._fromSubstring(__shared Swift.Substring) -> Swift.String
+static Swift.String._fromUTF8Repairing(Swift.UnsafeBufferPointer<Swift.UInt8>) -> (result: Swift.String, repairsMade: Swift.Bool)
+Swift.String.hash(into: inout Swift.Hasher) -> ()
+Swift.String.count.getter : Swift.Int
+Swift.String.index(_: Swift.String.Index, offsetBy: Swift.Int, limitedBy: Swift.String.Index) -> Swift.String.Index?
+Swift.String.append(Swift.String) -> ()
+function signature specialization <Arg[0] = Owned To Guaranteed> of Swift.String.init(cString: [Swift.Int8]) -> Swift.String
+Swift.String.UTF8View._foreignCount() -> Swift.Int
+Swift.String.hasPrefix(Swift.String) -> Swift.Bool
+Swift.String.hasSuffix(Swift.String) -> Swift.Bool
+Swift.String.hashValue.getter : Swift.Int
+type metadata for Swift.String
+protocol witness table for Swift.String : Swift.Encodable in Swift
+protocol witness table for Swift.String : Swift.Hashable in Swift
+_$sSSSgMR
+_$sSSSgMd
+lazy protocol witness table cache variable for type Swift.String? and conformance <A where A: Swift.Encodable> A? : Swift.Encodable in Swift
+protocol conformance descriptor for Swift.String : Swift.StringProtocol in Swift
+outlined destroy of Swift.String
+_$sSS_SbtMR
+_$sSS_SbtMd
+protocol conformance descriptor for Swift.String : Swift.CVarArg in Foundation
+Swift.String.subscript.getter : (Swift.Range<Swift.String.Index>) -> Swift.Substring
+generic specialization <Swift.Set<Swift.String>> of (extension in Swift):Swift.Sequence._copySequenceContents(initializing: Swift.UnsafeMutableBufferPointer<A.Element>) -> (A.Iterator, Swift.Int)
+generic specialization <Swift.Set<Swift.Int32>> of (extension in Swift):Swift.Sequence._copySequenceContents(initializing: Swift.UnsafeMutableBufferPointer<A.Element>) -> (A.Iterator, Swift.Int)
+function signature specialization <Arg[0] = [Closure Propagated : closure #1 (Swift.Dictionary<Swift.String, Any>) -> Swift.Bool in closure #1 () async -> () in closure #1 (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer> in variable initialization expression of ComputerUseSwift.(chicagoResolvePrepareCaptureMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer>, Argument Types : [Swift.Set<Swift.Int32>]> of generic specialization <[[Swift.String : Any]]> of (extension in Swift):Swift.Sequence.contains(where: (A.Element) throws -> Swift.Bool) throws -> Swift.Bool
+method descriptor for Swift.RawRepresentable.rawValue.getter : A.RawValue
+method descriptor for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A?
+protocol descriptor for Swift.RawRepresentable
+(extension in Foundation):Swift.Array._bridgeToObjectiveC() -> __C.NSArray
+static (extension in Foundation):Swift.Array._conditionallyBridgeFromObjectiveC(_: __C.NSArray, result: inout [A]?) -> Swift.Bool
+static (extension in Foundation):Swift.Array._unconditionallyBridgeFromObjectiveC(__C.NSArray?) -> [A]
+static Swift.Array._allocateBufferUninitialized(minimumCapacity: Swift.Int) -> Swift._ArrayBuffer<A>
+generic specialization <Swift.Int32, Swift.Set<Swift.Int32>> of Swift.Array.append<A where A == A1.Element, A1: Swift.Sequence>(contentsOf: __owned A1) -> ()
+_$sSay16ComputerUseSwift12InstalledAppVGMR
+_$sSay16ComputerUseSwift12InstalledAppVGMd
+_$sSay16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLVGMR
+_$sSay16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLVGMd
+lazy protocol witness table cache variable for type [ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)] and conformance <A where A: Swift.Encodable> [A] : Swift.Encodable in Swift
+lazy protocol witness table accessor for type [ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)] and conformance <A where A: Swift.Encodable> [A] : Swift.Encodable in Swift
+_$sSay8Dispatch0A13WorkItemFlagsVGMR
+_$sSay8Dispatch0A13WorkItemFlagsVGMd
+lazy protocol witness table cache variable for type [Dispatch.DispatchWorkItemFlags] and conformance [A] : Swift.Sequence in Swift
+lazy protocol witness table accessor for type [Dispatch.DispatchWorkItemFlags] and conformance [A] : Swift.Sequence in Swift
+_$sSaySSGMR
+_$sSaySSGMd
+lazy protocol witness table cache variable for type [Swift.String] and conformance <A where A: Swift.Encodable> [A] : Swift.Encodable in Swift
+merged lazy protocol witness table accessor for type [Swift.String] and conformance <A where A: Swift.Encodable> [A] : Swift.Encodable in Swift
+protocol conformance descriptor for <A where A: Swift.Encodable> [A] : Swift.Encodable in Swift
+protocol conformance descriptor for [A] : Swift.Sequence in Swift
+type metadata for Swift.Bool
+dispatch thunk of Swift.Actor.unownedExecutor.getter : Swift.UnownedSerialExecutor
+Swift.CheckedContinuation.init(continuation: Swift.UnsafeContinuation<A, B>, function: Swift.String) -> Swift.CheckedContinuation<A, B>
+Swift.CheckedContinuation.resume(throwing: __owned B) -> ()
+Swift.CheckedContinuation.resume(returning: __owned A) -> ()
+type metadata accessor for Swift.CheckedContinuation
+_$sScCySay16ComputerUseSwift12InstalledAppVGs5Error_pGMR
+_$sScCySay16ComputerUseSwift12InstalledAppVGs5Error_pGMd
+_$sScCySo10CGImageRefas5Error_pGMR
+_$sScCySo10CGImageRefas5Error_pGMd
+_$sScCySo10CGImageRefas5Error_pGSgMR
+_$sScCySo10CGImageRefas5Error_pGSgMd
+outlined assign with take of Swift.CheckedContinuation<__C.CGImageRef, Swift.Error>?
+static Swift.MainActor.shared.getter : Swift.MainActor
+type metadata accessor for Swift.MainActor
+protocol conformance descriptor for Swift.MainActor : Swift.Actor in Swift
+Swift.TaskPriority.rawValue.getter : Swift.UInt8
+type metadata accessor for Swift.TaskPriority
+_$sScPSgMR
+_$sScPSgMd
+outlined init with copy of Swift.TaskPriority?
+merged outlined destroy of Swift.TaskPriority?
+Swift.Task.value.getter : A
+async function pointer to Swift.Task.value.getter : A
+generic specialization <[ComputerUseSwift.InstalledApp]> of (extension in Swift):Swift.Task< where B == Swift.Error>.init(name: Swift.String?, priority: Swift.TaskPriority?, operation: __owned @isolated(any) () async throws -> A) -> Swift.Task<A, Swift.Error>
+generic specialization <()> of (extension in Swift):Swift.Task< where B == Swift.Never>.init(name: Swift.String?, priority: Swift.TaskPriority?, operation: __owned @isolated(any) () async -> A) -> Swift.Task<A, Swift.Never>
+static (extension in Swift):Swift.Task< where A == Swift.Never, B == Swift.Never>.sleep(nanoseconds: Swift.UInt64) async throws -> ()
+async function pointer to static (extension in Swift):Swift.Task< where A == Swift.Never, B == Swift.Never>.sleep(nanoseconds: Swift.UInt64) async throws -> ()
+_$sSccySo18SCShareableContentCs5Error_pGMR
+_$sSccySo18SCShareableContentCs5Error_pGMd
+_$sSccySo20NSRunningApplicationCs5Error_pGMR
+_$sSccySo20NSRunningApplicationCs5Error_pGMd
+type metadata for Swift.Double
+Swift.Set.init(minimumCapacity: Swift.Int) -> Swift.Set<A>
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.String> of Swift.Set.init(_nonEmptyArrayLiteral: [A]) -> Swift.Set<A>
+outlined consume of Swift.Set<Swift.String>.Iterator._Variant
+outlined consume of Swift.Set<Swift.Int32>.Iterator._Variant
+generic specialization <Swift.String> of Swift.Set._Variant.insert(__owned A) -> (inserted: Swift.Bool, memberAfterInsert: A)
+generic specialization <Swift.Int32> of Swift.Set._Variant.insert(__owned A) -> (inserted: Swift.Bool, memberAfterInsert: A)
+merged generic specialization <Swift.Int32> of Swift.Set._Variant.insert(__owned A) -> (inserted: Swift.Bool, memberAfterInsert: A)
+generic specialization <Swift.UInt32> of Swift.Set._Variant.insert(__owned A) -> (inserted: Swift.Bool, memberAfterInsert: A)
+generic specialization <Swift.String> of Swift.Set.contains(A) -> Swift.Bool
+generic specialization <Swift.Int32> of Swift.Set.contains(A) -> Swift.Bool
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.String, [Swift.String]> of Swift.Set.formUnion<A where A == A1.Element, A1: Swift.Sequence>(__owned A1) -> ()
+generic specialization <Swift.UInt32, Swift.Set<Swift.UInt32>> of Swift.Set.formUnion<A where A == A1.Element, A1: Swift.Sequence>(__owned A1) -> ()
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.String, [Swift.String]> of Swift.Set.init<A where A == A1.Element, A1: Swift.Sequence>(__owned A1) -> Swift.Set<A>
+function signature specialization <Arg[0] = Owned To Guaranteed> of generic specialization <Swift.Int32, [Swift.Int32]> of Swift.Set.init<A where A == A1.Element, A1: Swift.Sequence>(__owned A1) -> Swift.Set<A>
+function signature specialization <Arg[1] = [Constant Propagated Function : implicit closure #2 () -> Swift.Set<Swift.Int32> in closure #1 (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer> in variable initialization expression of ComputerUseSwift.(chicagoFindWindowDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer>]> of reabstraction thunk helper from @callee_guaranteed () -> (@owned Swift.Set<Swift.Int32>) to @escaping @callee_guaranteed () -> (@out Swift.Set<Swift.Int32>)
+function signature specialization <Arg[1] = [Constant Propagated Function : implicit closure #5 () -> Swift.Set<Swift.UInt32> in closure #1 (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer> in variable initialization expression of ComputerUseSwift.(chicagoFindWindowDisplaysMethod in _F0D7456C3431600D602D928F8E56929A) : @convention(c) (Swift.Optional<Swift.OpaquePointer>, Swift.Optional<Swift.OpaquePointer>) -> Swift.Optional<Swift.OpaquePointer>]> of reabstraction thunk helper from @callee_guaranteed () -> (@owned Swift.Set<Swift.UInt32>) to @escaping @callee_guaranteed () -> (@out Swift.Set<Swift.UInt32>)
+type metadata for Swift.Int
+function signature specialization <Arg[1] = Owned To Guaranteed> of generic specialization <Swift.String> of (extension in Swift):Swift.Collection.dropFirst(Swift.Int) -> A.SubSequence
+lazy cache variable for type metadata for __C.CGImageRef
+type metadata accessor for __C.CGImageRef
+full type metadata for __C.CGImageRef
+nominal type descriptor for __C.CGImageRef
+reabstraction thunk helper from @escaping @callee_guaranteed @Sendable (@guaranteed __C.CGImageRef?, @guaranteed Swift.Error?) -> () to @escaping @callee_unowned @convention(block) @Sendable (@unowned __C.CGImageRef?, @unowned __C.NSError?) -> ()
+(extension in Foundation):__C.NSPredicate.init(format: __shared Swift.String, _: Swift.CVarArg...) -> __C.NSPredicate
+lazy cache variable for type metadata for __C.NSPredicate
+merged type metadata accessor for __C.NSPredicate
+lazy cache variable for type metadata for __C.NSMetadataItem
+(extension in Dispatch):__C.OS_dispatch_queue.asyncAfter(deadline: Dispatch.DispatchTime, qos: Dispatch.DispatchQoS, flags: Dispatch.DispatchWorkItemFlags, execute: @convention(block) () -> ()) -> ()
+(extension in Dispatch):__C.OS_dispatch_queue.asyncAfter(deadline: Dispatch.DispatchTime, execute: Dispatch.DispatchWorkItem) -> ()
+static (extension in Dispatch):__C.OS_dispatch_queue.main.getter : __C.OS_dispatch_queue
+static (extension in Dispatch):__C.OS_dispatch_queue.global(qos: Dispatch.DispatchQoS.QoSClass) -> __C.OS_dispatch_queue
+lazy cache variable for type metadata for __C.OS_dispatch_queue
+type metadata accessor for __C.OS_dispatch_queue
+@objc completion handler block implementation for @escaping @callee_unowned @convention(block) @Sendable (@unowned __C.SCShareableContent?, @unowned __C.NSError?) -> () with result type __C.SCShareableContent
+lazy cache variable for type metadata for __C.NSRunningApplication
+type metadata accessor for __C.NSRunningApplication
+@objc completion handler block implementation for @escaping @callee_unowned @convention(block) @Sendable (@unowned __C.NSRunningApplication?, @unowned __C.NSError?) -> () with result type __C.NSRunningApplication
+lazy cache variable for type metadata for __C.SCRunningApplication
+lazy protocol witness table cache variable for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+merged lazy protocol witness table accessor for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift.Equatable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSDeviceDescriptionKey and conformance __C.NSDeviceDescriptionKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+reflection metadata builtin descriptor __C.NSDeviceDescriptionKey
+reflection metadata field descriptor __C.NSDeviceDescriptionKey
+lazy cache variable for type metadata for __C.NSDeviceDescriptionKey
+type metadata accessor for __C.NSDeviceDescriptionKey
+full type metadata for __C.NSDeviceDescriptionKey
+nominal type descriptor for __C.NSDeviceDescriptionKey
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+merged protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+merged protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+merged protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+base witness table accessor for Swift.Equatable in __C.NSDeviceDescriptionKey : Swift.Hashable in __C_Synthesized
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.Equatable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.Equatable in __C_Synthesized
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance __C.NSDeviceDescriptionKey : Swift.Equatable in __C_Synthesized
+merged protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance __C.NSDeviceDescriptionKey : Swift.Equatable in __C_Synthesized
+reflection metadata associated type descriptor __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+protocol witness for Swift.RawRepresentable.rawValue.getter : A.RawValue in conformance __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+protocol witness for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A? in conformance __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+merged protocol witness for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A? in conformance __C.NSDeviceDescriptionKey : Swift.RawRepresentable in __C_Synthesized
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+base witness table accessor for Swift.RawRepresentable in __C.NSDeviceDescriptionKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+base witness table accessor for Swift._HasCustomAnyHashableRepresentation in __C.NSDeviceDescriptionKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+reflection metadata associated type descriptor __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._forceBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> () in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+merged protocol witness for static Swift._ObjectiveCBridgeable._forceBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> () in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._conditionallyBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> Swift.Bool in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+merged protocol witness for static Swift._ObjectiveCBridgeable._conditionallyBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> Swift.Bool in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._unconditionallyBridgeFromObjectiveC(A._ObjectiveCType?) -> A in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+merged protocol witness for static Swift._ObjectiveCBridgeable._unconditionallyBridgeFromObjectiveC(A._ObjectiveCType?) -> A in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for Swift._ObjectiveCBridgeable._bridgeToObjectiveC() -> A._ObjectiveCType in conformance __C.NSDeviceDescriptionKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSDeviceDescriptionKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+protocol witness for Swift._HasCustomAnyHashableRepresentation._toCustomAnyHashable() -> Swift.AnyHashable? in conformance __C.NSDeviceDescriptionKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+merged lazy protocol witness table accessor for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift.Equatable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+merged lazy protocol witness table accessor for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+lazy protocol witness table cache variable for type __C.NSBitmapImageRepPropertyKey and conformance __C.NSBitmapImageRepPropertyKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+reflection metadata builtin descriptor __C.NSBitmapImageRepPropertyKey
+reflection metadata field descriptor __C.NSBitmapImageRepPropertyKey
+lazy cache variable for type metadata for __C.NSBitmapImageRepPropertyKey
+type metadata accessor for __C.NSBitmapImageRepPropertyKey
+full type metadata for __C.NSBitmapImageRepPropertyKey
+nominal type descriptor for __C.NSBitmapImageRepPropertyKey
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable._rawHashValue(seed: Swift.Int) -> Swift.Int in conformance __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable.hash(into: inout Swift.Hasher) -> () in conformance __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+protocol witness for Swift.Hashable.hashValue.getter : Swift.Int in conformance __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+base witness table accessor for Swift.Equatable in __C.NSBitmapImageRepPropertyKey : Swift.Hashable in __C_Synthesized
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.Equatable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.Equatable in __C_Synthesized
+protocol witness for static Swift.Equatable.== infix(A, A) -> Swift.Bool in conformance __C.NSBitmapImageRepPropertyKey : Swift.Equatable in __C_Synthesized
+reflection metadata associated type descriptor __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+protocol witness for Swift.RawRepresentable.rawValue.getter : A.RawValue in conformance __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+protocol witness for Swift.RawRepresentable.init(rawValue: A.RawValue) -> A? in conformance __C.NSBitmapImageRepPropertyKey : Swift.RawRepresentable in __C_Synthesized
+_$sSo27NSBitmapImageRepPropertyKeya_yptMR
+_$sSo27NSBitmapImageRepPropertyKeya_yptMd
+outlined init with copy of (__C.NSBitmapImageRepPropertyKey, Any)
+outlined destroy of (__C.NSBitmapImageRepPropertyKey, Any)
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+base witness table accessor for Swift.RawRepresentable in __C.NSBitmapImageRepPropertyKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+base witness table accessor for Swift._HasCustomAnyHashableRepresentation in __C.NSBitmapImageRepPropertyKey : Swift._SwiftNewtypeWrapper in __C_Synthesized
+reflection metadata associated type descriptor __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._forceBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> () in conformance __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._conditionallyBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> Swift.Bool in conformance __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for static Swift._ObjectiveCBridgeable._unconditionallyBridgeFromObjectiveC(A._ObjectiveCType?) -> A in conformance __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol witness for Swift._ObjectiveCBridgeable._bridgeToObjectiveC() -> A._ObjectiveCType in conformance __C.NSBitmapImageRepPropertyKey : Swift._ObjectiveCBridgeable in __C_Synthesized
+protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+metadata instantiation cache for protocol conformance descriptor for __C.NSBitmapImageRepPropertyKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+protocol witness for Swift._HasCustomAnyHashableRepresentation._toCustomAnyHashable() -> Swift.AnyHashable? in conformance __C.NSBitmapImageRepPropertyKey : Swift._HasCustomAnyHashableRepresentation in __C_Synthesized
+(extension in CoreGraphics):__C.CGRect.init(dictionaryRepresentation: __C.CFDictionaryRef) -> __C.CGRect?
+reflection metadata builtin descriptor __C.CGRect
+reflection metadata field descriptor __C.CGRect
+lazy cache variable for type metadata for __C.CGRect
+type metadata accessor for __C.CGRect
+merged type metadata accessor for __C.CGRect
+full type metadata for __C.CGRect
+nominal type descriptor for __C.CGRect
+value witness table for __C.CGRect
+initializeBufferWithCopyOfBuffer value witness for __C.CGRect
+getEnumTagSinglePayload value witness for __C.CGRect
+storeEnumTagSinglePayload value witness for __C.CGRect
+reflection metadata builtin descriptor __C.CGSize
+reflection metadata field descriptor __C.CGSize
+lazy cache variable for type metadata for __C.CGSize
+type metadata accessor for __C.CGSize
+full type metadata for __C.CGSize
+nominal type descriptor for __C.CGSize
+value witness table for __C.CGSize
+getEnumTagSinglePayload value witness for __C.CGSize
+storeEnumTagSinglePayload value witness for __C.CGSize
+reflection metadata builtin descriptor __C.CGPoint
+reflection metadata field descriptor __C.CGPoint
+lazy cache variable for type metadata for __C.CGPoint
+type metadata accessor for __C.CGPoint
+full type metadata for __C.CGPoint
+nominal type descriptor for __C.CGPoint
+value witness table for __C.CGPoint
+getEnumTagSinglePayload value witness for __C.CGPoint
+storeEnumTagSinglePayload value witness for __C.CGPoint
+lazy cache variable for type metadata for __C.NSNumber
+lazy cache variable for type metadata for __C.NSScreen
+merged type metadata accessor for __C.NSScreen
+lazy cache variable for type metadata for __C.SCWindow
+lazy cache variable for type metadata for __C.SCDisplay
+merged type metadata accessor for __C.SCDisplay
+module descriptor __C
+type metadata accessor for Swift.Optional
+(extension in Foundation):Swift.StringProtocol.contains<A where A1: Swift.StringProtocol>(A1) -> Swift.Bool
+Swift._bridgeAnyObjectToAny(Swift.AnyObject?) -> Any
+Swift._stdlib_isOSVersionAtLeastOrVariantVersionAtLeast(Builtin.Word, Builtin.Word, Builtin.Word, Builtin.Word, Builtin.Word, Builtin.Word) -> Builtin.Int1
+dispatch thunk of Swift.SetAlgebra.init<A where A1: Swift.Sequence, A.Element == A1.Element>(__owned A1) -> A
+generic specialization <Swift.String, [Swift.String]> of closure #1 (Swift._UnsafeBitset) -> Swift._NativeSet<A> in Swift._NativeSet.subtracting<A where A == A1.Element, A1: Swift.Sequence>(A1) -> Swift._NativeSet<A>
+generic specialization <Swift.String, [Swift.String]> of Swift._NativeSet.subtracting<A where A == A1.Element, A1: Swift.Sequence>(A1) -> Swift._NativeSet<A>
+generic specialization <Swift.String> of Swift._NativeSet.copyAndResize(capacity: Swift.Int) -> ()
+merged generic specialization <Swift.Int32> of Swift._NativeSet.copyAndResize(capacity: Swift.Int) -> ()
+generic specialization <Swift.String> of Swift._NativeSet.extractSubset(using: Swift._UnsafeBitset, count: Swift.Int) -> Swift._NativeSet<A>
+generic specialization <Swift.String> of Swift._NativeSet.copy() -> ()
+merged generic specialization <Swift.Int32> of Swift._NativeSet.copy() -> ()
+generic specialization <Swift.String> of Swift._NativeSet.resize(capacity: Swift.Int) -> ()
+merged generic specialization <Swift.Int32> of Swift._NativeSet.resize(capacity: Swift.Int) -> ()
+generic specialization <Swift.String> of Swift._NativeSet.insertNew(_: __owned A, at: Swift._HashTable.Bucket, isUnique: Swift.Bool) -> ()
+merged generic specialization <Swift.Int32> of Swift._NativeSet.insertNew(_: __owned A, at: Swift._HashTable.Bucket, isUnique: Swift.Bool) -> ()
+static Swift._SetStorage.copy(original: Swift.__RawSetStorage) -> Swift._SetStorage<A>
+static Swift._SetStorage.resize(original: Swift.__RawSetStorage, capacity: Swift.Int, move: Swift.Bool) -> Swift._SetStorage<A>
+static Swift._SetStorage.allocate(capacity: Swift.Int) -> Swift._SetStorage<A>
+nominal type descriptor for Swift._SetStorage
+_$ss11_SetStorageCySSGMR
+_$ss11_SetStorageCySSGMd
+_$ss11_SetStorageCys5Int32VGMR
+_$ss11_SetStorageCys5Int32VGMd
+_$ss11_SetStorageCys6UInt32VGMR
+_$ss11_SetStorageCys6UInt32VGMd
+Swift._StringGuts.grow(Swift.Int) -> ()
+nominal type descriptor for Swift.StaticString
+generic specialization <__C.NSRunningApplication> of Swift._ArrayBuffer._copyContents(subRange: Swift.Range<Swift.Int>, initializing: Swift.UnsafeMutablePointer<A>) -> Swift.UnsafeMutablePointer<A>
+Swift._ArrayBuffer._typeCheckSlowPath(Swift.Int) -> ()
+generic specialization <__C.NSRunningApplication> of Swift._ArrayBuffer._getElementSlowPath(Swift.Int) -> Swift.AnyObject
+merged generic specialization <__C.NSRunningApplication> of Swift._ArrayBuffer._getElementSlowPath(Swift.Int) -> Swift.AnyObject
+merged generic specialization <__C.SCRunningApplication> of Swift._ArrayBuffer._getElementSlowPath(Swift.Int) -> Swift.AnyObject
+generic specialization <__C.NSScreen> of Swift._ArrayBuffer._getElementSlowPath(Swift.Int) -> Swift.AnyObject
+generic specialization <ComputerUseSwift.InstalledApp> of Swift._ArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ArrayBuffer<A>
+generic specialization <Swift.String> of Swift._ArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ArrayBuffer<A>
+generic specialization <__C.NSRunningApplication> of Swift._ArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ArrayBuffer<A>
+generic specialization <Swift.Int32> of Swift._ArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ArrayBuffer<A>
+generic specialization <(Swift.UInt32, __C.CGRect)> of Swift._ArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ArrayBuffer<A>
+nominal type descriptor for Swift.OpaquePointer
+_$ss13OpaquePointerVSgMR
+_$ss13OpaquePointerVSgMd
+generic specialization <ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)> of Swift.ContiguousArray._createNewBuffer(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> ()
+generic specialization <__C.SCRunningApplication> of Swift.ContiguousArray._createNewBuffer(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> ()
+generic specialization <Swift.String, Swift.Set<Swift.Int32>> of Swift._NativeDictionary._copyOrMoveAndResize(capacity: Swift.Int, moveElements: Swift.Bool) -> ()
+generic specialization <Swift.Int32, Swift.Set<Swift.UInt32>> of Swift._NativeDictionary._copyOrMoveAndResize(capacity: Swift.Int, moveElements: Swift.Bool) -> ()
+generic specialization <Swift.String, Swift.Set<Swift.Int32>> of Swift._NativeDictionary.copy() -> ()
+generic specialization <Swift.Int32, Swift.Set<Swift.UInt32>> of Swift._NativeDictionary.copy() -> ()
+Swift._assertionFailure(_: Swift.StaticString, _: Swift.String, flags: Swift.UInt32) -> Swift.Never
+Swift._CocoaArrayWrapper._copyContents(subRange: Swift.Range<Swift.Int>, initializing: Swift.UnsafeMutablePointer<Swift.AnyObject>) -> Swift.UnsafeMutablePointer<Swift.AnyObject>
+Swift._CocoaArrayWrapper.endIndex.getter : Swift.Int
+Swift._CocoaArrayWrapper.subscript.getter : (Swift.Int) -> Swift.AnyObject
+static Swift._DictionaryStorage.copy(original: Swift.__RawDictionaryStorage) -> Swift._DictionaryStorage<A, B>
+static Swift._DictionaryStorage.resize(original: Swift.__RawDictionaryStorage, capacity: Swift.Int, move: Swift.Bool) -> Swift._DictionaryStorage<A, B>
+static Swift._DictionaryStorage.allocate(capacity: Swift.Int) -> Swift._DictionaryStorage<A, B>
+nominal type descriptor for Swift._DictionaryStorage
+_$ss18_DictionaryStorageCySSSbGMR
+_$ss18_DictionaryStorageCySSSbGMd
+_$ss18_DictionaryStorageCySSShys5Int32VGGMR
+_$ss18_DictionaryStorageCySSShys5Int32VGGMd
+_$ss18_DictionaryStorageCySo27NSBitmapImageRepPropertyKeyaypGMR
+_$ss18_DictionaryStorageCySo27NSBitmapImageRepPropertyKeyaypGMd
+_$ss18_DictionaryStorageCys5Int32VShys6UInt32VGGMR
+_$ss18_DictionaryStorageCys5Int32VShys6UInt32VGGMd
+protocol descriptor for Swift._SwiftNewtypeWrapper
+base conformance descriptor for Swift._SwiftNewtypeWrapper: Swift.RawRepresentable
+base conformance descriptor for Swift._SwiftNewtypeWrapper: Swift._HasCustomAnyHashableRepresentation
+(extension in Swift):Swift._SwiftNewtypeWrapper< where A: Swift.Hashable, A.Swift.RawRepresentable.RawValue: Swift.Hashable>._toCustomAnyHashable() -> Swift.AnyHashable?
+protocol descriptor for Swift._ObjectiveCBridgeable
+method descriptor for static Swift._ObjectiveCBridgeable._forceBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> ()
+method descriptor for static Swift._ObjectiveCBridgeable._conditionallyBridgeFromObjectiveC(_: A._ObjectiveCType, result: inout A?) -> Swift.Bool
+method descriptor for static Swift._ObjectiveCBridgeable._unconditionallyBridgeFromObjectiveC(A._ObjectiveCType?) -> A
+method descriptor for Swift._ObjectiveCBridgeable._bridgeToObjectiveC() -> A._ObjectiveCType
+Swift._findStringSwitchCase(cases: [Swift.StaticString], string: Swift.String) -> Swift.Int
+Swift.KeyedEncodingContainer.encodeIfPresent(_: Swift.String?, forKey: A) throws -> ()
+Swift.KeyedEncodingContainer.encode(_: Swift.String, forKey: A) throws -> ()
+Swift.KeyedEncodingContainer.encode(_: Swift.Int, forKey: A) throws -> ()
+Swift.KeyedEncodingContainer.encode<A where A1: Swift.Encodable>(_: A1, forKey: A) throws -> ()
+nominal type descriptor for Swift.KeyedEncodingContainer
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift10ZoomResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMR
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift10ZoomResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMd
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMR
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMd
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift16ScreenshotResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMR
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift16ScreenshotResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMd
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift20PrepareDisplayResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMR
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift20PrepareDisplayResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMd
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift27ResolvePrepareCaptureResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMR
+_$ss22KeyedEncodingContainerVy16ComputerUseSwift27ResolvePrepareCaptureResult33_F0D7456C3431600D602D928F8E56929ALLV10CodingKeysOGMd
+generic specialization <Swift.String> of Swift._ContiguousArrayBuffer.init(_uninitializedCount: Swift.Int, minimumCapacity: Swift.Int) -> Swift._ContiguousArrayBuffer<A>
+generic specialization <__C.NSRunningApplication> of Swift._ContiguousArrayBuffer.init(_uninitializedCount: Swift.Int, minimumCapacity: Swift.Int) -> Swift._ContiguousArrayBuffer<A>
+generic specialization <ComputerUseSwift.(InstalledAppJson in _F0D7456C3431600D602D928F8E56929A)> of Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>
+generic specialization <__C.SCRunningApplication> of Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>
+generic specialization <Swift.String> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(_: A, hashValue: Swift.Int) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+merged generic specialization <__C.NSDeviceDescriptionKey> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(_: A, hashValue: Swift.Int) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+generic specialization <Swift.Int32> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(_: A, hashValue: Swift.Int) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+generic specialization <Swift.String> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(A) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+generic specialization <__C.NSDeviceDescriptionKey> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(A) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+merged generic specialization <__C.NSDeviceDescriptionKey> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(A) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+generic specialization <Swift.Int32> of Swift.__RawDictionaryStorage.find<A where A: Swift.Hashable>(A) -> (bucket: Swift._HashTable.Bucket, found: Swift.Bool)
+protocol descriptor for Swift.CustomStringConvertible
+method descriptor for Swift.CustomStringConvertible.description.getter : Swift.String
+nominal type descriptor for Swift._ContiguousArrayStorage
+_$ss23_ContiguousArrayStorageCy16ComputerUseSwift12InstalledAppVGMR
+_$ss23_ContiguousArrayStorageCy16ComputerUseSwift12InstalledAppVGMd
+_$ss23_ContiguousArrayStorageCy16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLVGMR
+_$ss23_ContiguousArrayStorageCy16ComputerUseSwift16InstalledAppJson33_F0D7456C3431600D602D928F8E56929ALLVGMd
+_$ss23_ContiguousArrayStorageCySSGMR
+_$ss23_ContiguousArrayStorageCySSGMd
+_$ss23_ContiguousArrayStorageCySS_SbtGMR
+_$ss23_ContiguousArrayStorageCySS_SbtGMd
+_$ss23_ContiguousArrayStorageCySo20NSRunningApplicationCGMR
+_$ss23_ContiguousArrayStorageCySo20NSRunningApplicationCGMd
+_$ss23_ContiguousArrayStorageCySo20SCRunningApplicationCGMR
+_$ss23_ContiguousArrayStorageCySo20SCRunningApplicationCGMd
+_$ss23_ContiguousArrayStorageCySo27NSBitmapImageRepPropertyKeya_yptGMR
+_$ss23_ContiguousArrayStorageCySo27NSBitmapImageRepPropertyKeya_yptGMd
+_$ss23_ContiguousArrayStorageCys12StaticStringVGMR
+_$ss23_ContiguousArrayStorageCys12StaticStringVGMd
+_$ss23_ContiguousArrayStorageCys13OpaquePointerVSgGMR
+_$ss23_ContiguousArrayStorageCys13OpaquePointerVSgGMd
+_$ss23_ContiguousArrayStorageCys5Int32VGMR
+_$ss23_ContiguousArrayStorageCys5Int32VGMd
+_$ss23_ContiguousArrayStorageCys6UInt32V_So6CGRectVtGMR
+_$ss23_ContiguousArrayStorageCys6UInt32V_So6CGRectVtGMd
+_$ss23_ContiguousArrayStorageCys7CVarArg_pGMR
+_$ss23_ContiguousArrayStorageCys7CVarArg_pGMd
+_$ss23_ContiguousArrayStorageCyyXlGMR
+_$ss23_ContiguousArrayStorageCyyXlGMd
+_$ss23_ContiguousArrayStorageCyypGMR
+_$ss23_ContiguousArrayStorageCyypGMd
+Swift._stdlib_isOSVersionAtLeast(Builtin.Word, Builtin.Word, Builtin.Word) -> Builtin.Int1
+Swift._stringCompareWithSmolCheck(_: Swift._StringGuts, _: Swift._StringGuts, expecting: Swift._StringComparisonResult) -> Swift.Bool
+protocol descriptor for Swift.CustomDebugStringConvertible
+method descriptor for Swift.CustomDebugStringConvertible.debugDescription.getter : Swift.String
+generic specialization <__C.NSRunningApplication> of Swift.getContiguousArrayStorageType<A>(for: A.Type) -> Swift._ContiguousArrayStorage<A>.Type
+merged generic specialization <__C.SCRunningApplication> of Swift.getContiguousArrayStorageType<A>(for: A.Type) -> Swift._ContiguousArrayStorage<A>.Type
+Swift.withCheckedThrowingContinuation<A>(isolation: isolated Swift.Actor?, function: Swift.String, _: (Swift.CheckedContinuation<A, Swift.Error>) -> ()) async throws -> A
+async function pointer to Swift.withCheckedThrowingContinuation<A>(isolation: isolated Swift.Actor?, function: Swift.String, _: (Swift.CheckedContinuation<A, Swift.Error>) -> ()) async throws -> A
+protocol descriptor for Swift._HasCustomAnyHashableRepresentation
+method descriptor for Swift._HasCustomAnyHashableRepresentation._toCustomAnyHashable() -> Swift.AnyHashable?
+type metadata for Swift.Int8
+Swift.ELEMENT_TYPE_OF_SET_VIOLATES_HASHABLE_REQUIREMENTS(Any.Type) -> Swift.Never
+Swift.KEY_TYPE_OF_DICTIONARY_VIOLATES_HASHABLE_REQUIREMENTS(Any.Type) -> Swift.Never
+protocol descriptor for Swift.Error
+(extension in Foundation):Swift.Error.localizedDescription.getter : Swift.String
+method descriptor for Swift.Error._getEmbeddedNSError() -> Swift.AnyObject?
+method descriptor for Swift.Error._code.getter : Swift.Int
+method descriptor for Swift.Error._domain.getter : Swift.String
+method descriptor for Swift.Error._userInfo.getter : Swift.AnyObject?
+(extension in Swift):Swift.Error._getEmbeddedNSError() -> Swift.AnyObject?
+(extension in Swift):Swift.Error._code.getter : Swift.Int
+(extension in Swift):Swift.Error._domain.getter : Swift.String
+(extension in Swift):Swift.Error._userInfo.getter : Swift.AnyObject?
+protocol self-conformance witness table for Swift.Error
+_$ss5Error_pMR
+_$ss5Error_pMd
+nominal type descriptor for Swift.Int32
+type metadata for Swift.Int32
+protocol witness table for Swift.Int32 : Swift.Hashable in Swift
+static Swift.Hasher._hash(seed: Swift.Int, bytes: Swift.UInt64, count: Swift.Int) -> Swift.Int
+Swift.Hasher.init(_seed: Swift.Int) -> Swift.Hasher
+Swift.Hasher._combine(Swift.UInt) -> ()
+Swift.Hasher._finalize() -> Swift.Int
+nominal type descriptor for Swift.UInt32
+type metadata for Swift.UInt32
+nominal type descriptor for Swift.UInt64
+protocol descriptor for Swift.CVarArg
+dispatch thunk of Swift.Encoder.container<A where A1: Swift.CodingKey>(keyedBy: A1.Type) -> Swift.KeyedEncodingContainer<A1>
+protocol descriptor for Swift.CodingKey
+method descriptor for Swift.CodingKey.stringValue.getter : Swift.String
+method descriptor for Swift.CodingKey.init(stringValue: Swift.String) -> A?
+method descriptor for Swift.CodingKey.intValue.getter : Swift.Int?
+method descriptor for Swift.CodingKey.init(intValue: Swift.Int) -> A?
+base conformance descriptor for Swift.CodingKey: Swift.CustomStringConvertible
+base conformance descriptor for Swift.CodingKey: Swift.CustomDebugStringConvertible
+(extension in Swift):Swift.CodingKey.description.getter : Swift.String
+(extension in Swift):Swift.CodingKey.debugDescription.getter : Swift.String
+Swift._typeName(_: Any.Type, qualified: Swift.Bool) -> Swift.String
+generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error) with unmangled suffix ".13"
+partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error) with unmangled suffix ".13TQ0_"
+partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error) with unmangled suffix ".13Tu"
+(1) await resume partial function for partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+async function pointer to partial apply forwarder for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+(1) await resume partial function for generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+async function pointer to generic specialization <()> of reabstraction thunk helper <A, B where A: Swift.Sendable, B == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out A) to @escaping @callee_guaranteed @async () -> (@out A, @error @owned Swift.Error)
+protocol conformance descriptor for <A where A: Swift.Encodable> A? : Swift.Encodable in Swift
+type metadata for Any
+_$sypSgMR
+_$sypSgMd
+outlined init with take of Any
+outlined init with copy of Any
+type metadata for ()
+value witness table for ()

@@ -1,0 +1,6 @@
+command: /usr/bin/file extracted/computer-use-swift.node
+exitStatus: 0
+--- output ---
+extracted/computer-use-swift.node: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit dynamically linked shared library x86_64] [arm64:Mach-O 64-bit dynamically linked shared library arm64]
+extracted/computer-use-swift.node (for architecture x86_64):	Mach-O 64-bit dynamically linked shared library x86_64
+extracted/computer-use-swift.node (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64

@@ -1,0 +1,4 @@
+command: /usr/bin/nm -arch arm64 -gU extracted/computer-use-input.node
+exitStatus: 0
+--- output ---
+00000000000447f4 T _napi_register_module_v1

@@ -1,0 +1,19 @@
+command: /usr/bin/codesign -dvvv extracted/image-processor.node
+exitStatus: 0
+--- output ---
+Executable=extracted/image-processor.node
+Identifier=image-processor.node
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=9805 flags=0x20002(adhoc,linker-signed) hashes=303+0 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=f8f7632bb1a10c3dd9953dc6d21b270103920183
+CandidateCDHashFull sha256=f8f7632bb1a10c3dd9953dc6d21b270103920183cfa4e0ba325d85e700730bf9
+Hash choices=sha256
+CMSDigest=f8f7632bb1a10c3dd9953dc6d21b270103920183cfa4e0ba325d85e700730bf9
+CMSDigestType=2
+CDHash=f8f7632bb1a10c3dd9953dc6d21b270103920183
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none

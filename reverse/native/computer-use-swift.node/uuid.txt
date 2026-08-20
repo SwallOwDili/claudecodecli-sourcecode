@@ -1,0 +1,5 @@
+command: /usr/bin/dwarfdump --uuid extracted/computer-use-swift.node
+exitStatus: 0
+--- output ---
+UUID: B4CDA0B4-BB04-3225-86E3-06B342D6886B (x86_64) extracted/computer-use-swift.node
+UUID: CD7BF4DA-7773-37D4-9B5A-AF14F077E736 (arm64) extracted/computer-use-swift.node

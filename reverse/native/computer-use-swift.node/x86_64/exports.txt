@@ -1,0 +1,9 @@
+command: /usr/bin/nm -arch x86_64 -gU extracted/computer-use-swift.node
+exitStatus: 0
+--- output ---
+00000000000031f0 T _$s16ComputerUseSwift0aB8BindingsO12createObject3envs13OpaquePointerVSgAG_tFZ
+000000000001b9b0 T _$s16ComputerUseSwift0aB8BindingsOMa
+000000000002c0f4 S _$s16ComputerUseSwift0aB8BindingsOMn
+000000000002f670 S _$s16ComputerUseSwift0aB8BindingsON
+00000000000235c0 T _$s16ComputerUseSwift18napiRegisterModuleys13OpaquePointerVSgAE_AEtF
+0000000000023570 T _napi_register_module_v1

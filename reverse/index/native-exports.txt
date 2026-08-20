@@ -1,0 +1,16 @@
+audio-capture.node [arm64]: _rust_eh_personality
+computer-use-input.node [arm64]: _napi_register_module_v1
+computer-use-input.node [x86_64]: _napi_register_module_v1
+computer-use-swift.node [arm64]: _$s16ComputerUseSwift0aB8BindingsO12createObject3envs13OpaquePointerVSgAG_tFZ
+computer-use-swift.node [arm64]: _$s16ComputerUseSwift0aB8BindingsOMa
+computer-use-swift.node [arm64]: _$s16ComputerUseSwift0aB8BindingsOMn
+computer-use-swift.node [arm64]: _$s16ComputerUseSwift0aB8BindingsON
+computer-use-swift.node [arm64]: _$s16ComputerUseSwift18napiRegisterModuleys13OpaquePointerVSgAE_AEtF
+computer-use-swift.node [arm64]: _napi_register_module_v1
+computer-use-swift.node [x86_64]: _$s16ComputerUseSwift0aB8BindingsO12createObject3envs13OpaquePointerVSgAG_tFZ
+computer-use-swift.node [x86_64]: _$s16ComputerUseSwift0aB8BindingsOMa
+computer-use-swift.node [x86_64]: _$s16ComputerUseSwift0aB8BindingsOMn
+computer-use-swift.node [x86_64]: _$s16ComputerUseSwift0aB8BindingsON
+computer-use-swift.node [x86_64]: _$s16ComputerUseSwift18napiRegisterModuleys13OpaquePointerVSgAE_AEtF
+computer-use-swift.node [x86_64]: _napi_register_module_v1
+image-processor.node [arm64]: _rust_eh_personality

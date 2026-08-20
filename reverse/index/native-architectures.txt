@@ -1,0 +1,7 @@
+audio-capture.node [arm64]: 438064 bytes; bbc49385641d14c07673d8d953f06f15a0da71a22e0058325381400efeee1dd4
+computer-use-input.node [arm64]: 1692096 bytes; 55bd5d0da1d7f6d1afa92de91c20957a77b4a25483562d2dac433cb3370344da
+computer-use-input.node [x86_64]: 1692096 bytes; 55bd5d0da1d7f6d1afa92de91c20957a77b4a25483562d2dac433cb3370344da
+computer-use-swift.node [arm64]: 879672 bytes; 5ce6c0773d532cd629dd4bd0eab9516dce20a5d66c6631f6be18f639d6a88524
+computer-use-swift.node [x86_64]: 879672 bytes; 5ce6c0773d532cd629dd4bd0eab9516dce20a5d66c6631f6be18f639d6a88524
+image-processor.node [arm64]: 1249368 bytes; 191c4f27ac11ea1125beff9b8f80cecc557c3dcbcaba648099e10095c942c85e
+url-handler.node [arm64]: 336864 bytes; e1884007eddee7d6a8afde602eff85c5b315c29b59c2cc24ae2b223d28ba21f1

@@ -1,0 +1,620 @@
+{
+  "formatVersion": 1,
+  "files": [
+    {
+      "path": "README.md",
+      "size": 1037,
+      "sha256": "1994294bc5fe3562a9e345cf7e116fbd6e00b64d8cdd69c57fb124fb54371345"
+    },
+    {
+      "path": "bytecode/cli.jsc.gz",
+      "size": 47461235,
+      "sha256": "8f846bf9698cb7d998e951d18b10b36e2ee8ea0d85d136a7b5d671926192d611"
+    },
+    {
+      "path": "bytecode/metadata.json",
+      "size": 429,
+      "sha256": "d1264949991503e2521a72bc9b0cc882ca51697234b9d30e073b9e7a125a956c"
+    },
+    {
+      "path": "bytecode/strings.txt.gz",
+      "size": 1911852,
+      "sha256": "56b5aee804e4bc30136abd4073a7b840e125b70474bf3d35f7b257670c24a6b7"
+    },
+    {
+      "path": "index/cli-surface.txt",
+      "size": 1379,
+      "sha256": "80282da894fdf2b3b404335adbb26510aa0fb1ef448a5c95dc7430d9b0879e25"
+    },
+    {
+      "path": "index/embedded-source-paths.txt",
+      "size": 1345,
+      "sha256": "20380cdb4aeeff9937d4096c46ed9e4470cdd272cf48d683667563e0c895be2e"
+    },
+    {
+      "path": "index/endpoint-hosts.txt",
+      "size": 3246,
+      "sha256": "9b7f569baf37859fd554f6873202a7f78abcae0bf6105b43f5734b8f8743415c"
+    },
+    {
+      "path": "index/environment-identifiers.txt",
+      "size": 17220,
+      "sha256": "f3b37405cd3945bd07ba6c844638e6ac656f8d4d198181d0ddb725e6f648fb92"
+    },
+    {
+      "path": "index/feature-identifiers.txt",
+      "size": 324,
+      "sha256": "fbf71fd5f5bce9384a004de69c71afa430b1ab1e433153695e425122d84ad203"
+    },
+    {
+      "path": "index/native-architectures.txt",
+      "size": 774,
+      "sha256": "2e670871064c6fc56108941b71f22faa98920805cd4de0ec73121bd1fc3f9d6f"
+    },
+    {
+      "path": "index/native-dependencies.txt",
+      "size": 8342,
+      "sha256": "d8867de606d98f79fd7e9748a3299beb500ea3c54c6c2b6774e8ada4a614a67b"
+    },
+    {
+      "path": "index/native-exports.txt",
+      "size": 1183,
+      "sha256": "4885fc27ba441b97065abc7fbeb024cd3b6bbf7275177188c73ee02c42713c44"
+    },
+    {
+      "path": "index/native-imports.txt",
+      "size": 86977,
+      "sha256": "1e40ce4a3a9686f3a3c80b2e68937d4a0f928365cc26fd8efb772c56db850db9"
+    },
+    {
+      "path": "index/native-napi-imports.txt",
+      "size": 13221,
+      "sha256": "63770b179f4650510caaeae21747ba693ee49f58440368f8de1ba4e8f533de96"
+    },
+    {
+      "path": "index/native-swift-project-symbols.txt",
+      "size": 325351,
+      "sha256": "8fb63767ed2eb0490bc3ca05b60361f304d5449adca39d83f8309086bd0261d2"
+    },
+    {
+      "path": "index/probable-config-keys.txt",
+      "size": 32255,
+      "sha256": "8fc10499c2489d106b9739d8b5de231b67b7ecef3650dd50f6cc024aabf65c03"
+    },
+    {
+      "path": "index/summary.json",
+      "size": 518,
+      "sha256": "a4b71e44bb999d6071e2f7805471b064d44fa47a2bf45e513f9b32ab387384c4"
+    },
+    {
+      "path": "index/urls.txt",
+      "size": 25946,
+      "sha256": "b84cc7e4a2f43c3a29296310ffb3b31d31517f32a66c250338fa713d98cc3585"
+    },
+    {
+      "path": "javascript/cli.readable.js",
+      "size": 34418467,
+      "sha256": "99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4"
+    },
+    {
+      "path": "javascript/metadata.json",
+      "size": 621,
+      "sha256": "4b942dddc49a1ac2ba6772cef5d353df6c0c29505e27c01e90df17aa63eaea62"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/disassembly.txt.gz",
+      "size": 469279,
+      "sha256": "b860bc868ce852439e5e385c36f3fb39fc3e21128799839d32d2a53ac88acba4"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/exports.txt",
+      "size": 135,
+      "sha256": "0dc60dd4f53e334b124371c964ee84e29cec701ba298763c06a500de133d7a34"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/imports.txt",
+      "size": 2322,
+      "sha256": "6cdee87de399d299717540f5dd668f72d78af9ed55e482d5a2b7e5339e9b8087"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/indirect-symbols.txt.gz",
+      "size": 2311,
+      "sha256": "ae98431e4038458a1547947ea21815ca8e4da2c40536a8ac38d9e6efc225472c"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/linked-dylibs.txt",
+      "size": 915,
+      "sha256": "46a3ff46f4c0fea17e3e785abbd041b257649dcc267d9ad84564c0612251fe27"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/load-commands.txt",
+      "size": 8165,
+      "sha256": "c3c0aab955c9276432671254113db9c8257a7397dad7b71986c2774fa54b25b7"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/mach-header.txt",
+      "size": 358,
+      "sha256": "91b6809596546af1143e3c883cc9c941c4743a028c57c86654919eaa26a55f1a"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/objc-runtime.txt.gz",
+      "size": 113,
+      "sha256": "730714ad4bced40f4948042f050bb6e2edbc2848ac3415d7d1968b4c28f90fa6"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/swift-demangled.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/swift-symbols.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/audio-capture.node/arm64/symbols.txt.gz",
+      "size": 956,
+      "sha256": "cba16b3668190a1db733b4ba116b2589e8cf1dfa14a1931f1ecb714f92b7b32b"
+    },
+    {
+      "path": "native/audio-capture.node/code-signature.txt",
+      "size": 735,
+      "sha256": "c90bf9c8d4e8c27e38b34b8afd466d3e01f836f14dfe41cfae9dbd26f73174ff"
+    },
+    {
+      "path": "native/audio-capture.node/file.txt",
+      "size": 165,
+      "sha256": "d799eb074db9784f7e43e459bb9486b68de6e8ee70c574e7b24e47c8b1edb663"
+    },
+    {
+      "path": "native/audio-capture.node/metadata.json",
+      "size": 278,
+      "sha256": "438909aee7d417a390d3b0a88db4019b58d6b8342018b42983fd4f63838bd331"
+    },
+    {
+      "path": "native/audio-capture.node/strings.txt.gz",
+      "size": 6700,
+      "sha256": "0e9dddb1d5217624deb595d353406b9af96cdadfff46f1887ecc57a4d23e02af"
+    },
+    {
+      "path": "native/audio-capture.node/uuid.txt",
+      "size": 173,
+      "sha256": "75cfccc84d6986df106c0913b8cdd96080adc21b70ded1e57a76da0815056d12"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/disassembly.txt.gz",
+      "size": 799944,
+      "sha256": "0660ed670c423e234912637acae8e21be90191f4222bb03e4fd8ad5b00b4e862"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/exports.txt",
+      "size": 144,
+      "sha256": "ed680b4a6a16011b5ba866b4dd5cb0fbf673df35cd4b3f1b997c187c43282a7c"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/imports.txt",
+      "size": 3134,
+      "sha256": "f35512fec56e29567f81615a31a76790c8881fc04613c94f9c240a4ac3609333"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/indirect-symbols.txt.gz",
+      "size": 3082,
+      "sha256": "2aba59756a06d39288694a53a25c9aa1ac7340dea68c2138821a1683a1198bcc"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/linked-dylibs.txt",
+      "size": 1483,
+      "sha256": "00756649f05853a122dcfd877c491214a72cf286644329c69c67219e91a00919"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/load-commands.txt",
+      "size": 9245,
+      "sha256": "733c523e5ef2872a0eeef92bb852cee90dff872309d3aa273ebe3c8cfd613b48"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/mach-header.txt",
+      "size": 368,
+      "sha256": "7d711add14922db55905cf0f54ae68b0902ed33f29bba6362bc6fe315808edd8"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/objc-runtime.txt.gz",
+      "size": 115,
+      "sha256": "3232203956aae8e009346674c4b7a0eee5957b2f8820c58d8b5c3048b5f99f25"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/swift-demangled.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/swift-symbols.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/computer-use-input.node/arm64/symbols.txt.gz",
+      "size": 1328,
+      "sha256": "d8c89427fb5a513e9565fd52bb1239c5fef5d589f3a2934e1b90219b50fbf935"
+    },
+    {
+      "path": "native/computer-use-input.node/code-signature.txt",
+      "size": 164,
+      "sha256": "c74702494e95cdf1206e7e991fb6856d906e5e1fb7c7cc08173fc47cc5941f3f"
+    },
+    {
+      "path": "native/computer-use-input.node/file.txt",
+      "size": 523,
+      "sha256": "e956fae89a64928560bb3198b5f2db4e9effc474edf8ffbeab2f55b3aecba300"
+    },
+    {
+      "path": "native/computer-use-input.node/metadata.json",
+      "size": 362,
+      "sha256": "3b146486bb860244984149e6bdd93ad5967beb5715c21e87e3d4d7b2eee9f88f"
+    },
+    {
+      "path": "native/computer-use-input.node/strings.txt.gz",
+      "size": 12100,
+      "sha256": "6342ee0991c7a0ffe95a3f1dd6780b3a493368bb21932923cbc07b21ddf7dd25"
+    },
+    {
+      "path": "native/computer-use-input.node/uuid.txt",
+      "size": 269,
+      "sha256": "60f0141e2e37a53c34fc0af9ea738b9b5874987ff9bf56314e326ccc49c16ddd"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/disassembly.txt.gz",
+      "size": 938771,
+      "sha256": "cde0894e81195a03e5721b96c0b756a57d6a4ba97f814117b18386cd35e671cc"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/exports.txt",
+      "size": 145,
+      "sha256": "09191843f1f9b4f56468700b44369c7d6912705f7b4e5a3b9d4bfd609c0b3613"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/imports.txt",
+      "size": 3170,
+      "sha256": "c5aff2e6687bc5c6b3733940e4294916f1f9a3f1a28c94417ba911ba300b78bf"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/indirect-symbols.txt.gz",
+      "size": 3095,
+      "sha256": "cc0934367df9ad10c17d245e65547c3b458a9fc40ec1becd4e768bf2e16b28e5"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/linked-dylibs.txt",
+      "size": 1483,
+      "sha256": "3521279965ad9d93ef4b88de306014dd12964cc7fb4109e01bd0181c0100536b"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/load-commands.txt",
+      "size": 8855,
+      "sha256": "1fecacca4ce815042937d8b470a260e0647dc8afc022a19cb053c8c954ec43c6"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/mach-header.txt",
+      "size": 369,
+      "sha256": "b9d2823fc082bec04eced8ca8d63a550f032e5e59029572538f68c46d6788d32"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/objc-runtime.txt.gz",
+      "size": 116,
+      "sha256": "be93ecdd5a1c356ccf58c5296c170cad6b29c9d584a297e0ba603fa0958eb3c9"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/swift-demangled.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/swift-symbols.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/computer-use-input.node/x86_64/symbols.txt.gz",
+      "size": 1352,
+      "sha256": "90f0dce79858f86c93a6d989b51aac0aa3233ed7064a7e11a7e7761005d6aa9e"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/disassembly.txt.gz",
+      "size": 245488,
+      "sha256": "905145dda659a952ca9c4d27fcb063eb64c08b450f1e8f6442dfc19909f4bc76"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/exports.txt",
+      "size": 496,
+      "sha256": "b850e59ae8a6ee8e8c0a4844a8220212d069a1dc9221e8ee6de7ae0adb93960e"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/imports.txt",
+      "size": 13440,
+      "sha256": "f2cd90371d654656f80c01b92c35a7ea7421d4ff06237d71b6ae8e094ba48391"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/indirect-symbols.txt.gz",
+      "size": 7182,
+      "sha256": "5b580e473e9eb8855e45ff66a6e36a5ced0e9ddc40c38d692861b199accdee11"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/linked-dylibs.txt",
+      "size": 3350,
+      "sha256": "4dd75e094611720e31844c0d42cd63d1f2a81a5d754af279e0069954340daeb7"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/load-commands.txt",
+      "size": 17486,
+      "sha256": "0292a972a5e850c95d7a9482169e0ee743e42f7fb9ce1fee2e04cfc11a49affa"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/mach-header.txt",
+      "size": 359,
+      "sha256": "bb87f853493a8ddc14b85959a75e7ad48d9be6905214a7a0882ffe37482b615d"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/objc-runtime.txt.gz",
+      "size": 1879,
+      "sha256": "c7d437bbb78da3ae16dab1c8baf563a5cf8a49a6d6dd8423ef12f68bfd203b5b"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/swift-demangled.txt",
+      "size": 191450,
+      "sha256": "7c4878a396d426e0f71b2576c0034a74c093c04378225ba8bc95c81ad8d45be8"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/swift-symbols.txt",
+      "size": 102289,
+      "sha256": "e5362a667cc863895b0ebdfce4e4eabb529997dbbb4f11091a9ad833b81b8a2d"
+    },
+    {
+      "path": "native/computer-use-swift.node/arm64/symbols.txt.gz",
+      "size": 33350,
+      "sha256": "df72126d7e725f9cc9874d4cfb8b7c362b6415219e281eb6e6d9bc3c686da4ac"
+    },
+    {
+      "path": "native/computer-use-swift.node/code-signature.txt",
+      "size": 164,
+      "sha256": "aacc9a97433bbc878c2c7a75c756403637e970971107a91559b3e20a5dc5cbfb"
+    },
+    {
+      "path": "native/computer-use-swift.node/file.txt",
+      "size": 523,
+      "sha256": "f6d2636a0c2f4aea1983671fc8d2ecb13d9203f5da1abfd0d136f74e5b3a9a90"
+    },
+    {
+      "path": "native/computer-use-swift.node/metadata.json",
+      "size": 367,
+      "sha256": "12f98c93dd1a22215a910cc85dbd1fa6ffb0ed19021d02fbe14c074649a76ba6"
+    },
+    {
+      "path": "native/computer-use-swift.node/strings.txt.gz",
+      "size": 3595,
+      "sha256": "815522a0dd4b103f005bdffac92f11f76eecf0d92c1321e4c83848c0836a9cef"
+    },
+    {
+      "path": "native/computer-use-swift.node/uuid.txt",
+      "size": 269,
+      "sha256": "36594130b8a534f1298a915d57c9cbfcc1342ae6bbbdb5fe1450495102de9ef7"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/disassembly.txt.gz",
+      "size": 283786,
+      "sha256": "b53188316b8864d4ed9b07cd6272f7237427e7c4b3dd6e311a94a7396548dec3"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/exports.txt",
+      "size": 497,
+      "sha256": "4d3735ff5663e53091d10867915184761d7ceffc58b5fba2c0c4b5c49b03f955"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/imports.txt",
+      "size": 13444,
+      "sha256": "e4eef007ddc079c010a92e752fdde1094548e6a1571b26eb41cf3097536e6e27"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/indirect-symbols.txt.gz",
+      "size": 7898,
+      "sha256": "cd05d9128b661db08a457e14cc4ad7a14773eb4dc792862e3dbb9288bcab6b32"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/linked-dylibs.txt",
+      "size": 3351,
+      "sha256": "aa1c8ebf18840b5c35764f760bdbbe5c1451c3947f2b1d8adfcbcbd565d9c27a"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/load-commands.txt",
+      "size": 17396,
+      "sha256": "7a6d96a1ee98c94f85f653eb5efc1b2215e686b53b0388b5280f6ee987058b6b"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/mach-header.txt",
+      "size": 360,
+      "sha256": "3ae6cb4ac2a1533acdec781864d43732a7c280e637d0701010513bbdd3e4a4f6"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/objc-runtime.txt.gz",
+      "size": 1875,
+      "sha256": "f525eec15897a24047735d92d8d36de28d8641dd2d6ffa45107fc0f9d567fb7a"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/swift-demangled.txt",
+      "size": 191450,
+      "sha256": "7c4878a396d426e0f71b2576c0034a74c093c04378225ba8bc95c81ad8d45be8"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/swift-symbols.txt",
+      "size": 102289,
+      "sha256": "e5362a667cc863895b0ebdfce4e4eabb529997dbbb4f11091a9ad833b81b8a2d"
+    },
+    {
+      "path": "native/computer-use-swift.node/x86_64/symbols.txt.gz",
+      "size": 33070,
+      "sha256": "1b65669b4e658933dc4335257589e5a7ea4755ff1d61102423d5696b584cbe78"
+    },
+    {
+      "path": "native/image-processor.node/arm64/disassembly.txt.gz",
+      "size": 1406885,
+      "sha256": "5af91c13b1fb2003ed25ad9fee9e23f5a3de0df949eb5e19dfbc9a762f9723b6"
+    },
+    {
+      "path": "native/image-processor.node/arm64/exports.txt",
+      "size": 137,
+      "sha256": "a81191865b0ebfb914a47f86b34d48de422b6f5e51bb20857e37b4ab3496e4c5"
+    },
+    {
+      "path": "native/image-processor.node/arm64/imports.txt",
+      "size": 2863,
+      "sha256": "3c966b4d50f7265448f4caebaf1681d193fcb9005e894e24336e4f72ba7617cd"
+    },
+    {
+      "path": "native/image-processor.node/arm64/indirect-symbols.txt.gz",
+      "size": 2833,
+      "sha256": "c3999523ebf41a6f8321dfaae5a4490ceb1dc5be1254d876a00bfae94123c698"
+    },
+    {
+      "path": "native/image-processor.node/arm64/linked-dylibs.txt",
+      "size": 1019,
+      "sha256": "db36b58127405422c024e202ea8fd5797b1bcd70a2f97ae323f9be64889e7c4f"
+    },
+    {
+      "path": "native/image-processor.node/arm64/load-commands.txt",
+      "size": 8296,
+      "sha256": "d6cf6890767c8e5df6f725d6141b97b17c6af1b6f234fd029d626663e0983926"
+    },
+    {
+      "path": "native/image-processor.node/arm64/mach-header.txt",
+      "size": 362,
+      "sha256": "dca0d15f845a258ad58f147e34f80c2d5885c050451051ea9e709eb5f0675c6f"
+    },
+    {
+      "path": "native/image-processor.node/arm64/objc-runtime.txt.gz",
+      "size": 114,
+      "sha256": "f561dc8999dde843a76f5e7b9cba11d7bec40e225b18a58335607b7913f7e813"
+    },
+    {
+      "path": "native/image-processor.node/arm64/swift-demangled.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/image-processor.node/arm64/swift-symbols.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/image-processor.node/arm64/symbols.txt.gz",
+      "size": 1168,
+      "sha256": "d68708e47578238d1ff64be7b21c112b98e340ddf0795f8ef03dd5950f945bdb"
+    },
+    {
+      "path": "native/image-processor.node/code-signature.txt",
+      "size": 741,
+      "sha256": "eb87f2b35baa8db3124ed70ab6af85bea325417a74621aa25bd319bbc0683ac5"
+    },
+    {
+      "path": "native/image-processor.node/file.txt",
+      "size": 169,
+      "sha256": "96902606b454655e5b22f096cb4b69d5c84b83de63a0e6ee5078ae401df62b74"
+    },
+    {
+      "path": "native/image-processor.node/metadata.json",
+      "size": 283,
+      "sha256": "78b1a1e1a8c2c1d1b5dce88b11e857d53238ae2fb19cac50f1e57c4f9793ca35"
+    },
+    {
+      "path": "native/image-processor.node/strings.txt.gz",
+      "size": 16539,
+      "sha256": "222f818aa59035642f3d3715c34e64bf2957b4fafe6c0a935c0eb8288fae1afd"
+    },
+    {
+      "path": "native/image-processor.node/uuid.txt",
+      "size": 177,
+      "sha256": "d12f753384f021bdd5ccad5baef821b06b518c84048c95d5f9839f6351466e40"
+    },
+    {
+      "path": "native/url-handler.node/arm64/disassembly.txt.gz",
+      "size": 359140,
+      "sha256": "85ef8e5c45174a2fa218ff7d1f107ec06e6783ba0c0bf0b086d1ef3f856638a8"
+    },
+    {
+      "path": "native/url-handler.node/arm64/exports.txt",
+      "size": 93,
+      "sha256": "37bdfcb96f28f0f773b59fca2e0d187f85451fe7ef65fc9cb64bd77c6af93f97"
+    },
+    {
+      "path": "native/url-handler.node/arm64/imports.txt",
+      "size": 1514,
+      "sha256": "1669040a2445832d5fcb42bd882789aa65d08aca93621420227712ac6cea274b"
+    },
+    {
+      "path": "native/url-handler.node/arm64/indirect-symbols.txt.gz",
+      "size": 1672,
+      "sha256": "a0aabcc2d633a265bbc58b4392bafde749f468a1147bba2ef4129dddecafba28"
+    },
+    {
+      "path": "native/url-handler.node/arm64/linked-dylibs.txt",
+      "size": 285,
+      "sha256": "d7fec1ec4f470dd2e02d19d682b90aae0cfc71565ab4129677052852e20df4da"
+    },
+    {
+      "path": "native/url-handler.node/arm64/load-commands.txt",
+      "size": 6653,
+      "sha256": "8279084a78ee15ea8e1cd37e529de121d1c23b4b67c09fa9f447d3a5100ba95b"
+    },
+    {
+      "path": "native/url-handler.node/arm64/mach-header.txt",
+      "size": 354,
+      "sha256": "a65bd2baeb2dde257550b1ddeef7def5ef750a6203769773720d95bc06574607"
+    },
+    {
+      "path": "native/url-handler.node/arm64/objc-runtime.txt.gz",
+      "size": 109,
+      "sha256": "cb4d69e31948d2825aca1dfcff41430392c38469b6eda6fe0da189759d446239"
+    },
+    {
+      "path": "native/url-handler.node/arm64/swift-demangled.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/url-handler.node/arm64/swift-symbols.txt",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/url-handler.node/arm64/symbols.txt.gz",
+      "size": 685,
+      "sha256": "d1972e5355df7f0d6ca7578e73e6971b5d96b91e59188f470b8be799856de9dc"
+    },
+    {
+      "path": "native/url-handler.node/code-signature.txt",
+      "size": 728,
+      "sha256": "da6f41c54039509f447b776fceea9b6f201b47d76aa0191911916662f63f645f"
+    },
+    {
+      "path": "native/url-handler.node/file.txt",
+      "size": 161,
+      "sha256": "fa44f1544aef59b8c8184fdb290f366253dda4ab51c5beda4cbaa3c211d4fbf0"
+    },
+    {
+      "path": "native/url-handler.node/metadata.json",
+      "size": 274,
+      "sha256": "87adee066efa2a4c3996bedc1cbebe50bfd3ef953de5977d5a848bbade9d7061"
+    },
+    {
+      "path": "native/url-handler.node/strings.txt.gz",
+      "size": 5392,
+      "sha256": "0473ddc33fb0b4570a5342d437d2a4ecd4f2b9255d88842378f40b6b16fe13e6"
+    },
+    {
+      "path": "native/url-handler.node/uuid.txt",
+      "size": 169,
+      "sha256": "a4927db4424e7a2df8ba28ac3e5d99b1de39fe31f7d00f6836bf7ab235a15d38"
+    },
+    {
+      "path": "summary.json",
+      "size": 3778,
+      "sha256": "c60b061c85fb2782bbdc09fa05acaf5dfcd3e6c97cf69a7e0cc561acdf9edc73"
+    }
+  ]
+}

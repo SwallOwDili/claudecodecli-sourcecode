@@ -1,0 +1,5 @@
+command: /usr/bin/dwarfdump --uuid extracted/computer-use-input.node
+exitStatus: 0
+--- output ---
+UUID: 17CF8D1A-21F0-3104-9ED0-D8D1C241C7D0 (x86_64) extracted/computer-use-input.node
+UUID: 82628DE2-45C0-3715-BB7E-4DB439FD2384 (arm64) extracted/computer-use-input.node

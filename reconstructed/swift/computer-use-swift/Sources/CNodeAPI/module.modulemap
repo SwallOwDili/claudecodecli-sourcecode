@@ -1,0 +1,4 @@
+module CNodeAPI [system] {
+  header "include/shim.h"
+  export *
+}

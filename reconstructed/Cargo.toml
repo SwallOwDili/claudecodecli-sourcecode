@@ -1,0 +1,20 @@
+[workspace]
+members = [
+  "rust/audio-capture",
+  "rust/image-processor",
+  "rust/computer-use-input",
+  "rust/url-handler"
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "UNLICENSED"
+version = "2.1.235-reconstructed"
+
+[workspace.dependencies]
+napi = { version = "2.16.17", default-features = false, features = ["napi8", "tokio_rt"] }
+napi-derive = "2.16.13"
+napi-build = "2.2.3"
+once_cell = "1.21.4"
+tokio = { version = "1.50.0", features = ["rt", "sync", "time"] }

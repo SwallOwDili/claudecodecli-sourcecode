@@ -1,0 +1,4 @@
+command: /usr/bin/codesign -dvvv extracted/computer-use-swift.node
+exitStatus: 1
+--- output ---
+extracted/computer-use-swift.node: code object is not signed at all

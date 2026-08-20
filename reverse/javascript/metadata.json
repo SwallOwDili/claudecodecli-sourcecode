@@ -1,0 +1,17 @@
+{
+  "canonicalSource": "extracted/cli.js",
+  "canonicalSourceSha256": "22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e",
+  "path": "reverse/javascript/cli.readable.js",
+  "size": 34418467,
+  "lines": 638179,
+  "sha256": "99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4",
+  "generator": "esbuild",
+  "generatorVersion": "0.25.10",
+  "semanticInventoryCheck": {
+    "environmentIdentifiersEqual": true,
+    "environmentIdentifierCount": 538,
+    "endpointHostsEqual": true,
+    "endpointHostCount": 179
+  },
+  "role": "analysis view only; canonical packed bytes remain extracted/cli.js"
+}

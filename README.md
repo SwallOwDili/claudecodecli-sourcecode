@@ -10,7 +10,8 @@
 
 | 入口 | 解决的问题 |
 | --- | --- |
-| [`analysis/technical-mechanism-atlas.md`](analysis/technical-mechanism-atlas.md) | **首选入口**：一次请求跨越的九个子系统、三条闭环、状态归属、故障表现和专题阅读路由 |
+| [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 35 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到 19 条本版变化、字段字典、误区和证据缺口 |
+| [`analysis/technical-mechanism-atlas.md`](analysis/technical-mechanism-atlas.md) | **快速总览**：一次请求跨越的九个子系统、三条闭环、状态归属、故障表现和专题阅读路由 |
 | [`analysis/public-claims-validation.md`](analysis/public-claims-validation.md) | 官方 Claude Code/Agent SDK/Engineering 原理与 `2.1.235` bundle、精确二进制探针逐项对照，防止版本倒灌 |
 | [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整架构图 |
 | [`analysis/agent-loop.md`](analysis/agent-loop.md) | Agent Loop 状态机、流中工具执行、并发屏障、工具结果反馈、Stop hook、maxTurns、fallback 和子 Agent |
@@ -99,6 +100,7 @@
 |   |-- mermaid.min.js                 Mermaid 渲染运行时
 |   `-- payload.template.html.asset    Artifact/报告使用的 HTML 载荷
 |-- analysis/
+|   |-- claude-code-2.1.235-complete-guide.md 单卷完整机制说明书
 |   |-- version.json                   二进制与解包元数据
 |   |-- unpack-manifest.json           每个文件的偏移和哈希
 |   |-- release-notes.md               2.1.235 官方变更记录

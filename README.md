@@ -51,7 +51,13 @@
 
 这里的“多层缓存”不是一个模糊名词：进程内工具 schema/model config cache 降低本地重复计算；API prompt cache 复用 system/message 前缀；tool search 避免未使用 schema 常驻；precomputed compact cache 提前准备摘要。Transcript 和 memory 是持久状态，不是 prompt cache。每层的命中、失效和费用影响见上下文专题。
 
-每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。官方页面还固化了响应 hash 与逐条摘录，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
+每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。官方页面同时固化原始响应 hash、去噪正文 hash 与逐摘录 hash，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
+
+当前结构化机制证据共 `93` 条：`59 Static`、`14 Probe`、`19 Public`、`1 Boundary`。validator 对 14 个主题分别设置最低条数，并要求总数不少于 90；telemetry、resilience、context、settings、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
+
+新增三组精确二进制探针进一步证实：Bearer/header/cache request shape；PreToolUse deny、Stop hook 重入和 `maxTurns=1` 的真实终态；MCP `tools/list_changed` 后新 schema 存在一个请求装配延迟；子 Agent 使用独立请求，并通过 `async_launched tool_result -> completed task-notification` 两阶段向父循环回传。归一化结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
+
+原生重建双跑也输出同目录下的 `native-reconstruction.json`：23 项逐检查结果全部通过，original arm64 为运行+静态证据，compatible arm64 为构建+运行证据；原版 x86_64 只有两个 Computer Use 静态 slice，compatible x86_64 明确标记为未构建、未运行。
 
 ## 快照信息
 
@@ -99,7 +105,7 @@
 |   |-- technical-mechanism-atlas.md    九层运行机制总图与问题导向阅读路由
 |   |-- public-claims-validation.md     官方原理、bundle 证据和运行探针对照
 |   |-- mechanism-evidence.jsonl        结论到源码范围/anchor/探针字段的结构化证据合同
-|   |-- public-sources/manifest.json    官方页面响应状态、字节数与 SHA-256
+|   |-- public-sources/manifest.json    官方页面响应、去噪正文与逐摘录 SHA-256
 |   |-- public-source-excerpts.md       与本版验证问题对应的固定官方摘录
 |   |-- technical-architecture.md       面向人的完整技术架构导读
 |   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义

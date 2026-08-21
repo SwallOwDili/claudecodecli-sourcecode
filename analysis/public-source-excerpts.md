@@ -1,6 +1,6 @@
 # 官方来源固定摘录
 
-这些摘录只用于保存 2026-08-20 调研时实际看到的公开主张。响应正文哈希、字节数、HTTP 状态和 URL 见 [public-sources/manifest.json](public-sources/manifest.json)。公开资料解释设计目标；`2.1.235` 是否实现仍由 `Static` 或 `Probe` 证据决定。
+这些摘录只用于保存 2026-08-21 刷新时实际看到的公开主张。响应原始哈希、去噪正文哈希、逐摘录哈希、字节数、HTTP 状态和 URL 见 [public-sources/manifest.json](public-sources/manifest.json)。公开资料解释设计目标；`2.1.235` 是否实现仍由 `Static` 或 `Probe` 证据决定。
 
 ## `public-agentic-loop-phases`
 
@@ -73,6 +73,12 @@ Source: `claude-mcp`
 Source: `claude-subagents`
 
 > Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.
+
+## `public-agent-teams-coordination`
+
+Source: `claude-agent-teams`
+
+> Agent teams let you coordinate multiple Claude Code instances. One session leads, assigns tasks, and synthesizes results; teammates work independently in their own context windows and communicate directly with each other. The page describes this behavior as of v2.1.178.
 
 ## `public-workflow-agent-distinction`
 

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "requestShape": "$CLAUDE_2_1_235 --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+    "hookDeny": "$CLAUDE_2_1_235 --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+    "stopReentry": "$CLAUDE_2_1_235 --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
+    "maxTurns": "$CLAUDE_2_1_235 --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID"
+  },
+  "input": {
+    "requestShape": {
+      "prompt": "REQUEST_SHAPE_MARKER",
+      "auth": "ANTHROPIC_AUTH_TOKEN",
+      "tools": [
+        "Read"
+      ]
+    },
+    "hookDeny": {
+      "prompt": "HOOK_DENY_PROMPT_MARKER",
+      "toolUseId": "toolu_hook_deny_probe",
+      "hookReason": "HOOK_DENY_MARKER"
+    },
+    "stopReentry": {
+      "prompt": "STOP_REENTRY_PROMPT_MARKER",
+      "firstModelResult": "STOP_FIRST_END",
+      "feedback": "STOP_HOOK_REENTER_MARKER"
+    },
+    "maxTurns": {
+      "prompt": "MAX_TURNS_PROMPT_MARKER",
+      "maxTurns": 1,
+      "toolUseId": "toolu_max_turns_probe"
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "requestShape": {
+      "result": "REQUEST_SHAPE_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "hookDeny": {
+      "result": "HOOK_DENY_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "stopReentry": {
+      "result": "STOP_REENTRY_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "maxTurns": {
+      "result": null,
+      "subtype": "error_max_turns",
+      "isError": true,
+      "exitStatus": 1
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "requestShape": 0,
+    "hookDeny": 0,
+    "stopReentry": 0,
+    "maxTurns": 1
+  },
+  "observed": {
+    "requestShape": {
+      "requestCount": 1,
+      "authHeader": "Bearer $TOKEN",
+      "apiKeyHeader": "absent",
+      "anthropicVersion": "2023-06-01",
+      "anthropicBetaPresent": true,
+      "cacheControlCount": 3,
+      "toolNames": [
+        "Read"
+      ]
+    },
+    "hookDeny": {
+      "requestCount": 2,
+      "pairedErrorResult": true,
+      "preToolUseEvents": 2
+    },
+    "stopReentry": {
+      "requestCount": 2,
+      "stopEvents": 3,
+      "feedbackInSecondRequest": true
+    },
+    "maxTurns": {
+      "requestCount": 1,
+      "postToolUseObserved": true
+    }
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "requestExitZero": true,
+    "requestResultSuccess": true,
+    "requestUsesBearerAuth": true,
+    "requestOmitsApiKeyHeader": true,
+    "requestHasAnthropicVersion": true,
+    "requestHasBetaHeader": true,
+    "requestModelMatches": true,
+    "requestAdvertisesRead": true,
+    "requestHasCacheControl": true,
+    "hookDenyExitZero": true,
+    "hookDenyResultSuccess": true,
+    "hookDenyEventObserved": true,
+    "hookDenyReturnsPairedError": true,
+    "stopExitZero": true,
+    "stopResultSuccess": true,
+    "stopHookRanTwice": true,
+    "stopCreatedSecondRequest": true,
+    "stopFeedbackEnteredContext": true,
+    "maxTurnsNoSecondRequest": true,
+    "maxTurnsToolCompleted": true,
+    "maxTurnsResultObserved": true
+  },
+  "pass": true
+}

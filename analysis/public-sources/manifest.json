@@ -1,23 +1,266 @@
 {
-  "schemaVersion": 1,
-  "retrievedAt": "2026-08-20T00:00:00+08:00",
-  "captureMethod": "HTTP GET with redirects and content decoding; SHA-256 covers the received HTML response body",
+  "schemaVersion": 2,
+  "retrievedAt": "2026-08-21T11:20:44+08:00",
+  "captureMethod": "curl HTTP GET with redirects and content decoding; sha256 covers response bytes; semanticTextSha256 covers whitespace-normalized visible HTML text with script/style/svg/noscript/template content removed; excerptSha256 covers normalized quoted excerpts",
   "sources": [
-    {"id":"claude-how-it-works","url":"https://code.claude.com/docs/en/how-claude-code-works","status":200,"bytes":498157,"sha256":"3d7d1ccf4e2aa86e52ce9a0b82fea36e1c8c854a620a2d064d972749d5705405","excerptIds":["public-agentic-loop-phases"]},
-    {"id":"claude-agent-loop","url":"https://code.claude.com/docs/en/agent-sdk/agent-loop","status":200,"bytes":638071,"sha256":"381f558fa7e5630403caadb011bebff1a4b2cd416dfb39eae158490a41ea3ea4","excerptIds":["public-tool-results-feedback"]},
-    {"id":"claude-context-window","url":"https://code.claude.com/docs/en/context-window","status":200,"bytes":408363,"sha256":"a1d90df9dd6415d3d8343f914075e7fe7b6a60003f31f8d526ebef3e7ad278ac","excerptIds":["public-context-auto-compaction"]},
-    {"id":"claude-prompt-caching","url":"https://code.claude.com/docs/en/prompt-caching","status":200,"bytes":504906,"sha256":"2fc9e311b720e137e44563ddab3493e5ffde8e2209b293b5b7d553aa770d5305","excerptIds":["public-cache-invalidation"]},
-    {"id":"claude-sessions","url":"https://code.claude.com/docs/en/sessions","status":200,"bytes":468802,"sha256":"85084b53cd0acbee3501d3212c735da7151bdd9b3f084f8635ce9d59838fa737","excerptIds":["public-session-fork-identity"]},
-    {"id":"claude-checkpointing","url":"https://code.claude.com/docs/en/checkpointing","status":200,"bytes":366134,"sha256":"6368d157176e02a22b35e335feba3bb914c9d0068c3b8fcd726b51c68fb209ad","excerptIds":["public-checkpoint-limitations"]},
-    {"id":"claude-memory","url":"https://code.claude.com/docs/en/memory","status":200,"bytes":624976,"sha256":"631411505e6d6c4ab20fb7985c01033231977b2df388f957a7d6f3d6c354bded","excerptIds":["public-memory-entry-budget"]},
-    {"id":"claude-permissions","url":"https://code.claude.com/docs/en/permissions","status":200,"bytes":650214,"sha256":"2a5b2a71fc01eca6467f596e16fcb537320f00a6486350618633a4a8293d676c","excerptIds":["public-permission-precedence"]},
-    {"id":"claude-sandboxing","url":"https://code.claude.com/docs/en/sandboxing","status":200,"bytes":751915,"sha256":"fdca3fd1076c2d898226876c0788da153e79f337e011b602d6cdfaae089378b2","excerptIds":["public-sandbox-layers"]},
-    {"id":"claude-hooks","url":"https://code.claude.com/docs/en/hooks","status":200,"bytes":2629422,"sha256":"6c12f8181af0c580348d32c1019e8d201e9dfb4176b5a0a0204515b8c926dbb0","excerptIds":["public-hook-events"]},
-    {"id":"claude-mcp","url":"https://code.claude.com/docs/en/mcp","status":200,"bytes":1319364,"sha256":"b8f6fcde6d58b5467f9d8f67c38331658b368c21944afb723ae7ef59f116a83d","excerptIds":["public-mcp-roots-change"]},
-    {"id":"claude-subagents","url":"https://code.claude.com/docs/en/sub-agents","status":200,"bytes":1142719,"sha256":"657819550c4c64b5029e368123bda5925b25bca03c44df5f4235d4eac950d85e","excerptIds":["public-subagent-own-context"]},
-    {"id":"anthropic-effective-agents","url":"https://www.anthropic.com/research/building-effective-agents","status":200,"bytes":180187,"sha256":"77eb746d3df42eabc151e8a355919a44ffa5b9592298dcef4386cf486853643c","excerptIds":["public-workflow-agent-distinction"]},
-    {"id":"anthropic-context-engineering","url":"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents","status":200,"bytes":169369,"sha256":"37c646dea56c1189c91bb679ca4309722c6dd8f8b8a69c12cfde65ed89436ca2","excerptIds":["public-context-high-signal","public-compaction-definition"]},
-    {"id":"anthropic-writing-tools","url":"https://www.anthropic.com/engineering/writing-tools-for-agents","status":200,"bytes":202491,"sha256":"a6b44b28f1fbded6ff00f9b4d62b4bd0017fa1e05500882278b23654e35a3fb2","excerptIds":["public-tool-token-efficiency","public-tool-response-format"]},
-    {"id":"anthropic-multi-agent","url":"https://www.anthropic.com/engineering/multi-agent-research-system","status":200,"bytes":173563,"sha256":"459a5b6f8d3e322cfbfffa7bf059cdae5bc50b1e8e4dea2ea6a872c1f9750db4","excerptIds":["public-multiagent-compression"]}
+    {
+      "id": "claude-how-it-works",
+      "url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "status": 200,
+      "bytes": 498340,
+      "sha256": "efe1debec6289c700867c8bfce55193ff4216269c9f7da212f7ed78258ad2bcd",
+      "excerptIds": [
+        "public-agentic-loop-phases"
+      ],
+      "semanticTextBytes": 17888,
+      "semanticTextSha256": "41a5966e643d079542db8d3bc4455f38b699bd2e103b1565d7cc6d7d38b39b04",
+      "excerptSha256": {
+        "public-agentic-loop-phases": "bbce1c8c497616c45ae07c6d5d305f4dbf9f2e5141274c6fba974fc55b6488b8"
+      }
+    },
+    {
+      "id": "claude-agent-loop",
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "status": 200,
+      "bytes": 638290,
+      "sha256": "19926d6212029bdb9b60176e3dfd95ef31fad6357dac62f72d9424a1708d934a",
+      "excerptIds": [
+        "public-tool-results-feedback"
+      ],
+      "semanticTextBytes": 34141,
+      "semanticTextSha256": "e305824aaab5fdcb04d6276e3d06ec94252075c85f2b3af62a1214f47755c317",
+      "excerptSha256": {
+        "public-tool-results-feedback": "20b41a870aa07a820c2c9fb1bd20f60716c62de7c9564e9e85fca336c4beb894"
+      }
+    },
+    {
+      "id": "claude-context-window",
+      "url": "https://code.claude.com/docs/en/context-window",
+      "status": 200,
+      "bytes": 408544,
+      "sha256": "be93e18adfe0c3500eddc0ffa93b4b7821831963a6f2b45bb023fafea9c410a7",
+      "excerptIds": [
+        "public-context-auto-compaction"
+      ],
+      "semanticTextBytes": 7390,
+      "semanticTextSha256": "7c467f730a5b99b4d36de1d6ec8def549473bf185d49b8dc86c5e0ca2735a606",
+      "excerptSha256": {
+        "public-context-auto-compaction": "3f208c3c6429930a68c15047cd5ff803286de128b09cf29085c8957be4e8e9de"
+      }
+    },
+    {
+      "id": "claude-prompt-caching",
+      "url": "https://code.claude.com/docs/en/prompt-caching",
+      "status": 200,
+      "bytes": 506605,
+      "sha256": "ecab0b29627395d69caecf6f5d90ab6a04201341e52e31e07a1120fe224cdfed",
+      "excerptIds": [
+        "public-cache-invalidation"
+      ],
+      "semanticTextBytes": 28065,
+      "semanticTextSha256": "688c50b32ddd9096085911ef2aebb280887ca1df3034bdb6efaa3a3455697aa7",
+      "excerptSha256": {
+        "public-cache-invalidation": "9a7ed91e8fe35a5b0f9b7413231e3a9e80134386fa6632a2816d3384cdb4fc37"
+      }
+    },
+    {
+      "id": "claude-sessions",
+      "url": "https://code.claude.com/docs/en/sessions",
+      "status": 200,
+      "bytes": 468983,
+      "sha256": "9958ee4d84e4c2e067d973b30a604757b5e94f70569d50d45120a9dfdae8f102",
+      "excerptIds": [
+        "public-session-fork-identity"
+      ],
+      "semanticTextBytes": 22203,
+      "semanticTextSha256": "dce068887a744dd813ab8f917eeaa56c6bffb38240746f6ff5bb5cee92ae1f4c",
+      "excerptSha256": {
+        "public-session-fork-identity": "c05869cea0316ef4b4ab674e4536a8e22663dfa27afbde193ffd4fb1e13f88bf"
+      }
+    },
+    {
+      "id": "claude-checkpointing",
+      "url": "https://code.claude.com/docs/en/checkpointing",
+      "status": 200,
+      "bytes": 366314,
+      "sha256": "6d05800f79771e7a312cca15b186556d5b9c68419fda5320ec042569ed38a744",
+      "excerptIds": [
+        "public-checkpoint-limitations"
+      ],
+      "semanticTextBytes": 8549,
+      "semanticTextSha256": "107ea569b9f5c159cd8733a501d425312ada13149754bebfb134d7e098409fa6",
+      "excerptSha256": {
+        "public-checkpoint-limitations": "223873c5fe5ae1b37825cfb029e35b794019ca89898aa8017e18c90914ca5910"
+      }
+    },
+    {
+      "id": "claude-memory",
+      "url": "https://code.claude.com/docs/en/memory",
+      "status": 200,
+      "bytes": 625257,
+      "sha256": "243b44a2528f4203e42100916ea59699ad169789058cc71e1e6d182b905b784c",
+      "excerptIds": [
+        "public-memory-entry-budget"
+      ],
+      "semanticTextBytes": 33173,
+      "semanticTextSha256": "8e300ad2b030e34e53f453f60244d99fe94d17b469fed27b4a58eaadce26a180",
+      "excerptSha256": {
+        "public-memory-entry-budget": "d9b1d5eedb80d0eb52d92cad481395387f16048fcb745037a262b887417005a6"
+      }
+    },
+    {
+      "id": "claude-permissions",
+      "url": "https://code.claude.com/docs/en/permissions",
+      "status": 200,
+      "bytes": 664778,
+      "sha256": "cfb6dcd78b5a597ac4a27cd5051adbed86c2cafb53258087d874216c7ca7a1c3",
+      "excerptIds": [
+        "public-permission-precedence"
+      ],
+      "semanticTextBytes": 55760,
+      "semanticTextSha256": "dc09efc327d49b85acab50701c4d4e052207a277a5d83effdb1ce946fd59aa0b",
+      "excerptSha256": {
+        "public-permission-precedence": "1ec071196872c090b6d2e858ded378ada407f3bd345924b589002fec9fdec3aa"
+      }
+    },
+    {
+      "id": "claude-sandboxing",
+      "url": "https://code.claude.com/docs/en/sandboxing",
+      "status": 200,
+      "bytes": 753159,
+      "sha256": "7c3a69771b92043422b80a75b4d95f2766147102d2de3e459bb40f3f6978bbed",
+      "excerptIds": [
+        "public-sandbox-layers"
+      ],
+      "semanticTextBytes": 57959,
+      "semanticTextSha256": "ef28da5ee42b8f17c080f5b00770af6b3017acfdc89ff73032312d58a19ee48f",
+      "excerptSha256": {
+        "public-sandbox-layers": "f0acf44efc9f888f4e87b49d15622aae2590994b29aa290eb72aaebea25b65f1"
+      }
+    },
+    {
+      "id": "claude-hooks",
+      "url": "https://code.claude.com/docs/en/hooks",
+      "status": 200,
+      "bytes": 2633106,
+      "sha256": "6bd93866d4faa55a4f694577462741fae0177ae4f3a4bc3f354172b52fff22a3",
+      "excerptIds": [
+        "public-hook-events"
+      ],
+      "semanticTextBytes": 183301,
+      "semanticTextSha256": "3faf57b1fd1910a88981330e440c305a0cad17459858056dad4cce55f0d741fa",
+      "excerptSha256": {
+        "public-hook-events": "2264f02293cb4bc53f58e5bbbb2718a3d1fa35a101b852c160e69212520d939d"
+      }
+    },
+    {
+      "id": "claude-mcp",
+      "url": "https://code.claude.com/docs/en/mcp",
+      "status": 200,
+      "bytes": 1353252,
+      "sha256": "84a72fa1b613093935d11b2dc2a55f4258967eb910ddda3213cfe87d6e2b7d4e",
+      "excerptIds": [
+        "public-mcp-roots-change"
+      ],
+      "semanticTextBytes": 86053,
+      "semanticTextSha256": "f5c17d5cb4a8141853cd9659a4b273ffc67139abfe9054d6ab41baaf7a048dfe",
+      "excerptSha256": {
+        "public-mcp-roots-change": "e419d72b9ee1ddc25de6ddb80ed444f20e418b17f8ed7b9afbc279b9f5ff35e6"
+      }
+    },
+    {
+      "id": "claude-subagents",
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "status": 200,
+      "bytes": 1147795,
+      "sha256": "248bf6f85afdecb3d74a07d3c9a525e11a34e6c5a71e2a75b5ff8976ec9a46c4",
+      "excerptIds": [
+        "public-subagent-own-context"
+      ],
+      "semanticTextBytes": 85386,
+      "semanticTextSha256": "38d222f3952d415a814a909c4e1d437268ffb97d5147dd0aedf395597b02ad1d",
+      "excerptSha256": {
+        "public-subagent-own-context": "6c015f00fa1a89c8b64af4177546e9b9da97edebc5a8045e260f89d96b339f7b"
+      }
+    },
+    {
+      "id": "claude-agent-teams",
+      "url": "https://code.claude.com/docs/en/agent-teams",
+      "status": 200,
+      "bytes": 657257,
+      "sha256": "bba202f4adefd8906f9cb531e3dd100aa9e1d2df9aef71a5fa3bd100bc9b4a9d",
+      "excerptIds": [
+        "public-agent-teams-coordination"
+      ],
+      "semanticTextBytes": 35678,
+      "semanticTextSha256": "a2159e4b1254ebd049d55f86d9b223cb6e7a427279867d57f431dd1b72635320",
+      "excerptSha256": {
+        "public-agent-teams-coordination": "e14c16c664acf4e017e4e6a5f1748cfede7a4f12d5e5db9e515f402e2da10cda"
+      }
+    },
+    {
+      "id": "anthropic-effective-agents",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "status": 200,
+      "bytes": 181397,
+      "sha256": "0679bd46a8750e9c4c0add48176ec253e73409e3133670f1fc3d5d1e52b11410",
+      "excerptIds": [
+        "public-workflow-agent-distinction"
+      ],
+      "semanticTextBytes": 20074,
+      "semanticTextSha256": "576449a8241b2427e072683fdfe53e7e1a3dcf6b71a0268f701b731699e8b6da",
+      "excerptSha256": {
+        "public-workflow-agent-distinction": "ab70a8823ec05504d89024c9431429d22b7706328c8ce36c68be1a374c65dd0f"
+      }
+    },
+    {
+      "id": "anthropic-context-engineering",
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "status": 200,
+      "bytes": 170579,
+      "sha256": "4c2610cccdfff113b8e3dcbd841ef731af3c925099271d96f19d0b1cfa3fef97",
+      "excerptIds": [
+        "public-context-high-signal",
+        "public-compaction-definition"
+      ],
+      "semanticTextBytes": 22889,
+      "semanticTextSha256": "5625f164c05c925745daf839d5d34098543506e6201cdad1dbd5004592affe2a",
+      "excerptSha256": {
+        "public-context-high-signal": "941d04a64e953260fe84ed62df586c5934f7b8f11c37fc10e38ed310714a6101",
+        "public-compaction-definition": "207f648bafd8a035c6e729f33f0a7b81331e0051d897d5f872d6ae67e69a8dc5"
+      }
+    },
+    {
+      "id": "anthropic-writing-tools",
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "status": 200,
+      "bytes": 203701,
+      "sha256": "8feea54c4d32ed35fda01ec2ba84d8b4e763779fc68d7db074227531bbdbf09e",
+      "excerptIds": [
+        "public-tool-token-efficiency",
+        "public-tool-response-format"
+      ],
+      "semanticTextBytes": 23652,
+      "semanticTextSha256": "b205b0042d892eb2937f7d8bd4054c8e11408676d7f211eea109a154c4db5ecc",
+      "excerptSha256": {
+        "public-tool-token-efficiency": "cef53bc5450bcd8bb3d375802bef3318d000d7ee82d91e1d423761add7520bdd",
+        "public-tool-response-format": "823234622eeddce8b21063fcc3407e5acdf9eeb271e54169a3393dd8c2da72cf"
+      }
+    },
+    {
+      "id": "anthropic-multi-agent",
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "status": 200,
+      "bytes": 174773,
+      "sha256": "69ec6e1a5ea73bc0101b7d32eb9aa47121bd3eec85096d3a2f877540a6831694",
+      "excerptIds": [
+        "public-multiagent-compression"
+      ],
+      "semanticTextBytes": 27737,
+      "semanticTextSha256": "1011a6f433b0c9d8ecb2bd897ba2377ba24c12ca4478d46d1d37eaf1229fc786",
+      "excerptSha256": {
+        "public-multiagent-compression": "5de69a27256c2b9048f0699f1025b4a6e6e7ce957dea2d8db56f9af3f3cb5a4a"
+      }
+    }
   ]
 }

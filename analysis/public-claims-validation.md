@@ -2,7 +2,7 @@
 
 本页回答一个经常被忽略的问题：网上或官方文档描述的是“Claude Code 当前应该怎么工作”，而这个仓库归档的是一个确定的旧发布物。公开资料可以帮助我们提出正确问题，但只有在 `2.1.235` bundle 中找到可达分支，或用同一版本二进制触发出结果，才能把结论写成本版本事实。
 
-调研日期：2026-08-20。公开网页会继续更新。本次不再只保存 URL：每个响应的 HTTP 状态、字节数、SHA-256 和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。这些哈希证明“当时读到的响应”，不把当前文档发布日期倒推成本版本发布日期。
+调研刷新：2026-08-21。公开网页会继续更新。本次不再只保存 URL：每个响应的 HTTP 状态、字节数、原始响应 SHA-256、去噪正文 SHA-256、逐摘录 SHA-256 和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。这些哈希证明“当时读到的响应”和“可读语义是否变化”，不把当前文档发布日期倒推成本版本发布日期。
 
 ## 证据标签
 
@@ -55,10 +55,10 @@
 | permissions 在执行前约束工具 | `Static` | PreToolUse 与 permission/policy/classifier 在 `tool.call` 前；updated input 会复验 | 权限决策不是 UI 弹窗装饰，而是工具执行调用链的一部分 |
 | sandbox 限制 shell 的文件和网络能力 | `Static` | sandbox/network/filesystem/credential settings 和执行分支进入工具策略层 | 客户端有控制面；操作系统实际强制效果仍依平台和运行配置 |
 | hooks 能观察、修改或阻止生命周期事件 | `Static` | PreToolUse、PostToolUse、PostToolBatch、Stop/SubagentStop；Stop 连续阻止默认 cap 8 | hook 能改变控制流，因此也需要超时、错误和熔断语义 |
-| MCP 可动态提供工具 | `Static` | `reverse/javascript/cli.readable.js` 491915-491964 的 `tools/list_changed` cache invalidation、refresh 与失败时保留旧表 | 动态刷新由可达静态路径证实；空配置 `mcp list` 只证明命令 surface，不证明 refresh 成功运行 |
+| MCP 可动态提供工具 | `Static` + `Probe` | `reverse/javascript/cli.readable.js` 491915-491964；精确二进制收到 `tools/list_changed` 后再次 `tools/list`，新工具在第三个 Messages 请求出现 | 动态刷新已正向证实；本路径有一个请求装配延迟，不是即时热替换 |
 | 大工具目录可用 Tool Search 延迟加载 schema | `Static` | `defer_loading`、ToolSearch、缓存和失效，114258-114369、156521-156552、231802-231817 | 节省的是 prompt 中常驻 schema token，不是延迟安装工具 |
-| subagent 在独立上下文中工作并向主 Agent 返回结果 | `Static` | 默认 `maxTurns: 200`、`model: inherit`、`permissionMode: bubble`；`reverse/javascript/cli.readable.js` 306920-306938 构造独立 prompt、tool context、abort/model/worktree state | 独立上下文由静态状态构造证实；空 `agents --json` 只证明枚举协议，不证明子 Agent 已运行 |
-| agent teams 通过任务和消息协作 | `Static` | task claim、team mailbox、send/broadcast/shutdown 等路径，202474-202511、279171-279317 | 本版客户端存在协作基础设施；具体远端可用性仍受配置/feature gate 影响 |
+| subagent 在独立上下文中工作并向主 Agent 返回结果 | `Static` + `Probe` | 默认 `maxTurns: 200`、`model: inherit`、`permissionMode: bubble`；精确探针观察独立 prompt/tools 请求、异步启动 tool result 和 completed task notification | 独立上下文与两阶段回传均已正向证实；启动 ACK 不是最终结果 |
+| agent teams 通过任务和消息协作 | `Public` + `Static` | 官方 Agent Teams 页面明确标注适用于 2.1.178 起；本版 task claim、team mailbox、send/broadcast/shutdown 路径位于 202474-202511、279171-279317 | 2.1.235 客户端与公开版本范围相容；账户、配置和 feature gate 仍决定实际可用性 |
 
 ## Agent Loop：从公开四步到客户端状态机
 
@@ -212,11 +212,13 @@ Result: 本版区分“ID 合法”与“本地存在可恢复 transcript”；�
 
 以后每个版本都按同一顺序处理公开资料：
 
-1. 保存调研日期、官方 URL 和主张摘要，不复制可能漂移的整页正文。
+1. 保存调研日期、官方 URL、HTTP 状态、响应字节、原始响应 SHA-256、去噪正文 SHA-256 和逐摘录 SHA-256。
 2. 把每条主张拆成可搜索对象：稳定 key、CLI surface、状态字段、默认值、阈值、错误文本和调用顺序。
 3. 在 canonical bundle 中证明分支可达，不用单个字符串命中代替调用链。
 4. 对 CLI surface、session、MCP、agent、permission 等可隔离路径运行精确版本探针。
 5. 把结果标成 `Public`、`Static`、`Probe` 或 `Boundary`。
 6. 版本比较先比较实现证据，再用官方 release notes/当前文档解释动机；不能反过来用宣传文案填补代码证据。
+
+校验器还会扫描所有 Markdown 中的 Anthropic 官方 URL；只要文章引用了一个未进入 manifest 的页面，快照验证就失败。这样能避免“正文链接已经拿来下结论，但机器清单没有记录”的不一致。
 
 这样，“上网搜原理”才真正转化为逆向工作的输入：公开资料负责告诉我们应该验证哪些机制，发布物和探针负责决定哪些结论可以落在这个版本名下。

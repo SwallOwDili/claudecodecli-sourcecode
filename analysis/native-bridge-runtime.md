@@ -177,6 +177,7 @@ JS wrapper 在 `reverse/javascript/cli.readable.js` 604122-604133 lazy load modu
 - 把产物复制到全新临时目录并改成原 `.node` 文件名；
 - 分别加载 original 与 reconstructed；
 - 比较 exports 和 23 组行为；
+- 写出 [native-reconstruction.json](runtime-probes/native-reconstruction.json)，逐项记录模块、比较模式、输入策略和架构证据；
 - 避免覆盖已经映射的 Mach-O。
 
 当前 arm64 结果：
@@ -191,9 +192,18 @@ reconstructed native validation: PASS
 
 通过说明重建实现满足当前检查过的外部合同，不说明内部算法等同原始源码。
 
+机器报告把 23 项拆为：audio 1、URL 1、image 1、input 1、Swift 18，以及 1 个最低覆盖审计。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态。这样后续版本能看出是“某个功能行为变了”，而不只是总 PASS 变成 FAIL。
+
 ## 架构与平台边界
 
 发布产物中 `computer-use-input.node` 和 `computer-use-swift.node` 含 arm64 + x86_64 slice；其他模块的归档架构见 [native-architectures.txt](../reverse/index/native-architectures.txt)。当前可编译重建只在 arm64 macOS 实际运行。
+
+| 层 | arm64 | x86_64 |
+| --- | --- | --- |
+| Original 发布模块 | 5 个模块，runtime + static | 2 个 Computer Use slice，static only |
+| Compatible 重建模块 | 5 个模块，build + runtime，23/23 checks | not built or run |
+
+因此“重建通过”只落在 arm64 外部合同。x86_64 原始机器码仍已完整静态归档，但没有被兼容源码的 x86_64 产物和运行结果覆盖。
 
 跨版本应分别比较 slice。universal module 的一个 slice 未变化，不代表另一个 slice 未变化；arm64 probe 也不能替代 x86_64 execution evidence。
 
@@ -225,6 +235,6 @@ Native 操作已经改变外部状态时，Agent Loop 的 message tombstone、re
 
 ## 证据与边界
 
-结构化证据条目：`native.bundle-entrypoints`、`native.image-call`、`native.audio-call`、`native.url-call`。完整 Mach-O 证据在 [reverse/native](../reverse/native)，归一化 ABI/依赖/Swift symbol diff 在 [reverse/index](../reverse/index)。
+结构化证据条目除静态 consumer 外，还包括 `probe.native-original-compatible` 与 `probe.native-architecture-boundary`。完整 Mach-O 证据在 [reverse/native](../reverse/native)，归一化 ABI/依赖/Swift symbol diff 在 [reverse/index](../reverse/index)。
 
 本仓库已经尽可能恢复发布物可观察合同和兼容源码；它不是 Anthropic 构建前的原始 C/C++/Rust/Swift 仓库。缺失源码级 debug info 后，内部文件布局、注释、优化前函数体和被编译器删除的代码不能逐字恢复。

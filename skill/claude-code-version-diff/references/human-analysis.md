@@ -66,11 +66,13 @@ Create `analysis/public-claims-validation.md` and record:
 
 Use the labels `Public`, `Static`, `Probe`, and `Boundary`. Never use a current documentation page to fill an implementation gap in an old branch, and never infer implementation solely from a release-note sentence or lexical hit.
 
-Public research must be reproducible enough to detect documentation drift. Store HTTP status, response-body byte length, SHA-256, retrieval timestamp, URL, and excerpt IDs in `analysis/public-sources/manifest.json`. Store the short passages actually used to form hypotheses in `analysis/public-source-excerpts.md`. A URL alone is not a stable research record, and an HTML hash alone is not readable evidence.
+Public research must be reproducible enough to detect documentation drift. Store HTTP status, response-body byte length, raw-body SHA-256, normalized visible-text SHA-256, per-excerpt SHA-256, retrieval timestamp, URL, and excerpt IDs in `analysis/public-sources/manifest.json`. Store the short passages actually used to form hypotheses in `analysis/public-source-excerpts.md`. Every official Anthropic URL cited in snapshot Markdown must have a manifest record. A URL alone is not a stable research record, and an HTML hash alone is not readable evidence.
 
 ## Structured mechanism evidence
 
 Every strong mechanism claim must have one unique row in `analysis/mechanism-evidence.jsonl`. Human prose explains the mechanism; this registry lets the validator and comparator recheck what the prose relies on.
+
+Set validator-enforced minimums for every core topic and a nontrivial total claim floor. A long chapter with zero registered claims is incomplete, even when the prose is accurate; a large inventory is not a substitute for mechanism evidence.
 
 - `Static` rows name the exact source view and path, a real line range within that file, and anchors that occur inside the range. Use `extracted/cli.js` only for canonical packed line numbers and `reverse/javascript/cli.readable.js` only for readable-view line numbers. Never attach a readable-view six-digit line number to the one-line packed bundle.
 - `Probe` rows point to a committed normalized report and identify fields containing the exact command, controlled input, literal output, exit status, and required checks. Prefer successful state transitions. Empty lists, validation errors, missing-session errors, and command help prove only their narrow command/error surface.
@@ -231,6 +233,8 @@ Trace the resolved real version file rather than trusting a launcher. Record ver
 
 Join each JavaScript consumer to its N-API export/object/prototype contract, language/dependency evidence, Mach-O slices/frameworks, resource lifetime, error mapping, permission/TCC boundary, and external side effects. Compare original and compatible modules on the same controlled inputs, but retain `Observed`, `Derived`, and `Compatible` labels. A matching export count is insufficient; cover arguments, nullability, return fields, sync/Promise/callback form, disposal, threads, and architecture coverage.
 
+Emit a normalized native behavior report under `analysis/runtime-probes/`. Record every check, module, comparison mode, controlled input strategy, literal PASS/FAIL, original-versus-compatible label, and architecture method. Distinguish release-module static slices from architectures actually built and executed.
+
 ## Field guide
 
 Explain how to read every JSONL family, not every row in prose. Cover:
@@ -286,8 +290,9 @@ Before publication, verify:
 - README first screen links all human documents;
 - the mechanism atlas links every deep topic and lets a reader choose by user problem;
 - public research has retrieval dates and clearly separates `Public`, `Static`, `Probe`, and `Boundary` evidence;
-- public sources have status, byte length, SHA-256, excerpt IDs, and readable fixed excerpts;
-- every mechanism evidence row has a unique claim ID and valid source/probe/public/boundary shape;
+- public sources have status, byte length, raw and semantic SHA-256, excerpt hashes, and readable fixed excerpts;
+- every official Anthropic URL cited in Markdown is registered in the public manifest;
+- every mechanism evidence row has a unique claim ID and valid source/probe/public/boundary shape, and every core topic meets its minimum;
 - readable-JavaScript line numbers point to `reverse/javascript/cli.readable.js`, while canonical line numbers point to `extracted/cli.js`;
 - the Agent Loop positive probe proves real tool execution, paired result feedback, success, and successful resume on the exact binary hash;
 - a reader can follow one request without opening JSONL;
@@ -301,7 +306,7 @@ Before publication, verify:
 - settings/feature flags/policy explains per-field merge semantics and managed-only gates;
 - TUI/IDE/remote/cloud distinguishes local state from remote ownership and reconnect behavior;
 - install/update/doctor distinguishes launcher, immutable version file, migration, update gates, and rollback compatibility;
-- native bridge analysis joins JavaScript consumers to N-API contracts, lifetimes, side effects, and architecture limits;
+- native bridge analysis joins JavaScript consumers to N-API contracts, lifetimes, side effects, and architecture limits, with a machine report separating arm64 runtime coverage from x86_64 static-only evidence;
 - inventory field guide explains unresolved dynamic data honestly;
 - telemetry distinguishes first-party, OTEL, Datadog, GrowthBook, error reporting, and local diagnostics;
 - risk control distinguishes local execution governance from unobserved server-side abuse scoring;

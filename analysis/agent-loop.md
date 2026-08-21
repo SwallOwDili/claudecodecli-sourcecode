@@ -488,6 +488,18 @@ mock response / CLI result:
 
 这仍有明确边界：探针只使用 `Read` 和本地 mock server，不证明 Bash/sandbox/网络工具、MCP refresh、远端模型质量或服务端缓存。它证明的是客户端 Agent Loop 合同本身。
 
+### 第二组控制流探针：Stop、maxTurns 与子 Agent
+
+[runtime-controls.json](runtime-probes/runtime-controls.json) 和 [subagent-loop.json](runtime-probes/subagent-loop.json) 又补了三个容易被静态阅读误解的状态转移。
+
+**Stop hook 不是“打印一句警告”。** 首次模型已经以 `end_turn` 结束，Stop hook 返回 block 和 `STOP_HOOK_REENTER_MARKER` 后，CLI 没有直接失败，而是把反馈装入第二个 Messages 请求。第二次模型返回 `STOP_REENTRY_OK`，Stop hook 再次运行但不阻止，最终 `subtype=success`、exit 0。这里消耗的是新的 model iteration；若连续阻止达到 cap，才进入熔断终态。
+
+**`maxTurns=1` 允许本轮工具完成，但禁止工具后的第二次模型决策。** 探针收到 Read `tool_use` 后真实执行了工具，PostToolUse 也发生了；服务端只收到一个 Messages 请求。CLI 随后输出 `subtype=error_max_turns`、`is_error=true`、exit 1。它不是“最多调用一次工具”，而是“最多启动一次模型轮次”；本轮已经开始的工具不会因预算耗尽被回滚。
+
+**本版 `Agent` 的父子回传是两阶段。** 父请求先调用 `Agent`，CLI 立即返回配对 `tool_result`，其语义是 `async_launched`，不是子任务结论。子 Agent 使用独立 prompt、独立工具表和独立 Messages 请求，完成后通过 `<task-notification>` 把 `SUBAGENT_CHILD_RESULT_MARKER` 入父队列。父循环共发出三个请求：启动、等待、消费完成通知并输出 `SUBAGENT_PARENT_OK`。把启动 ACK 当最终结果，会导致父模型重复创建子 Agent。
+
+这三条运行结论都绑定同一个 `2.1.235` 二进制 SHA-256。它们把静态字段 `stopHookBlockingCount`、`maxTurns`、message queue 和 subagent state 还原成了真实时序，而不是只证明字段存在。
+
 ## 一个具体执行例子
 
 用户请求：“读取配置文件，修改端口，然后运行测试。”模型在第一轮产生三个 tool use：Read、Edit、Bash。

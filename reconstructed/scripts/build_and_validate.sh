@@ -19,6 +19,9 @@ swift_bin=$(swift build \
   -c release \
   --show-bin-path)
 test_dir=$(mktemp -d "$output_parent/reconstructed-native-$version-XXXXXX")
+report_dir="$repo_root/analysis/runtime-probes"
+report_path="$report_dir/native-reconstruction.json"
+mkdir -p "$report_dir"
 
 install -m 755 \
   "$repo_root/reconstructed/target/release/libaudio_capture_reconstructed.dylib" \
@@ -38,7 +41,9 @@ install -m 755 \
 
 node "$script_dir/validate_contracts.mjs" "$original_dir"
 node "$script_dir/validate_contracts.mjs" "$test_dir"
-node "$script_dir/compare_behaviors.mjs" "$original_dir" "$test_dir"
+node "$script_dir/compare_behaviors.mjs" "$original_dir" "$test_dir" --report "$report_path"
+node -e 'const r=require(process.argv[1]); if(!r.pass || r.summary.checksRun < 23) process.exit(1)' "$report_path"
 
 echo "reconstructed native validation: PASS"
+echo "NATIVE_BEHAVIOR_REPORT=$report_path"
 echo "RECONSTRUCTED_NATIVE_DIR=$test_dir"

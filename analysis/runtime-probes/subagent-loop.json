@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "subagentLoop": "$CLAUDE_2_1_235 --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID"
+  },
+  "input": {
+    "parentPrompt": "SUBAGENT_PARENT_PROMPT_MARKER",
+    "toolUseId": "toolu_subagent_probe",
+    "agentInput": {
+      "description": "Run an isolated child-loop probe",
+      "prompt": "SUBAGENT_CHILD_PROMPT_MARKER",
+      "subagent_type": "general-purpose"
+    },
+    "childResult": "SUBAGENT_CHILD_RESULT_MARKER"
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "result": "SUBAGENT_PARENT_OK",
+    "subtype": "success"
+  },
+  "exitStatus": {
+    "version": 0,
+    "subagentLoop": 0
+  },
+  "observed": {
+    "parentRequestCount": 3,
+    "childRequestCount": 1,
+    "parentFeedbackSequence": [
+      "tool_result:async_launched",
+      "task-notification:completed"
+    ],
+    "childToolCount": 1,
+    "childModel": "claude-sonnet-4-5",
+    "parentModel": "claude-sonnet-4-5"
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "exitZero": true,
+    "resultSuccess": true,
+    "parentAdvertisesAgent": true,
+    "childRequestObserved": true,
+    "childReceivesOwnPrompt": true,
+    "childOmitsParentPrompt": true,
+    "childHasIndependentTools": true,
+    "parentReceivesAsyncLaunchResult": true,
+    "parentReceivesTaskNotification": true,
+    "parentMakesFinalDecision": true
+  },
+  "pass": true
+}

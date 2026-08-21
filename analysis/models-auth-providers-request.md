@@ -137,6 +137,19 @@ HTTP retry、SSE 续流、同模型请求重试、模型 fallback 和 Agent turn
 - non-streaming timeout 会参考 `max_tokens`；流式路径则还受 stream idle timeout 和事件完整性约束。
 - 关闭 telemetry 不等于关闭模型请求；`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 的边界应按具体 traffic family 验证。
 
+## 精确二进制请求捕获
+
+[runtime-controls.json](runtime-probes/runtime-controls.json) 对 SHA-256 固定的版本文件运行受控请求，观察到：
+
+- `ANTHROPIC_AUTH_TOKEN` 变成 `Authorization: Bearer $TOKEN`；
+- `x-api-key` 不存在；
+- `anthropic-version` 与 `anthropic-beta` 存在；
+- `model` 为命令行指定的 `claude-sonnet-4-5`；
+- `tools` 包含 Read schema；
+- 请求体出现 3 个 `cache_control`。
+
+这给 provider/auth/request 章节增加了 wire-level 证据。它只证明客户端构造结果，不证明自定义 endpoint 实现了这些 beta，也不证明 Anthropic 服务端接受同样的 token、cache 或 routing 语义。
+
 ## 跨版本比较清单
 
 每个新版本至少比较 provider precedence、first-party host 判定、credential source、helper trust gate、model alias/provider ID、Messages body 字段、beta 集合、cache TTL、thinking/effort、fallback lane、retry 参数和正向工具回灌 probe。某个 endpoint host 或压缩符号变化只作为线索；只有稳定 key、请求字段、可达分支、probe 或官方 release note 与本地证据互相印证，才写成功能变化。

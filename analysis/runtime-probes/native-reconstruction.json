@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "evidenceClasses": {
+    "original": "Observed: release modules and same-input runtime outputs",
+    "compatible": "Compatible: independently rebuilt modules matching checked external behavior"
+  },
+  "architectureCoverage": {
+    "original": {
+      "arm64": {
+        "method": "runtime-and-static",
+        "modules": [
+          "audio-capture.node",
+          "computer-use-input.node",
+          "computer-use-swift.node",
+          "image-processor.node",
+          "url-handler.node"
+        ]
+      },
+      "x86_64": {
+        "method": "static-only",
+        "modules": [
+          "computer-use-input.node",
+          "computer-use-swift.node"
+        ]
+      }
+    },
+    "compatible": {
+      "arm64": {
+        "method": "build-and-runtime",
+        "modules": [
+          "audio-capture.node",
+          "computer-use-input.node",
+          "computer-use-swift.node",
+          "image-processor.node",
+          "url-handler.node"
+        ]
+      },
+      "x86_64": {
+        "method": "not-built-or-run",
+        "modules": []
+      }
+    }
+  },
+  "commands": {
+    "buildAndValidate": "reconstructed/scripts/build_and_validate.sh extracted $OUTPUT_PARENT"
+  },
+  "input": {
+    "audioCapture": "initial state and authorization query; no microphone capture",
+    "urlHandler": "1ms no-event timeout",
+    "imageProcessor": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
+    "computerUseInput": "read-only mouse/frontmost queries and validation errors; no input injection",
+    "computerUseSwift": "display/TCC/application reads plus screenshot schema and JPEG invariants"
+  },
+  "inputStrategies": {
+    "audio-capture.node": "initial state and authorization query; no microphone capture",
+    "url-handler.node": "1ms no-event timeout",
+    "image-processor.node": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
+    "computer-use-input.node": "read-only mouse/frontmost queries and validation errors; no input injection",
+    "computer-use-swift.node": "display/TCC/application reads plus screenshot schema and JPEG invariants"
+  },
+  "literalOutput": {
+    "originalContract": "native contract validation: PASS",
+    "compatibleContract": "native contract validation: PASS",
+    "behavior": "native behavior comparison: PASS",
+    "checksPassed": 23
+  },
+  "exitStatus": {
+    "buildAndValidate": 0
+  },
+  "checks": {
+    "originalContract": true,
+    "compatibleContract": true,
+    "behaviorChecksPassed": true,
+    "arm64RuntimeCoverage": true,
+    "x86StaticBoundaryExplicit": true
+  },
+  "checkResults": [
+    {
+      "label": "audio initial state",
+      "module": "audio-capture.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "URL timeout",
+      "module": "url-handler.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "image processor behavior",
+      "module": "image-processor.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "input module behavior",
+      "module": "computer-use-input.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional undefined",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional null",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional zero",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional positive",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift accessibility",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift screen recording",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift displays",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift display size",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift running applications",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift installed applications",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift resolve bundle ids",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift window displays",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift hide preview",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift application under point",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift application icon",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift unhide empty",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift full screenshot shape",
+      "module": "computer-use-swift.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "swift region screenshot shape",
+      "module": "computer-use-swift.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "behavior check count",
+      "module": "all",
+      "comparison": "exact",
+      "status": "pass"
+    }
+  ],
+  "summary": {
+    "checksRun": 23,
+    "checksPassed": 23
+  },
+  "pass": true
+}

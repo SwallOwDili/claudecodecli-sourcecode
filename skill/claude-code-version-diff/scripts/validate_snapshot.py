@@ -183,6 +183,22 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/native-bridge-runtime.md": (6000, 10),
 }
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
+MECHANISM_TOPIC_MINIMUMS = {
+    "agent-loop": 8,
+    "context-governance": 6,
+    "sessions-memory": 6,
+    "tools-permissions": 6,
+    "tools-mcp": 5,
+    "agents": 6,
+    "resilience": 6,
+    "models-auth-providers": 5,
+    "settings-policy": 5,
+    "tui-ide-remote-cloud": 5,
+    "install-update-doctor": 4,
+    "native-bridge": 6,
+    "telemetry": 8,
+    "risk-controls": 1,
+}
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
     "readable-js": "reverse/javascript/cli.readable.js",
@@ -432,8 +448,8 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         failures.append(f"invalid public source manifest: {error}")
         return {}, set()
-    if manifest.get("schemaVersion") != 1:
-        failures.append("public source manifest schemaVersion must equal 1")
+    if manifest.get("schemaVersion") != 2:
+        failures.append("public source manifest schemaVersion must equal 2")
     if not isinstance(manifest.get("retrievedAt"), str) or not manifest["retrievedAt"]:
         failures.append("public source manifest missing retrievedAt")
     if not isinstance(manifest.get("captureMethod"), str) or not manifest["captureMethod"]:
@@ -459,6 +475,10 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
             failures.append(f"public source {source_id} has invalid byte count")
         if not re.fullmatch(r"[0-9a-f]{64}", str(source.get("sha256", ""))):
             failures.append(f"public source {source_id} has invalid sha256")
+        if not isinstance(source.get("semanticTextBytes"), int) or source["semanticTextBytes"] < 1:
+            failures.append(f"public source {source_id} has invalid semanticTextBytes")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(source.get("semanticTextSha256", ""))):
+            failures.append(f"public source {source_id} has invalid semanticTextSha256")
         excerpt_ids = source.get("excerptIds")
         if not isinstance(excerpt_ids, list) or not excerpt_ids:
             failures.append(f"public source {source_id} has no excerptIds")
@@ -474,12 +494,18 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
                     f"{previous_owner}, {source_id}"
                 )
             declared_owners[excerpt_id] = source_id
+        excerpt_hashes = source.get("excerptSha256")
+        if not isinstance(excerpt_hashes, dict) or set(excerpt_hashes) != set(excerpt_ids):
+            failures.append(f"public source {source_id} excerptSha256 keys differ from excerptIds")
+        elif not all(re.fullmatch(r"[0-9a-f]{64}", str(value)) for value in excerpt_hashes.values()):
+            failures.append(f"public source {source_id} has invalid excerptSha256")
     excerpts = excerpts_path.read_text(encoding="utf-8")
     heading_matches = list(re.finditer(r"^## `([^`]+)`\s*$", excerpts, re.MULTILINE))
     excerpt_ids = {match.group(1) for match in heading_matches}
     if len(excerpt_ids) != len(heading_matches):
         failures.append("public source excerpt file contains duplicate headings")
     excerpt_owners: dict[str, str] = {}
+    observed_excerpt_hashes: dict[str, str] = {}
     for index, match in enumerate(heading_matches):
         end = heading_matches[index + 1].start() if index + 1 < len(heading_matches) else len(excerpts)
         block = excerpts[match.end():end]
@@ -490,6 +516,9 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
             excerpt_owners[match.group(1)] = source_match.group(1)
         if not re.search(r"^>\s+\S", block, re.MULTILINE):
             failures.append(f"public excerpt {match.group(1)} has no quoted content")
+        quotes = re.findall(r"^>\s?(.*)$", block, re.MULTILINE)
+        normalized = re.sub(r"\s+", " ", " ".join(quotes)).strip()
+        observed_excerpt_hashes[match.group(1)] = hashlib.sha256(normalized.encode()).hexdigest()
     declared = set(declared_owners)
     if excerpt_ids != declared:
         failures.append(
@@ -502,6 +531,26 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
                 f"public excerpt {excerpt_id} source mismatch: "
                 f"{excerpt_owners.get(excerpt_id)!r} != {declared_owners.get(excerpt_id)!r}"
             )
+        source = sources[declared_owners[excerpt_id]]
+        if source.get("excerptSha256", {}).get(excerpt_id) != observed_excerpt_hashes[excerpt_id]:
+            failures.append(f"public excerpt {excerpt_id} hash differs from manifest")
+
+    declared_urls = {source.get("url") for source in sources.values()}
+    official_url = re.compile(
+        r"https://(?:code\.claude\.com/docs/[A-Za-z0-9_./?#=&%-]+|"
+        r"www\.anthropic\.com/(?:engineering|research)/[A-Za-z0-9_./?#=&%-]+)"
+    )
+    referenced_urls: set[str] = set()
+    for relative in candidate_paths(repo):
+        if not relative.endswith(".md"):
+            continue
+        try:
+            referenced_urls.update(official_url.findall((repo / relative).read_text(encoding="utf-8")))
+        except (OSError, UnicodeDecodeError):
+            continue
+    missing_urls = sorted(referenced_urls - declared_urls)
+    if missing_urls:
+        failures.append(f"official Markdown URLs missing from public manifest: {missing_urls}")
     return sources, excerpt_ids
 
 
@@ -543,6 +592,7 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
     sources, excerpt_ids = validate_public_sources(repo, failures)
     source_cache: dict[str, list[str]] = {}
     claim_ids: set[str] = set()
+    topic_counts: dict[str, int] = {}
     for index, record in enumerate(records, 1):
         claim_id = record.get("claimId")
         evidence_class = record.get("evidenceClass")
@@ -557,6 +607,11 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
             continue
         if not isinstance(record.get("claim"), str) or not record["claim"]:
             failures.append(f"mechanism evidence {claim_id} missing claim text")
+        topic = record.get("topic")
+        if not isinstance(topic, str) or not topic:
+            failures.append(f"mechanism evidence {claim_id} missing topic")
+        else:
+            topic_counts[topic] = topic_counts.get(topic, 0) + 1
 
         if evidence_class == "Static":
             source_view = record.get("sourceView")
@@ -695,8 +750,60 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
         elif not isinstance(record.get("boundaryReason"), str) or not record["boundaryReason"]:
             failures.append(f"mechanism evidence {claim_id} missing boundaryReason")
 
+    for topic, minimum in MECHANISM_TOPIC_MINIMUMS.items():
+        if topic_counts.get(topic, 0) < minimum:
+            failures.append(
+                f"mechanism topic {topic!r} has {topic_counts.get(topic, 0)} claims; minimum is {minimum}"
+            )
+    if len(records) < 90:
+        failures.append(f"mechanism evidence has {len(records)} records; minimum is 90")
     validate_markdown_source_references(repo, failures)
     return len(records)
+
+
+def validate_native_reconstruction_report(repo: Path, failures: list[str]) -> int:
+    path = repo / "analysis/runtime-probes/native-reconstruction.json"
+    if not path.is_file():
+        failures.append("missing native reconstruction behavior coverage report")
+        return 0
+    try:
+        report = json.loads(path.read_text(encoding="utf-8"))
+        version = json.loads((repo / "analysis/version.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        failures.append(f"invalid native reconstruction behavior report: {error}")
+        return 0
+    if report.get("schemaVersion") != 1 or report.get("pass") is not True:
+        failures.append("native reconstruction behavior report did not pass schema 1")
+    if report.get("target", {}).get("version") != version.get("version"):
+        failures.append("native reconstruction report version differs from snapshot")
+    if report.get("target", {}).get("binarySha256") != version.get("binary", {}).get("sha256"):
+        failures.append("native reconstruction report binary hash differs from snapshot")
+    checks = report.get("checkResults")
+    if not isinstance(checks, list) or len(checks) < 23:
+        failures.append("native reconstruction report has fewer than 23 checks")
+        checks = []
+    if any(check.get("status") != "pass" for check in checks if isinstance(check, dict)):
+        failures.append("native reconstruction report contains a failed check")
+    required_checks = report.get("checks", {})
+    for name in (
+        "originalContract",
+        "compatibleContract",
+        "behaviorChecksPassed",
+        "arm64RuntimeCoverage",
+        "x86StaticBoundaryExplicit",
+    ):
+        if required_checks.get(name) is not True:
+            failures.append(f"native reconstruction required check failed: {name}")
+    coverage = report.get("architectureCoverage", {})
+    if coverage.get("original", {}).get("arm64", {}).get("method") != "runtime-and-static":
+        failures.append("original arm64 native coverage is not runtime-and-static")
+    if coverage.get("original", {}).get("x86_64", {}).get("method") != "static-only":
+        failures.append("original x86_64 native coverage is not static-only")
+    if coverage.get("compatible", {}).get("arm64", {}).get("method") != "build-and-runtime":
+        failures.append("compatible arm64 native coverage is not build-and-runtime")
+    if coverage.get("compatible", {}).get("x86_64", {}).get("method") != "not-built-or-run":
+        failures.append("compatible x86_64 native boundary is not explicit")
+    return len(checks)
 
 
 def sha256(path: Path) -> str:
@@ -774,6 +881,7 @@ def main() -> int:
 
     inventory_files = validate_source_inventory(repo, failures)
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
+    native_behavior_checks = validate_native_reconstruction_report(repo, failures)
 
     risk_surface = repo / "analysis/risk-control-surface.txt"
     risk_entries = 0
@@ -861,6 +969,7 @@ def main() -> int:
     print(f"risk controls checked: {risk_entries}")
     print(f"source inventory files checked: {inventory_files}")
     print(f"mechanism evidence records checked: {mechanism_evidence}")
+    print(f"native behavior checks recorded: {native_behavior_checks}")
     print("capture path privacy: PASS")
     print(f"main source sha256: {sha256(main_source)}")
     if deep_output:

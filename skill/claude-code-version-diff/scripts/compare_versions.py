@@ -373,16 +373,20 @@ def mechanism_evidence_report(repo: Path, old_branch: str, new_branch: str) -> l
             if (
                 old_sources[source_id].get("status"),
                 old_sources[source_id].get("sha256"),
+                old_sources[source_id].get("semanticTextSha256"),
                 old_sources[source_id].get("bytes"),
                 old_sources[source_id].get("url"),
                 old_sources[source_id].get("excerptIds"),
+                old_sources[source_id].get("excerptSha256"),
             )
             != (
                 new_sources[source_id].get("status"),
                 new_sources[source_id].get("sha256"),
+                new_sources[source_id].get("semanticTextSha256"),
                 new_sources[source_id].get("bytes"),
                 new_sources[source_id].get("url"),
                 new_sources[source_id].get("excerptIds"),
+                new_sources[source_id].get("excerptSha256"),
             )
         )
         lines.extend(

@@ -291,6 +291,19 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 
 这个案例说明恢复设计的核心不是“让模型再试一次”，而是保持足够的动作身份、结果和外部状态，使下一次决策不会重复不可逆副作用。
 
+## 运行探针把六类恢复边界钉死
+
+新增探针把“静态存在恢复分支”推进到以下可观察状态：
+
+- Stop hook 首次阻止后，反馈进入第二个请求；恢复对象是控制流，不撤销已完成动作。
+- `maxTurns=1` 时工具和 PostToolUse 完成，但不会启动下一次模型调用；终态为 `error_max_turns`、exit 1。
+- PreToolUse deny 返回 paired error result，模型可以基于拒绝原因继续；工具本体没有执行。
+- MCP `tools/list_changed` 触发重新 list，但新 schema 到第三个请求才可见；恢复有一个请求装配延迟。
+- 子 Agent 启动 ACK 与完成通知分离；父循环必须等待 task notification，不能把 ACK 当结果。
+- 原有 resume 探针证明 transcript history 可恢复，但所有探针都没有声称回滚远端副作用。
+
+这些结果分别对应“重入、预算终止、前置阻断、动态 schema 刷新、异步任务完成、历史恢复”。把它们统一写成“自动重试”会丢失状态保留、重复执行和用户可见结果的差别。
+
 ## 跨版本必须比较什么
 
 - retryable status/error 分类、backoff、attempt 上限和 provider 差异；

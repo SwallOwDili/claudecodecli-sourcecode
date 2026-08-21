@@ -455,6 +455,12 @@ resume 先逐行解析 JSONL，只接收有 UUID 的 user、assistant、progress
 
 thin client 会采用 worker 的真实状态：`enabled`、`effective_window`、`threshold`、`enforced`、`source`。客户端本地显示不能覆盖一个 `enforced=true` 的 worker 决策。
 
+## 精确请求形状：缓存不是只存在于源码常量
+
+[runtime-controls.json](runtime-probes/runtime-controls.json) 捕获了精确 2.1.235 二进制发出的首个 Messages 请求。受控输入只启用 `Read`，请求仍出现 3 个 `cache_control` 对象，携带 `anthropic-version`、beta header 和完整 Read schema。认证使用 `Authorization: Bearer $TOKEN`，没有 `x-api-key`。
+
+这条 probe 证明了三件事：缓存 marker 真正进入 wire body；tool schema 与 system/message cache breakpoint 同时参与本轮请求成本；credential source 会改变 header 形状。它没有证明服务端命中率或账单结果，后者仍需响应 usage 中的 `cache_read_input_tokens` / `cache_creation_input_tokens` 验证。
+
 ## 本版本可观测字段
 
 和上下文治理直接相关的事件至少包括：

@@ -86,8 +86,10 @@ checks passed: 23
 reconstructed native validation: PASS
 ```
 
+逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL 和架构覆盖。validator 要求 23 项全部通过，并要求 x86_64 边界保持显式。
+
 ## 重建边界
 
-当前源码能在本机 arm64 macOS 编译和加载。发布产物中两个 Computer Use 模块还包含 x86-64 slice；仓库保留了该架构的完整静态分析，但没有在本机交叉构建和运行 x86-64 重建产物。
+当前源码能在本机 arm64 macOS 编译和加载。发布产物中两个 Computer Use 模块还包含 x86-64 slice；仓库保留了该架构的完整静态分析，但没有在本机交叉构建和运行 x86-64 重建产物。机器报告分别标成 `runtime-and-static`、`static-only`、`build-and-runtime`、`not-built-or-run`，避免把 universal 原版模块误写成 universal 兼容重建。
 
 没有源码级 DWARF、source map 或上游仓库时，原始注释、局部变量名、文件拆分、泛型写法、内部辅助类型以及编译器删除的代码无法逐字恢复。音频重采样/静音检测、部分窗口选择顺序和错误分支属于兼容重建；这些位置必须继续用 `Compatible` 标注，不能因测试通过而改称 Anthropic 原始源码。

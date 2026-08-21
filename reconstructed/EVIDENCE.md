@@ -95,3 +95,5 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 ```
 
 脚本每次创建唯一加载目录，避免覆盖已映射的 Mach-O。契约定义在 `contracts/module-exports.json`，行为比较实现在 `scripts/compare_behaviors.mjs`。
+
+归一化结果固化到 `analysis/runtime-probes/native-reconstruction.json`。其中 `Observed` 只描述 original 发布模块和原版运行输出，`Compatible` 只描述独立重建；arm64 实际双跑与 x86_64 静态-only 边界分别记录，测试通过不会把 Compatible 升格成 Observed。

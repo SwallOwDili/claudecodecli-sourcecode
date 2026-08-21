@@ -234,6 +234,27 @@ team mailbox 实现在 `reverse/javascript/cli.readable.js` 279171-279317。它�
 
 主 Agent Loop 在工具批次后还会吸收用户 command/poll events，转换成 attachment，再进入下一次 API request。外部事件因此遵守“只在请求边界改变模型上下文”的原则，不会篡改正在流式传输的请求。
 
+## 精确二进制：MCP refresh 不是立即热替换
+
+[mcp-refresh.json](runtime-probes/mcp-refresh.json) 启动一个隔离 stdio MCP server。初始 `tools/list` 只有 `probe_echo`；第一次 `tools/call` 后 server 发出 `notifications/tools/list_changed`，并在下一次 `tools/list` 增加 `probe_new`。2.1.235 的实测时序是：
+
+```text
+Messages #1: tools 含 probe_echo
+  -> tools/call #1
+  -> MCP 发 tools/list_changed
+  -> CLI 再次 tools/list，已看到 probe_new
+Messages #2: 仍未包含 probe_new
+  -> tools/call #2
+Messages #3: tools 开始包含 probe_new
+  -> 最终 MCP_REFRESH_OK
+```
+
+因此 `tools/list_changed` 会失效并刷新工具表，但在这条路径中存在一个 request-assembly 延迟。已经组装或正在发送的请求不会被热改写；“MCP server 已报告新工具”与“模型本轮已经拿到新 schema”不是同一时刻。排障时要记录 generation、`tools/list` 完成时刻和具体 Messages request 的 tool names，不能只看 connection status。
+
+## 精确二进制：子 Agent 是异步任务通知，不是同步函数返回
+
+[subagent-loop.json](runtime-probes/subagent-loop.json) 证明父 Agent 首先收到 `async_launched` 的配对 tool result，子 Agent 完成后再通过 task notification 入队。子请求不含父 prompt，拥有自己的工具表；父循环消费通知后才得到子结果。这个差异直接影响编排器：启动 ACK 只能用于登记 task/agent ID，不能作为 findings；最终结论必须等 completed notification 或显式查询任务输出。
+
 ## Worktree 隔离解决什么
 
 子 Agent 使用独立 Git worktree 时，可以减少：

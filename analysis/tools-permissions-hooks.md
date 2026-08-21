@@ -223,6 +223,18 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 
 详见 [Agent Loop](agent-loop.md) 的 streaming executor 和 concurrency barrier。
 
+## 精确二进制：PreToolUse deny 到底阻止了什么
+
+[runtime-controls.json](runtime-probes/runtime-controls.json) 用隔离 settings 注册 PreToolUse/PostToolUse/Stop hooks，并让模型请求读取一个带固定 marker 的本地文件。PreToolUse 对 Read 返回 `permissionDecision=deny`：
+
+1. PreToolUse 事件带到了原 `tool_use_id`；
+2. Read 没有读取 fixture，因此回灌内容不包含文件 marker；
+3. 下一次 Messages 请求仍有同 ID 的 `tool_result`；
+4. 该 result 是 error，并包含 hook 给出的拒绝原因；
+5. 模型据此返回 `HOOK_DENY_OK`，进程仍以 success 结束。
+
+这验证了权限链的关键合同：deny 阻止的是 `tool.call`，不是阻止 Agent Loop 继续推理。对用户而言，“工具被拒绝”与“会话失败”是两个不同状态；模型仍能改计划、换工具或解释阻塞。PostToolUse 没有机会撤销动作，PreToolUse 才位于副作用前。
+
 ## 失败矩阵
 
 | 失败层 | 是否调用工具 | 下一轮看到什么 | 用户应该查什么 |

@@ -13,6 +13,8 @@ digraph HooksEventLifecycle {
   after [label="后置反馈\ncontext / display / retry / watch", fillcolor="#fff3cd"];
   persist [label="transcript / attachment / log\n过长输出持久化或截断", fillcolor="#e8f0ff"];
   sidefx [label="已完成的外部副作用\n不会被后置 hook 回滚", fillcolor="#fce8e6"];
+  batchstop [label="PostToolBatch block\nhook_stopped，不自动重入模型", fillcolor="#fce8e6"];
+  stopreentry [label="Stop/SubagentStop block\n写回反馈并重开 Agent Loop", fillcolor="#e5f6ef"];
 
   event -> gate [label="触发"];
   gate -> select [label="允许装载"];
@@ -26,4 +28,6 @@ digraph HooksEventLifecycle {
   after -> persist [label="追加可观察状态"];
   persist -> event [label="进入下一阶段"];
   after -> sidefx [label="只能影响后续"];
+  after -> batchstop [label="批次阻止"];
+  after -> stopreentry [label="结束阻止"];
 }

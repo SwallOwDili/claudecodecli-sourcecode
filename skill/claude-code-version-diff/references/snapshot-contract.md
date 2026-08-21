@@ -11,6 +11,7 @@ analysis/version.json
 analysis/unpack-manifest.json
 analysis/release-notes.md
 analysis/cli-surface.txt
+analysis/cli-command-inventory.json
 analysis/risk-control-surface.txt
 analysis/product-surface-evidence-map.md
 analysis/completeness-audit.md
@@ -81,6 +82,8 @@ reverse/native/<module>.node/<arch>/...
 ## Normalized CLI surface
 
 Keep one token per line under stable sections such as `[options]`, `[commands]`, and command-specific option sections. Remove aliases, wrapping, descriptions, and terminal-width effects so Git set diffs represent actual surface changes.
+
+This normalized help surface is only the visible layer. Also generate `analysis/cli-command-inventory.json`, `analysis/cli-command-reference.md`, and `analysis/runtime-probes/cli-command-tree.json`. Recover every explicit Commander registration plus pre-Commander/manual routes such as daemon, background verbs, Remote Control aliases, self-hosted runner and internal worker/OS entrypoints. Every command row records path, syntax, arguments, visible and hidden/static options, aliases, visibility, registration/action gate, parser owner, handler owner, side effects, failure/exit behavior, Static source location and Probe limitation. Probe the exact binary in an isolated home and validate the usage marker as well as exit status: an unknown token may fall back to root help at exit zero, while a real fast-path command may fail an auth/policy gate before rendering help.
 
 ## Normalized risk-control surface
 

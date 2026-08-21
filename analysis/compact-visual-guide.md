@@ -8,14 +8,14 @@
 
 ## 一分钟答案
 
-Claude Code 会让模型把远期历史写成一份工程交接摘要，同时保留近期合法消息组，再重新附加最近文件和当前运行状态。最后，客户端写入一个 `compact_boundary`，告诉 transcript 和 resume：从这里开始，旧历史已经换成了新的表示。
+Claude Code 会让模型把较早的合法消息组写成一份工程交接摘要，同时原样保留至少一个近期合法消息组，再重新附加最近文件和当前运行状态。`2.1.235` 的 `/compact` slash-command 入口走 group-based compactor；如果已有可用的 precomputed result，则复用其 Summary、原保留组和预计算之后的新消息。最后，客户端写入一个 `compact_boundary`，告诉 transcript 和 resume：从这里开始，旧历史已经换成了新的表示。
 
 ![用户执行 compact 后，客户端依次总结、重建上下文并写入恢复边界](visuals/compact-lifecycle.svg)
 
 一句话记忆：
 
 ```text
-Summary 管远期语义，近期消息管当前现场，Attachments 管精确信息，Boundary 管恢复关系。
+Summary 管较早历史的语义，Preserved messages 管近期因果，Attachments 管精确信息，Boundary 管恢复关系。
 ```
 
 下面沿着一次普通的手动 `/compact`，按实际发生顺序展开。
@@ -108,13 +108,23 @@ Summary 负责把很久以前的讨论压缩成可以交接的任务说明：目
 
 它的优点是压缩率高；缺点是有损。
 
-### MessagesToPreserve：保存近期因果
+### MessagesToKeep / MessagesToPreserve：保存近期因果
 
-客户端不会机械地保留“最后 N 条消息”，而是先按合法消息组划分历史。
+这里必须先区分 compact 入口，不能只看到某个底层函数的 `messagesToKeep` 就反推用户命令：
+
+| 路径 | 被总结的范围 | 原样保留的旧消息 | 返回结构 |
+| --- | --- | --- | --- |
+| 当前 `/compact` slash command | 较早的合法 group | 至少最后 1 个合法 group；prompt-too-long 时自适应多保留 | `nFa -> vmi -> Smi`，最终 `messagesToKeep` 非空 |
+| manual precomputed hit | 预计算时选定的较早 group | 预计算 preserve UUID + 预计算之后的 `messagesSince` | `_Ev -> Smi` |
+| reactive auto / prompt-too-long | 自适应选择的较早 group | 为满足窗口而保留的后缀 group | `messagesToPreserve` |
+| cold/full auto 或特定 SDK full compact | 当前全部活跃历史 | 无 | `iyi()` 返回 `messagesToKeep: []` |
+| partial/message-selector compact | 选择器指定的一侧 | 另一侧的合法消息 | `messagesToKeep: m`，并写 preserved UUID |
+
+当前 `/compact` 和 reactive/partial 路径不会机械地保留“最后 N 条消息”，而是先按合法消息组划分历史。
 
 例如一个 `tool_result` 不能脱离对应的 `tool_use` 单独存在。否则下一次 API 请求虽然更短，却会变成结构不合法或因果不完整的历史。
 
-MessagesToPreserve 因此负责保留 compact 前最近的完整工作现场：刚才调用了什么工具、返回了什么、模型最后作出了什么判断。
+MessagesToKeep/MessagesToPreserve 因此负责保留完整因果组：刚才调用了什么工具、返回了什么、模型最后作出了什么判断。只有 cold/full auto 或特定 SDK full compact 走 `iyi()` 时才明确返回空的 `messagesToKeep`，其连续性主要依靠 Summary、重新生成的 Attachments、hooks 和下一条用户输入。
 
 ### Attachments：恢复精确信息
 
@@ -155,7 +165,7 @@ Attachments 用高精度、受限长度保存“材料”。
 - 多次 compact 累计替代的 token；
 - 本次耗时；
 - 是否使用预计算结果；
-- 被保留消息的 UUID；
+- 被保留消息的 UUID（当前 `/compact` 会写）；
 - 保留片段的 head、anchor 和 tail；
 - compact 前已经发现的延迟工具。
 
@@ -163,7 +173,8 @@ Resume 重新读取 JSONL 时，会根据 boundary 重建逻辑消息视图：
 
 ```text
 物理 transcript：仍然保存旧事件、boundary 和新事件
-模型逻辑历史：Summary + 保留消息 + compact 后的新消息
+当前 /compact 的模型逻辑历史：Summary + 保留消息 + Attachments/Hooks + compact 后的新消息
+cold/full compact 的模型逻辑历史：Summary + Attachments/Hooks + compact 后的新消息
 ```
 
 所以 compact 不是把磁盘上的旧会话彻底删除，而是改变“下一次送给模型的有效历史表示”。
@@ -172,13 +183,15 @@ Resume 重新读取 JSONL 时，会根据 boundary 重建逻辑消息视图：
 
 ## 第五步：下一次模型请求继续工作
 
-Compact 成功后，模型下一次看到的是：
+当前 `/compact` 成功后，模型下一次看到的是：
 
 1. 正常 system prompt 和当前动态上下文；
 2. compact summary；
 3. 保留的近期合法消息组；
 4. 最近文件和运行状态附件；
-5. compact 提示和用户的新输入。
+5. compact 场景的 hook 结果与用户后续输入。
+
+若 manual 命中 precomputed result，保留区还包括预计算点之后新增的 `messagesSince`。只有 cold/full auto 或特定 SDK full compact 不带 preserved suffix。
 
 模型不需要知道客户端内部经历了多少次重试。对它而言，这是一段更短、但仍然包含任务目标、最近现场和精确材料的历史。
 
@@ -235,7 +248,7 @@ blocked_line    = input_budget - 3,000
 
 ### Reactive compact
 
-如果普通模型请求已经遇到 prompt-too-long，Agent Loop 会进入 reactive compact。它按 token 缺口调整需要总结和保留的消息组，再回到同一条“Summary + 近期消息 + Attachments + Boundary”主线。
+如果普通模型请求已经遇到 prompt-too-long，Agent Loop 会进入 reactive compact。它按 token 缺口调整需要总结和保留的消息组，再进入“Summary + preserved suffix + Boundary”路径。当前手动 `/compact` 复用了同一个 group-based summarizer，但 trigger、precompute reuse 和等待时机不同。
 
 ## Compact 带来的实际取舍
 
@@ -251,9 +264,21 @@ blocked_line    = input_budget - 3,000
 
 1. `/compact` 是客户端编排的一次历史表示切换，不是简单删除旧消息。
 2. Summary 保存远期语义，但它是有损的。
-3. 近期合法消息组保存当前因果现场。
+3. 当前手动 `/compact` 保留至少一个合法后缀组；cold/full auto 或特定 SDK full compact 才返回空后缀。
 4. 文件、Plan、Skills、MCP 和 hooks 恢复精确工作状态。
-5. Compact boundary 让 transcript、resume 和 fork 知道怎样使用新历史。
+5. Compact boundary 让 transcript、resume 和 fork 知道怎样使用新历史；preserved 字段取决于实际 compact 路径。
+
+## 可执行的事实校验合同
+
+后续版本或重做文档时，至少同时验证以下五个断言，任何一个失败都不能继续写成同一条 compact 主线：
+
+| 断言 | `2.1.235` 证据 |
+| --- | --- |
+| `/compact` 的实际 slash-command 入口走 group compactor | `gEv -> yEv -> nFa -> vmi -> Smi`，见 331301-331367、232845-232876 |
+| 当前 `/compact` 至少保留一个合法 group | `vmi()` 从 `s=1` 开始，成功结果含 `messagesToPreserve: m.flat()`，见 262247-262294 |
+| cold/full auto 或 SDK full compact 不保留旧消息 | `iyi()` 返回 `messagesToKeep: []`，见 263020-263036、263375-263414、290267 |
+| partial compact 保留选择器另一侧 | `qof()` 返回 `messagesToKeep: m`，并调用 `iFa()` 编码 preserved UUID，见 263048-263087 |
+| exact-binary manual Probe 案例省略了指定旧结构历史 | 该案例的 fork request 不含指定的 pre-compact prompt、tool-use ID 和旧 assistant result，但含 Summary 与当前 prompt；它不证明所有 manual compact 都没有 preserved messages |
 
 ## 源码与运行证据
 
@@ -263,9 +288,10 @@ blocked_line    = input_budget - 3,000
 | --- | --- |
 | Summary 模板、九段结构、双标签和 analysis 删除 | 261931-262207 |
 | Compact 总结调用与输出处理 | 262209-262235、263099-263170 |
-| 合法消息分组、prompt-too-long 和媒体重试 | 262237-262294 |
+| 合法消息分组、prompt-too-long 和媒体重试（reactive） | 262237-262294 |
 | 预计算 sidecar 与 rehydrate 校验 | 262425-262585；`context.precomputed-compact-rehydrate` |
-| Manual/full compact、PreCompact 与 PostCompact | 262992-263087 |
+| `/compact` slash-command、manual precompute reuse 与 group summarizer | 331301-331367、232845-232876 |
+| cold/full auto 的 `messagesToKeep: []` 与 partial compact 的 `messagesToKeep: m` | 262992-263087、263375-263414 |
 | Tool deny、fallback 和附件恢复 | 263099-263190 |
 | 文件及 Skill token 限制常量 | 263275 附近 |
 | Boundary 字段编解码和累计 dropped token | 211531-212001 |

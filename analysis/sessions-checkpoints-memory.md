@@ -95,16 +95,16 @@ compact 成功后，本版会写入 `system/compact_boundary`。关键字段及�
 | `messages_summarized` | 本次 summary 覆盖多少消息 |
 | `precomputed` | 是否使用提前生成的 compact 结果 |
 | `pre_compact_discovered_tools` | 恢复压缩前已发现的 deferred tools |
-| `preserved_segment` | head/anchor/tail 形式的保留链段 |
-| `preserved_messages` | 需要精确保留的 message UUID 集合 |
+| `preserved_segment` | head/anchor/tail 形式的保留链段；保留型 compact 路径存在 |
+| `preserved_messages` | 需要精确保留的 message UUID 集合；当前 `/compact` 会由 group compactor 生成 |
 | `logical_parent_uuid` | summary 后的逻辑父节点 |
 
-resume 遇到 boundary 后有两类修链路径：
+当前 `/compact` 通过 group compactor 生成 preserved metadata；partial/reactive/precomputed 也会按各自规则生成。只有 cold/full auto 或特定 SDK full compact 返回 `messagesToKeep: []`。resume 遇到带 preserved metadata 的 boundary 后有两类附加修链路径：
 
 1. `preserved_messages` 模式按 UUID 顺序重接父链。
 2. `preserved_segment` 模式把保留段 head 接到 anchor，再把原 anchor 后继接到 tail。
 
-最后才重新寻找 leaf。这个设计同时满足两件冲突的事：模型下一轮不再携带完整旧历史，但 transcript 仍能描述“摘要替代了哪一段、保留了哪些关键消息、后续接在哪里”。
+最后才重新寻找 leaf。这个设计同时满足两件冲突的事：模型下一轮不再携带完整旧历史，但 transcript 仍能描述“摘要替代了哪一段；若存在保留消息，它们和后续节点接在哪里”。
 
 详见 [上下文治理与多层缓存](context-governance-and-caching.md) 的 compact threshold、precompute 和 cache breakpoint 分析。
 
@@ -175,7 +175,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 ### `MEMORY.md` 的装载边界
 
-本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和 `25,000` 个 JavaScript UTF-16 code units 的边界建立可注入视图；纯 ASCII 时约等于 25KB，非 ASCII 文本不能把 code-unit 数严格当成 UTF-8 字节数。超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 `reverse/javascript/cli.readable.js` 114154 附近。
+本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和 `25,000` 个 JavaScript UTF-16 code units 的边界建立可注入视图；纯 ASCII 时约等于 25KB，非 ASCII 文本不能把 code-unit 数严格当成 UTF-8 字节数。底层诊断最多先读取 `100,000` bytes（`4 * 25,000`）来判断入口是否超限，但常驻 prompt splice 仍受 200 行/25,000 code units 约束。超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 114131-114159、114927-114941、330216-330280。
 
 这两个限制的目的不是永久删除 memory，而是控制常驻 token：
 
@@ -183,6 +183,14 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 - 详细历史下沉到专题文件；
 - Agent 需要时再按路径读取；
 - 避免 memory 自身把 context window 挤满。
+
+### 自动索引和 connected memory 还有各自预算
+
+本地 memory 目录自动组装索引时最多递归 8 层、扫描 5,000 个目录项、只考虑不超过 1MiB 的 Markdown 文件，并发读取 16 个；默认列出最近修改的 200 项。每项只读前 30 行、最多 65,536 bytes 来提取 frontmatter/标题，最终索引文本仍在 25,000 code units 处截断。证据见 213691-213741。
+
+连接式 memory store 不是无条件覆盖写：list 每页最多 50 项；单文档读写 cap 是 102,400 bytes；更新文档要求 `if_version`，新建用字面值 `new`，已有文档必须先 read 获取 12 位内容版本 token。并发变化会返回 conflict、当前版本，并在未超 cap 时返回当前正文，调用方需要 merge 后重试。底层 compare-update 遇到一次冲突会重读并只在原 SHA-256 仍匹配时重试一次；第二次无变化冲突会报 `repeated_spurious_conflict`，不会无限覆盖。写入是整篇替换，不是 append/patch；省略的旧行会被删除。证据见 295134-295520。
+
+这些预算解决不同问题：入口预算控制每轮 token，目录索引预算控制启动 I/O，版本 token 控制多人并发覆盖。三者都不等于“Memory 只允许存 25KB”。
 
 ### Memory 设置的安全边界
 
@@ -197,7 +205,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 | --- | --- | --- |
 | user/assistant 历史 | 可恢复 | message view、cache breakpoint |
 | tool result | 可恢复文本/结构 | 工具不重新执行，只把历史结果纳入消息图 |
-| compact boundary | 可恢复 | preserved chain、logical parent、discovered tools |
+| compact boundary | 可恢复 | 当前 manual/reactive/partial/precomputed 恢复 preserved chain、logical parent、discovered tools；cold/full 路径没有 preserved chain |
 | permission mode/settings | 部分来自当前启动配置 | 重新计算有效配置优先级 |
 | MCP connection | transcript 不保存活 socket | 重新连接、重新列工具、generation refresh |
 | shell/background process | 取决于是否有独立 durable task | 普通进程内句柄不能凭 JSONL 复活 |
@@ -257,7 +265,9 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 - compact boundary 生成与读取：见 [上下文治理专题](context-governance-and-caching.md) 中对应 bundle 索引。
 - file checkpoint 上限：`reverse/javascript/cli.readable.js` 17194、194602-194619。
 - file edit tracking 与 rewind：`reverse/javascript/cli.readable.js` 194641-194804。
-- `MEMORY.md` 200 行/25,000 UTF-16 code-unit 入口处理：`reverse/javascript/cli.readable.js` 114154 附近；官方当前文档把面向用户的近似口径写作 25KB。
+- `MEMORY.md` 200 行/25,000 UTF-16 code-unit 入口处理与 100,000-byte 诊断读取：`reverse/javascript/cli.readable.js` 114131-114159、114927-114941、330216-330280；官方当前文档把面向用户的近似口径写作 25KB。
+- 本地 memory 索引的 8 层/5,000 项/200 文件/30 行/65,536-byte/16 并发预算：213691-213741。
+- connected memory 的 50 项分页、102,400-byte 文档 cap、`if_version` 和单次 compare-update 重试合同：295134-295520。
 - SDK `rewindFiles` 的 dry-run、错误和 `skippedLinks`：canonical bundle 的 SDK engine 暴露路径。
 - storage/schema/event 全量集合：[source inventory](source-inventory/summary.json)。
 

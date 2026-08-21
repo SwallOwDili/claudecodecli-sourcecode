@@ -305,6 +305,24 @@ def main() -> None:
             "human Hook event coverage mismatch",
         ),
         (
+            "analysis/hooks-event-reference.md",
+            lambda data: replace_once(
+                data,
+                "不自动重新请求模型".encode(),
+                "不再请求模型".encode(),
+            ),
+            "human analysis document analysis/hooks-event-reference.md does not cover '不自动重新请求模型'",
+        ),
+        (
+            "analysis/tools-permissions-hooks.md",
+            lambda data: replace_once(
+                data,
+                "不会像 Stop hook 一样自动重入模型".encode(),
+                "会自动重入模型".encode(),
+            ),
+            "human analysis document analysis/tools-permissions-hooks.md does not cover '不会像 Stop hook 一样自动重入模型'",
+        ),
+        (
             "analysis/storage-v5-reference.md",
             lambda data: replace_once(
                 data,

@@ -94,6 +94,14 @@ HUMAN_ANALYSIS_DOCS = {
         "103 个 slash command",
         "error_max_structured_output_retries",
     ),
+    "analysis/cli-command-reference.md": (
+        "`90` 个命令路径",
+        "`59` 次显式",
+        "`65` 组 help/usage case",
+        "fast path",
+        "handlerOwner",
+        "Remote Control",
+    ),
     "analysis/plugins-skills-commands-lsp.md": (
         "marketplaceCache",
         "skillListingBudgetFraction",
@@ -113,6 +121,7 @@ HUMAN_ANALYSIS_DOCS = {
         "31",
         "PreToolUse",
         "PostToolBatch",
+        "不自动重新请求模型",
         "fail closed",
     ),
     "analysis/storage-v5-reference.md": (
@@ -177,6 +186,7 @@ HUMAN_ANALYSIS_DOCS = {
         "concurrency-safe",
         "maxTurns",
         "Stop hook",
+        "不自动重跑工具自定义",
         "terminal reason",
     ),
     "analysis/context-governance-and-caching.md": (
@@ -195,6 +205,8 @@ HUMAN_ANALYSIS_DOCS = {
     "analysis/tools-permissions-hooks.md": (
         "updatedInput",
         "PostToolBatch",
+        "不自动重跑 custom validation",
+        "不会像 Stop hook 一样自动重入模型",
         "bypassPermissions",
         "fail closed",
         "tool.call",
@@ -271,6 +283,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/builtin-tools-reference.md": (9000, 10),
     "analysis/settings-reference.md": (18000, 10),
     "analysis/cli-sdk-output-protocol.md": (12000, 12),
+    "analysis/cli-command-reference.md": (15000, 18),
     "analysis/plugins-skills-commands-lsp.md": (10000, 10),
     "analysis/slash-command-reference.md": (12000, 10),
     "analysis/hooks-event-reference.md": (15000, 10),
@@ -297,6 +310,7 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
     "analysis/settings-reference.md": "settings-resolution-lifecycle",
     "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
+    "analysis/cli-command-reference.md": "cli-command-routing",
     "analysis/plugins-skills-commands-lsp.md": "plugin-skill-lsp-lifecycle",
     "analysis/slash-command-reference.md": "slash-command-lifecycle",
     "analysis/hooks-event-reference.md": "hooks-event-lifecycle",
@@ -1173,6 +1187,467 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def validate_cli_command_tree(
+    repo: Path, version: str, metadata: dict, failures: list[str]
+) -> tuple[int, int]:
+    inventory_path = repo / "analysis/cli-command-inventory.json"
+    probe_path = repo / "analysis/runtime-probes/cli-command-tree.json"
+    missing = [
+        path.relative_to(repo)
+        for path in (inventory_path, probe_path)
+        if not path.is_file()
+    ]
+    if missing:
+        failures.extend(f"missing CLI command-tree artifact: {path}" for path in missing)
+        return 0, 0
+
+    try:
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+        probe = json.loads(probe_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        failures.append(f"invalid CLI command-tree artifact: {error}")
+        return 0, 0
+
+    expected_binary_sha = metadata.get("binary", {}).get("sha256")
+    if inventory.get("schemaVersion") != 1:
+        failures.append("CLI command inventory schemaVersion must equal 1")
+    if inventory.get("version") != version:
+        failures.append("CLI command inventory version does not equal VERSION")
+    if inventory.get("binarySha256") != expected_binary_sha:
+        failures.append(
+            "CLI command inventory binarySha256 does not match analysis/version.json"
+        )
+
+    source = inventory.get("source")
+    if not isinstance(source, dict):
+        failures.append("CLI command inventory source metadata is missing")
+        source = {}
+    readable_relative = source.get("path")
+    if readable_relative != "reverse/javascript/cli.readable.js":
+        failures.append("CLI command inventory readable-JS path is incorrect")
+    readable_path = repo / "reverse/javascript/cli.readable.js"
+    readable_text = ""
+    readable_line_count = 0
+    registration_specs: list[str] = []
+    if not readable_path.is_file():
+        failures.append("CLI command inventory readable-JS source is missing")
+    else:
+        readable_text = readable_path.read_text(encoding="utf-8")
+        readable_line_count = readable_text.count("\n") + 1
+        if source.get("sha256") != sha256(readable_path):
+            failures.append("CLI command inventory readable-JS hash is stale")
+        registration_specs = re.findall(r'\.command\("([^"]+)"', readable_text)
+
+    recorded_specs = source.get("explicitCommanderRegistrationSpecs")
+    if not isinstance(recorded_specs, list) or not all(
+        isinstance(spec, str) and spec for spec in recorded_specs
+    ):
+        failures.append("CLI command inventory registration specs are invalid")
+        recorded_specs = []
+    if source.get("explicitCommanderRegistrationCount") != 59:
+        failures.append("CLI command inventory must record 59 Commander registrations")
+    if len(recorded_specs) != 59:
+        failures.append("CLI command inventory must contain 59 registration specs")
+    if len(registration_specs) != 59:
+        failures.append(
+            f"readable JS has {len(registration_specs)} explicit Commander registrations; expected 59"
+        )
+    if registration_specs and recorded_specs != registration_specs:
+        failures.append(
+            "CLI command inventory registration specs differ from readable JavaScript"
+        )
+
+    counts = inventory.get("counts")
+    if not isinstance(counts, dict):
+        failures.append("CLI command inventory counts are missing")
+        counts = {}
+    expected_counts = {
+        "commandRows": 90,
+        "commanderRows": 60,
+        "manualFastPathRows": 30,
+        "internalEntrypoints": 8,
+        "exactBinaryHelpCases": 65,
+    }
+    for field, expected in expected_counts.items():
+        if counts.get(field) != expected:
+            failures.append(
+                f"CLI command inventory count {field} is {counts.get(field)!r}; "
+                f"expected {expected}"
+            )
+    if counts.get("commanderRows", 0) + counts.get("manualFastPathRows", 0) != 90:
+        failures.append("CLI command inventory parser row counts do not sum to 90")
+
+    families = inventory.get("families")
+    if not isinstance(families, dict) or not families:
+        failures.append("CLI command inventory families are missing")
+        families = {}
+    commands = inventory.get("commands")
+    if not isinstance(commands, list):
+        failures.append("CLI command inventory commands must be a list")
+        commands = []
+    if len(commands) != 90:
+        failures.append(f"CLI command inventory has {len(commands)} rows; expected 90")
+
+    command_paths: list[str] = []
+    command_by_path: dict[str, dict] = {}
+    required_text_fields = (
+        "path",
+        "family",
+        "parser",
+        "visibility",
+        "gate",
+        "syntax",
+        "handlerOwner",
+        "sideEffects",
+        "failureBehavior",
+    )
+    required_list_fields = (
+        "aliases",
+        "arguments",
+        "observedOptions",
+        "hiddenOrStaticOptions",
+        "observedChildren",
+    )
+    for index, row in enumerate(commands, 1):
+        if not isinstance(row, dict):
+            failures.append(f"CLI command inventory row {index} is not an object")
+            continue
+        path = row.get("path")
+        if isinstance(path, str) and path:
+            command_paths.append(path)
+            command_by_path.setdefault(path, row)
+        for field in required_text_fields:
+            if not isinstance(row.get(field), str) or not row[field]:
+                failures.append(
+                    f"CLI command inventory row {index} has invalid {field}"
+                )
+        for field in required_list_fields:
+            value = row.get(field)
+            if not isinstance(value, list) or not all(
+                isinstance(item, str) and item for item in value
+            ):
+                failures.append(
+                    f"CLI command inventory row {index} has invalid {field}"
+                )
+        aliases = row.get("aliases")
+        if isinstance(aliases, list) and len(set(aliases)) != len(aliases):
+            failures.append(f"CLI command inventory row {index} has duplicate aliases")
+
+        family = families.get(row.get("family"))
+        if not isinstance(family, dict):
+            failures.append(f"CLI command inventory row {index} has unknown family")
+        else:
+            expected_family_fields = {
+                "handlerOwner": "owner",
+                "sideEffects": "sideEffects",
+                "failureBehavior": "failure",
+            }
+            for row_field, family_field in expected_family_fields.items():
+                if row.get(row_field) != family.get(family_field):
+                    failures.append(
+                        f"CLI command inventory row {index} {row_field} "
+                        "does not match its family contract"
+                    )
+
+        evidence = row.get("evidence")
+        if not isinstance(evidence, dict):
+            failures.append(f"CLI command inventory row {index} has invalid evidence")
+            continue
+        static_evidence = evidence.get("static")
+        match = re.fullmatch(
+            r"reverse/javascript/cli\.readable\.js:([1-9][0-9]*)",
+            str(static_evidence),
+        )
+        if match is None:
+            failures.append(
+                f"CLI command inventory row {index} has invalid static evidence"
+            )
+        elif readable_line_count and int(match.group(1)) > readable_line_count:
+            failures.append(
+                f"CLI command inventory row {index} static evidence is out of range"
+            )
+        if not isinstance(evidence.get("limitation"), str) or not evidence["limitation"]:
+            failures.append(
+                f"CLI command inventory row {index} has no evidence limitation"
+            )
+        if evidence.get("probeCase") is not None and not isinstance(
+            evidence.get("probeCase"), str
+        ):
+            failures.append(
+                f"CLI command inventory row {index} has invalid probeCase"
+            )
+
+    if len(set(command_paths)) != 90:
+        failures.append(
+            f"CLI command inventory has {len(set(command_paths))} unique command paths; "
+            "expected 90"
+        )
+
+    required_command_paths = {
+        "claude mcp xaa",
+        "claude mcp xaa setup",
+        "claude mcp xaa login",
+        "claude mcp xaa show",
+        "claude mcp xaa clear",
+        "claude remote-control",
+        "claude daemon",
+        "claude daemon run",
+        "claude daemon status",
+        "claude daemon logs",
+        "claude daemon install",
+        "claude daemon start",
+        "claude daemon restart",
+        "claude daemon uninstall",
+        "claude daemon stop",
+        "claude daemon list",
+        "claude daemon scheduled",
+        "claude daemon scheduled add",
+        "claude daemon scheduled remove",
+        "claude daemon scheduled list",
+        "claude daemon remote-control",
+        "claude daemon remote-control add",
+        "claude daemon remote-control remove",
+        "claude daemon remote-control list",
+        "claude daemon hub",
+        "claude self-hosted-runner",
+        "claude self-hosted-runner orchestrator",
+        "claude self-hosted-runner setup",
+        "claude self-hosted-runner doctor",
+        "claude self-hosted-runner code-sign",
+        "claude self-hosted-runner decode-token",
+        "claude logs",
+        "claude attach",
+        "claude stop",
+        "claude respawn",
+        "claude rm",
+    }
+    missing_commands = sorted(required_command_paths - set(command_paths))
+    if missing_commands:
+        failures.append(
+            "CLI command inventory misses gated/manual command paths: "
+            + ", ".join(missing_commands)
+        )
+    required_aliases = {
+        "claude remote-control": {"rc", "remote", "sync", "bridge"},
+        "claude daemon logs": {"log"},
+        "claude stop": {"kill"},
+    }
+    for path, aliases in required_aliases.items():
+        actual = set(command_by_path.get(path, {}).get("aliases", []))
+        if not aliases.issubset(actual):
+            failures.append(
+                f"CLI command inventory aliases are incomplete for {path}: "
+                f"missing={sorted(aliases - actual)}"
+            )
+
+    internal = inventory.get("internalEntrypoints")
+    if not isinstance(internal, list):
+        failures.append("CLI command inventory internalEntrypoints must be a list")
+        internal = []
+    if len(internal) != 8:
+        failures.append(
+            f"CLI command inventory has {len(internal)} internal entrypoints; expected 8"
+        )
+    internal_argvs: list[str] = []
+    for index, entry in enumerate(internal, 1):
+        if not isinstance(entry, dict):
+            failures.append(f"CLI internal entrypoint {index} is not an object")
+            continue
+        for field in ("argv", "visibility", "owner", "source", "failureBoundary"):
+            if not isinstance(entry.get(field), str) or not entry[field]:
+                failures.append(f"CLI internal entrypoint {index} has invalid {field}")
+        if entry.get("visibility") != "internal":
+            failures.append(f"CLI internal entrypoint {index} is not marked internal")
+        argv = entry.get("argv")
+        if isinstance(argv, str) and argv:
+            internal_argvs.append(argv)
+        source_match = re.fullmatch(
+            r"reverse/javascript/cli\.readable\.js:([1-9][0-9]*)",
+            str(entry.get("source")),
+        )
+        if source_match is None:
+            failures.append(f"CLI internal entrypoint {index} has invalid source")
+        elif readable_line_count and int(source_match.group(1)) > readable_line_count:
+            failures.append(f"CLI internal entrypoint {index} source is out of range")
+    required_internal_argvs = {
+        "--handle-uri <uri>",
+        "--claude-in-chrome-mcp",
+        "--chrome-native-host",
+        "--computer-use-mcp",
+        "--daemon-worker <kind>",
+        "--bg-pty-host",
+        "--bg-spare",
+        "--preload",
+    }
+    if set(internal_argvs) != required_internal_argvs:
+        failures.append(
+            "CLI internal entrypoint coverage mismatch: "
+            f"missing={sorted(required_internal_argvs - set(internal_argvs))}, "
+            f"extra={sorted(set(internal_argvs) - required_internal_argvs)}"
+        )
+    if len(set(internal_argvs)) != len(internal_argvs):
+        failures.append("CLI command inventory has duplicate internal entrypoints")
+
+    if probe.get("schemaVersion") != 1:
+        failures.append("CLI command-tree probe schemaVersion must equal 1")
+    target = probe.get("target")
+    if not isinstance(target, dict):
+        failures.append("CLI command-tree probe target is missing")
+        target = {}
+    if target.get("version") != version:
+        failures.append("CLI command-tree probe target version does not equal VERSION")
+    if target.get("binarySha256") != expected_binary_sha:
+        failures.append(
+            "CLI command-tree probe binarySha256 does not match analysis/version.json"
+        )
+    if probe.get("pass") is not True:
+        failures.append("CLI command-tree probe did not pass")
+    required_probe_checks = {
+        "exactVersion",
+        "exactBinarySha256",
+        "explicitCommanderRegistrationCount59",
+        "allHelpCasesExitZeroWithExpectedUsage",
+        "nonexistentStatusFallsBackToRootAtExitZero",
+        "remoteControlFastPathPreemptsCommanderHelp",
+        "codeSignIsHelperNotHelpCommand",
+        "everyCommandHasOwnerSideEffectsAndFailure",
+    }
+    probe_checks = probe.get("checks")
+    if not isinstance(probe_checks, dict):
+        failures.append("CLI command-tree probe checks are missing")
+        probe_checks = {}
+    missing_checks = sorted(required_probe_checks - set(probe_checks))
+    if missing_checks:
+        failures.append(
+            "CLI command-tree probe misses required checks: " + ", ".join(missing_checks)
+        )
+    failed_checks = sorted(
+        name for name, value in probe_checks.items() if value is not True
+    )
+    if failed_checks:
+        failures.append(
+            "CLI command-tree probe has failed checks: " + ", ".join(failed_checks)
+        )
+
+    observed = probe.get("observed")
+    if not isinstance(observed, dict):
+        failures.append("CLI command-tree probe observed data is missing")
+        observed = {}
+    observed_counts = {
+        "explicitCommanderRegistrationCount": 59,
+        "structuredCommandRows": 90,
+        "internalEntrypoints": 8,
+    }
+    for field, expected in observed_counts.items():
+        if observed.get(field) != expected:
+            failures.append(
+                f"CLI command-tree probe observed {field} is {observed.get(field)!r}; "
+                f"expected {expected}"
+            )
+
+    help_cases = observed.get("helpCases")
+    if not isinstance(help_cases, list):
+        failures.append("CLI command-tree probe helpCases must be a list")
+        help_cases = []
+    if len(help_cases) != 65:
+        failures.append(
+            f"CLI command-tree probe has {len(help_cases)} help cases; expected 65"
+        )
+    probe_input = probe.get("input")
+    if not isinstance(probe_input, dict):
+        failures.append("CLI command-tree probe input is missing")
+        probe_input = {}
+    if probe_input.get("helpCases") != 65:
+        failures.append("CLI command-tree probe input.helpCases must equal 65")
+    help_ids: list[str] = []
+    help_commands: list[str] = []
+    expected_exit_statuses: dict[str, int] = {}
+    for index, case in enumerate(help_cases, 1):
+        if not isinstance(case, dict):
+            failures.append(f"CLI command-tree help case {index} is not an object")
+            continue
+        case_id = case.get("id")
+        command = case.get("command")
+        if not isinstance(case_id, str) or not case_id:
+            failures.append(f"CLI command-tree help case {index} has invalid id")
+        else:
+            help_ids.append(case_id)
+        if not isinstance(command, str) or not command:
+            failures.append(f"CLI command-tree help case {index} has invalid command")
+        else:
+            help_commands.append(command)
+            row = command_by_path.get(command)
+            if row is None:
+                failures.append(
+                    f"CLI command-tree help case {case_id!r} has no inventory row"
+                )
+            else:
+                row_evidence = row.get("evidence")
+                paired_probe = (
+                    row_evidence.get("probeCase")
+                    if isinstance(row_evidence, dict)
+                    else None
+                )
+                if paired_probe != case_id:
+                    failures.append(
+                        f"CLI command-tree help case {case_id!r} is not paired to its inventory row"
+                    )
+        if not isinstance(case.get("argv"), str) or not case["argv"]:
+            failures.append(f"CLI command-tree help case {index} has invalid argv")
+        if not isinstance(case.get("input"), dict) or not case["input"]:
+            failures.append(f"CLI command-tree help case {index} has invalid input")
+        literal_output = case.get("literalOutput")
+        if not isinstance(literal_output, dict) or not all(
+            isinstance(literal_output.get(stream), str) for stream in ("stdout", "stderr")
+        ):
+            failures.append(
+                f"CLI command-tree help case {index} has invalid literalOutput"
+            )
+        else:
+            for stream in ("stdout", "stderr"):
+                actual_hash = hashlib.sha256(
+                    literal_output[stream].encode("utf-8")
+                ).hexdigest()
+                if case.get(f"{stream}Sha256") != actual_hash:
+                    failures.append(
+                        f"CLI command-tree help case {index} has stale {stream} hash"
+                    )
+        if case.get("exitStatus") != 0:
+            failures.append(f"CLI command-tree help case {index} did not exit zero")
+        elif isinstance(case_id, str) and case_id:
+            expected_exit_statuses[case_id] = 0
+        if case.get("timedOut") is not False or case.get("signal") is not None:
+            failures.append(
+                f"CLI command-tree help case {index} timed out or received a signal"
+            )
+        parsed = case.get("parsed")
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("usage"), str):
+            failures.append(f"CLI command-tree help case {index} has invalid parsed usage")
+        case_checks = case.get("checks")
+        if not isinstance(case_checks, dict) or not case_checks or not all(
+            value is True for value in case_checks.values()
+        ):
+            failures.append(f"CLI command-tree help case {index} has failed checks")
+
+    if len(set(help_ids)) != 65:
+        failures.append(
+            f"CLI command-tree probe has {len(set(help_ids))} unique help IDs; expected 65"
+        )
+    if len(set(help_commands)) != 65:
+        failures.append(
+            "CLI command-tree probe help command paths are not unique and complete"
+        )
+    probe_exit_status = probe.get("exitStatus")
+    if not isinstance(probe_exit_status, dict):
+        failures.append("CLI command-tree probe exitStatus is missing")
+        probe_exit_status = {}
+    recorded_exit_statuses = probe_exit_status.get("helpCases")
+    if recorded_exit_statuses != expected_exit_statuses:
+        failures.append("CLI command-tree probe help-case exit status index is stale")
+
+    return len(commands), len(help_cases)
+
+
 def git(repo: Path, *args: str) -> str:
     return subprocess.check_output(
         ["git", "-C", str(repo), *args], text=True, stderr=subprocess.STDOUT
@@ -1698,6 +2173,9 @@ def main() -> int:
             )
 
     validate_reader_first_analysis(repo, failures)
+    cli_command_rows, cli_help_cases = validate_cli_command_tree(
+        repo, version, metadata, failures
+    )
 
     private_capture_files = find_private_capture_data(repo)
     if private_capture_files:
@@ -1807,6 +2285,8 @@ def main() -> int:
     print(f"files checked: {checked}")
     print(f"risk controls checked: {risk_entries}")
     print(f"source inventory files checked: {inventory_files}")
+    print(f"CLI command rows checked: {cli_command_rows}")
+    print(f"CLI exact-binary help cases checked: {cli_help_cases}")
     print(f"mechanism evidence records checked: {mechanism_evidence}")
     print(f"native behavior checks recorded: {native_behavior_checks}")
     print("capture path privacy: PASS")

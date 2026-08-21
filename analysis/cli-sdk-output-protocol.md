@@ -557,7 +557,7 @@ slash command 首先是 **输入扩展/本地命令路由**，不是 control sub
 | print worker request dispatch、response/error helper、keepalive/progress/cancel | [canonical packed 63921-63924](../extracted/cli.js#L63921)、[readable 601417-602490](../reverse/javascript/cli.readable.js#L601417) |
 | bundled Managed Agents event、preview、budget 文档合同 | [canonical packed line 57491](../extracted/cli.js#L57491) |
 | webhook-only compatibility identifiers | [canonical packed 58083-58132](../extracted/cli.js#L58083) |
-| CLI flags 与公开格式 | [CLI surface](cli-surface.txt)、[CLI option definitions](../reverse/javascript/cli.readable.js#L603757) |
+| CLI flags 与公开格式 | [公开顶层 CLI surface](cli-surface.txt)、[90 路径完整命令树](cli-command-reference.md)、[结构化 command inventory](cli-command-inventory.json)、[CLI option definitions](../reverse/javascript/cli.readable.js#L603757)；顶层 help 不覆盖 hidden/conditional/fast-path/manual parser |
 | input/output 组合校验与 JSON Schema 装载 | [592654-592773](../reverse/javascript/cli.readable.js#L592654) |
 | SDK 固定启动 `stream-json + verbose` | [417551-417660](../reverse/javascript/cli.readable.js#L417551) |
 | Query pending、unmatched cap、initialize、request/cancel | [417820-418430](../reverse/javascript/cli.readable.js#L417820) |

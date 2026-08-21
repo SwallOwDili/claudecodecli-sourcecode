@@ -1,0 +1,24 @@
+digraph CliCommandRouting {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.45", ranksep="0.7"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.14,0.09", color="#334155", fillcolor="#F8FAFC"];
+  edge [fontname="Helvetica", fontsize=10, color="#475569", fontcolor="#334155", arrowsize=0.75];
+
+  argv [label="argv\n用户命令或父进程协议", fillcolor="#E0F2FE"];
+  special [label="前置专用入口\nversion / URI / internal workers", fillcolor="#FEF3C7"];
+  fast [label="Fast-path 分发\nremote / daemon / bg / runner", fillcolor="#FEF3C7"];
+  mode [label="模式判定\nTTY agents / -p early parse", fillcolor="#FCE7F3"];
+  commander [label="Commander 树\nroot + 59 次 .command 注册", fillcolor="#EDE9FE"];
+  gates [label="action-time gates\nauth / policy / feature / platform", fillcolor="#FEE2E2"];
+  handler [label="owner handler\n读状态 / 写配置 / 长驻进程", fillcolor="#DCFCE7"];
+  result [label="stdout/stderr + exit\n或进入 TUI/长期服务", fillcolor="#DCFCE7"];
+
+  argv -> special [label="先匹配专用 flag"];
+  special -> fast [label="未命中则继续"];
+  fast -> mode [label="未命中 fast path"];
+  mode -> commander [label="注册并解析普通命令"];
+  commander -> gates [label="选中 action 后检查"];
+  fast -> gates [label="fast path 直接检查"];
+  gates -> handler [label="允许后调用 owner"];
+  gates -> result [label="拒绝时输出错误并结束"];
+  handler -> result [label="产生结果或保持运行"];
+}

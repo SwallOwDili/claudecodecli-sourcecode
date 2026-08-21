@@ -170,7 +170,7 @@ API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 bloc
 
 正常路径会在到达 blocked line 前预计算 compact；如果模型请求仍因 context/image 过长失败，Agent Loop 可以做一次 reactive compact 后重建请求。`hasAttemptedReactiveCompact` 防止同一轮无限压缩重试。
 
-compact 恢复的是“下一次请求能装下并继续”。它不能保证摘要包含所有被删除细节，所以 summary prompt、preserved messages、tool discoveries 和 logical parent 是可靠性的组成部分。
+compact 恢复的是“下一次请求能装下并继续”。它不能保证摘要包含所有被替换细节，所以 summary prompt、重新生成的 attachments、tool discoveries 和 logical parent 是可靠性的组成部分。当前 `/compact`、reactive、partial 和 precomputed 路径还保留合法消息组；cold/full auto 或特定 SDK full compact 才返回 `messagesToKeep: []`。
 
 ### Auto-compact 关闭
 
@@ -236,7 +236,7 @@ resume 从 transcript 重建 message graph、compact boundary 和当前 leaf。�
 
 - user/assistant/tool result 文本与结构；
 - fork/parent/logical parent；
-- compact summary 与 preserved segment；
+- compact summary；若该 boundary 来自保留型路径，再恢复 preserved segment；
 - 可持久化 session/task metadata；
 - file checkpoint 引用仍有效时的 rewind 能力。
 
@@ -293,7 +293,7 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 | 工具前卡住 | PreToolUse duration、permission duration | hook/审批/策略 |
 | 工具后不继续 | PostToolBatch、queue absorption、maxTurns | batch hook 或终止条件 |
 | 同动作疑似重复 | attempt/model fallback、tool ID、side-effect key | fallback 后模型重发 |
-| compact 后质量下降 | pre/post token、messages summarized、preserved fields | summary 信息损失 |
+| compact 后质量下降 | pre/post token、messages summarized、attachments；保留型路径再看 preserved fields | summary 信息损失或恢复材料不足 |
 | 子 Agent 长时间无结果 | agent API retry、heartbeat、task status | 子循环请求/工具/后台状态 |
 | resume 后工具消失 | MCP generation、server status、Tool Search discover | 重连/刷新未完成 |
 

@@ -1,0 +1,2650 @@
+{
+  "schemaVersion": 1,
+  "version": "2.1.235",
+  "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748",
+  "source": {
+    "path": "reverse/javascript/cli.readable.js",
+    "sha256": "99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4",
+    "explicitCommanderRegistrationCount": 59,
+    "explicitCommanderRegistrationSpecs": [
+      "add <name> <commandOrUrl> [args...]",
+      "xaa",
+      "setup",
+      "login",
+      "show",
+      "clear",
+      "mcp",
+      "serve",
+      "remove <name>",
+      "list",
+      "get <name>",
+      "login <name>",
+      "logout <name>",
+      "add-json <name> <json>",
+      "add-from-claude-desktop",
+      "reset-project-choices",
+      "plugin",
+      "init <name>",
+      "validate <path>",
+      "tag [path]",
+      "list",
+      "eval [target]",
+      "init [name]",
+      "details <name>",
+      "marketplace",
+      "add <source>",
+      "list",
+      "remove <name>",
+      "update [name]",
+      "install <plugin>",
+      "uninstall <plugin>",
+      "prune",
+      "enable <plugin>",
+      "disable [plugin]",
+      "update <plugin>",
+      "gateway",
+      "auth",
+      "login",
+      "status",
+      "logout",
+      "project",
+      "purge [path]",
+      "setup-token",
+      "agents",
+      "ultrareview [target]",
+      "auto-mode",
+      "defaults",
+      "config",
+      "reset",
+      "critique",
+      "remote-control",
+      "doctor",
+      "sandbox",
+      "install",
+      "status",
+      "update",
+      "install [target]",
+      "import",
+      "import-conversations <exportPath>"
+    ],
+    "boundary": "The readable bundle is generated analysis output. Commander/help/string presence proves parser surface, not a successful runtime branch."
+  },
+  "counts": {
+    "commandRows": 90,
+    "commanderRows": 60,
+    "manualFastPathRows": 30,
+    "internalEntrypoints": 8,
+    "exactBinaryHelpCases": 65
+  },
+  "families": {
+    "root-session": {
+      "owner": "VQg root Commander action -> ZGg -> qQg (headless) or Hb0 (interactive)",
+      "sideEffects": "May read settings/auth/keychain, restore or write transcript state, call the model, execute approved tools, and start TUI/SDK/cloud/worktree flows.",
+      "failure": "Startup validation, trust/policy/auth, incompatible input/output flags, resume lookup, transport, model, tool and terminal-result failures use different exit paths."
+    },
+    "mcp": {
+      "owner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failure": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration."
+    },
+    "mcp-xaa": {
+      "owner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failure": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails."
+    },
+    "plugin": {
+      "owner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failure": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes."
+    },
+    "plugin-eval": {
+      "owner": "bVm eval branch -> pluginEvalHandler/pluginEvalInitHandler",
+      "sideEffects": "Runs bounded model/evaluator sessions, optional scaffold scripts, writes result JSON/HTML and may publish a report.",
+      "failure": "Early-access gate, invalid budget/threshold/ablation, tool grants, scaffold exit, cost ceiling and score threshold use distinct non-zero results."
+    },
+    "gateway": {
+      "owner": "Db0 gateway command -> startGateway",
+      "sideEffects": "Starts a long-lived enterprise auth/telemetry gateway from YAML configuration.",
+      "failure": "Missing/invalid config or listener/runtime failure prints claude gateway error and exits 1."
+    },
+    "auth": {
+      "owner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failure": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text."
+    },
+    "project": {
+      "owner": "Db0 project purge -> purgeProjectHandler",
+      "sideEffects": "Deletes transcripts, tasks, file history and project config registration; dry-run is read-only.",
+      "failure": "--all/path conflict, confirmation mode, per-item filesystem failure and invalid target; deletion is not reversible by transcript rewind."
+    },
+    "background": {
+      "owner": "agentsCommandHandler or pre-Commander fleet-view fast path",
+      "sideEffects": "Reads background session registries, opens the agent view, or prints active/completed session JSON; dispatch defaults are carried to new sessions.",
+      "failure": "Fleet feature/policy gate, TTY mode, workspace trust and bypass-permission consent can stop before the Commander action."
+    },
+    "cloud-review": {
+      "owner": "ultrareviewHandler",
+      "sideEffects": "Starts and polls a cloud multi-agent review; optional --post writes one PR comment.",
+      "failure": "Repository/target resolution, entitlement, timeout, remote job and PR-post failures; --no-post is the default."
+    },
+    "auto-mode": {
+      "owner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failure": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable."
+    },
+    "remote-control": {
+      "owner": "gw0 fast path -> bridgeMain (Commander action is secondary)",
+      "sideEffects": "Starts a persistent bridge, enrolls trusted device state, attaches or creates local sessions and exchanges remote control events.",
+      "failure": "Managed disable, missing OAuth, product/plan gate, minimum version, policy and trusted-device checks fail before bridgeMain; aliases remote/sync/bridge are fast-path only."
+    },
+    "lifecycle": {
+      "owner": "doctorHandler, update, or installHandler",
+      "sideEffects": "Doctor reads local installation/settings; update/install download and replace the native build and may migrate local state.",
+      "failure": "Policy/channel/platform/download/signature/install-layout failures; binary rollback does not roll back settings or transcripts."
+    },
+    "sandbox": {
+      "owner": "sandboxInstallHandler/sandboxStatusHandler",
+      "sideEffects": "Status is read-only; install self-elevates on Windows and installs sandbox user/network filters.",
+      "failure": "Platform unavailable, policy lock, elevation or component install failure; status returns structured reasons."
+    },
+    "import": {
+      "owner": "Y3f/K3f pre-rewrite, /import command, or importConversationsHandler",
+      "sideEffects": "Imports selected Codex/Gemini config or writes archived exported conversations into Claude state; dry-run avoids writes.",
+      "failure": "Feature gate/config-read failure, digest mismatch, unsafe project-level items, malformed archive or storage write failure."
+    },
+    "daemon": {
+      "owner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failure": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits."
+    },
+    "daemon-config": {
+      "owner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failure": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed."
+    },
+    "self-hosted-runner": {
+      "owner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failure": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced."
+    },
+    "background-verb": {
+      "owner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failure": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone."
+    }
+  },
+  "commands": [
+    {
+      "path": "claude",
+      "family": "root-session",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "always",
+      "aliases": [],
+      "syntax": "Usage: claude [options] [command] [prompt]",
+      "arguments": [
+        "prompt"
+      ],
+      "observedOptions": [
+        "--add-dir <directories...>",
+        "--agent <agent>",
+        "--agents <json>",
+        "--allow-dangerously-skip-permissions",
+        "--append-system-prompt <prompt>",
+        "--autocompact <auto|tokens>",
+        "--ax-screen-reader",
+        "--bg, --background",
+        "--bare",
+        "--betas <betas...>",
+        "--brief",
+        "--chrome",
+        "--cloud [description|session_id|url]",
+        "-c, --continue",
+        "--dangerously-skip-permissions",
+        "-d, --debug [filter]",
+        "--debug-file <path>",
+        "--disable-slash-commands",
+        "--effort <level>",
+        "--environment <environment_id>",
+        "--fallback-model <model>",
+        "--file <specs...>",
+        "--fork-session",
+        "--forward-subagent-text",
+        "--from-pr [value]",
+        "-h, --help",
+        "--ide",
+        "--include-hook-events",
+        "--include-partial-messages",
+        "--input-format <format>",
+        "--json-schema <schema>",
+        "--max-budget-usd <amount>",
+        "--mcp-config <configs...>",
+        "--model <model>",
+        "-n, --name <name>",
+        "--no-chrome",
+        "--no-session-persistence",
+        "--output-format <format>",
+        "--permission-mode <mode>",
+        "--plugin-dir <path>",
+        "--plugin-url <url>",
+        "-p, --print",
+        "--prompt-suggestions [value]",
+        "--remote-control [name]",
+        "--replay-user-messages",
+        "-r, --resume [value]",
+        "--safe-mode",
+        "--session-id <uuid>",
+        "--setting-sources <sources>",
+        "--settings <file-or-json>",
+        "--strict-mcp-config",
+        "--system-prompt <prompt>",
+        "--teleport [session]",
+        "--tmux",
+        "--tools <tools...>",
+        "--verbose",
+        "-v, --version",
+        "-w, --worktree [name]"
+      ],
+      "hiddenOrStaticOptions": [
+        "-d2e, --debug-to-stderr",
+        "--init",
+        "--init-only",
+        "--maintenance",
+        "--session-mirror",
+        "--thinking <mode>",
+        "--thinking-display <display>",
+        "--max-thinking-tokens <tokens>",
+        "--max-turns <turns>",
+        "--task-budget <tokens>",
+        "--enable-auth-status",
+        "--permission-prompt-tool <tool>",
+        "--system-prompt-file <file>",
+        "--append-system-prompt-file <file>",
+        "--append-subagent-system-prompt <prompt>",
+        "--plan-mode-instructions <instructions>",
+        "--resume-session-at <message id>",
+        "--resume-drops-turn <message id>",
+        "--reply-on-resume",
+        "--rewind-files <user-message-id>",
+        "--workload <tag>",
+        "--managed-settings <json>",
+        "--plugin-dir-no-mcp <path>",
+        "--advisor <model>",
+        "--enable-auto-mode",
+        "--messaging-socket-path <path>",
+        "--channels <servers...>",
+        "--dangerously-load-development-channels <servers...>",
+        "--agent-id <id>",
+        "--agent-name <name>",
+        "--team-name <name>",
+        "--agent-color <color>",
+        "--plan-mode-required",
+        "--parent-session-id <id>",
+        "--teammate-mode <mode>",
+        "--agent-type <type>",
+        "--sdk-url <url>",
+        "--remote [description|session_id|url]",
+        "--pool <pool_id>",
+        "--correlation-id <id>",
+        "--ref <ref>",
+        "--on-branch <branch>",
+        "--rc [name]",
+        "--watch-artifact <artifact>",
+        "--watch-artifact-no-autoreact <artifact>",
+        "--prefill <text>",
+        "--deep-link-origin",
+        "--deep-link-repo <slug>",
+        "--deep-link-last-fetch <ms>",
+        "--prefill-b64 <b64>",
+        "--deep-link-cwd-b64 <b64>"
+      ],
+      "observedChildren": [
+        "agents [options]",
+        "auth",
+        "auto-mode",
+        "doctor",
+        "gateway [options]",
+        "import [options] [source]",
+        "install [options] [target]",
+        "mcp",
+        "plugin|plugins",
+        "project",
+        "setup-token",
+        "ultrareview [options] [target]",
+        "update|upgrade"
+      ],
+      "handlerOwner": "VQg root Commander action -> ZGg -> qQg (headless) or Hb0 (interactive)",
+      "sideEffects": "May read settings/auth/keychain, restore or write transcript state, call the model, execute approved tools, and start TUI/SDK/cloud/worktree flows.",
+      "failureBehavior": "Startup validation, trust/policy/auth, incompatible input/output flags, resume lookup, transport, model, tool and terminal-result failures use different exit paths.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:603700",
+        "probeCase": "root",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "add [options] <name> <commandOrUrl> [args...]"
+      ],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442367",
+        "probeCase": "root-mcp",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp serve",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp serve [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-d, --debug",
+        "-h, --help",
+        "--verbose"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442368",
+        "probeCase": "root-mcp-serve",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp add",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp add [options] <name> <commandOrUrl> [args...]",
+      "arguments": [],
+      "observedOptions": [
+        "--callback-port <port>",
+        "--client-id <clientId>",
+        "--client-secret",
+        "-e, --env <env...>",
+        "-H, --header <header...>",
+        "-h, --help",
+        "-s, --scope <scope>",
+        "-t, --transport <transport>"
+      ],
+      "hiddenOrStaticOptions": [
+        "--xaa (hidden unless CLAUDE_CODE_ENABLE_XAA=1)"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:423906",
+        "probeCase": "root-mcp-add",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp remove",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp remove [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "-s, --scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442372",
+        "probeCase": "root-mcp-remove",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp list",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp list [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442375",
+        "probeCase": "root-mcp-list",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp get",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp get [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442378",
+        "probeCase": "root-mcp-get",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp login",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp login [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--no-browser"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442381",
+        "probeCase": "root-mcp-login",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp logout",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp logout [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442384",
+        "probeCase": "root-mcp-logout",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp add-json",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude mcp add-json [options] <name> <json>",
+      "arguments": [],
+      "observedOptions": [
+        "--client-secret",
+        "-h, --help",
+        "-s, --scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442387",
+        "probeCase": "root-mcp-add-json",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp add-from-claude-desktop",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "Mac/WSL handler support",
+      "aliases": [],
+      "syntax": "Usage: claude mcp add-from-claude-desktop [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "-s, --scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442390",
+        "probeCase": "root-mcp-add-from-claude-desktop",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp reset-project-choices",
+      "family": "mcp",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "project scope",
+      "aliases": [],
+      "syntax": "Usage: claude mcp reset-project-choices [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sWm/FMm registration; lazy mcp*Handler modules and settings writer",
+      "sideEffects": "Lists/health-checks servers, starts stdio MCP service, mutates scoped MCP settings, stores or revokes OAuth secrets, or resets project approval choices.",
+      "failureBehavior": "Scope/transport/URL/JSON validation, project trust, OAuth support, keychain writes and server health fail independently; help proves only registration.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:442393",
+        "probeCase": "root-mcp-reset-project-choices",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp xaa",
+      "family": "mcp-xaa",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "CLAUDE_CODE_ENABLE_XAA=1",
+      "aliases": [],
+      "syntax": "Usage: claude mcp xaa [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "clear",
+        "help [command]",
+        "login [options]",
+        "setup [options]",
+        "show"
+      ],
+      "handlerOwner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failureBehavior": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:424008",
+        "probeCase": "root-mcp-xaa",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp xaa setup",
+      "family": "mcp-xaa",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "CLAUDE_CODE_ENABLE_XAA=1",
+      "aliases": [],
+      "syntax": "Usage: claude mcp xaa setup [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--callback-port <port>",
+        "--client-id <id>",
+        "--client-secret",
+        "-h, --help",
+        "--issuer <url>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failureBehavior": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:424009",
+        "probeCase": "root-mcp-xaa-setup",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp xaa login",
+      "family": "mcp-xaa",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "CLAUDE_CODE_ENABLE_XAA=1",
+      "aliases": [],
+      "syntax": "Usage: claude mcp xaa login [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--force",
+        "-h, --help",
+        "--id-token <jwt>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failureBehavior": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:424032",
+        "probeCase": "root-mcp-xaa-login",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp xaa show",
+      "family": "mcp-xaa",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "CLAUDE_CODE_ENABLE_XAA=1",
+      "aliases": [],
+      "syntax": "Usage: claude mcp xaa show [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failureBehavior": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:424054",
+        "probeCase": "root-mcp-xaa-show",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude mcp xaa clear",
+      "family": "mcp-xaa",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "CLAUDE_CODE_ENABLE_XAA=1",
+      "aliases": [],
+      "syntax": "Usage: claude mcp xaa clear [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "jMm registration; mcpXaaIdpLoginModule and user-settings writer",
+      "sideEffects": "Writes xaaIdp settings and stores/clears client secret or id_token in secure storage; browser login may open an authorization URL.",
+      "failureBehavior": "Disabled env gate, invalid issuer/port, missing secret, OIDC failure or keychain failure; setup can persist settings before a later keychain write fails.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:424065",
+        "probeCase": "root-mcp-xaa-clear",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [
+        "plugins"
+      ],
+      "syntax": "Usage: claude plugin|plugins [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [
+        "--cowork (hidden on applicable leaf commands)"
+      ],
+      "observedChildren": [
+        "details [options] <name>",
+        "disable [options] [plugin]",
+        "enable [options] <plugin>",
+        "eval [options] [target]",
+        "help [command]",
+        "init|new [options] <name>",
+        "install|i [options] <plugin>",
+        "list [options]",
+        "marketplace",
+        "prune|autoremove [options]",
+        "tag [options] [path]",
+        "uninstall|remove [options] <plugin>",
+        "update [options] <plugin>",
+        "validate [options] <path>"
+      ],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448563",
+        "probeCase": "root-plugin",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin init",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [
+        "new"
+      ],
+      "syntax": "Usage: claude plugin init|new [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "--author <name>",
+        "--author-email <email>",
+        "--description <text>",
+        "-f, --force",
+        "-h, --help",
+        "--with <components...>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448564",
+        "probeCase": "root-plugin-init",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin validate",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin validate [options] <path>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--strict"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448567",
+        "probeCase": "root-plugin-validate",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin tag",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin tag [options] [path]",
+      "arguments": [],
+      "observedOptions": [
+        "--dry-run",
+        "-f, --force",
+        "-h, --help",
+        "-m, --message <msg>",
+        "--push",
+        "--remote <name>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448570",
+        "probeCase": "root-plugin-tag",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin list",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin list [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--available",
+        "-h, --help",
+        "--json"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448573",
+        "probeCase": "root-plugin-list",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin eval",
+      "family": "plugin-eval",
+      "parser": "commander-or-fast-path",
+      "visibility": "public-entry/guarded-action",
+      "gate": "lHn() early-access check runs on action",
+      "aliases": [],
+      "syntax": "Usage: claude plugin eval [options] [command] [target]",
+      "arguments": [],
+      "observedOptions": [
+        "--ablation <mode>",
+        "--allow-tools <tools...>",
+        "--case <glob>",
+        "--eval-dir <dir>",
+        "-h, --help",
+        "--json [path]",
+        "--judge-model <model>",
+        "--keep-temp",
+        "--max-cost-usd <usd>",
+        "--model <model>",
+        "--no-publish",
+        "--no-scaffold",
+        "--output-dir <dir>",
+        "--publish-report",
+        "--report <path>",
+        "--runs <n>",
+        "--scaffold",
+        "--tag <tag...>",
+        "--threshold <0..1>",
+        "--verbose"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "init [options] [name]"
+      ],
+      "handlerOwner": "bVm eval branch -> pluginEvalHandler/pluginEvalInitHandler",
+      "sideEffects": "Runs bounded model/evaluator sessions, optional scaffold scripts, writes result JSON/HTML and may publish a report.",
+      "failureBehavior": "Early-access gate, invalid budget/threshold/ablation, tool grants, scaffold exit, cost ceiling and score threshold use distinct non-zero results.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448580",
+        "probeCase": "root-plugin-eval",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin eval init",
+      "family": "plugin-eval",
+      "parser": "commander-or-fast-path",
+      "visibility": "public-entry/guarded-action",
+      "gate": "lHn() early-access check runs on action",
+      "aliases": [],
+      "syntax": "Usage: claude plugin eval init [options] [name]",
+      "arguments": [],
+      "observedOptions": [
+        "--bare",
+        "--eval-dir <dir>",
+        "-h, --help",
+        "-i, --interactive"
+      ],
+      "hiddenOrStaticOptions": [
+        "--interview (hidden alias for --interactive)"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "bVm eval branch -> pluginEvalHandler/pluginEvalInitHandler",
+      "sideEffects": "Runs bounded model/evaluator sessions, optional scaffold scripts, writes result JSON/HTML and may publish a report.",
+      "failureBehavior": "Early-access gate, invalid budget/threshold/ablation, tool grants, scaffold exit, cost ceiling and score threshold use distinct non-zero results.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448585",
+        "probeCase": "root-plugin-eval-init",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin details",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin details [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448591",
+        "probeCase": "root-plugin-details",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin marketplace",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin marketplace [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "add [options] <source>",
+        "help [command]",
+        "list [options]",
+        "remove|rm [options] <name>",
+        "update [options] [name]"
+      ],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448595",
+        "probeCase": "root-plugin-marketplace",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin marketplace add",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin marketplace add [options] <source>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--scope <scope>",
+        "--sparse <paths...>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448596",
+        "probeCase": "root-plugin-marketplace-add",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin marketplace list",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin marketplace list [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--json"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448599",
+        "probeCase": "root-plugin-marketplace-list",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin marketplace remove",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin marketplace remove|rm [options] <name>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448602",
+        "probeCase": "root-plugin-marketplace-remove",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin marketplace update",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin marketplace update [options] [name]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448605",
+        "probeCase": "root-plugin-marketplace-update",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin install",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [
+        "i"
+      ],
+      "syntax": "Usage: claude plugin install|i [options] <plugin>",
+      "arguments": [],
+      "observedOptions": [
+        "--config <key=value>",
+        "-h, --help",
+        "-s, --scope <scope>",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448608",
+        "probeCase": "root-plugin-install",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin uninstall",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [
+        "remove"
+      ],
+      "syntax": "Usage: claude plugin uninstall|remove [options] <plugin>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--keep-data",
+        "--prune",
+        "-s, --scope <scope>",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448611",
+        "probeCase": "root-plugin-uninstall",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin prune",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [
+        "autoremove"
+      ],
+      "syntax": "Usage: claude plugin prune|autoremove [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--dry-run",
+        "-h, --help",
+        "-s, --scope <scope>",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448614",
+        "probeCase": "root-plugin-prune",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin enable",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin enable [options] <plugin>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "-s, --scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448617",
+        "probeCase": "root-plugin-enable",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin disable",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin disable [options] [plugin]",
+      "arguments": [],
+      "observedOptions": [
+        "-a, --all",
+        "-h, --help",
+        "-s, --scope <scope>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448620",
+        "probeCase": "root-plugin-disable",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude plugin update",
+      "family": "plugin",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "registered outside --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude plugin update [options] <plugin>",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "-s, --scope <scope>",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "bVm registration; lazy plugin/marketplace handlers",
+      "sideEffects": "Creates manifests/tags, clones or edits marketplace declarations, installs/uninstalls/enables/disables plugins, writes config and may execute marketplace-declared install commands after confirmation.",
+      "failureBehavior": "Trust, manifest/schema, dirty Git tree, scope, dependency, command-confirmation and cache/reload failures; many successes require restart before runtime state changes.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:448623",
+        "probeCase": "root-plugin-update",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude gateway",
+      "family": "gateway",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude gateway [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--config <path>",
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 gateway command -> startGateway",
+      "sideEffects": "Starts a long-lived enterprise auth/telemetry gateway from YAML configuration.",
+      "failureBehavior": "Missing/invalid config or listener/runtime failure prints claude gateway error and exits 1.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630169",
+        "probeCase": "root-gateway",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auth",
+      "family": "auth",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude auth [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "help [command]",
+        "login [options]",
+        "logout",
+        "status [options]"
+      ],
+      "handlerOwner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failureBehavior": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630183",
+        "probeCase": "root-auth",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auth login",
+      "family": "auth",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude auth login [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--claudeai",
+        "--console",
+        "--email <email>",
+        "-h, --help",
+        "--sso"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failureBehavior": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630184",
+        "probeCase": "root-auth-login",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auth status",
+      "family": "auth",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude auth status [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--json",
+        "--text"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failureBehavior": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630187",
+        "probeCase": "root-auth-status",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auth logout",
+      "family": "auth",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude auth logout [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failureBehavior": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630190",
+        "probeCase": "root-auth-logout",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude project",
+      "family": "project",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude project [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "help [command]",
+        "purge [options] [path]"
+      ],
+      "handlerOwner": "Db0 project purge -> purgeProjectHandler",
+      "sideEffects": "Deletes transcripts, tasks, file history and project config registration; dry-run is read-only.",
+      "failureBehavior": "--all/path conflict, confirmation mode, per-item filesystem failure and invalid target; deletion is not reversible by transcript rewind.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630193",
+        "probeCase": "root-project",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude project purge",
+      "family": "project",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude project purge [options] [path]",
+      "arguments": [],
+      "observedOptions": [
+        "--all",
+        "--dry-run",
+        "-h, --help",
+        "-i, --interactive",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 project purge -> purgeProjectHandler",
+      "sideEffects": "Deletes transcripts, tasks, file history and project config registration; dry-run is read-only.",
+      "failureBehavior": "--all/path conflict, confirmation mode, per-item filesystem failure and invalid target; deletion is not reversible by transcript rewind.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630193",
+        "probeCase": "root-project-purge",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude setup-token",
+      "family": "auth",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "not registered in --print early parse",
+      "aliases": [],
+      "syntax": "Usage: claude setup-token [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Db0 auth/setup-token registrations -> auth* or setupTokenHandler",
+      "sideEffects": "Starts browser/SSO login, reads account state, clears credentials, or creates a long-lived subscription token.",
+      "failureBehavior": "Provider/account mismatch, login callback, credential storage and subscription eligibility failures; status can be JSON or text.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630196",
+        "probeCase": "root-setup-token",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude agents",
+      "family": "background",
+      "parser": "commander-or-fast-path",
+      "visibility": "public/fast-path-capable",
+      "gate": "TTY + fleet gate may bypass Commander action",
+      "aliases": [],
+      "syntax": "Usage: claude agents [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--add-dir <directory>",
+        "--agent <agent>",
+        "--all",
+        "--allow-dangerously-skip-permissions",
+        "--cwd <path>",
+        "--dangerously-skip-permissions",
+        "--effort <level>",
+        "-h, --help",
+        "--json",
+        "--mcp-config <config>",
+        "--model <model>",
+        "--permission-mode <mode>",
+        "--plugin-dir <path>",
+        "--setting-sources <sources>",
+        "--settings <file-or-json>",
+        "--strict-mcp-config"
+      ],
+      "hiddenOrStaticOptions": [
+        "--plugin-dir-no-mcp <path> (hidden)"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "agentsCommandHandler or pre-Commander fleet-view fast path",
+      "sideEffects": "Reads background session registries, opens the agent view, or prints active/completed session JSON; dispatch defaults are carried to new sessions.",
+      "failureBehavior": "Fleet feature/policy gate, TTY mode, workspace trust and bypass-permission consent can stop before the Commander action.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630199",
+        "probeCase": "root-agents",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude ultrareview",
+      "family": "cloud-review",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "remote entitlement and repository target",
+      "aliases": [],
+      "syntax": "Usage: claude ultrareview [options] [target]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--json",
+        "--no-post",
+        "--post",
+        "--timeout <minutes>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "ultrareviewHandler",
+      "sideEffects": "Starts and polls a cloud multi-agent review; optional --post writes one PR comment.",
+      "failureBehavior": "Repository/target resolution, entitlement, timeout, remote job and PR-post failures; --no-post is the default.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630202",
+        "probeCase": "root-ultrareview",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auto-mode",
+      "family": "auto-mode",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "remote config state is not disabled",
+      "aliases": [],
+      "syntax": "Usage: claude auto-mode [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "config",
+        "critique [options]",
+        "defaults [options]",
+        "help [command]",
+        "reset [options]"
+      ],
+      "handlerOwner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failureBehavior": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630206",
+        "probeCase": "root-auto-mode",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auto-mode defaults",
+      "family": "auto-mode",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "auto-mode command registered",
+      "aliases": [],
+      "syntax": "Usage: claude auto-mode defaults [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--label <prefix>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failureBehavior": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630207",
+        "probeCase": "root-auto-mode-defaults",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auto-mode config",
+      "family": "auto-mode",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "auto-mode command registered",
+      "aliases": [],
+      "syntax": "Usage: claude auto-mode config [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failureBehavior": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630210",
+        "probeCase": "root-auto-mode-config",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auto-mode reset",
+      "family": "auto-mode",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "auto-mode command registered",
+      "aliases": [],
+      "syntax": "Usage: claude auto-mode reset [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "-y, --yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failureBehavior": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630213",
+        "probeCase": "root-auto-mode-reset",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude auto-mode critique",
+      "family": "auto-mode",
+      "parser": "commander-or-fast-path",
+      "visibility": "conditional",
+      "gate": "auto-mode command registered",
+      "aliases": [],
+      "syntax": "Usage: claude auto-mode critique [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help",
+        "--model <model>"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "autoMode*Handler family",
+      "sideEffects": "Prints default/effective classifier rules, removes user autoMode config on reset, or calls a model to critique custom rules.",
+      "failureBehavior": "Command registration depends on remote config not being disabled; settings/policy/model gates can still make runtime auto mode unavailable.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630216",
+        "probeCase": "root-auto-mode-critique",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude remote-control",
+      "family": "remote-control",
+      "parser": "commander-or-fast-path",
+      "visibility": "hidden/fast-path",
+      "gate": "auth + policy + allow_remote_control + trusted-device gates",
+      "aliases": [
+        "rc",
+        "remote",
+        "sync",
+        "bridge"
+      ],
+      "syntax": "claude remote-control [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--name <name>",
+        "--remote-control-session-name-prefix <prefix>",
+        "-c, --continue",
+        "--session-id <id>",
+        "--permission-mode <mode>",
+        "--debug-file <path>",
+        "-v, --verbose",
+        "--spawn <same-dir|worktree|session>",
+        "--capacity <N>",
+        "--[no-]create-session-in-dir"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 fast path -> bridgeMain (Commander action is secondary)",
+      "sideEffects": "Starts a persistent bridge, enrolls trusted device state, attaches or creates local sessions and exchanges remote control events.",
+      "failureBehavior": "Managed disable, missing OAuth, product/plan gate, minimum version, policy and trusted-device checks fail before bridgeMain; aliases remote/sync/bridge are fast-path only.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630221",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude doctor",
+      "family": "lifecycle",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "local diagnostics",
+      "aliases": [],
+      "syntax": "Usage: claude doctor [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "doctorHandler, update, or installHandler",
+      "sideEffects": "Doctor reads local installation/settings; update/install download and replace the native build and may migrate local state.",
+      "failureBehavior": "Policy/channel/platform/download/signature/install-layout failures; binary rollback does not roll back settings or transcripts.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630224",
+        "probeCase": "root-doctor",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude sandbox",
+      "family": "sandbox",
+      "parser": "commander-or-fast-path",
+      "visibility": "hidden",
+      "gate": "platform-specific Windows implementation",
+      "aliases": [],
+      "syntax": "Usage: claude sandbox [options] [command]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [
+        "help [command]",
+        "install",
+        "status"
+      ],
+      "handlerOwner": "sandboxInstallHandler/sandboxStatusHandler",
+      "sideEffects": "Status is read-only; install self-elevates on Windows and installs sandbox user/network filters.",
+      "failureBehavior": "Platform unavailable, policy lock, elevation or component install failure; status returns structured reasons.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630228",
+        "probeCase": "root-sandbox",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude sandbox install",
+      "family": "sandbox",
+      "parser": "commander-or-fast-path",
+      "visibility": "hidden",
+      "gate": "Windows sandbox availability",
+      "aliases": [],
+      "syntax": "Usage: claude sandbox install [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sandboxInstallHandler/sandboxStatusHandler",
+      "sideEffects": "Status is read-only; install self-elevates on Windows and installs sandbox user/network filters.",
+      "failureBehavior": "Platform unavailable, policy lock, elevation or component install failure; status returns structured reasons.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630229",
+        "probeCase": "root-sandbox-install",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude sandbox status",
+      "family": "sandbox",
+      "parser": "commander-or-fast-path",
+      "visibility": "hidden",
+      "gate": "Windows sandbox availability",
+      "aliases": [],
+      "syntax": "Usage: claude sandbox status [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "sandboxInstallHandler/sandboxStatusHandler",
+      "sideEffects": "Status is read-only; install self-elevates on Windows and installs sandbox user/network filters.",
+      "failureBehavior": "Platform unavailable, policy lock, elevation or component install failure; status returns structured reasons.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630232",
+        "probeCase": "root-sandbox-status",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude update",
+      "family": "lifecycle",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "update policy/channel/install layout",
+      "aliases": [
+        "upgrade",
+        "--update",
+        "--upgrade"
+      ],
+      "syntax": "Usage: claude update|upgrade [options]",
+      "arguments": [],
+      "observedOptions": [
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "doctorHandler, update, or installHandler",
+      "sideEffects": "Doctor reads local installation/settings; update/install download and replace the native build and may migrate local state.",
+      "failureBehavior": "Policy/channel/platform/download/signature/install-layout failures; binary rollback does not roll back settings or transcripts.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630235",
+        "probeCase": "root-update",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude install",
+      "family": "lifecycle",
+      "parser": "commander-or-fast-path",
+      "visibility": "public",
+      "gate": "native installer availability",
+      "aliases": [],
+      "syntax": "Usage: claude install [options] [target]",
+      "arguments": [],
+      "observedOptions": [
+        "--force",
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "doctorHandler, update, or installHandler",
+      "sideEffects": "Doctor reads local installation/settings; update/install download and replace the native build and may migrate local state.",
+      "failureBehavior": "Policy/channel/platform/download/signature/install-layout failures; binary rollback does not roll back settings or transcripts.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630238",
+        "probeCase": "root-install",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude import",
+      "family": "import",
+      "parser": "commander-or-fast-path",
+      "visibility": "public-entry/conditional-action",
+      "gate": "tengu_import plus config-readable pre-rewrite",
+      "aliases": [],
+      "syntax": "Usage: claude import [options] [source]",
+      "arguments": [
+        "source"
+      ],
+      "observedOptions": [
+        "--dry-run",
+        "-h, --help",
+        "--yes"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Y3f/K3f pre-rewrite, /import command, or importConversationsHandler",
+      "sideEffects": "Imports selected Codex/Gemini config or writes archived exported conversations into Claude state; dry-run avoids writes.",
+      "failureBehavior": "Feature gate/config-read failure, digest mismatch, unsafe project-level items, malformed archive or storage write failure.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630241",
+        "probeCase": "root-import",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude import-conversations",
+      "family": "import",
+      "parser": "commander-or-fast-path",
+      "visibility": "hidden",
+      "gate": "explicit archive path",
+      "aliases": [],
+      "syntax": "Usage: claude import-conversations [options] <exportPath>",
+      "arguments": [],
+      "observedOptions": [
+        "--cwd <dir>",
+        "--dry-run",
+        "-h, --help"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "Y3f/K3f pre-rewrite, /import command, or importConversationsHandler",
+      "sideEffects": "Imports selected Codex/Gemini config or writes archived exported conversations into Claude state; dry-run avoids writes.",
+      "failureBehavior": "Feature gate/config-read failure, digest mismatch, unsafe project-level items, malformed archive or storage write failure.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:630246",
+        "probeCase": "root-import-conversations",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude daemon",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-fast-path",
+      "gate": "FKc argv dispatch; policy and fleet gates",
+      "aliases": [],
+      "syntax": "Usage: claude daemon [subcommand] [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--json-path <p>",
+        "--log-file <p>",
+        "--help, -h"
+      ],
+      "hiddenOrStaticOptions": [
+        "--origin <service|transient|foreground>",
+        "--spawned-by <json> (internal)"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:93",
+        "probeCase": "root-daemon",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude daemon run",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "manual-parser",
+      "gate": "background-agent availability",
+      "aliases": [],
+      "syntax": "claude daemon run [json-path] [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json-path <path>",
+        "--log-file <path>",
+        "--origin <mode>",
+        "--spawned-by <json>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632524",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon status",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "manual-parser",
+      "gate": "static policy continues when helper refresh fails",
+      "aliases": [],
+      "syntax": "claude daemon status [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json-path <path>",
+        "--log-file <path>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632660",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon logs",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "manual-parser",
+      "gate": "local log path",
+      "aliases": [
+        "log"
+      ],
+      "syntax": "claude daemon logs [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--log-file <path>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632704",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon install",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "conditional/disabled-in-build",
+      "gate": "HIt() and platform service manager",
+      "aliases": [],
+      "syntax": "claude daemon install [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json-path <path>",
+        "--log-file <path>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632550",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon start",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "conditional/disabled-in-build",
+      "gate": "HIt(), service installed and singleton config dir",
+      "aliases": [],
+      "syntax": "claude daemon start [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json-path <path>",
+        "--log-file <path>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632573",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon restart",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "conditional/disabled-in-build",
+      "gate": "HIt(), service installed and singleton config dir",
+      "aliases": [],
+      "syntax": "claude daemon restart [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json-path <path>",
+        "--log-file <path>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632573",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon uninstall",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "manual-parser",
+      "gate": "platform service manager",
+      "aliases": [],
+      "syntax": "claude daemon uninstall [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632590",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon stop",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "manual-parser",
+      "gate": "lock identity and --any/--keep-workers",
+      "aliases": [],
+      "syntax": "claude daemon stop [--any] [--keep-workers] [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--any",
+        "--keep-workers"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632598",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon list",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "daemon config readable",
+      "aliases": [],
+      "syntax": "claude daemon list [--json] [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632506",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon scheduled",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "daemon config and service install for writes",
+      "aliases": [],
+      "syntax": "claude daemon scheduled <add|remove|list> [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json",
+        "--id <id>",
+        "--prompt <text>",
+        "--cron <expr>",
+        "--dir <path>",
+        "--permission-mode <mode>",
+        "--model <model>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632511",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon scheduled add",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "trusted directory + valid cron + installed service",
+      "aliases": [],
+      "syntax": "claude daemon scheduled add --prompt <text> --cron <expr> [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--id <id>",
+        "--prompt <text>",
+        "--cron <expr>",
+        "--dir <path>",
+        "--permission-mode <mode>",
+        "--model <model>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632180",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon scheduled remove",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "installed service + matching task id",
+      "aliases": [],
+      "syntax": "claude daemon scheduled remove <task-id> [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632190",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon scheduled list",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "daemon config readable",
+      "aliases": [],
+      "syntax": "claude daemon scheduled list [--json] [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632174",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon remote-control",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "daemon config and service install for writes",
+      "aliases": [],
+      "syntax": "claude daemon remote-control <add|remove|list> [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json",
+        "--dir <path>",
+        "--name <name>",
+        "--spawn-mode <same-dir|worktree>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632511",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon remote-control add",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "trusted canonical directory + installed service",
+      "aliases": [],
+      "syntax": "claude daemon remote-control add [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--dir <path>",
+        "--name <name>",
+        "--spawn-mode <same-dir|worktree>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632240",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon remote-control remove",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "installed service + unambiguous name/dir",
+      "aliases": [],
+      "syntax": "claude daemon remote-control remove <name-or-dir> [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632232",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon remote-control list",
+      "family": "daemon-config",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "daemon config readable",
+      "aliases": [],
+      "syntax": "claude daemon remote-control list [--json] [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "--json"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "daemon handleCliKind -> scheduled or remote-control config handlers",
+      "sideEffects": "Lists or edits daemon.json scheduled tasks and persistent Remote Control servers.",
+      "failureBehavior": "Writes require installed service, trusted directories and valid cron/spawn mode; ambiguous or missing identifiers fail closed.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632224",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude daemon hub",
+      "family": "daemon",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-manual-parser",
+      "gate": "TTY; otherwise prints a diagnostic",
+      "aliases": [],
+      "syntax": "claude daemon hub",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 FKc fast path -> daemonMain/BS0 manual parser",
+      "sideEffects": "Runs/stops the background supervisor, tails logs, inspects lock/worker state, and conditionally manages a platform service.",
+      "failureBehavior": "Manual parser accepts more paths than help lists; policy, service-disabled build, lock identity, launcher, stale binary and reachability have separate exits.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:632514",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-fast-path",
+      "gate": "environment secret/work-order service",
+      "aliases": [],
+      "syntax": "Usage: claude self-hosted-runner [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638118",
+        "probeCase": "root-self-hosted-runner",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner orchestrator",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-fast-path",
+      "gate": "environment secret + hooks-dir",
+      "aliases": [],
+      "syntax": "Usage: claude self-hosted-runner orchestrator [options]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638121",
+        "probeCase": "root-self-hosted-runner-orchestrator",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner setup",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-fast-path",
+      "gate": "spawns setup Agent session",
+      "aliases": [],
+      "syntax": "Usage: claude self-hosted-runner setup [args...]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638126",
+        "probeCase": "root-self-hosted-runner-setup",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner doctor",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "hidden-fast-path",
+      "gate": "spawns diagnostic Agent session",
+      "aliases": [],
+      "syntax": "Usage: claude self-hosted-runner doctor [args...]",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638131",
+        "probeCase": "root-self-hosted-runner-doctor",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner code-sign",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "internal-helper",
+      "gate": "runner session id/token/base URL",
+      "aliases": [],
+      "syntax": "claude self-hosted-runner code-sign -Y sign [-n namespace] [-f keyfile] <buffer-file>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [
+        "-Y sign",
+        "-n <namespace>",
+        "-f <keyfile>"
+      ],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638136",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude self-hosted-runner decode-token",
+      "family": "self-hosted-runner",
+      "parser": "manual-fast-path",
+      "visibility": "operator-helper",
+      "gate": "JWT source; verification on by default",
+      "aliases": [],
+      "syntax": "Usage: claude self-hosted-runner decode-token [token] [options]",
+      "arguments": [],
+      "observedOptions": [
+        "--header",
+        "--no-verify",
+        "--no-check-expiry",
+        "--api-url <url>",
+        "--verify",
+        "--help, -h"
+      ],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 self-hosted-runner fast path -> runner/orchestrator/setup/doctor/helper mains",
+      "sideEffects": "Registers runner capacity, checks out repositories, spawns child Claude sessions, executes lifecycle hooks, exposes health/metrics, signs commits or inspects work-order JWTs.",
+      "failureBehavior": "Secret/auth, option parser, confinement, hook, child init/watchdog, token rotation, Git proxy/signing and drain/release failures are independently surfaced.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638141",
+        "probeCase": "root-self-hosted-runner-decode-token",
+        "limitation": "Help/usage proves parser surface and option spelling, not successful handler execution."
+      }
+    },
+    {
+      "path": "claude logs",
+      "family": "background-verb",
+      "parser": "manual-fast-path",
+      "visibility": "conditional-fast-path",
+      "gate": "fleet gate + job id",
+      "aliases": [],
+      "syntax": "claude logs <job>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failureBehavior": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638005",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude attach",
+      "family": "background-verb",
+      "parser": "manual-fast-path",
+      "visibility": "conditional-fast-path",
+      "gate": "fleet gate + job id",
+      "aliases": [],
+      "syntax": "claude attach <job>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failureBehavior": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638005",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude stop",
+      "family": "background-verb",
+      "parser": "manual-fast-path",
+      "visibility": "conditional-fast-path",
+      "gate": "fleet gate + job id",
+      "aliases": [
+        "kill"
+      ],
+      "syntax": "claude stop <job>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failureBehavior": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638005",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude respawn",
+      "family": "background-verb",
+      "parser": "manual-fast-path",
+      "visibility": "conditional-fast-path",
+      "gate": "fleet gate + job id",
+      "aliases": [],
+      "syntax": "claude respawn <job>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failureBehavior": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638005",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    },
+    {
+      "path": "claude rm",
+      "family": "background-verb",
+      "parser": "manual-fast-path",
+      "visibility": "conditional-fast-path",
+      "gate": "fleet gate + job id",
+      "aliases": [],
+      "syntax": "claude rm <job>",
+      "arguments": [],
+      "observedOptions": [],
+      "hiddenOrStaticOptions": [],
+      "observedChildren": [],
+      "handlerOwner": "gw0 background fast path -> hMh handlers",
+      "sideEffects": "Tails/attaches to, stops, respawns or removes a background job; kill is routed to the same stop handler.",
+      "failureBehavior": "Fleet/policy gate, missing/ambiguous job, daemon/control socket and PTY attachment failures; completed external work is not undone.",
+      "evidence": {
+        "static": "reverse/javascript/cli.readable.js:638005",
+        "probeCase": null,
+        "limitation": "Static dispatcher evidence only; no help output was executed for this row."
+      }
+    }
+  ],
+  "internalEntrypoints": [
+    {
+      "argv": "--handle-uri <uri>",
+      "visibility": "internal",
+      "owner": "OS protocol handler",
+      "source": "reverse/javascript/cli.readable.js:630130",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--claude-in-chrome-mcp",
+      "visibility": "internal",
+      "owner": "Chrome MCP child",
+      "source": "reverse/javascript/cli.readable.js:637899",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--chrome-native-host",
+      "visibility": "internal",
+      "owner": "Chrome native-messaging host",
+      "source": "reverse/javascript/cli.readable.js:637903",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--computer-use-mcp",
+      "visibility": "internal",
+      "owner": "Computer Use MCP child",
+      "source": "reverse/javascript/cli.readable.js:637907",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--daemon-worker <kind>",
+      "visibility": "internal",
+      "owner": "daemon registry worker",
+      "source": "reverse/javascript/cli.readable.js:637911",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--bg-pty-host",
+      "visibility": "internal",
+      "owner": "background PTY host",
+      "source": "reverse/javascript/cli.readable.js:637919",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--bg-spare",
+      "visibility": "internal",
+      "owner": "background spare worker",
+      "source": "reverse/javascript/cli.readable.js:637928",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    },
+    {
+      "argv": "--preload",
+      "visibility": "internal",
+      "owner": "preload worker",
+      "source": "reverse/javascript/cli.readable.js:637935",
+      "failureBoundary": "These are child-process or OS integration protocols, not ordinary user commands; invoking them directly may block or fail without the parent-owned environment."
+    }
+  ],
+  "caveats": [
+    "claude status --help exits 0 but falls back to root help; exit status alone cannot prove command existence.",
+    "Top-level --help omits hidden and pre-Commander paths including remote-control, sandbox, daemon, self-hosted-runner and background verbs.",
+    "When -p/--print is present, Db0 parses before registering most subcommands, so root help and non-print command registration cannot be treated as one unconditional tree.",
+    "Conditional registration (XAA, auto-mode) and action-time gates (plugin eval, import, Remote Control, platform services) are different states."
+  ]
+}

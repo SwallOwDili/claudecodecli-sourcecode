@@ -7,7 +7,7 @@ digraph tool_control_lifecycle {
   validate [label="查找与校验\nalias / JSON / schema / custom", fillcolor="#e3f2fd"];
   pre [label="PreToolUse\n允许、修改、询问或拒绝", fillcolor="#ffe0b2"];
   permission [label="Permission + Policy\n来源、优先级、模式", fillcolor="#d1c4e9"];
-  sandbox [label="Sandbox\n文件、网络、socket、凭据", fillcolor="#ffccbc"];
+  sandbox [label="适用工具的 Sandbox\nBash 等在 call 内约束文件/网络/凭据", fillcolor="#ffccbc"];
   execute [label="Tool call\n产生本地或远端副作用", fillcolor="#d7ccc8"];
   post [label="PostToolUse + output schema\n记录结果或追加反馈", fillcolor="#c8e6c9"];
   result [label="paired tool_result\n成功、拒绝或结构化错误", fillcolor="#b2dfdb"];
@@ -15,7 +15,8 @@ digraph tool_control_lifecycle {
   call -> validate [label="解析"];
   validate -> pre [label="输入合法"];
   pre -> permission [label="放行或更新输入"];
-  permission -> sandbox [label="策略允许"];
+  permission -> sandbox [label="策略允许；工具支持隔离"];
+  permission -> execute [label="无需统一 OS sandbox", style=dashed];
   sandbox -> execute [label="运行边界允许"];
   execute -> post [label="返回输出"];
   post -> result [label="按 tool_use_id 回灌"];

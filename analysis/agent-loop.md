@@ -233,13 +233,13 @@ Agent Loop 传给 `callModel` 的不只是 `messages`。同一调用还携带：
 
 ```text
 1. 工具名/alias 查找
-2. abort 与 isolation latch 检查
+2. abort 与 tool-isolation latch 检查；命中时尚未解析 input，也不会触发 PreToolUse
 3. JSON parse / input coercion
 4. Zod input schema 校验
 5. 工具自定义 validateInput
 6. PreToolUse hook
 7. permission/canUseTool/policy/classifier 决策
-8. permission 返回 updatedInput 时再次 schema 校验
+8. hook/permission 返回 updatedInput 时再次 schema 校验，并基于新值继续 permission 裁决；通用管线不自动重跑工具自定义 `validateInput`
 9. 标记 in-progress
 10. tool.call
 11. 映射为标准 tool_result block
@@ -359,6 +359,8 @@ MCP/tool 定义有刷新?
 ```
 
 工具可以通过 `endsTurn` 明确结束本轮，不要求模型再总结。MCP meta 结束也走同类路径，但仍运行 PostToolBatch，让审计/清理 hook 有机会观察整个工具批次。
+
+PostToolBatch block 与 Stop hook block 不能混为一谈。普通工具批次上的 PostToolBatch blocking 直接返回 `hook_stopped`，不会自动构造第二次模型请求；Stop hook blocking 才会把反馈写回消息并重开循环。若工具本身已经声明 `endsTurn`，PostToolBatch 仍会运行，但 blocking/prevent-continuation 只记录为被丢弃的决定，因为该路径本来就不再调用模型。
 
 在进入下一轮前，客户端还会动态刷新 MCP tools 和 clients。远端 MCP 在本轮中途恢复连接后，下一轮可以拿到新工具集合，不必重启整个 Claude Code 进程。
 

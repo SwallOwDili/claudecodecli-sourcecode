@@ -101,6 +101,25 @@ Provider 状态还会影响：
 
 API-key 选择路径在 `reverse/javascript/cli.readable.js` 87433-87455 显式返回 `apiKeySource`，能区分直接环境 key、`apiKeyHelper` 和无 key。OAuth 还维护 token source、401 refresh、存储凭据与用户显式 `CLAUDE_CODE_OAUTH_TOKEN` 的冲突处理。Cloud provider 则需要自己的 region/project/profile/refresh 组合。
 
+### 运行时凭据决策树：先选 provider，再解释“优先级”
+
+`2.1.235` 没有一条跨所有 provider 通用的 `OAuth > API key > helper` 排序。真正的决策发生在两层：`Gn()` 先锁定 provider，`hme()` 再只构造该 provider 的 SDK client。源码 [230727-230829](../reverse/javascript/cli.readable.js#L230727) 把这些分支写在同一个 client factory 中，因此可把实际 wire owner 归纳为：
+
+| Provider 分支 | 首要凭据/签名路径 | 显式覆盖与降级 | 最终 wire owner | 典型失败 |
+| --- | --- | --- | --- | --- |
+| `gateway` | 已建立 gateway session 的 JWT | JWT 过期时不退回普通 API key | gateway client 写 `Authorization: Bearer` | 要求刷新 gateway token 或重新登录 |
+| `bedrock` | AWS bearer 或 AWS credential chain/SigV4 | skip-auth 时可消费受管 `Authorization`；否则可用 host/provider chain 与本地 AWS cache | Bedrock SDK/AWS signer | region、credential chain、签名或服务 tier 错误 |
+| `foundry` | Foundry auth token、Foundry API key或 Azure credential provider | skip-auth 只在显式 gate 下成立 | Foundry SDK/Azure token provider | Azure credential 不可用或资源 endpoint 错误 |
+| `anthropicAws` | Anthropic-on-AWS API key或 AWS credential chain | host-owned auth 与 skip-auth 有独立分支 | Anthropic AWS client | AWS credential 过期、region/workspace 不匹配 |
+| `anthropicGoogleCloud` | Google auth/project/workspace | skip-auth 时只接受显式 host wire auth | Anthropic Google Cloud client | GCP login、project/location 或 host token 失败 |
+| `mantle` | `AWS_BEARER_TOKEN_BEDROCK`，否则 AWS credential chain | skip-auth/custom `Authorization` 与 provider chain互斥 | Mantle client/AWS signer | bearer、region 或 AWS credential chain 失败 |
+| `vertex` | Google auth 与 Vertex project/region | skip-auth 时消费显式 wire `Authorization` | Vertex SDK/Google auth | project 未解析、ADC 不可用或 endpoint 改写失败 |
+| `firstParty` | API key、OAuth/profile/WIF、外部 auth token按各自 gate进入 | custom header、helper、host refresh 仍有独立来源标签 | Anthropic client | source-specific 401/403、helper trust、refresh 失败 |
+
+这张表描述的是客户端分支，不把云 SDK 内部 credential chain 伪装成 Claude Code 自己实现的排序。特别是 `CLAUDE_CODE_SKIP_*_AUTH`：它表示宿主或显式 header 接管签名，并不等于“无认证也会成功”。
+
+first-party token source classifier 在 [87468-87484](../reverse/javascript/cli.readable.js#L87468) 还区分 `ANTHROPIC_AUTH_TOKEN`、`CLAUDE_CODE_OAUTH_TOKEN`、OAuth token file descriptor、CCR token file、`apiKeyHelper`、profile、已保存 claude.ai login 与 `none`。这些 source label 会继续进入错误诊断、refresh 能力和 telemetry；两个 bearer token 即使 wire 都是 `Authorization`，也不能据此当成相同生命周期：环境/FD token通常没有本地 refresh token，保存登录则可以进入 refresh 状态机。
+
 这里有两个容易漏掉的安全细节：
 
 1. `apiKeyHelper` 是可执行程序，不是静态字符串。2.1.235 在 workspace trust 未确认前调用 helper 会触发安全错误，相关 guard 在 readable JS 86609-86635。
@@ -172,7 +191,7 @@ HTTP retry、SSE 续流、同模型请求重试、模型 fallback 和 Agent turn
 
 同一报告新增 `probe.request-api-key-auth`：只提供 `ANTHROPIC_API_KEY` 时，实际 request 发送 `x-api-key: $API_KEY`，`Authorization` 不存在，CLI 最终 success、exit 0。与 `probe.request-bearer-auth` 联合后可以确认两条 credential source 产生互斥的 header shape，而不是把两种凭据同时转发。
 
-当前固定的官方 [Authentication](https://code.claude.com/docs/en/authentication) 摘录只明确两条环境来源及其 header 形状：`ANTHROPIC_AUTH_TOKEN` 使用 `Authorization: Bearer`，`ANTHROPIC_API_KEY` 使用 `X-Api-Key`，对应 `public.auth-precedence`。它没有在本仓库固化完整 credential precedence，不能据此声称 cloud provider、helper、OAuth/profile/subscription 的全顺序已获 Public 证据。2.1.235 已正向验证的范围也是 bearer/API-key 两条请求装配；其他来源仍需补固定摘录和各自环境探针。
+当前固定的官方 [Authentication](https://code.claude.com/docs/en/authentication) 摘录只明确两条环境来源及其 header 形状：`ANTHROPIC_AUTH_TOKEN` 使用 `Authorization: Bearer`，`ANTHROPIC_API_KEY` 使用 `X-Api-Key`，对应 `public.auth-precedence`。它没有给出所有 cloud provider、helper、OAuth/profile/subscription 的统一顺序；本章因此用上面的 target-version Static client factory 解释分支，而不把 Public 证据扩大。2.1.235 已正向验证 bearer/API-key 两条 wire shape；其它分支的 client construction、source label 和失败路径属于 Static，真实 AWS/GCP/Azure/profile/WIF 环境成功仍是环境相关 Probe 边界。
 
 模型恢复也不能和 credential fallback 混写。`probe.model-fallback-sequence` 观察到主模型三次 529 后第四次使用备用模型；认证 400/401、计费、rate limit、请求尺寸和 transport 不应从这个结果推断会切模型。完整失败分类见 [韧性与恢复](resilience-and-recovery.md)。
 

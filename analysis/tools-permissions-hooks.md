@@ -8,7 +8,7 @@
 
 **读者问题：** 为什么模型明明“决定执行 Bash”，用户仍可能看到审批、hook 拒绝、sandbox 错误，或者工具失败后模型还能继续回答？
 
-**一句话模型：** `tool_use` 只是动作提案；客户端必须先证明工具和输入合法，再经过可编程 hook、权限与企业 policy、运行时 sandbox，执行后还要验证输出并把成功或错误按原 ID 回灌给 Agent Loop。
+**一句话模型：** `tool_use` 只是动作提案；客户端必须先证明工具和输入合法，再经过可编程 hook、权限与企业 policy；需要 OS 隔离的工具还会在自身 `call` 路径进入 runtime sandbox，执行后再验证输出并把成功或错误按原 ID 回灌给 Agent Loop。
 
 ![一个 tool_use 依次经过查找校验、PreToolUse、权限、sandbox、执行和 PostToolUse](visuals/tool-control-lifecycle.svg)
 
@@ -19,7 +19,7 @@
 | 查找与 schema | 工具 registry/validator | 名称、alias、JSON、类型变成可执行输入 | 否 | unknown tool 或 validation error result |
 | PreToolUse | hook runner | 允许、修改、询问或拒绝；修改后重新校验 | 否 | hook feedback/deny result |
 | Permission/policy | 权限决策器和 managed source | 根据 mode、rule、来源决定 allow/ask/deny | 否 | approval 或 denial reason |
-| Sandbox/tool call | 运行时和工具实现 | 真正访问文件、网络、进程或远端系统 | 可能已经发生 | 成功输出、abort 或结构化错误 |
+| Tool call / 适用时 Sandbox | 运行时和工具实现 | 真正访问文件、网络、进程或远端系统；Bash 等工具在实现内部应用 sandbox | 可能已经发生 | 成功输出、abort 或结构化错误 |
 | PostToolUse/output | hook 和 output validator | 追加反馈、校验返回合同 | 是 | 与原 `tool_use_id` 配对的 result |
 
 关键边界是“前置控制能阻止副作用，后置控制只能影响后续决策”。所以本文会把拒绝、执行失败、后置阻断和 Stop hook 重入分开讲，而不是统称为权限失败。
@@ -48,11 +48,11 @@ model emits tool_use(name, id, raw input)
 7. 汇合 permission mode、allow/deny rule、managed policy、
    classifier、sandbox eligibility、working directory 与用户审批
   |
-8. hook/permission 若返回 updatedInput，再次跑 schema/validate
+8. hook/permission 若返回 updatedInput，再次跑 input schema 与 permission 语义检查
   |
 9. 标记 tool in-progress，进入实际 tool.call
   |
-10. OS/sandbox/network/filesystem/credential 控制实际约束动作
+10. 进入实际 tool.call；Bash 等适用工具在实现内部应用 OS/sandbox/network/filesystem/credential 约束
   |
 11. 把实现返回值映射为标准 tool_result
   |
@@ -66,7 +66,7 @@ model emits tool_use(name, id, raw input)
 这条顺序解释了三个常见误区：
 
 - schema 通过不表示权限通过；参数合法仍可能是危险动作。
-- permission allow 不表示操作系统一定能执行；sandbox、文件权限和网络仍可拒绝。
+- permission allow 不表示操作系统一定能执行；对 Bash 等适用工具，sandbox、文件权限和网络仍可拒绝。不是每个内置工具都经过同一个 OS sandbox wrapper。
 - `tool.call` 返回不表示结果一定进入下一轮；PostToolUse 和 output schema 仍可能报告问题或回退修改。
 
 ## 工具查找：名称本身就是协议
@@ -88,9 +88,11 @@ model emits tool_use(name, id, raw input)
 1. 拒绝无法解析的 JSON 和错误基本类型。
 2. 检查必填字段、enum、路径/范围等结构约束。
 3. 让工具的 `validateInput` 做依赖运行状态的语义检查。
-4. 在 hook 或 permission 改写 input 后重新验证。
+4. 在 hook 或 permission 改写 input 后重新验证结构，并让 permission 规则针对改写值重新裁决。
 
-第四项是安全边界。如果 hook 把一个已验证的只读路径改成另一个路径，而客户端不复验，前面的 schema 与 permission 就失去意义。2.1.235 明确对 `updatedInput` 重新跑验证；无效改写会成为配置/hook 错误，不会直接进入 `tool.call`。
+第四项是安全边界。如果 hook 把一个已验证的只读路径改成另一个路径，而客户端不复验，前面的 schema 与 permission 就失去意义。2.1.235 对 PreToolUse 和 permission 返回的 `updatedInput` 重新跑 input schema，并让 permission 规则/安全检查基于改写值继续裁决；无效结构会成为配置/hook 错误，不会直接进入 `tool.call`。
+
+这里必须保留一个精确边界：通用管线不会在改写后再次调用工具自定义 `validateInput`。它只在原始/coerce 后的输入上运行一次，之后的通用复验是 schema 与 permission 语义；如果某工具把路径存在性、stale state 或其他运行状态只放进 `validateInput`，不能从“updatedInput 过了 schema”推断那组自定义检查又执行了一遍。版本比较必须单独检查该工具是否在 permission 或 `call` 内再次做等价校验。
 
 ## PreToolUse：动作前的可编程控制点
 
@@ -163,6 +165,8 @@ PreToolUse 位于实际权限汇合之前，可以：
 ### PostToolUse 与 PostToolBatch 的并发差异
 
 多个 concurrency-safe 工具可以并行，因此每个工具的 PostToolUse 也可能并发发生。PostToolBatch 在所有 sibling tools 都 resolve 后只执行一次，并拿到整批状态。需要跨工具一致性的审计、汇总或阻止逻辑应放在 batch 层，不能假设多个 PostToolUse 严格按模型输出顺序串行。
+
+它与 Stop hook 的控制语义不同：PostToolBatch 返回 blocking/prevent-continuation 时，当前 Agent Loop 直接以 `hook_stopped` 结束，不会自动再请求模型；只有未阻塞时，additional context 才随 tool results 进入下一轮。若工具以 `endsTurn` 或 MCP meta 结束，本版仍执行 PostToolBatch，但丢弃其 blocking 决定，因为调用方已经决定不再重入模型，只保留观察/清理输出。
 
 该语义在 `schema-descriptions.txt` 中有明确描述：PostToolBatch 在下一次模型请求前触发一次，PostToolUse 则逐工具触发且并行工具可并发。
 
@@ -276,7 +280,7 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 | sandbox block | 通常否或进程立即失败 | sandbox/command error | path/domain/socket/availability |
 | tool.call exception | 已尝试 | structured tool error | 实现、外部依赖、abort、timeout |
 | PostToolUse output 非法 | 工具已成功 | 原 output + hook error attachment | hook 修改和 output schema |
-| PostToolBatch block | 一批工具已完成 | blocking batch feedback | 已发生副作用与后续重入 |
+| PostToolBatch block | 一批工具已完成 | `hook_stopped_continuation`，当前循环终止 | 已发生副作用；不会像 Stop hook 一样自动重入模型 |
 | Stop hook block | 本轮动作已完成 | hook feedback，Agent Loop 再运行 | cap、maxTurns、stop_hook_active |
 
 后置 hook 阻止的是“继续或结束”，不能撤销前面已完成的 side effect。需要事务性的工具必须自己实现 dry run、幂等键、补偿操作或明确确认点。
@@ -297,7 +301,7 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 
 - permission mode 集合、CLI flags、启用 gate 与切换拒绝语义；
 - rule source、managed source 和决策优先级；
-- tool input schema、alias、自定义 validation 和 updatedInput 复验；
+- tool input schema、alias、自定义 validation，以及 updatedInput 只复验 schema/permission 而不自动重跑 custom validation 的边界；
 - hook event 集合、字段、timeout、permission decision 与 blocking 语义；
 - PostToolUse/PostToolBatch 的并发和调用次数；
 - Stop hook cap、maxTurns 交互和 terminal reason；

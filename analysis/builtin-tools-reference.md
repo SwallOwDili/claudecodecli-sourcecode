@@ -4,7 +4,7 @@
 
 ## 60 秒理解内置工具
 
-**读者问题：** 既然所有工具都经过同一套 schema、Hook、Permission 和 Sandbox，为什么还需要逐个理解工具？
+**读者问题：** 既然所有工具都经过同一套 registry、schema、Hook 和 Permission 管线，为什么还需要逐个理解工具？
 
 **一句话模型：** 统一管线只决定“这次调用能不能开始”；真正决定可恢复性、持久化、成本和风险的是每个工具自己的状态机，例如 `Edit` 修改项目文件，`Task` 启动独立 Agent Loop，`Workflow` 持久化并后台执行确定性脚本，`Artifact` 发布远端对象，四者不能用同一种成功或回滚语义解释。
 
@@ -15,7 +15,7 @@
 | 阶段 | 共同状态 | 工具专属状态 | 用户真正关心的差异 |
 | --- | --- | --- | --- |
 | 调用前 | tool name、raw input、tool_use_id | 文件路径、命令、agent prompt、cron、artifact action | 是否会产生本地或远端副作用 |
-| 裁决 | schema、PreToolUse、permission、policy、sandbox | named workflow rule、Read-before-Write、worktree/git 条件、登录态 | 为什么被拒绝、是否允许改写输入 |
+| 裁决 | schema、PreToolUse、permission、policy；适用工具再进入 sandbox | named workflow rule、Read-before-Write、worktree/git 条件、登录态 | 为什么被拒绝、是否允许改写输入 |
 | 执行 | abort signal、progress、output budget | 进程、文件、task、worktree、LSP connection、远端对象 | 是否同步完成，能否中止，谁持有状态 |
 | 持久化 | transcript 与 paired tool_result | file history、task registry、workflow journal、cron file、remote artifact | 进程退出或 resume 后还能找回什么 |
 | 恢复 | Agent Loop 可根据错误重试 | 各工具自己的幂等性和补偿动作 | 重试会不会重复副作用 |

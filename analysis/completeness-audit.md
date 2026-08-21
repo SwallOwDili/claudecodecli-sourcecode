@@ -37,7 +37,7 @@
 本矩阵只把下列材料当作穷举入口：
 
 1. `analysis/unpack-manifest.json` 的 15 个实际 packed 文件；
-2. `analysis/cli-surface.txt` 的顶层 CLI surface；
+2. `analysis/cli-surface.txt` 的公开顶层 help token，以及 `analysis/cli-command-inventory.json` 的 90 个 Commander/manual/fast-path 路径、8 个内部入口和 65 组精确二进制 help/失败 Probe；
 3. `analysis/source-inventory/summary.json` 注册的 70 类确定性清单；
 4. 一方集合：29 个 built-in tool、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、29 个 Claude storage namespace、17 个 baked model entry；
 5. `analysis/release-notes.md` 的 `2.1.235` 19 条发布变化；
@@ -65,7 +65,7 @@
 | 13 | Native bridge 与媒体底座 | 5 `.node`、7 slices、JS wrappers | `native-bridge-runtime.md`、`tui-input-accessibility-media-ide-chrome.md` | Deep | x86_64 compatible build 未执行；真实麦克风/屏幕/TCC 仍需平台 Probe |
 | 14 | Settings 来源、合并、policy、reload | 156 direct keys + 4 spreads | `settings-resolution-and-reload.md`、`settings-feature-flags-policy.md`、`settings-reference.md` | Deep | 156/156 已按 Probe、alias consumer、Static consumer、declaration 互斥分级；已覆盖进程 store、五层/admin tier、四类 merge、ConfigChange、程序写、consumer 刷新、remote/helper 恢复，实时管理员 payload 与外部 helper 行为保持 Boundary |
 | 15 | Feature flags 与 remote config | 361 keys、498 callsites、GrowthBook | `settings-feature-flags-policy.md`、`feature-flags-remote-config.md` | Deep | 已覆盖 enable、attributes、fresh/disk/default、payload、exposure、refresh、auth reset 与 override dead path；账号实时值保持 Boundary |
-| 16 | CLI、print、Agent SDK 输入输出 | `cli-surface.txt`、input/output schemas | `cli-sdk-output-protocol.md` | Deep | 已区分 TUI/text/JSON/stream-json、Query/print worker/Remote Control/Managed Agents 四类 host，覆盖输入校验、输出终态、session、structured output、close/cancel/timeout；具体第三方 host 行为保持 Boundary |
+| 16 | CLI 命令树、print、Agent SDK 输入输出 | `cli-surface.txt`、`cli-command-inventory.json`、input/output schemas | `cli-command-reference.md`、`cli-sdk-output-protocol.md` | Deep | 59 次显式 `.command` 注册、90 个 root/Commander/manual/fast-path 路径、8 个内部入口和 65 组 help/失败 Probe 已覆盖 alias、hidden/conditional gate、arguments/options、owner、副作用与失败；同时区分 TUI/text/JSON/stream-json、Query/worker/Remote/Managed Agents host，第三方/远端成功保持 Boundary |
 | 17 | 89 个 SDK control subtype | `sdk-control-subtypes.txt` | `cli-sdk-output-protocol.md` | Deep | 已把 89 拆成 42 request、2 verdict、46 observation（`success` 重叠），逐项覆盖方向、字段、response、owner、失败、取消和副作用；schema-only 与 worker-only 分支保持证据分级 |
 | 18 | 44 个 output protocol event | `output-protocol-event-identifiers.txt` | `cli-sdk-output-protocol.md` | Deep | 已逐项区分 36 个 named-SSE parser event、6 个 webhook-only identifier、1 个 embedded-doc 合同和 1 个词法误报，并解释关联键、终态、reconcile、retry 与幂等边界 |
 | 19 | 103 个 slash command | `slash-command-identifiers.txt` | `slash-command-reference.md`、`plugins-skills-commands-lsp.md` | Deep | 103/103 已逐命令解释 type/twin、gate、owner、成功、失败和副作用；账号/host 远端成功仍按条目保留 Boundary |
@@ -95,6 +95,7 @@
 | --- | ---: | ---: | ---: | --- |
 | direct root settings | 156 | 156 | 0 | `settings-reference.md` 提供全量入口，但大量条目仍是 declaration/surface |
 | built-in tools | 29 | 29 | 0 | `builtin-tools-reference.md` 已逐项覆盖，但深度仍按专属状态机分别判断 |
+| CLI command paths | 90 | 90 | 0 | `cli-command-reference.md` + structured inventory 区分 Commander、fast path、manual parser 和内部入口；help/registration 不冒充 action 成功 |
 | slash commands | 103 | 103 | 0 | `slash-command-reference.md` 已逐命令给出 type/twin、owner、gate 和失败边界；仍不等于所有账号/host 都正向 Probe |
 | SDK control subtype | 89 | 89 | 0 | 89 是混合集合；真实 request、notification、compatibility identifier 不能混称已 Probe |
 | output protocol event | 44 | 44 | 0 | 已有事件/字段表，大量 host 消费仍是 Boundary |

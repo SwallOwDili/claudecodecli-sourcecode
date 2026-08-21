@@ -7,7 +7,7 @@ digraph context_control_lifecycle {
   assemble [label="请求装配\n规范化与分段", fillcolor="#e3f2fd"];
   reuse [label="复用与延迟\nprompt cache / Tool Search", fillcolor="#c8e6c9"];
   trim [label="局部治理\ncontext hint / microcompact", fillcolor="#ffe0b2"];
-  compact [label="全局治理\nsummary + preserved suffix", fillcolor="#d1c4e9"];
+  compact [label="全局治理\nsummary + path-dependent preserved suffix", fillcolor="#d1c4e9"];
   boundary [label="恢复关系\ncompact boundary / transcript", fillcolor="#d7ccc8"];
   next [label="下一次请求\n更短且因果合法", fillcolor="#b2dfdb"];
 

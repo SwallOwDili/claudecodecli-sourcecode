@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [70 类证据归属地图](analysis/product-surface-evidence-map.md) · [全面性审计](analysis/completeness-audit.md) · [103 个 Slash Command](analysis/slash-command-reference.md) · [31 个 Hooks](analysis/hooks-event-reference.md) · [29 个 Storage namespace](analysis/storage-v5-reference.md) · [Feature Flags/Remote Config](analysis/feature-flags-remote-config.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [完整 CLI 命令树](analysis/cli-command-reference.md) · [70 类证据归属地图](analysis/product-surface-evidence-map.md) · [全面性审计](analysis/completeness-audit.md) · [103 个 Slash Command](analysis/slash-command-reference.md) · [31 个 Hooks](analysis/hooks-event-reference.md) · [29 个 Storage namespace](analysis/storage-v5-reference.md) · [Feature Flags/Remote Config](analysis/feature-flags-remote-config.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -29,6 +29,7 @@
 | [`analysis/builtin-tools-reference.md`](analysis/builtin-tools-reference.md) | **29/29 内置工具手册**：逐工具解释状态 owner、副作用、持久化、失败、恢复、成本、隐私与安全，重点下钻 Workflow、Cron、LSP、Task、Artifact 和 Worktree |
 | [`analysis/settings-resolution-and-reload.md`](analysis/settings-resolution-and-reload.md) | **Settings 解析、合并与热重载专题**：进程级 store、五层与 admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新差异、remote managed settings 与 policy helper 恢复 |
 | [`analysis/settings-reference.md`](analysis/settings-reference.md) | **156/156 根 Settings 全字段参考**：逐项说明类型、来源、merge、生命周期、consumer、用户影响和证据边界，并单独解释 4 个 spread |
+| [`analysis/cli-command-reference.md`](analysis/cli-command-reference.md) | **完整 CLI 命令树**：恢复 90 个 Commander/manual/fast-path 路径、alias、hidden/conditional gate、arguments/options、handler owner、副作用和失败；另列 8 个内部 worker/OS 入口，并解释为什么顶层 `--help` 会漏项 |
 | [`analysis/cli-sdk-output-protocol.md`](analysis/cli-sdk-output-protocol.md) | **CLI、SDK 与输出协议专题**：区分 text/JSON/stream-json、本地 envelope、42 个 schema RPC、16 个额外 handler、46 个观察 subtype、44 个 Managed Agents event 和 103 个 slash command |
 | [`analysis/plugins-skills-commands-lsp.md`](analysis/plugins-skills-commands-lsp.md) | **动态扩展生命周期**：marketplace 信任、安装/enable/session registry、Skill listing、三类 slash command、reload、MCP cache 与 LSP process/diagnostics |
 | [`analysis/slash-command-reference.md`](analysis/slash-command-reference.md) | **103/103 Slash Command 全量参考**：逐命令解释 type/twin、可见性、host、gate、状态 owner、成功、失败、持久化、成本与不可逆副作用 |
@@ -133,6 +134,8 @@
 |   |-- unpack-manifest.json           每个文件的偏移和哈希
 |   |-- release-notes.md               2.1.235 官方变更记录
 |   |-- cli-surface.txt                用于 diff 的标准化 CLI 表面
+|   |-- cli-command-inventory.json     90 个完整命令路径、gate、owner、副作用与失败合同
+|   |-- cli-command-reference.md       Commander、fast path、manual parser 完整命令树
 |   |-- risk-control-surface.txt        权限、沙箱、凭据和企业策略风控表面
 |   |-- technical-mechanism-atlas.md    九层运行机制总图与问题导向阅读路由
 |   |-- public-claims-validation.md     官方原理、bundle 证据和运行探针对照
@@ -409,7 +412,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - 输入支持文本或 stream JSON，并可回放用户消息用于确认。
 - Stream 模式可以输出 hook 生命周期、partial assistant chunk、子 Agent 转发内容和结构化任务进度。
 
-标准化后的完整顶层选项和命令保存在 [`analysis/cli-surface.txt`](analysis/cli-surface.txt)。后续版本对比不会受到帮助文本换行或终端宽度影响。
+标准化后的**公开顶层帮助 token** 保存在 [`analysis/cli-surface.txt`](analysis/cli-surface.txt)，适合避免终端换行噪声的快速 diff，但它不是完整 CLI authority。`2.1.235` 还有 hidden/conditional Commander 节点、Remote Control/daemon/background/self-hosted runner fast path 和内部 worker 入口；完整路径、alias、arguments/options、handler、副作用与失败见 [`analysis/cli-command-inventory.json`](analysis/cli-command-inventory.json) 和 [完整 CLI 命令树专题](analysis/cli-command-reference.md)。
 
 ### 遥测、日志、实验和性能诊断
 

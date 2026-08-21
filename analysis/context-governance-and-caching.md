@@ -10,18 +10,18 @@
 
 **读者问题：** 为什么同一个长任务会先出现 cache 命中、工具 schema 延迟加载、旧工具结果变短，最后才 compact；resume 后又为什么仍能接着工作？
 
-**一句话模型：** Claude Code 先装配完整可用上下文，再用 prompt cache 复用稳定前缀、用 Tool Search 延迟 schema、用 microcompaction 清理局部大结果，只有接近有效窗口时才用 Summary 和合法消息后缀重写历史表示，并用 boundary 保持恢复关系。
+**一句话模型：** Claude Code 先装配完整可用上下文，再用 prompt cache 复用稳定前缀、用 Tool Search 延迟 schema、用 microcompaction 清理局部大结果，只有接近有效窗口时才用 Summary 重写历史表示；当前 `/compact`、reactive 和 partial 路径保留合法消息组，cold/full auto 或特定 SDK full compact 才使用无保留后缀的表示，最终都用 boundary 保持恢复关系。
 
 ![上下文从装配和缓存复用，经过局部清理与全局 compact，最终形成可恢复的下一次请求](visuals/context-control-lifecycle.svg)
 
-贯穿场景：一个重构任务已经读过大量源码，MCP 又提供数十个工具，最近一次测试输出很长。下一轮请求不会立刻把整段会话总结掉：稳定 system 前缀可被缓存，未用工具 schema 可以 defer，旧 tool result 可以清理；只有有效输入预算继续逼近 compact line 时，客户端才把远期历史替换成 summary、保留近期合法消息组并写入 compact boundary。
+贯穿场景：一个重构任务已经读过大量源码，MCP 又提供数十个工具，最近一次测试输出很长。下一轮请求不会立刻把整段会话总结掉：稳定 system 前缀可被缓存，未用工具 schema 可以 defer，旧 tool result 可以清理；只有有效输入预算继续逼近 compact line 时，客户端才把较早历史替换成 summary、按实际路径保留近期合法消息组并写入 compact boundary。
 
 | 对象 | 治理前 | 转换 | 治理后 | 解决的问题 |
 | --- | --- | --- | --- | --- |
 | 稳定 system/message 前缀 | 每轮重复出现 | 写入 cache breakpoint 和 TTL 策略 | 逻辑内容仍在，但可被 API cache 复用 | 降低重复前缀成本与首 token 延迟 |
 | 工具 schema | 大目录全部可能驻留 | Tool Search/deferred schema 按需发现 | 只装入当前需要的完整定义 | 降低常驻 token，不缓存工具结果 |
 | 旧 tool result | 大块输出挤占窗口 | context hint 或本地 microcompaction | 占位信息加近期完整结果 | 腾出窗口，同时保留近期因果 |
-| 远期历史 | 长消息图接近有效上限 | summary + preserved groups + attachments | 更短的有效消息视图 | 继续任务，但承担摘要损失风险 |
+| 活跃历史 | 长消息图接近有效上限 | manual/reactive/partial: summary + preserved groups + attachments；cold/full: 无 preserved groups | 更短的有效消息视图 | 继续任务，但承担摘要损失风险 |
 | Transcript 关系 | 物理事件仍完整存在 | 写 compact boundary 和保留 UUID | resume 可重建逻辑历史 | 跨进程恢复，不等于 prompt cache |
 
 下面按成功主线解释每层的 owner、阈值和状态变化，再分别处理 cache miss、prompt-too-long、预计算过期和 rapid-refill 等失败路径。
@@ -247,7 +247,7 @@ Tool Search 的做法是：
 
 ### 两者的关系
 
-Context hint 是服务端协作协议；microcompaction 是本地实际清理动作。服务端可以提示客户端清理旧工具结果，但客户端必须能在 beta 不支持、服务繁忙或流式错误时自行回退。
+Context hint 是服务端协作协议；microcompaction 是本地实际清理动作。服务端可以提示客户端清理特定工具族的旧结果，但客户端必须能在 beta 不支持、服务繁忙或流式错误时自行回退。
 
 controller 只在以下条件成立时创建：
 
@@ -265,13 +265,13 @@ controller 只在以下条件成立时创建：
 
 ### 本地清理规则
 
-`qUa()` 收集可清理 tool result，默认保留最近 5 个相关结果。以下内容不重复处理：
+`qUa()` 只从内置候选工具集合产生的 tool-use ID 中收集可清理 tool result，并默认保留最近 5 个相关结果；它不是“清空所有工具输出”的通用遍历器。以下内容不重复处理：
 
 - 已经是 `[Old tool result content cleared]`；
 - 已经是 `<persisted-output>...`；
 - 没达到 20k token 总节省阈值。
 
-`Jof()` 对旧结果逐个调用 persistence callback。保存成功后，tool result 被替换成包含文件路径的短提示；失败或不适合保存时替换为 `[Old tool result content cleared]`。工具调用本身、tool use ID 和最近结果仍保留，所以模型知道过去调用过什么，但不再携带大段旧输出。
+`Jof()` 对旧结果逐个调用 persistence callback。保存成功后，tool result 被替换成包含文件路径的短提示；失败或不适合保存时替换为 `[Old tool result content cleared]`。工具调用本身、tool use ID 和最近结果仍保留，所以模型知道过去调用过什么，但不再携带大段旧输出。改写对象是后续请求使用的 active message view；物理 transcript 中较早的原事件不因此被证明已经删除。
 
 清理结果包括：
 
@@ -346,7 +346,7 @@ blocked_line = model_input_ceiling - 3k
 
 ### 预计算 compact
 
-预计算结果不是立即替换主历史。它先写进 session precompute 状态，并可持久化 sidecar。复用时会校验：
+预计算结果不是立即替换主历史。它先写进 session precompute 状态，并可持久化 `precompact.json` sidecar。sidecar 格式版本为 2，单文件上限 8,000,000 bytes；adapter 可用时写 Storage v5 sidecar key，否则写既有文件路径。复用时会校验：
 
 - format version；
 - session ID 和 main agent key；
@@ -355,7 +355,19 @@ blocked_line = model_input_ceiling - 3k
 - `precomputedAtUuid` 是否仍存在于当前历史；
 - pre-compact token 与 hook 结果是否可接受。
 
-通过后，达到真正 compact line 时直接 swap 已准备摘要，并把预计算之后的新消息作为 `messagesSince` 追加保留。校验失败会记录具体原因并重新走普通总结，不把旧 summary 硬塞进新历史。证据见 262425-262575。
+具体拒绝线包括：创建超过 604,800,000ms（7 天）、当前历史比预计算点增长超过 150,000 token、缩减超过当时 token 的一半、boundary UUID 或任一 preserve UUID 缺失。通过后，达到真正 compact line 时直接 swap 已准备摘要，并把预计算之后的新消息作为 `messagesSince` 追加保留。校验失败会删除 sidecar、记录具体原因并重新走普通总结，不把旧 summary 硬塞进新历史。连续 3 次可计数失败后不再继续 re-arm。证据见 262324-262680。
+
+### 四条 compact 路径不能混写
+
+| 路径 | 旧消息原样保留 | 证据锚点 |
+| --- | --- | --- |
+| current manual `/compact` | 至少保留最后 1 个合法 group；必要时增大保留量 | 331301-331367、232845-232876、262247-262294 |
+| partial/message-selector | 保留选择器另一侧 `m`，写 preserved UUID | 263048-263087 |
+| reactive prompt-too-long | 按合法 group 保留 suffix | 262247-262294 |
+| precomputed swap | 保留预计算的 preserve UUID 与其后 `messagesSince` | 262425-262680 |
+| cold/full auto 或特定 SDK full compact | 无，返回 `messagesToKeep: []` | 263020-263036、263375-263414、290267 |
+
+因此“compact 后固定保留最后 N 条消息”仍是错误模型：手动/reactive 是按合法 group 和 token 缺口选择，partial 按选择器，precomputed 还合并 `messagesSince`，cold/full 才没有后缀。连续性来自 Summary、条件性 preserved messages、重新生成的 attachments/hooks 和后续输入共同组成的表示。
 
 ### PreCompact hook 和失败
 
@@ -412,7 +424,7 @@ resume 先逐行解析 JSONL，只接收有 UUID 的 user、assistant、progress
 - `preserved_segment` 模式把 head 接到 anchor，并把原 anchor 的其他后继接到 tail；
 - 最后重新找叶节点和会话分支。
 
-因此 compact 不是简单“删掉前 N 行”。它保留一张可恢复的逻辑消息图，summary、保留消息和之后的新对话仍有明确父子关系。证据见 418518 附近和 211993-212001。
+因此 compact 不是简单“删掉前 N 行”。它保留一张可恢复的逻辑消息图：当前 manual/reactive/partial/precomputed 把 preserved messages 接入 summary/boundary 之后；cold/full compact 只建立新的 summary/boundary 表示。证据见 323188-323443 和 211993-212001。
 
 ## Transcript、memory 与 cache 的边界
 
@@ -421,7 +433,7 @@ resume 先逐行解析 JSONL，只接收有 UUID 的 user、assistant、progress
 | Prompt cache | API 端复用前缀，不改变逻辑内容 | 5m/1h TTL | 降成本、降 prefill 延迟 |
 | Process memoization | 通常不直接发送 | 当前 CLI 进程 | 降本地重复计算/请求 |
 | Tool deferral | 只发送名字/提示，schema 按需追加 | 当前会话/连接 | 降常驻上下文 |
-| Microcompaction | 替换旧 tool result 内容 | 当前消息图并写 transcript | 局部释放 token |
+| Microcompaction | 替换候选工具族的旧 tool result 内容 | 当前 active message view；原 transcript 事件不被证明已删除 | 局部释放 token |
 | Auto/manual compact | 用 summary + boundary 替代长历史 | transcript 可恢复 | 全局释放 token |
 | JSONL transcript | resume 时重新装载 | 默认保留 30 天，可配置 | 会话持久化与审计 |
 | Auto-memory | 相关内容会在未来装入 context | 跨会话文件 | 保存长期项目知识 |

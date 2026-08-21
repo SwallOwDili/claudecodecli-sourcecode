@@ -117,8 +117,8 @@ JSON 必须通过 schema，并且 `hookSpecificOutput.hookEventName` 必须与�
 
 | 事件 | 可修改状态 | 后续校验/边界 |
 | --- | --- | --- |
-| `PreToolUse` | permission decision、reason、`updatedInput`、`additionalContext` | 改写后的工具输入必须重新过 schema/自定义校验；defer 受运行模式和批次限制 |
-| `PermissionRequest` | allow/deny decision，allow 可带 `updatedInput` | 仍要进入剩余 permission/tool 校验，不是直接调用工具 |
+| `PreToolUse` | permission decision、reason、`updatedInput`、`additionalContext` | 改写后的工具输入重新过 schema，并由 permission 规则基于新值继续裁决；通用管线不自动重跑工具自定义 `validateInput`；defer 受运行模式和批次限制 |
+| `PermissionRequest` | allow/deny decision，allow 可带 `updatedInput` | 改写值仍过 schema/permission 复验，不是直接调用工具；通用管线同样不自动重跑 custom validation |
 | `PostToolUse` | `updatedToolOutput`、兼容 MCP output、`additionalContext` | 修改后的输出仍要过工具 output schema；失败时保留原始结果并附 Hook error |
 | `PermissionDenied` | `retry:true` | 只告诉模型可重试；被拒绝的本次工具没有执行 |
 | `UserPromptSubmit` | context、session title、suppress original prompt | blocking 时原 prompt 不进入后续业务处理 |
@@ -183,7 +183,7 @@ Hook 输出小于限制时直接返回；过长时会写入本地持久化文件
 | `PermissionDenied` | auto classifier 等拒绝工具后；tool、input、ID、reason | tool name | `retry:true` 允许模型考虑再试 | 工具尚未执行；reason/input 可能暴露命令和路径 |
 | `PermissionRequest` | permission dialog 路径；tool、input、suggestions | tool name | 可直接给 allow/deny decision，allow 可带 updated input | 工具尚未执行；仍受后续校验/policy；Hook 不应把 ask 当作无限权限 |
 | `PostCompact` | summary 已生成并交换进会话；trigger、compact summary | manual/auto | 可向用户显示结果；不修改已完成 compact | summary 高敏感；失败不能恢复旧 prompt 表示，物理 transcript 是否保留由会话层决定 |
-| `PostToolBatch` | 一批 sibling tool 全 resolve、下一次模型请求前；`tool_calls[]` | 无 | 可注入一次 additional context；exit 2 停止 agentic loop | 工具副作用均可能已发生；批量 input/response 体积与敏感度高 |
+| `PostToolBatch` | 一批 sibling tool 全 resolve、下一次模型请求前；`tool_calls[]` | 无 | 可注入一次 additional context；exit 2 以 `hook_stopped` 终止当前 loop，不自动重新请求模型 | 工具副作用均可能已发生；end-turn 工具路径会执行 Hook 但丢弃 blocking 决定；批量 input/response 体积与敏感度高 |
 | `PostToolUse` | 单工具成功后；tool、input、response、ID、duration | tool name | 可改模型看到的 output、补 context；exit 2 给模型立即反馈 | 不能撤销成功副作用；输出修改要复验 schema；大输出可持久化 |
 | `PostToolUseFailure` | 单工具失败后；tool、input、ID、error、interrupt、duration | tool name | 可补 additional context，帮助下一轮诊断 | 工具可能部分执行后才报错；失败不证明零副作用 |
 | `PreCompact` | manual/auto compact 之前；trigger、custom instructions | manual/auto | stdout/JSON 可追加 compact instructions；exit 2 阻止 compact | 阻止后上下文仍可能接近上限；Hook 延迟会增加压缩等待 |

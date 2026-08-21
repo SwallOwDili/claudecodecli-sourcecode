@@ -1,4 +1,4 @@
-# 韧性与恢复：Claude Code 出错后如何继续，又有哪些动作无法撤销
+# Claude Code CLI 2.1.235 韧性与恢复：Claude Code 出错后如何继续，又有哪些动作无法撤销
 
 “支持重试”不足以描述 Agent 系统的可靠性。Claude Code 一次任务中可能同时发生 HTTP retry、流式降级、模型 fallback、输出续写、malformed tool 修复、reactive compact、工具错误回灌、hook 重入、MCP 重连、session resume 和 file rewind。它们恢复的对象不同，计数器不同，副作用边界也不同。
 

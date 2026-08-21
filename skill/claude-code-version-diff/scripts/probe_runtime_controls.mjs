@@ -7,6 +7,7 @@ import { chmod, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const MARKERS = {
   request: "REQUEST_SHAPE_MARKER",
@@ -165,11 +166,7 @@ function normalizeResult(run) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-runtime-controls-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -435,12 +432,12 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
       binarySha256: await sha256(binary),
     },
     commands: {
-      requestShape: "$CLAUDE_2_1_235 --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
-      apiKey: "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_2_1_235 --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
-      cacheDisabled: "DISABLE_PROMPT_CACHING=1 $CLAUDE_2_1_235 --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
-      hookDeny: "$CLAUDE_2_1_235 --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-      stopReentry: "$CLAUDE_2_1_235 --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
-      maxTurns: "$CLAUDE_2_1_235 --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID",
+      requestShape: "$CLAUDE_TARGET --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+      apiKey: "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_TARGET --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
+      cacheDisabled: "DISABLE_PROMPT_CACHING=1 $CLAUDE_TARGET --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+      hookDeny: "$CLAUDE_TARGET --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+      stopReentry: "$CLAUDE_TARGET --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
+      maxTurns: "$CLAUDE_TARGET --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID",
     },
     input: {
       requestShape: { prompt: MARKERS.request, auth: "ANTHROPIC_AUTH_TOKEN", tools: ["Read"] },

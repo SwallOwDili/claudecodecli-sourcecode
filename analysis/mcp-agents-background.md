@@ -1,4 +1,4 @@
-# MCP、Agents 与后台协作：Claude Code 如何扩展一条主循环
+# Claude Code CLI 2.1.235 MCP、Agents 与后台协作：Claude Code 如何扩展一条主循环
 
 Claude Code 的扩展能力不是“启动时读取一张工具列表”这么简单。MCP server 会连接、鉴权、断开和重新列工具；Tool Search 会把大目录中的 schema 延迟到需要时；子 Agent 拥有独立上下文和循环；后台任务、team mailbox 与 task claim 又把多个执行单元连接起来。理解这些机制，才能判断工具为什么突然不可用、子 Agent 为什么花费更多 token、并行为什么产生重复工作，以及 resume 后为什么需要重新发现能力。
 
@@ -54,7 +54,7 @@ MCP 配置可能来自用户、项目、local、CLI/SDK、plugin、enterprise ma
 精确版本空配置探针：
 
 ```text
-Command: $CLAUDE_2_1_235 mcp list
+Command: $CLAUDE_TARGET mcp list
 Input: 隔离 HOME，无 MCP 配置
 Literal output: No MCP servers configured. Use `claude mcp add` to add a server.
 Exit status: 0
@@ -163,7 +163,7 @@ MCP tool 被发现后，不会绕过 Claude Code 的本地控制层。它仍需�
 精确版本探针还证明命令面存在：
 
 ```text
-Command: $CLAUDE_2_1_235 agents --json
+Command: $CLAUDE_TARGET agents --json
 Input: 隔离 HOME，无自定义 agent
 Literal output: []
 Exit status: 0

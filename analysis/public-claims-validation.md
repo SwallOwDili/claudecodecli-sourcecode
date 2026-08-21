@@ -137,12 +137,12 @@ Anthropic 的工具文章把工具描述为确定性系统与非确定性 Agent 
 
 ## 精确版本运行探针
 
-以下命令中的 `$CLAUDE_2_1_235` 指向 SHA-256 已核对的精确发布二进制。
+以下命令中的 `$CLAUDE_TARGET` 指向 SHA-256 已核对的精确发布二进制。
 
 ### 版本身份
 
 ```text
-Command: $CLAUDE_2_1_235 --version
+Command: $CLAUDE_TARGET --version
 Input: none
 Literal output: 2.1.235 (Claude Code)
 Exit status: 0
@@ -154,7 +154,7 @@ Result: 探针执行对象与目标版本一致
 探针脚本：[probe_agent_loop.mjs](../skill/claude-code-version-diff/scripts/probe_agent_loop.mjs)。固化报告：[agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json)。它在隔离 HOME/config/workspace 中启动本地 Messages server，不访问真实模型服务。
 
 ```text
-Command: $CLAUDE_2_1_235 --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID
+Command: $CLAUDE_TARGET --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID
 Input: 模型返回 tool_use {id:"toolu_agent_loop_probe", name:"Read", file:"$WORKSPACE/probe-fixture.txt"}；文件 literal 内容为 AGENT_LOOP_FILE_MARKER
 Literal output: TOOL_EXECUTION_OK
 Exit status: 0
@@ -163,7 +163,7 @@ Result: 精确二进制的模型流 -> 工具执行 -> 结果回灌 -> 下一次
 ```
 
 ```text
-Command: $CLAUDE_2_1_235 --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID
+Command: $CLAUDE_TARGET --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID
 Input: 上一命令创建并持久化的真实 session
 Literal output: RESUME_OK
 Exit status: 0
@@ -194,7 +194,7 @@ Result: 本版成功 resume 会恢复已持久化历史并加入当前输入
 ### MCP 空配置状态
 
 ```text
-Command: $CLAUDE_2_1_235 mcp list
+Command: $CLAUDE_TARGET mcp list
 Input: 隔离 HOME，无 MCP 配置
 Literal output: No MCP servers configured. Use `claude mcp add` to add a server.
 Exit status: 0
@@ -204,7 +204,7 @@ Result: 空配置是正常可观察状态，证明 `mcp list` 命令 surface 与
 ### Agent 枚举
 
 ```text
-Command: $CLAUDE_2_1_235 agents --json
+Command: $CLAUDE_TARGET agents --json
 Input: 隔离 HOME，无自定义 agent
 Literal output: []
 Exit status: 0
@@ -214,7 +214,7 @@ Result: 命令面和 JSON 输出协议在本版可达；不证明任何子 Agent
 ### 非法 session ID
 
 ```text
-Command: $CLAUDE_2_1_235 --resume not-a-valid-session-id
+Command: $CLAUDE_TARGET --resume not-a-valid-session-id
 Input: 非法 session ID
 Literal output: Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value "not-a-valid-session-id" is not a UUID and does not match any session title.
 Exit status: 1
@@ -224,7 +224,7 @@ Result: resume 参数校验不接受任意字符串；不证明成功恢复路�
 ### 不存在的合法 UUID
 
 ```text
-Command: $CLAUDE_2_1_235 --resume 00000000-0000-4000-8000-000000000000
+Command: $CLAUDE_TARGET --resume 00000000-0000-4000-8000-000000000000
 Input: 结构合法但不存在的 UUID
 Literal output: No conversation found with session ID: 00000000-0000-4000-8000-000000000000
 Exit status: 1

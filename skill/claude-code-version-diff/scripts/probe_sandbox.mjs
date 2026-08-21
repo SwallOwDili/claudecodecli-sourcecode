@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const MARKERS = {
   allowed: "SANDBOX_ALLOWED_WRITE_MARKER",
@@ -151,11 +152,7 @@ async function fileText(file) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-sandbox-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -326,9 +323,9 @@ async function main() {
       binarySha256: await sha256(binary),
     },
     commands: {
-      allowedWrite: "$CLAUDE_2_1_235 --print SANDBOX_ALLOWED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
-      deniedWrite: "$CLAUDE_2_1_235 --print SANDBOX_DENIED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
-      deniedNetwork: "$CLAUDE_2_1_235 --print SANDBOX_DENIED_NETWORK_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
+      allowedWrite: "$CLAUDE_TARGET --print SANDBOX_ALLOWED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
+      deniedWrite: "$CLAUDE_TARGET --print SANDBOX_DENIED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
+      deniedNetwork: "$CLAUDE_TARGET --print SANDBOX_DENIED_NETWORK_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
     },
     input: {
       settings: {

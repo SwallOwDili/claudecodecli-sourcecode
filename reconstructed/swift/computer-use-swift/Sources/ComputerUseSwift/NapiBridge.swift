@@ -343,7 +343,7 @@ private let listRunningMethod: napi_callback = { env, _ in
 
 private let listInstalledMethod: napi_callback = { env, _ in
     createAsyncPromise(env, resourceName: "computerUse.listInstalled") {
-        ComputerUseCore.listInstalledApplications()
+        try ComputerUseCore.listInstalledApplications()
     }
 }
 

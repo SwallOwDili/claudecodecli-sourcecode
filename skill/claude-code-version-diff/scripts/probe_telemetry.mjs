@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const MARKERS = {
   redacted: "TELEMETRY_REDACTED_PROMPT_MARKER",
@@ -105,11 +106,7 @@ function payloadText(records) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-telemetry-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -262,8 +259,8 @@ async function main() {
       binarySha256: await sha256(binary),
     },
     commands: {
-      redacted: "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_2_1_235 --print TELEMETRY_REDACTED_PROMPT_MARKER --tools ''",
-      included: "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_2_1_235 --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''",
+      redacted: "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_REDACTED_PROMPT_MARKER --tools ''",
+      included: "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''",
     },
     input: {
       redacted: { prompt: MARKERS.redacted, logUserPrompts: false },

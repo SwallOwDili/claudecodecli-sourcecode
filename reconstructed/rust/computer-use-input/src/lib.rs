@@ -20,7 +20,7 @@ pub struct FrontmostAppInfo {
 fn enigo() -> Result<Enigo> {
     Enigo::new(&Settings::default()).map_err(|error| {
         Error::from_reason(format!(
-            "Error creating Enigo instance: {error}\n\nOn macOS, grant Accessibility permission to the terminal or application running this code."
+            "Error creating Enigo instance: {error:?}\n\nOn macOS, you need to grant accessibility permissions to the terminal or application running this code.\nGo to System Preferences > Security & Privacy > Privacy > Accessibility and add the application."
         ))
     })
 }
@@ -156,8 +156,10 @@ fn key_value(value: &str) -> Result<Key> {
 
 #[napi]
 pub async fn key(key: String, action: String) -> Result<()> {
+    let key = key_value(&key)?;
+    let action = direction(&action)?;
     enigo()?
-        .key(key_value(&key)?, direction(&action)?)
+        .key(key, action)
         .map_err(|error| Error::from_reason(format!("Error performing key action: {error}")))
 }
 
@@ -212,6 +214,7 @@ pub async fn mouse_button(button_name: String, action: String, count: Option<u32
 
 #[napi]
 pub async fn mouse_scroll(length: i32, axis: String) -> Result<()> {
+    let mut enigo = enigo()?;
     let axis = match axis.to_ascii_lowercase().as_str() {
         "vertical" => Axis::Vertical,
         "horizontal" => Axis::Horizontal,
@@ -221,7 +224,7 @@ pub async fn mouse_scroll(length: i32, axis: String) -> Result<()> {
             )))
         }
     };
-    enigo()?
+    enigo
         .scroll(length, axis)
         .map_err(|error| Error::from_reason(format!("Error performing scroll action: {error}")))
 }

@@ -6,10 +6,10 @@
 
 完整事件名、调用表达式、payload、环境 schema、默认值和消息模板不在本文手工复制。机器清单是最终证据：
 
-- [一方事件 1,436 项](source-inventory/first-party-events.txt)
+- [一方事件 1,441 项](source-inventory/first-party-events.txt)
 - [一方动态事件模板 3 项](source-inventory/first-party-event-templates.txt)
 - [一方 `H`/`Fv` 调用点 2,194 项](source-inventory/first-party-event-callsites.jsonl)
-- [一方事件到字段映射 1,411 行](source-inventory/first-party-event-fields.tsv)
+- [一方事件到字段映射 1,441 行](source-inventory/first-party-event-fields.tsv)
 - [一方事件 schema 34 字段](source-inventory/first-party-event-schema-fields.txt)
 - [一方环境 schema 36 字段](source-inventory/first-party-environment-fields.txt)
 - [OTEL structured events 26 项](source-inventory/third-party-otel-events.txt)

@@ -33,13 +33,13 @@
 | [otel-environment-variables](source-inventory/otel-environment-variables.txt) | 77 | OTEL 和相关遥测变量 |
 | [observability-environment-schema](source-inventory/observability-environment-schema.jsonl) | 71 | typed env schema 的观测子集 |
 | [observability-environment-defaults](source-inventory/observability-environment-defaults.jsonl) | 23 | 观测变量的 `??`/`||` fallback 表达式 |
-| [feature-flags](source-inventory/feature-flags.txt) | 355 | `et()` 静态 feature key |
+| [feature-flags](source-inventory/feature-flags.txt) | 361 | `et()` 静态 feature key |
 | [feature-flag-callsites](source-inventory/feature-flag-callsites.jsonl) | 498 | 全部 `et()` 调用及动态/作用域解析状态 |
 | [growthbook-keys](source-inventory/growthbook-keys.txt) | 6 | `CB()` 静态 GrowthBook key |
 | [growthbook-callsites](source-inventory/growthbook-callsites.jsonl) | 12 | 全部 `CB()` 调用及动态表达式 |
 | [root-settings-keys](source-inventory/root-settings-keys.txt) | 156 | Claude Code 根 settings schema 键 |
 | [root-settings-schema](source-inventory/root-settings-schema.jsonl) | 160 | 156 direct + 4 spread，含 RHS、builder、description、enum/default/catch |
-| [schema-property-identifiers](source-inventory/schema-property-identifiers.txt) | 1,971 | 全 bundle schema property 候选，含依赖 schema |
+| [schema-property-identifiers](source-inventory/schema-property-identifiers.txt) | 1,165 | 全 bundle schema property 候选，含依赖 schema |
 | [schema-descriptions](source-inventory/schema-descriptions.txt) | 1,150 | `.describe()` 静态说明文本 |
 | [static-enum-groups](source-inventory/static-enum-groups.tsv) | 201 | 静态 enum value group |
 | [user-config-directories](source-inventory/user-config-directories.txt) | 13 | Claude 用户配置目录名集合 |
@@ -52,10 +52,10 @@
 | [observability-identifiers](source-inventory/observability-identifiers.txt) | 149 | telemetry/log/debug/profile/recording 相关稳定标识 |
 | [observability-templates](source-inventory/observability-templates.jsonl) | 166 | 观测相关 template 及插值表达式 |
 | [telemetry-endpoints](source-inventory/telemetry-endpoints.txt) | 5 | 观测形态 endpoint 候选，含依赖示例，需按 callsite 定性 |
-| [first-party-events](source-inventory/first-party-events.txt) | 1,436 | 一方静态事件名 |
+| [first-party-events](source-inventory/first-party-events.txt) | 1,441 | 一方静态事件名 |
 | [first-party-event-templates](source-inventory/first-party-event-templates.txt) | 3 | 归一化动态模板 |
 | [first-party-event-callsites](source-inventory/first-party-event-callsites.jsonl) | 2,194 | 全部 `H`/`Fv` 调用、参数、scope 和 payload/spread |
-| [first-party-event-fields](source-inventory/first-party-event-fields.tsv) | 1,411 | 一方 event 到显式顶层字段映射 |
+| [first-party-event-fields](source-inventory/first-party-event-fields.tsv) | 1,441 | 一方 event 到显式顶层字段映射 |
 | [first-party-event-families](source-inventory/first-party-event-families.tsv) | 40 | 一方事件 family 计数 |
 | [first-party-event-schema-fields](source-inventory/first-party-event-schema-fields.txt) | 34 | 一方 internal-event envelope 字段 |
 | [first-party-environment-fields](source-inventory/first-party-environment-fields.txt) | 36 | 一方 environment envelope 字段 |
@@ -131,7 +131,7 @@
 ## Settings、环境、schema 和 enum
 
 - 根 settings schema 恢复 156 个 direct 键和 4 个 spread；结构化清单保存每个 RHS、builder、description、enum、default/catch 和未解析 spread。
-- 1,971 schema property、1,150 description、201 enum group 是更广集合，包含 SDK、MCP、OTEL、依赖库和内嵌文档 schema，不能全部称为用户 setting。
+- 1,165 schema property、1,150 description、201 enum group 是更广集合，包含 SDK、MCP、OTEL、依赖库和内嵌文档 schema，不能全部称为用户 setting。
 - settings 来源包含 policy/managed、flag、user、project、local、CLI 和 host/remote 注入；不同字段有 scope、trust、remote policy 和 merge precedence。
 - project/local 不允许覆盖某些 user-only setting，例如本版本新增的 spellcheck。
 - environment 既有 direct `process.env`，也有统一代理和 host-safe env union；2,548 个实际访问点、143 个动态 key 和 842 个 typed schema entry 可逐项比较。1,300 并集仍是调用线索，不代表 1,300 个公开支持变量。

@@ -87,13 +87,14 @@ Fv+H:187fc44e8e6c7ff5d4ca:1
 
 | 字段 | 含义 |
 | --- | --- |
-| `callee` | 实际被调用的压缩函数名，如 `H`、`Fv`、`Nd`、`et`、`CB`、`T` |
+| `calleeRole` | 跨版本稳定的语义角色，如 `firstPartyEvent`、`otelStructuredEvent`、`featureValue`；版本比较使用它，不使用短变量名 |
+| `callee` | 本发布物实际被调用的压缩函数名，如 2.1.235 的 `H`、`Fv`、`Nd`、`et`、`CB`、`T`；它只是本版定位证据 |
 | `function` | 调用所在的最近词法函数名；可能是 minified 名 |
 | `functionKind` | `named`、anonymous、arrow 等函数形态 |
 | `arguments` | 每个实参的静态分类和原始表达式 |
 | `nameArgument` | 被识别为事件名/feature 名的第一个参数 |
 
-`function` 只是定位线索。它能帮助在可读 JS 中找到同一逻辑块，但不能当成 Anthropic 原始 TypeScript 函数名。
+`callee` 和 `function` 都只是定位线索。提取器先通过稳定 export 名、OTEL envelope、settings/model/Datadog 锚点发现本版短符号，再交给 Acorn。它们能帮助在可读 JS 中找到同一逻辑块，但不能当成 Anthropic 原始 TypeScript 函数名，也不能直接复制到另一个版本。
 
 ### `nameArgument`
 
@@ -365,7 +366,7 @@ rt().gt(0).lte(1).optional()
 - `urls.txt`
 - `probable-config-keys.txt`（位于 reverse index）
 
-正确用法是“发现候选，再回到 callsite/schema/可达分支验证”。错误用法是把 1,048 个全大写词都写成 Claude Code 环境变量，或把 1,971 个 schema property 都写成 root settings。
+正确用法是“发现候选，再回到 callsite/schema/可达分支验证”。错误用法是把 1,048 个全大写词都写成 Claude Code 环境变量，或把 1,165 个 schema property 都写成 root settings。
 
 ## 如何读一条版本差异
 

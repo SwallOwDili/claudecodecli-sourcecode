@@ -133,8 +133,8 @@ enum ComputerUseCore {
         }
     }
 
-    static func listInstalledApplications() -> [InstalledApp] {
-        InstalledAppsCache.shared.list()
+    static func listInstalledApplications() throws -> [InstalledApp] {
+        try InstalledAppsCache.shared.list()
     }
 
     static func resolveBundleIds(names: [String]) -> [String] {
@@ -603,7 +603,7 @@ private final class InstalledAppsCache {
     private var cached: [InstalledApp]?
     private var cachedAt = Date.distantPast
 
-    func list() -> [InstalledApp] {
+    func list() throws -> [InstalledApp] {
         lock.lock()
         if let cached, Date().timeIntervalSince(cachedAt) < 60 {
             lock.unlock()
@@ -611,8 +611,7 @@ private final class InstalledAppsCache {
         }
         lock.unlock()
 
-        let spotlightApps = spotlightList()
-        let apps = spotlightApps.isEmpty ? fileSystemList() : spotlightApps
+        let apps = try spotlightList()
         lock.lock()
         cached = apps
         cachedAt = Date()
@@ -620,7 +619,7 @@ private final class InstalledAppsCache {
         return apps
     }
 
-    private func spotlightList() -> [InstalledApp] {
+    private func spotlightList() throws -> [InstalledApp] {
         let query = NSMetadataQuery()
         query.predicate = NSPredicate(format: "kMDItemContentType == %@", "com.apple.application-bundle")
         query.searchScopes = [NSMetadataQueryLocalComputerScope]
@@ -639,7 +638,15 @@ private final class InstalledAppsCache {
             NotificationCenter.default.removeObserver(observer)
             query.stop()
         }
-        guard query.start() else { return [] }
+        guard query.start() else {
+            throw NSError(
+                domain: "ComputerUseSwift",
+                code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "NSMetadataQuery failed to start (Spotlight may be indexing or disabled)"
+                ]
+            )
+        }
         let deadline = Date().addingTimeInterval(15)
         while Date() < deadline {
             stateLock.lock()

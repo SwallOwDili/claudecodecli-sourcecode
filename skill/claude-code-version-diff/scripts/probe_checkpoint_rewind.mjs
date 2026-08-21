@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const PROMPT = "CHECKPOINT_REWIND_PROMPT_MARKER";
 const ORIGINAL = "CHECKPOINT_ORIGINAL";
@@ -160,11 +161,7 @@ async function findUserMessageUuid(configDir, sessionId) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-checkpoint-rewind-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -278,8 +275,8 @@ async function main() {
       binarySha256: await sha256(binary),
     },
     commands: {
-      createCheckpoint: "$CLAUDE_2_1_235 --print CHECKPOINT_REWIND_PROMPT_MARKER --tools Read,Edit --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-      rewind: "$CLAUDE_2_1_235 --print --resume $SESSION_ID --rewind-files $USER_MESSAGE_UUID",
+      createCheckpoint: "$CLAUDE_TARGET --print CHECKPOINT_REWIND_PROMPT_MARKER --tools Read,Edit --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+      rewind: "$CLAUDE_TARGET --print --resume $SESSION_ID --rewind-files $USER_MESSAGE_UUID",
     },
     input: {
       createCheckpoint: {

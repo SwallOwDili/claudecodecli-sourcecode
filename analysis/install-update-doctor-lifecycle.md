@@ -1,4 +1,4 @@
-# 安装、更新、Doctor 与版本生命周期
+# Claude Code CLI 2.1.235 安装、更新、Doctor 与版本生命周期
 
 版本归档不能只保存 `claude --version`。Claude Code 的安装生命周期决定“正在运行的到底是哪一个字节文件”、更新能否原子切换、旧版本是否仍可回退、native module 与主 bundle 是否匹配，以及 doctor 看到的是 PATH、symlink、签名、权限还是 provider 配置问题。
 

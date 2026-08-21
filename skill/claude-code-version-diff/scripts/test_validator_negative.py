@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Prove that the snapshot validator rejects four publication regressions."""
+"""Prove that the snapshot validator rejects publication regressions."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -63,12 +64,28 @@ def replace_once(original: bytes, old: bytes, new: bytes) -> bytes:
     return original.replace(old, new, 1)
 
 
+def corrupt_discovered_symbol(original: bytes) -> bytes:
+    document = json.loads(original)
+    roles = document["discoveredSymbols"]["roles"]
+    roles["firstPartyEventAsync"] = roles["firstPartyEventAsync"] + "_WRONG"
+    return (json.dumps(document, indent=2, ensure_ascii=True) + "\n").encode()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
     args = parser.parse_args()
     repo = Path(args.repo).resolve()
     validator = repo / "skill/claude-code-version-diff/scripts/validate_snapshot.py"
+    snapshot_version = (repo / "VERSION").read_text(encoding="utf-8").strip().encode()
+    version_metadata = json.loads((repo / "analysis/version.json").read_text())
+    binary_sha = version_metadata["binary"]["sha256"].encode()
+    inventory_summary = json.loads(
+        (repo / "analysis/source-inventory/summary.json").read_text()
+    )
+    datadog_count = str(inventory_summary["counts"]["datadog-forwarded-events"]).encode()
+    feature_count = str(inventory_summary["counts"]["feature-flag-callsites"]).encode()
+    feature_symbol = inventory_summary["discoveredSymbols"]["roles"]["featureValue"].encode()
 
     baseline = run_validator(repo, validator)
     if baseline.returncode != 0:
@@ -80,6 +97,52 @@ def main() -> None:
             "README.md",
             lambda data: data + b"\nnegative privacy fixture: " + personal_path + b"\n",
             "private capture data found in publishable files",
+        ),
+        (
+            "README.md",
+            lambda data: replace_once(
+                data,
+                b"# Claude Code CLI " + snapshot_version,
+                b"# Claude Code CLI 0.0.0",
+            ),
+            "README title does not match VERSION",
+        ),
+        (
+            "README.md",
+            lambda data: replace_once(data, binary_sha, b"0" * 64),
+            "README binary SHA-256 does not match analysis/version.json",
+        ),
+        (
+            "analysis/risk-control-surface.txt",
+            lambda data: replace_once(
+                data,
+                b"# Version: " + snapshot_version,
+                b"# Version: 0.0.0",
+            ),
+            "risk-control surface version does not match VERSION",
+        ),
+        (
+            "analysis/public-claims-validation.md",
+            lambda data: data + b"\nCommand: $CLAUDE_9_9_9 --version\n",
+            "version-specific Claude binary placeholder found",
+        ),
+        (
+            "analysis/source-surface.md",
+            lambda data: replace_once(
+                data,
+                b"datadog-forwarded-events.txt) | " + datadog_count + b" |",
+                b"datadog-forwarded-events.txt) | 999 |",
+            ),
+            "human source-surface count mismatch for datadog-forwarded-events",
+        ),
+        (
+            "README.md",
+            lambda data: replace_once(
+                data,
+                b"feature `" + feature_symbol + b"` " + feature_count,
+                b"feature `" + feature_symbol + b"` 999",
+            ),
+            "README inventory fact mismatch for 动态观测调用",
         ),
         (
             "analysis/public-source-excerpts.md",
@@ -106,6 +169,16 @@ def main() -> None:
                 b'"exactVersion": false',
             ),
             "required probe check failed: exactVersion",
+        ),
+        (
+            "analysis/source-inventory/summary.json",
+            corrupt_discovered_symbol,
+            "callsite symbol mismatch for firstPartyEventAsync",
+        ),
+        (
+            "analysis/source-inventory/environment-schema.jsonl",
+            lambda data: b"",
+            "source inventory line count mismatch",
         ),
     ]
 

@@ -1,4 +1,4 @@
-# TUI、IDE、Remote Control 与 Cloud Session
+# Claude Code CLI 2.1.235 TUI、IDE、Remote Control 与 Cloud Session
 
 Claude Code 2.1.235 不是只有一个 terminal renderer。它同时支持交互 TUI、`--print`/stream-json、IDE integration、Remote Control、cloud/teleport、background/subagent 和桌面侧桥接。它们共享 Agent Loop 与会话对象，但输入来源、渲染责任、权限对话、附件传输、断线恢复和 session ownership 不同。
 

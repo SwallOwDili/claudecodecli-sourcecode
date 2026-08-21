@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const MARKERS = {
   policyModel: "SETTINGS_POLICY_MODEL_MARKER",
@@ -120,11 +121,7 @@ function normalizeResult(run) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-settings-resilience-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -315,13 +312,13 @@ async function main() {
       binarySha256: await sha256(binary),
     },
     commands: {
-      allLoadedSources: "$CLAUDE_2_1_235 --print SETTINGS_POLICY_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
-      flagModel: "$CLAUDE_2_1_235 --print SETTINGS_FLAG_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
-      localModel: "$CLAUDE_2_1_235 --print SETTINGS_LOCAL_MODEL_MARKER --setting-sources user,project,local",
-      userModel: "$CLAUDE_2_1_235 --print SETTINGS_USER_MODEL_MARKER --setting-sources user",
-      retry529: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print RETRY_529_MARKER --model claude-sonnet-4-5",
-      noRetry400: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print NO_RETRY_400_MARKER --model claude-sonnet-4-5",
-      fallback: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print MODEL_FALLBACK_MARKER --model claude-sonnet-4-5 --fallback-model claude-haiku-4-5",
+      allLoadedSources: "$CLAUDE_TARGET --print SETTINGS_POLICY_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+      flagModel: "$CLAUDE_TARGET --print SETTINGS_FLAG_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+      localModel: "$CLAUDE_TARGET --print SETTINGS_LOCAL_MODEL_MARKER --setting-sources user,project,local",
+      userModel: "$CLAUDE_TARGET --print SETTINGS_USER_MODEL_MARKER --setting-sources user",
+      retry529: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print RETRY_529_MARKER --model claude-sonnet-4-5",
+      noRetry400: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print NO_RETRY_400_MARKER --model claude-sonnet-4-5",
+      fallback: "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print MODEL_FALLBACK_MARKER --model claude-sonnet-4-5 --fallback-model claude-haiku-4-5",
     },
     input: {
       settingsLayers: models,

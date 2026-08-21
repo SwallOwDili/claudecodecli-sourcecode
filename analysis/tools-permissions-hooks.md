@@ -1,4 +1,4 @@
-# 工具、权限与 Hooks：一次动作为什么要经过十几道关卡
+# Claude Code CLI 2.1.235 工具、权限与 Hooks：一次动作为什么要经过十几道关卡
 
 模型生成 `tool_use` 只是在申请执行一个动作，不等于动作已经获准。Claude Code 2.1.235 会把模型给出的名称和 JSON input 依次送入工具查找、schema、自定义校验、hook、permission/policy、sandbox、实际调用和输出校验。每一层管理不同风险，失败也必须转换成模型能理解的 `tool_result`，否则 Agent Loop 会得到一段断裂历史。
 

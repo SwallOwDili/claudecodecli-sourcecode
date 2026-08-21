@@ -1,4 +1,4 @@
-# Agent Loop：Claude Code 如何从一次回答演化成持续执行
+# Claude Code CLI 2.1.235 Agent Loop：Claude Code 如何从一次回答演化成持续执行
 
 Claude Code 的核心不是“调用一次模型，再把文本打印出来”，而是一个由异步生成器驱动的状态机。模型输出工具调用后，CLI 会校验参数、判定权限、执行工具、把结果重新写进消息图，再决定是否发起下一轮模型请求。上下文压缩、模型 fallback、用户中途输入、Stop hook、最大轮数、子 Agent 和遥测都嵌在这条循环里。
 

@@ -1,5 +1,5 @@
 {
-  "formatVersion": 3,
+  "formatVersion": 4,
   "version": "2.1.235",
   "canonicalSource": {
     "path": "extracted/cli.js",
@@ -11,18 +11,109 @@
     "version": "8.15.0",
     "ecmaVersion": "latest"
   },
+  "discoveredSymbols": {
+    "roles": {
+      "firstPartyEvent": "H",
+      "firstPartyEventAsync": "Fv",
+      "otelStructuredEvent": "Nd",
+      "featureValue": "et",
+      "dynamicConfig": "CB",
+      "diagnostic": "T"
+    },
+    "environmentProxy": "K",
+    "environmentBuilder": "We",
+    "environmentSchemaJoinCount": 842,
+    "rootSettingsFunction": "M7t",
+    "objectBuilder": "ye",
+    "enumBuilder": "Nr",
+    "literalBuilder": "wt",
+    "modelCatalog": "RQc",
+    "datadogAllowlist": "LCd",
+    "datadogTagFields": "hsb",
+    "datadogRedactedFields": "gsb",
+    "datadogRedactedSet": "ysb",
+    "userConfigDirectoriesVariable": "_Fd",
+    "schemaBuilders": [
+      "$As",
+      "$V",
+      "$Zc",
+      "BAs",
+      "BZc",
+      "DAs",
+      "FAs",
+      "FZc",
+      "GAs",
+      "HAs",
+      "JAs",
+      "K0",
+      "KAs",
+      "LAs",
+      "MAs",
+      "NAs",
+      "NZc",
+      "Nr",
+      "OAs",
+      "PAs",
+      "QAs",
+      "RAs",
+      "RVt",
+      "SRs",
+      "UAs",
+      "UZc",
+      "VAs",
+      "W0y",
+      "WAs",
+      "XAs",
+      "YAs",
+      "ZAs",
+      "_Qc",
+      "_Rs",
+      "ao",
+      "bQc",
+      "bRs",
+      "dQc",
+      "eRo",
+      "fQc",
+      "hp",
+      "j0y",
+      "jAs",
+      "jZc",
+      "js",
+      "jt",
+      "lQc",
+      "li",
+      "mRs",
+      "okr",
+      "q0y",
+      "qAs",
+      "qZc",
+      "rRo",
+      "rkt",
+      "rt",
+      "sRo",
+      "tRo",
+      "vRs",
+      "wt",
+      "ye",
+      "z0y",
+      "zAs",
+      "zZc"
+    ]
+  },
   "methods": {
+    "symbolDiscovery": "stable export names, function-body literals, schema constructor shapes, catalog notes, and subsystem-specific field anchors discover release-local minified symbols before AST extraction",
     "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
-    "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for every H/Fv/Nd callsite",
+    "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
     "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-    "environmentSchema": "joins uppercase export getters to minified variables assigned through We.str/bool/triBool/int/enum builders; options expressions and every static/dynamic process.env or K access callsite are retained",
-    "rootSettingsSchema": "parses every top-level entry and spread in the M7t settings object, preserving complete RHS expressions, builder names, descriptions, enum literals, defaults, and catch expressions",
-    "modelCatalog": "parses the hand-maintained baked RQc JavaScript literal into complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+    "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
+    "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
+    "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
     "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings"
   },
   "coverage": {
     "targetCallsites": {
-      "H": {
+      "firstPartyEvent": {
+        "symbol": "H",
         "argumentKind:conditional": 9,
         "argumentKind:identifier": 24,
         "argumentKind:member-or-call": 7,
@@ -36,7 +127,8 @@
         "total": 2162,
         "unresolvedSpreads": 517
       },
-      "Fv": {
+      "firstPartyEventAsync": {
+        "symbol": "Fv",
         "argumentKind:string": 32,
         "payload:not-static-object": 7,
         "payload:static-object": 25,
@@ -44,7 +136,8 @@
         "total": 32,
         "unresolvedSpreads": 7
       },
-      "Nd": {
+      "otelStructuredEvent": {
+        "symbol": "Nd",
         "argumentKind:identifier": 2,
         "argumentKind:string": 49,
         "argumentKind:template": 1,
@@ -56,7 +149,8 @@
         "total": 52,
         "unresolvedSpreads": 72
       },
-      "et": {
+      "featureValue": {
+        "symbol": "et",
         "argumentKind:identifier": 52,
         "argumentKind:member-or-call": 1,
         "argumentKind:string": 444,
@@ -67,7 +161,8 @@
         "template": 1,
         "total": 498
       },
-      "CB": {
+      "dynamicConfig": {
+        "symbol": "CB",
         "argumentKind:identifier": 6,
         "argumentKind:string": 6,
         "dynamicOrUnresolved": 6,
@@ -120,6 +215,9 @@
     "dynamicExpressionsRetained": true,
     "rootSettingsKeysMatchStructuredRows": true,
     "modelCatalogParsed": true,
+    "environmentSchemaParsed": true,
+    "datadogSurfaceParsed": true,
+    "semanticSymbolsDiscovered": true,
     "knownStaticExtractionGaps": [],
     "nonRecoverableBoundaries": [
       "runtime values returned by remote configuration, APIs, user files, environment variables, or server-side systems are not present as concrete release-bundle values",
@@ -136,9 +234,9 @@
     "observability-identifiers": 149,
     "telemetry-endpoints": 5,
     "tengu-identifiers": 1939,
-    "first-party-events": 1436,
+    "first-party-events": 1441,
     "first-party-event-templates": 3,
-    "first-party-event-fields": 1411,
+    "first-party-event-fields": 1441,
     "first-party-event-families": 40,
     "first-party-event-schema-fields": 34,
     "first-party-environment-fields": 36,
@@ -149,7 +247,7 @@
     "datadog-redacted-fields": 26,
     "otel-metrics": 8,
     "otel-spans": 10,
-    "feature-flags": 355,
+    "feature-flags": 361,
     "growthbook-keys": 6,
     "growthbook-event-fields": 15,
     "model-identifiers": 37,
@@ -159,7 +257,7 @@
     "named-component-identifiers": 182,
     "slash-command-identifiers": 103,
     "root-settings-keys": 156,
-    "schema-property-identifiers": 1971,
+    "schema-property-identifiers": 1165,
     "static-enum-groups": 201,
     "sdk-control-subtypes": 89,
     "output-protocol-event-identifiers": 44,
@@ -251,8 +349,8 @@
     {
       "path": "analysis/source-inventory/diagnostic-message-callsites.jsonl",
       "lines": 5403,
-      "size": 6993132,
-      "sha256": "322cbed9175ce458aa683f0b25008d6cddd32255c37d31eb328ac92cd368423f"
+      "size": 7252476,
+      "sha256": "4312b172eb1361779b1c720c9819286406bad9d162bb3771e87330a171640762"
     },
     {
       "path": "analysis/source-inventory/diagnostic-message-literals.txt",
@@ -263,8 +361,8 @@
     {
       "path": "analysis/source-inventory/diagnostic-message-templates.jsonl",
       "lines": 4438,
-      "size": 6082609,
-      "sha256": "778d3421445cdfa79f38154dd0c12c9ad39d8e21a1a298ad5013502a5a211729"
+      "size": 6295633,
+      "sha256": "dd4877bb043e38d7569a9db74d2be9591c07ed60761a9ce9a053acc35a804cc5"
     },
     {
       "path": "analysis/source-inventory/direct-process-environment-accesses.txt",
@@ -317,8 +415,8 @@
     {
       "path": "analysis/source-inventory/error-message-callsites.jsonl",
       "lines": 4831,
-      "size": 4611974,
-      "sha256": "f2e4bb170860dacc4bc4a521c9a02d68dcfcf26f5dda4446124910f03cd17a9c"
+      "size": 4735887,
+      "sha256": "a7fccb601a510f4930f8063f13b84193890ee44a5578cab72c42ba867c83a650"
     },
     {
       "path": "analysis/source-inventory/error-message-literals.txt",
@@ -329,20 +427,20 @@
     {
       "path": "analysis/source-inventory/error-message-templates.jsonl",
       "lines": 1526,
-      "size": 1931188,
-      "sha256": "a5b40ec11140a8c77f8af5d058ff7e8bf97617406908e027a40b8647da2682be"
+      "size": 1969974,
+      "sha256": "cab5cc043c70b8ebbca536490a68bb26308e390e9e2b8adbff2c1f9352e8beb1"
     },
     {
       "path": "analysis/source-inventory/feature-flag-callsites.jsonl",
       "lines": 498,
-      "size": 403685,
-      "sha256": "14ca3af6ec4d9615fd53a0d2f5cf097ea55d616c1a53b676865bf18f322503b6"
+      "size": 429581,
+      "sha256": "5e866300d8b1717463df469a2bfbd31719fb7d0ff4d2a6810803de02feb6b10a"
     },
     {
       "path": "analysis/source-inventory/feature-flags.txt",
-      "lines": 355,
-      "size": 8670,
-      "sha256": "b9d277d776ef18cfab23f6e0807f6f8e1e77db89ffcf2bb230d02e6390def48f"
+      "lines": 361,
+      "size": 8787,
+      "sha256": "562a023e1f4dbd016908eab179f36673b71658ec06b6adc1f40b3270a20fb19e"
     },
     {
       "path": "analysis/source-inventory/first-party-environment-fields.txt",
@@ -353,20 +451,20 @@
     {
       "path": "analysis/source-inventory/first-party-event-callsites.jsonl",
       "lines": 2194,
-      "size": 3664558,
-      "sha256": "5839a8a8b8fe816b9dafa26f6c1e5f139a90c9e4f1bb8b90308df93eeebf9f72"
+      "size": 3842560,
+      "sha256": "9027c349308c11d2dfbd3a577405049c49f645adce759370a2056bbd4f8e17a9"
     },
     {
       "path": "analysis/source-inventory/first-party-event-families.tsv",
       "lines": 40,
       "size": 622,
-      "sha256": "fdda13c4ee22bf16f4ebf4fc059f4a1e882cb2cc1631cf955700b46c449302ed"
+      "sha256": "7f44abd8a5ecbf611150956d9ed387d33525302091daee5ae13d6cbcc896e181"
     },
     {
       "path": "analysis/source-inventory/first-party-event-fields.tsv",
-      "lines": 1411,
-      "size": 100255,
-      "sha256": "13c44ae5f11bd84f94fff1839e9867630dd21b4aeaf5c2ccad31d74979b8b969"
+      "lines": 1441,
+      "size": 103458,
+      "sha256": "38de27d6333811509a5ed73befb58ad2704ca6413206e5b49a853dd7d232bc60"
     },
     {
       "path": "analysis/source-inventory/first-party-event-schema-fields.txt",
@@ -382,15 +480,15 @@
     },
     {
       "path": "analysis/source-inventory/first-party-events.txt",
-      "lines": 1436,
-      "size": 43997,
-      "sha256": "d3dee23167e114a9a66b71f2b29ab5b25401d4b955d887881fd1c07ad1323ba5"
+      "lines": 1441,
+      "size": 44180,
+      "sha256": "5c719a95ac6d47b20c76ab37531876494a7d2366e08f0292d0799cb8080c505f"
     },
     {
       "path": "analysis/source-inventory/growthbook-callsites.jsonl",
       "lines": 12,
-      "size": 9287,
-      "sha256": "44e10b9b1702b56481c93e18a9d620c395163145be5ba739626dcb2dfad0f881"
+      "size": 9947,
+      "sha256": "f872067a99ec5713d77256a2fdde7205b08a98a829183676fd5e4271a8836e97"
     },
     {
       "path": "analysis/source-inventory/growthbook-event-fields.txt",
@@ -491,8 +589,8 @@
     {
       "path": "analysis/source-inventory/otel-event-callsites.jsonl",
       "lines": 52,
-      "size": 123671,
-      "sha256": "e078693cd7ae830809e2d63284c53eca58d3f750d37bd62917ef5a1158bdf68b"
+      "size": 127467,
+      "sha256": "0f992b3bd02c60493e5a556e6d6724e61494916085ff24c044084dba783cc2e2"
     },
     {
       "path": "analysis/source-inventory/otel-metrics.tsv",
@@ -521,8 +619,8 @@
     {
       "path": "analysis/source-inventory/root-settings-schema.jsonl",
       "lines": 160,
-      "size": 250551,
-      "sha256": "41f928212d0f480776d52f45dc090aa7e314e64648f639005c24e5c569a2138c"
+      "size": 239859,
+      "sha256": "aff13e6117220b23f9f0bd9f5e2b0782ce8fc674616aa1ac8fe408c9014b6b96"
     },
     {
       "path": "analysis/source-inventory/runtime-requires.txt",
@@ -538,9 +636,9 @@
     },
     {
       "path": "analysis/source-inventory/schema-property-identifiers.txt",
-      "lines": 1971,
-      "size": 26349,
-      "sha256": "9621821837159cab2d5f083b23d159c71281a5645d8c156bd106b4f61d368e18"
+      "lines": 1165,
+      "size": 16011,
+      "sha256": "48f371d5a71d89f33aab05121b3f09d1b7fce56765b248ce97e28a7439e83f46"
     },
     {
       "path": "analysis/source-inventory/sdk-control-subtypes.txt",

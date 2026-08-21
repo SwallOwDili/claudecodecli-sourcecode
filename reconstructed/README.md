@@ -48,9 +48,9 @@ Rust 依赖版本尽量对齐发布二进制保留的构建路径和字符串，
 - `ImageProcessor.resize/jpeg/png/webp` 返回同一个 JavaScript 对象，支持链式调用。
 - `toBuffer` 或 `dispose` 后再次访问会返回原版错误：`ImageProcessor already consumed (toBuffer/dispose was called)`。
 - 1x1 固定输入的 JPEG、PNG、WebP 输出字节和原版 SHA-256 完全一致。
-- 输入模块拒绝空组合键，并保留原版参数错误文本；F1-F20、左右修饰键、媒体键、亮度键、Launchpad 等名称已映射。
+- 输入模块拒绝空组合键，并保留原版参数错误文本、Accessibility 拒绝文本及“参数校验/Enigo 初始化”的先后顺序；F1-F20、左右修饰键、媒体键、亮度键、Launchpad 等名称已映射。
 - `microphoneAuthorizationStatus` 按原版动态加载 AVFoundation，而不是固定返回值。
-- 已安装应用直接读取 Spotlight 的 bundle ID、路径和本地化显示名；保留顺序和重复项，不自行去重。
+- 已安装应用直接读取 Spotlight 的 bundle ID、路径和本地化显示名；保留顺序和重复项，不自行去重；Spotlight 无法启动时保留原版 rejected Promise 和错误文本，不用文件扫描静默回退。
 - 应用图标按反汇编恢复为透明 `64x64` bitmap 重绘，实测 Data URL 字节与原版一致。
 - `appUnderPoint` 返回 `{ bundleId, displayName }`，不会多带 `pid`。
 - 截图 `base64` 是裸 JPEG base64，不带 Data URL 前缀。
@@ -65,6 +65,14 @@ Rust 依赖版本尽量对齐发布二进制保留的构建路径和字符串，
 reconstructed/scripts/build_and_validate.sh extracted /tmp
 ```
 
+受限执行环境若禁止写用户级 Swift/clang cache，可显式把 module cache 放进临时目录；脚本已经关闭 SwiftPM 的内层 sandbox，避免与调用方外层 sandbox 冲突：
+
+```bash
+CLANG_MODULE_CACHE_PATH=/tmp/claude-code-clang-cache \
+SWIFTPM_MODULECACHE_OVERRIDE=/tmp/claude-code-swiftpm-cache \
+reconstructed/scripts/build_and_validate.sh extracted /tmp
+```
+
 脚本故意使用 `mktemp` 创建唯一目录。不要覆盖已经被 Node 进程加载的 `.node` 文件；macOS 动态加载器可能仍在读取原 Mach-O 映射，原地替换会让测试进程卡住。
 
 当前验证包括：
@@ -72,7 +80,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - 5 个模块的顶层导出、`ImageProcessor` prototype 和 `computerUse` 对象树；
 - 图像元数据、链式返回、一次性消费错误和 JPEG/PNG/WebP 精确字节；
 - 音频初始状态、麦克风授权值和 URL 超时；
-- 鼠标/前台应用只读结果，以及 6 类无副作用输入错误；
+- 鼠标/前台应用只读结果或系统权限拒绝合同，以及 6 类无副作用输入错误；
 - 显示器、TCC、运行/已安装应用、bundle ID 解析、窗口显示器、隐藏预览、命中应用和图标；
 - 全屏/区域截图的字段、尺寸和 JPEG 格式。
 
@@ -86,7 +94,7 @@ checks passed: 23
 reconstructed native validation: PASS
 ```
 
-逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL 和架构覆盖。validator 要求 23 项全部通过，并要求 x86_64 边界保持显式。
+逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL、环境边界和架构覆盖。本次 23 项由 17 项真实原版/重建对照、5 项明确的 `environment-boundary` 和 1 项最低覆盖审计组成；边界项没有冒充截图或桌面读取已经执行。validator 同时要求 x86_64 静态边界保持显式。
 
 ## 重建边界
 

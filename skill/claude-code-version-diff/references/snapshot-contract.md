@@ -124,7 +124,7 @@ python3 skill/claude-code-version-diff/scripts/extract_source_inventory.py <repo
 
 The validator must regenerate into a temporary directory and compare exact bytes for the summary and every inventory file. It must also check required non-empty categories and reject stale, missing, extra, or manually edited artifacts.
 
-The summary completion audit must prove all target `H`/`Fv`/`Nd`/`et`/`CB` and message callsites are recorded, all lexical strings/templates are counted, dynamic expressions and unresolved spreads are retained, root settings direct keys match structured rows, the baked model catalog is parsed, and `knownStaticExtractionGaps` is empty. Non-recoverable boundaries must be limited to values/code absent from the release artifact, such as runtime remote data, server-side behavior, or pre-bundle source removed by the build.
+The summary completion audit must prove that every semantic target role was discovered from stable anchors, its release-local minified symbol matches callsite coverage, all target and message callsites are recorded, all lexical strings/templates are counted, dynamic expressions and unresolved spreads are retained, root settings direct keys match structured rows, and detected environment/settings/model/Datadog structures are nonempty. It must reject a copied symbol map from another version and keep `knownStaticExtractionGaps` empty. Non-recoverable boundaries must be limited to values/code absent from the release artifact, such as runtime remote data, server-side behavior, or pre-bundle source removed by the build.
 
 ## Native reconstruction files
 

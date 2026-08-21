@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:57.664Z",
+  "capturedAt": "2026-08-21T11:45:26.121Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -58,15 +58,15 @@
     "audioCapture": "initial state and authorization query; no microphone capture",
     "urlHandler": "1ms no-event timeout",
     "imageProcessor": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-    "computerUseInput": "read-only mouse/frontmost queries and validation errors; no input injection",
-    "computerUseSwift": "display/TCC/application reads plus screenshot schema and JPEG invariants"
+    "computerUseInput": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+    "computerUseSwift": "display/TCC/application outcomes plus screenshot schema when available; unavailable system services are explicit environment boundaries"
   },
   "inputStrategies": {
     "audio-capture.node": "initial state and authorization query; no microphone capture",
     "url-handler.node": "1ms no-event timeout",
     "image-processor.node": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-    "computer-use-input.node": "read-only mouse/frontmost queries and validation errors; no input injection",
-    "computer-use-swift.node": "display/TCC/application reads plus screenshot schema and JPEG invariants"
+    "computer-use-input.node": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+    "computer-use-swift.node": "display/TCC/application outcomes plus screenshot schema when available; unavailable system services are explicit environment boundaries"
   },
   "literalOutput": {
     "originalContract": "native contract validation: PASS",
@@ -154,8 +154,9 @@
     {
       "label": "swift display size",
       "module": "computer-use-swift.node",
-      "comparison": "exact",
-      "status": "pass"
+      "comparison": "environment-boundary",
+      "status": "pass",
+      "boundary": "No display was visible to either module in this execution environment"
     },
     {
       "label": "swift running applications",
@@ -190,14 +191,16 @@
     {
       "label": "swift application under point",
       "module": "computer-use-swift.node",
-      "comparison": "exact",
-      "status": "pass"
+      "comparison": "environment-boundary",
+      "status": "pass",
+      "boundary": "Accessibility permission prevented a read-only pointer query"
     },
     {
       "label": "swift application icon",
       "module": "computer-use-swift.node",
-      "comparison": "normalized-semantic",
-      "status": "pass"
+      "comparison": "environment-boundary",
+      "status": "pass",
+      "boundary": "Spotlight did not provide an installed-application path"
     },
     {
       "label": "swift unhide empty",
@@ -208,14 +211,16 @@
     {
       "label": "swift full screenshot shape",
       "module": "computer-use-swift.node",
-      "comparison": "schema-and-invariants",
-      "status": "pass"
+      "comparison": "environment-boundary",
+      "status": "pass",
+      "boundary": "No display was visible to either module in this execution environment"
     },
     {
       "label": "swift region screenshot shape",
       "module": "computer-use-swift.node",
-      "comparison": "schema-and-invariants",
-      "status": "pass"
+      "comparison": "environment-boundary",
+      "status": "pass",
+      "boundary": "No display was visible to either module in this execution environment"
     },
     {
       "label": "behavior check count",

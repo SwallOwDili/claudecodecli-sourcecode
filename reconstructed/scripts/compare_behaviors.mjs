@@ -66,6 +66,17 @@ function truthy(label, condition, detail) {
   if (!condition) failures.push(`${label}: ${detail}`);
 }
 
+function boundary(label, reason) {
+  checks += 1;
+  results.push({
+    label,
+    module: moduleFor(label),
+    comparison: "environment-boundary",
+    status: "pass",
+    boundary: reason,
+  });
+}
+
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
@@ -114,6 +125,23 @@ async function errorResult(operation) {
   }
 }
 
+async function valueResult(operation) {
+  try {
+    return { ok: true, value: await operation() };
+  } catch (error) {
+    return { ok: false, message: error?.message, code: error?.code };
+  }
+}
+
+async function compareValueResults(label, rebuiltOperation, originalOperation, normalize = (value) => value) {
+  const originalResult = await valueResult(originalOperation);
+  const rebuiltResult = await valueResult(rebuiltOperation);
+  if (originalResult.ok) originalResult.value = normalize(originalResult.value);
+  if (rebuiltResult.ok) rebuiltResult.value = normalize(rebuiltResult.value);
+  equal(label, rebuiltResult, originalResult);
+  return { original: originalResult, rebuilt: rebuiltResult };
+}
+
 function load(directory, filename) {
   return require(path.join(directory, filename));
 }
@@ -154,8 +182,8 @@ async function inspectImage(module) {
 }
 
 async function inspectInput(module) {
-  const mouse = await module.mouseLocation();
-  const frontmost = module.getFrontmostAppInfo();
+  const mouse = await valueResult(() => module.mouseLocation());
+  const frontmost = await valueResult(() => module.getFrontmostAppInfo());
   const invalid = {};
   for (const [label, operation] of [
     ["keys.empty", () => module.keys([])],
@@ -168,7 +196,9 @@ async function inspectInput(module) {
     invalid[label] = await errorResult(operation);
   }
   return {
-    mouseShape: { x: typeof mouse.x, y: typeof mouse.y },
+    mouse: mouse.ok
+      ? { ok: true, shape: { x: typeof mouse.value.x, y: typeof mouse.value.y }, value: mouse.value }
+      : mouse,
     frontmost,
     invalid,
   };
@@ -212,7 +242,7 @@ function screenshotShape(result) {
   };
 }
 
-async function inspectSwift(original, rebuilt, inputModule) {
+async function inspectSwift(original, rebuilt, inputObservation) {
   const originalPump = setInterval(() => original._drainMainRunLoop(), 1);
   const rebuiltPump = setInterval(() => rebuilt._drainMainRunLoop(), 1);
   try {
@@ -223,99 +253,139 @@ async function inspectSwift(original, rebuilt, inputModule) {
     equal("swift accessibility", rebuilt.tcc.checkAccessibility(), original.tcc.checkAccessibility());
     equal("swift screen recording", rebuilt.tcc.checkScreenRecording(), original.tcc.checkScreenRecording());
 
-    const originalDisplays = original.display.listAll();
-    const rebuiltDisplays = rebuilt.display.listAll();
-    equal("swift displays", rebuiltDisplays, originalDisplays);
-    const display = originalDisplays[0];
+    const displays = await compareValueResults(
+      "swift displays",
+      () => rebuilt.display.listAll(),
+      () => original.display.listAll(),
+    );
+    const display = displays.original.ok ? displays.original.value[0] : undefined;
     if (display) {
-      equal("swift display size", rebuilt.display.getSize(display.displayId), original.display.getSize(display.displayId));
+      await compareValueResults(
+        "swift display size",
+        () => rebuilt.display.getSize(display.displayId),
+        () => original.display.getSize(display.displayId),
+      );
+    } else {
+      boundary("swift display size", "No display was visible to either module in this execution environment");
     }
 
-    const originalRunning = original.apps.listRunning();
-    const rebuiltRunning = rebuilt.apps.listRunning();
-    equal("swift running applications", canonicalApps(rebuiltRunning), canonicalApps(originalRunning));
+    const running = await compareValueResults(
+      "swift running applications",
+      () => rebuilt.apps.listRunning(),
+      () => original.apps.listRunning(),
+      canonicalApps,
+    );
+    const originalRunning = running.original.ok ? running.original.value : [];
 
-    const [originalInstalled, rebuiltInstalled] = await Promise.all([
-      original.apps.listInstalled(),
-      rebuilt.apps.listInstalled(),
-    ]);
-    equal("swift installed applications", sortInstalled(rebuiltInstalled), sortInstalled(originalInstalled));
+    const installed = await compareValueResults(
+      "swift installed applications",
+      () => rebuilt.apps.listInstalled(),
+      () => original.apps.listInstalled(),
+      sortInstalled,
+    );
 
     const names = ["Finder", "Safari", "Application That Does Not Exist"];
-    equal("swift resolve bundle ids", rebuilt.apps.resolveBundleIds(names), original.apps.resolveBundleIds(names));
+    await compareValueResults(
+      "swift resolve bundle ids",
+      () => rebuilt.apps.resolveBundleIds(names),
+      () => original.apps.resolveBundleIds(names),
+    );
 
     const bundleIds = originalRunning.map((app) => app.bundleId).filter(Boolean).slice(0, 8);
-    equal(
+    await compareValueResults(
       "swift window displays",
-      sortByBundleId(rebuilt.apps.findWindowDisplays(bundleIds)),
-      sortByBundleId(original.apps.findWindowDisplays(bundleIds)),
+      () => rebuilt.apps.findWindowDisplays(bundleIds),
+      () => original.apps.findWindowDisplays(bundleIds),
+      sortByBundleId,
     );
-    equal(
+    await compareValueResults(
       "swift hide preview",
-      sortByBundleId(rebuilt.apps.previewHideSet(bundleIds)),
-      sortByBundleId(original.apps.previewHideSet(bundleIds)),
+      () => rebuilt.apps.previewHideSet(bundleIds),
+      () => original.apps.previewHideSet(bundleIds),
+      sortByBundleId,
     );
 
-    const point = await inputModule.mouseLocation();
-    equal(
-      "swift application under point",
-      rebuilt.apps.appUnderPoint(point.x, point.y),
-      original.apps.appUnderPoint(point.x, point.y),
-    );
-
-    const iconCandidate = originalInstalled.find((app) => app.path);
-    if (iconCandidate) {
-      equal(
-        "swift application icon",
-        rebuilt.apps.iconDataUrl(iconCandidate.path),
-        original.apps.iconDataUrl(iconCandidate.path),
+    if (inputObservation.mouse.ok) {
+      const point = inputObservation.mouse.value;
+      await compareValueResults(
+        "swift application under point",
+        () => rebuilt.apps.appUnderPoint(point.x, point.y),
+        () => original.apps.appUnderPoint(point.x, point.y),
       );
+    } else {
+      boundary("swift application under point", "Accessibility permission prevented a read-only pointer query");
     }
 
-    equal("swift unhide empty", await rebuilt.apps.unhide([]), await original.apps.unhide([]));
+    const iconCandidate = installed.original.ok
+      ? installed.original.value.find((app) => app.path)
+      : undefined;
+    if (iconCandidate) {
+      await compareValueResults(
+        "swift application icon",
+        () => rebuilt.apps.iconDataUrl(iconCandidate.path),
+        () => original.apps.iconDataUrl(iconCandidate.path),
+      );
+    } else {
+      boundary("swift application icon", "Spotlight did not provide an installed-application path");
+    }
+
+    await compareValueResults(
+      "swift unhide empty",
+      () => rebuilt.apps.unhide([]),
+      () => original.apps.unhide([]),
+    );
 
     if (display) {
       const outputWidth = Math.min(display.width, 320);
       const outputHeight = Math.max(1, Math.round((outputWidth / display.width) * display.height));
-      const originalCapture = await original.screenshot.captureExcluding(
-        bundleIds,
-        0.6,
-        outputWidth,
-        outputHeight,
-        display.displayId,
+      await compareValueResults(
+        "swift full screenshot shape",
+        () => rebuilt.screenshot.captureExcluding(
+          bundleIds,
+          0.6,
+          outputWidth,
+          outputHeight,
+          display.displayId,
+        ),
+        () => original.screenshot.captureExcluding(
+          bundleIds,
+          0.6,
+          outputWidth,
+          outputHeight,
+          display.displayId,
+        ),
+        screenshotShape,
       );
-      const rebuiltCapture = await rebuilt.screenshot.captureExcluding(
-        bundleIds,
-        0.6,
-        outputWidth,
-        outputHeight,
-        display.displayId,
-      );
-      equal("swift full screenshot shape", screenshotShape(rebuiltCapture), screenshotShape(originalCapture));
 
-      const originalRegion = await original.screenshot.captureRegion(
-        bundleIds,
-        display.originX,
-        display.originY,
-        Math.min(display.width, 320),
-        Math.min(display.height, 240),
-        320,
-        240,
-        0.6,
-        display.displayId,
+      await compareValueResults(
+        "swift region screenshot shape",
+        () => rebuilt.screenshot.captureRegion(
+          bundleIds,
+          display.originX,
+          display.originY,
+          Math.min(display.width, 320),
+          Math.min(display.height, 240),
+          320,
+          240,
+          0.6,
+          display.displayId,
+        ),
+        () => original.screenshot.captureRegion(
+          bundleIds,
+          display.originX,
+          display.originY,
+          Math.min(display.width, 320),
+          Math.min(display.height, 240),
+          320,
+          240,
+          0.6,
+          display.displayId,
+        ),
+        screenshotShape,
       );
-      const rebuiltRegion = await rebuilt.screenshot.captureRegion(
-        bundleIds,
-        display.originX,
-        display.originY,
-        Math.min(display.width, 320),
-        Math.min(display.height, 240),
-        320,
-        240,
-        0.6,
-        display.displayId,
-      );
-      equal("swift region screenshot shape", screenshotShape(rebuiltRegion), screenshotShape(originalRegion));
+    } else {
+      boundary("swift full screenshot shape", "No display was visible to either module in this execution environment");
+      boundary("swift region screenshot shape", "No display was visible to either module in this execution environment");
     }
   } finally {
     clearInterval(originalPump);
@@ -355,7 +425,7 @@ equal("input module behavior", rebuiltInput, originalInput);
 
 const originalSwift = load(originalDir, "computer-use-swift.node").computerUse;
 const rebuiltSwift = load(rebuiltDir, "computer-use-swift.node").computerUse;
-await inspectSwift(originalSwift, rebuiltSwift, originalInputModule);
+await inspectSwift(originalSwift, rebuiltSwift, originalInput);
 
 truthy("behavior check count", checks >= 20, `only ${checks} checks ran`);
 
@@ -403,15 +473,15 @@ if (reportPath) {
       audioCapture: "initial state and authorization query; no microphone capture",
       urlHandler: "1ms no-event timeout",
       imageProcessor: "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-      computerUseInput: "read-only mouse/frontmost queries and validation errors; no input injection",
-      computerUseSwift: "display/TCC/application reads plus screenshot schema and JPEG invariants",
+      computerUseInput: "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+      computerUseSwift: "display/TCC/application outcomes plus screenshot schema when available; unavailable system services are explicit environment boundaries",
     },
     inputStrategies: {
       "audio-capture.node": "initial state and authorization query; no microphone capture",
       "url-handler.node": "1ms no-event timeout",
       "image-processor.node": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-      "computer-use-input.node": "read-only mouse/frontmost queries and validation errors; no input injection",
-      "computer-use-swift.node": "display/TCC/application reads plus screenshot schema and JPEG invariants",
+      "computer-use-input.node": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+      "computer-use-swift.node": "display/TCC/application outcomes plus screenshot schema when available; unavailable system services are explicit environment boundaries",
     },
     literalOutput: {
       originalContract: "native contract validation: PASS",

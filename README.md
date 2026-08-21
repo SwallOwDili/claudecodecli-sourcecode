@@ -146,16 +146,16 @@
 | 能力面 | 本版本计数 | 机器证据 |
 | --- | --- | --- |
 | 环境访问 | 并集 1,300；2,548 个逐调用点记录；dynamic `process.env[...]` 143；typed schema 842；观测 schema 71、默认表达式 23 | [`environment-access-callsites.jsonl`](analysis/source-inventory/environment-access-callsites.jsonl)、[`environment-schema.jsonl`](analysis/source-inventory/environment-schema.jsonl) |
-| 一方遥测 | `H` 2,162、`Fv` 32，共 2,194 个调用点；静态事件 1,436；动态模板 3；event-field 1,411；`tengu_*` 1,939 | [`first-party-event-callsites.jsonl`](analysis/source-inventory/first-party-event-callsites.jsonl)、[`first-party-events.txt`](analysis/source-inventory/first-party-events.txt) |
+| 一方遥测 | `H` 2,162、`Fv` 32，共 2,194 个调用点；静态事件 1,441；动态模板 3；event-field 1,441；`tengu_*` 1,939 | [`first-party-event-callsites.jsonl`](analysis/source-inventory/first-party-event-callsites.jsonl)、[`first-party-events.txt`](analysis/source-inventory/first-party-events.txt) |
 | 第三方观测 | OTEL event 26、metric 8、span 10；Datadog allowlist 181、tag 34、删除字段 26 | [`third-party-otel-events.txt`](analysis/source-inventory/third-party-otel-events.txt)、[`otel-metrics.tsv`](analysis/source-inventory/otel-metrics.tsv)、[`datadog-forwarded-events.txt`](analysis/source-inventory/datadog-forwarded-events.txt) |
 | 动态观测调用 | `Nd` 52；feature `et` 498；GrowthBook `CB` 12；动态/变量参数和 unresolved spread 全部保留 | [`otel-event-callsites.jsonl`](analysis/source-inventory/otel-event-callsites.jsonl)、[`feature-flag-callsites.jsonl`](analysis/source-inventory/feature-flag-callsites.jsonl)、[`growthbook-callsites.jsonl`](analysis/source-inventory/growthbook-callsites.jsonl) |
-| Settings/schema | 根 settings 156 direct + 4 spread；typed env 842；schema property 1,971；description 1,150；enum group 201 | [`root-settings-schema.jsonl`](analysis/source-inventory/root-settings-schema.jsonl)、[`environment-schema.jsonl`](analysis/source-inventory/environment-schema.jsonl) |
+| Settings/schema | 根 settings 156；160 条结构化 schema；typed env 842；schema property 1,165；description 1,150；enum group 201 | [`root-settings-schema.jsonl`](analysis/source-inventory/root-settings-schema.jsonl)、[`environment-schema.jsonl`](analysis/source-inventory/environment-schema.jsonl) |
 | 工具与命令 | built-in tool 29；known-tool catalog 188；named component 182；slash command 103 | [`known-tool-catalog.txt`](analysis/source-inventory/known-tool-catalog.txt)、[`slash-command-identifiers.txt`](analysis/source-inventory/slash-command-identifiers.txt) |
 | 协议与 hooks | SDK control subtype 89；output protocol event 44；hook event 31 | [`sdk-control-subtypes.txt`](analysis/source-inventory/sdk-control-subtypes.txt)、[`hook-events.txt`](analysis/source-inventory/hook-events.txt) |
 | 模型与 beta | 完整 model catalog 17；pricing tier 6；alias 4；model literal 37；date-suffixed beta/API version 53 | [`model-catalog.jsonl`](analysis/source-inventory/model-catalog.jsonl)、[`model-pricing-tiers.jsonl`](analysis/source-inventory/model-pricing-tiers.jsonl) |
 | API/runtime | API path 99；API/path template 119；HTTP method route 19；runtime require 54 | [`api-paths.txt`](analysis/source-inventory/api-paths.txt)、[`api-path-templates.jsonl`](analysis/source-inventory/api-path-templates.jsonl) |
 | 存储 | Claude storage namespace 29；全 bundle namespace 41；用户配置目录名 13 | [`claude-storage-namespaces.txt`](analysis/source-inventory/claude-storage-namespaces.txt)、[`storage-namespaces.txt`](analysis/source-inventory/storage-namespaces.txt) |
-| 错误与诊断 | Error/TypeError/RangeError 调用 4,831，其中模板参数 1,526；`T()` 调用 5,403，其中模板参数 4,438 | [`error-message-callsites.jsonl`](analysis/source-inventory/error-message-callsites.jsonl)、[`diagnostic-message-callsites.jsonl`](analysis/source-inventory/diagnostic-message-callsites.jsonl) |
+| 错误与诊断 | Error/TypeError/RangeError 调用 4,831，其中模板/表达式 1,526；`T()` 调用 5,403，其中模板/表达式 4,438 | [`error-message-callsites.jsonl`](analysis/source-inventory/error-message-callsites.jsonl)、[`diagnostic-message-callsites.jsonl`](analysis/source-inventory/diagnostic-message-callsites.jsonl) |
 | 全词法表面 | quoted string 260,838 次、85,095 个唯一值；template 30,114 次、25,187 个唯一值 | [`static-string-literals.jsonl`](analysis/source-inventory/static-string-literals.jsonl)、[`template-literals.jsonl`](analysis/source-inventory/template-literals.jsonl) |
 | 网络 | URL 557；URL template 236；API/path template 119；归一化 endpoint host 179 | [`urls.txt`](analysis/source-inventory/urls.txt)、[`url-templates.jsonl`](analysis/source-inventory/url-templates.jsonl)、[`endpoint-hosts.txt`](analysis/source-inventory/endpoint-hosts.txt) |
 
@@ -367,7 +367,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 完整数据流、字段和隐私控制见 [`analysis/telemetry.md`](analysis/telemetry.md)，字段的人类解释见 [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md)。本版本不是只有一个“是否有遥测”的布尔开关，而是多条独立链路：
 
 - 一方 analytics 在 sink 安装前保留 1,000 条全局事件，在一方 provider 初始化前再保留 1,024 条；provider 默认 queue 为 8,192。
-- Acorn AST 找到一方 `H` 2,162 次、`Fv` 32 次、OTEL `Nd` 52 次、feature `et` 498 次和 GrowthBook `CB` 12 次；静态名、模板、变量/条件表达式、完整参数、函数作用域、payload property/spread 和 unresolved spread 都写入 JSONL。
+- 提取器先从稳定 export、OTEL envelope、settings/model/Datadog 锚点发现本版短符号，再由 Acorn AST 找到一方 `H` 2,162 次、`Fv` 32 次、OTEL `Nd` 52 次、feature `et` 498 次和 dynamic config `CB` 12 次。JSONL 同时保存跨版本稳定的 `calleeRole` 与本版 `callee`，并保留静态名、模板、变量/条件表达式、完整参数、函数作用域、payload property/spread 和 unresolved spread。
 - `DISABLE_TELEMETRY`、`DO_NOT_TRACK`、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 进入共享非必要流量/遥测门；error reporting 另有 `DISABLE_ERROR_REPORTING` 和组织 policy/compliance 门。
 - 一方采样由 `tengu_event_sampling_config` 按事件控制；被采中事件会把实际 `sample_rate` 写入 metadata。
 - 一方 batch config 为 `tengu_1p_event_batch_config`；默认 10 s flush、200 batch、10 s request timeout、100 ms batch delay、8 attempts、500 ms 到 30 s 二次 backoff。

@@ -12,9 +12,12 @@ mkdir -p "$output_parent"
 cargo fmt --manifest-path "$repo_root/reconstructed/Cargo.toml" --all -- --check
 cargo check --manifest-path "$repo_root/reconstructed/Cargo.toml"
 cargo build --manifest-path "$repo_root/reconstructed/Cargo.toml" --release
-swift build --package-path "$repo_root/reconstructed/swift/computer-use-swift" -c release
+swift build --disable-sandbox \
+  --package-path "$repo_root/reconstructed/swift/computer-use-swift" \
+  -c release
 
 swift_bin=$(swift build \
+  --disable-sandbox \
   --package-path "$repo_root/reconstructed/swift/computer-use-swift" \
   -c release \
   --show-bin-path)

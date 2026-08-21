@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 const PARENT_PROMPT = "SUBAGENT_PARENT_PROMPT_MARKER";
 const CHILD_PROMPT = "SUBAGENT_CHILD_PROMPT_MARKER";
@@ -129,11 +130,7 @@ async function sha256(file) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-subagent-loop-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -258,7 +255,7 @@ async function main() {
     },
     target: { version: expectedVersion, binarySha256: await sha256(binary) },
     commands: {
-      subagentLoop: "$CLAUDE_2_1_235 --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+      subagentLoop: "$CLAUDE_TARGET --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
     },
     input: {
       parentPrompt: PARENT_PROMPT,

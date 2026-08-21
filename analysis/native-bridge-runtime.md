@@ -1,4 +1,4 @@
-# Native Bridge 与 JavaScript Runtime
+# Claude Code CLI 2.1.235 Native Bridge 与 JavaScript Runtime
 
 Claude Code 的主控制面在 bundled JavaScript 中，但图像、音频、键鼠、截图、应用/TCC 和 URL event 等能力通过 5 个 `.node` 模块进入 macOS 原生框架。要理解这些功能，必须把三层连起来：JavaScript 调用点定义产品语义，N-API export 定义 ABI 合同，Rust/Swift/Mach-O 分析解释底层实现。
 
@@ -97,6 +97,7 @@ input Buffer/Data URL
 
 - installed apps 使用 Spotlight metadata；
 - 保留 Spotlight 顺序和重复 bundle ID；
+- Spotlight query 无法启动时 rejected Promise 携带稳定错误，不以文件系统扫描结果静默代替；
 - icon 路径重绘为透明 64x64 PNG；
 - `appUnderPoint` 可返回 Dock 等覆盖窗口；
 - 结果是 `{bundleId, displayName}`，不额外返回 `pid`。
@@ -115,7 +116,7 @@ Accessibility 与 Screen Recording 有 check/request 两套调用。用户拒绝
 - `moveMouse/mouseButton/mouseScroll/mouseLocation`；
 - `getFrontmostAppInfo`。
 
-原模块保留 Enigo key mapping，包括 F1-F20、左右修饰键、媒体/亮度/照明、Launchpad、Mission Control 和 numpad。输入校验错误已用无副作用 probe 验证，例如空 keys、invalid key/action/button/axis。
+原模块保留 Enigo key mapping，包括 F1-F20、左右修饰键、媒体/亮度/照明、Launchpad、Mission Control 和 numpad。输入校验错误已用无副作用 probe 验证，例如空 keys、invalid key/action/button/axis；本轮还验证了 Accessibility `NoPermission` 文本和各 API 是先校验参数还是先初始化 Enigo。
 
 这里的风险边界很清楚：schema/permission/hook 通过后，native call 会向 OS 注入真实输入，之后的 model fallback 或 transcript rewind不能撤销点击、按键和已触发的外部应用动作。自动测试默认只跑只读状态和校验错误，不主动发送真实键鼠事件。
 
@@ -192,7 +193,7 @@ reconstructed native validation: PASS
 
 通过说明重建实现满足当前检查过的外部合同，不说明内部算法等同原始源码。
 
-机器报告把 23 项拆为：audio 1、URL 1、image 1、input 1、Swift 18，以及 1 个最低覆盖审计。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态。这样后续版本能看出是“某个功能行为变了”，而不只是总 PASS 变成 FAIL。
+机器报告把 23 项拆为：17 项真实原版/重建对照、5 项 `environment-boundary` 和 1 个最低覆盖审计。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态；`environment-boundary` 明确记录本轮没有显示器、Accessibility 或 Spotlight 能力时哪些检查没有触发。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
 
 ## 架构与平台边界
 

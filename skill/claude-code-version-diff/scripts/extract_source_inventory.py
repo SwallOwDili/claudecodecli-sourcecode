@@ -264,14 +264,293 @@ def sanitize_human_text(value: str) -> str:
     return value
 
 
-def load_javascript_surface(source_path: Path) -> dict[str, Any]:
+def _unique_symbol(
+    source: bytes,
+    pattern: bytes,
+    label: str,
+    group: int = 1,
+    flags: int = 0,
+) -> str:
+    matches = {
+        decode(match.group(group))
+        for match in re.finditer(pattern, source, flags)
+    }
+    if len(matches) != 1:
+        raise ValueError(
+            f"semantic symbol discovery for {label} expected one match, "
+            f"found {sorted(matches)!r}"
+        )
+    return next(iter(matches))
+
+
+def _nearest_symbol(
+    source: bytes,
+    pattern: bytes,
+    label: str,
+    anchor_offset: int,
+    group: int = 1,
+    flags: int = 0,
+) -> str:
+    matches = list(re.finditer(pattern, source, flags))
+    if not matches:
+        raise ValueError(f"semantic symbol discovery could not locate {label}")
+    ranked = sorted(
+        (abs(match.start() - anchor_offset), match.start(), decode(match.group(group)))
+        for match in matches
+    )
+    if len(ranked) > 1 and ranked[0][0] == ranked[1][0]:
+        raise ValueError(
+            f"semantic symbol discovery for {label} was ambiguous: {ranked[:5]!r}"
+        )
+    return ranked[0][2]
+
+
+def discover_semantic_symbols(source: bytes) -> dict[str, Any]:
+    identifier = rb"[A-Za-z_$][A-Za-z0-9_$]*"
+
+    analytics = list(
+        re.finditer(
+            rb"logEvent:\(\)=>((?:" + identifier + rb")),"
+            rb"logEventAsync:\(\)=>((?:" + identifier + rb"))",
+            source,
+        )
+    )
+    analytics_pairs = {
+        (decode(match.group(1)), decode(match.group(2))) for match in analytics
+    }
+    if len(analytics_pairs) != 1:
+        raise ValueError(
+            "semantic symbol discovery for first-party analytics expected one "
+            f"logEvent/logEventAsync pair, found {sorted(analytics_pairs)!r}"
+        )
+    first_party_event, first_party_event_async = next(iter(analytics_pairs))
+
+    otel_event = _unique_symbol(
+        source,
+        rb"async function (" + identifier + rb")\(e,t=\{\},r\)\{"
+        rb".{0,3000}?body:`claude_code\.\$\{e\}`",
+        "third-party OTEL structured event",
+        flags=re.DOTALL,
+    )
+    feature_value = _unique_symbol(
+        source,
+        rb"getFeatureValue_CACHED_MAY_BE_STALE:\(\)=>(" + identifier + rb")",
+        "cached feature value",
+    )
+    dynamic_config = _unique_symbol(
+        source,
+        rb"getDynamicConfig_CACHED_MAY_BE_STALE:\(\)=>(" + identifier + rb")",
+        "cached dynamic config",
+    )
+    diagnostic = _unique_symbol(
+        source,
+        rb"function (" + identifier + rb")\(e,t=\{level:\"debug\"\}\)\{"
+        + identifier
+        + rb"\(\)\.log\(e,t\)\}",
+        "diagnostic logger",
+    )
+    environment_proxy = _unique_symbol(
+        source,
+        rb"readEnvironmentOverrides:\(\)=>(" + identifier + rb")\."
+        rb"CLAUDE_INTERNAL_FC_OVERRIDES",
+        "environment proxy",
+    )
+
+    export_variables: dict[str, set[str]] = defaultdict(set)
+    for match in re.finditer(
+        rb"\b([A-Z][A-Z0-9_]{2,}):\(\)=>(" + identifier + rb")",
+        source,
+    ):
+        export_variables[decode(match.group(2))].add(decode(match.group(1)))
+    environment_builder_matches: dict[str, set[str]] = defaultdict(set)
+    for match in re.finditer(
+        rb"\b(" + identifier + rb")\s*=\s*(" + identifier + rb")\."
+        rb"(?:str|bool|triBool|int|enum)\(",
+        source,
+    ):
+        variable = decode(match.group(1))
+        builder = decode(match.group(2))
+        if variable in export_variables:
+            environment_builder_matches[builder].update(export_variables[variable])
+    ranked_environment_builders = sorted(
+        (
+            (len(names), builder)
+            for builder, names in environment_builder_matches.items()
+        ),
+        reverse=True,
+    )
+    if (
+        not ranked_environment_builders
+        or ranked_environment_builders[0][0] < 100
+        or (
+            len(ranked_environment_builders) > 1
+            and ranked_environment_builders[0][0]
+            == ranked_environment_builders[1][0]
+        )
+    ):
+        raise ValueError(
+            "semantic symbol discovery for environment schema builder was "
+            f"ambiguous: {ranked_environment_builders[:5]!r}"
+        )
+    environment_schema_join_count, environment_builder = ranked_environment_builders[0]
+
+    root_match = re.search(
+        rb"function (" + identifier + rb")\(e,\{strictPolicyHelperKeys:[^)]*"
+        rb"\}=\{\}\)\{.{0,5000}?return (" + identifier + rb")\(\{\$schema:",
+        source,
+        re.DOTALL,
+    )
+    if root_match is None:
+        raise ValueError("semantic symbol discovery could not locate the root settings schema")
+    root_settings_function = decode(root_match.group(1))
+    object_builder = decode(root_match.group(2))
+    object_builder_offset = source.find(f"function {object_builder}(".encode())
+    if object_builder_offset < 0:
+        raise ValueError("semantic symbol discovery could not locate object builder definition")
+
+    enum_builder = _nearest_symbol(
+        source,
+        rb"function (" + identifier + rb")\(e,t\)\{let r=Array\.isArray\(e\)\?"
+        rb"Object\.fromEntries\(e\.map\(\(n\)=>\[n,n\]\)\):e;return new "
+        + identifier
+        + rb"\(\{type:\"enum\",entries:r",
+        "schema enum builder",
+        object_builder_offset,
+    )
+    literal_builder = _nearest_symbol(
+        source,
+        rb"function (" + identifier + rb")\(e,t\)\{return new "
+        + identifier
+        + rb"\(\{type:\"literal\",values:Array\.isArray\(e\)\?e:\[e\]",
+        "schema literal builder",
+        object_builder_offset,
+    )
+    model_catalog = _unique_symbol(
+        source,
+        rb"\b(" + identifier + rb")=\{\"//\":\"Hand-maintained baked-in model catalog",
+        "baked model catalog",
+    )
+
+    datadog_match = re.search(
+        rb"(" + identifier + rb")=new Set\(\[\"tengu_feature_ok\""
+        rb".{0,20000}?\]\),(" + identifier + rb")=\[\"arch\""
+        rb".{0,5000}?\];(" + identifier + rb")=\[\"mcpServerName\""
+        rb".{0,5000}?\],(" + identifier + rb")=new Set\(\3\.map",
+        source,
+        re.DOTALL,
+    )
+    if datadog_match is None:
+        raise ValueError("semantic symbol discovery could not locate Datadog allowlists")
+    datadog_allowlist = decode(datadog_match.group(1))
+    datadog_tag_fields = decode(datadog_match.group(2))
+    datadog_redacted_fields = decode(datadog_match.group(3))
+    datadog_redacted_set = decode(datadog_match.group(4))
+
+    user_config_match = re.search(
+        rb"(" + identifier + rb")=\[(?:\"commands\",\"agents\"|"
+        rb"\"agents\",\"commands\").{0,1000}?\],(" + identifier + rb")="
+        rb"new Set\(\1\)",
+        source,
+        re.DOTALL,
+    )
+    if user_config_match is None:
+        raise ValueError("semantic symbol discovery could not locate user config directories")
+    user_config_directories_variable = decode(user_config_match.group(1))
+
+    schema_window_start = max(0, object_builder_offset - 30000)
+    schema_window_end = min(len(source), schema_window_start + 80000)
+    schema_window = source[schema_window_start:schema_window_end]
+    schema_builders: set[str] = {object_builder, enum_builder, literal_builder}
+    for match in re.finditer(
+        rb"function (" + identifier + rb")\([^)]*\)\{.{0,1600}?"
+        rb"type:\"(?:array|bigint|boolean|date|enum|intersection|literal|number|object|"
+        rb"optional|record|string|tuple|union)\"",
+        schema_window,
+        re.DOTALL,
+    ):
+        schema_builders.add(decode(match.group(1)))
+    wrapper_edges = [
+        (decode(match.group(1)), decode(match.group(2)))
+        for match in re.finditer(
+            rb"function ("
+            + identifier
+            + rb")\([^)]*\)\{return ("
+            + identifier
+            + rb")\(",
+            schema_window,
+        )
+    ]
+    changed = True
+    while changed:
+        changed = False
+        for wrapper, callee in wrapper_edges:
+            if callee in schema_builders and wrapper not in schema_builders:
+                schema_builders.add(wrapper)
+                changed = True
+
+    role_symbols = {
+        "firstPartyEvent": first_party_event,
+        "firstPartyEventAsync": first_party_event_async,
+        "otelStructuredEvent": otel_event,
+        "featureValue": feature_value,
+        "dynamicConfig": dynamic_config,
+        "diagnostic": diagnostic,
+    }
+    if len(set(role_symbols.values())) != len(role_symbols):
+        raise ValueError(f"semantic target symbols are not unique: {role_symbols!r}")
+
+    return {
+        "roles": role_symbols,
+        "environmentProxy": environment_proxy,
+        "environmentBuilder": environment_builder,
+        "environmentSchemaJoinCount": environment_schema_join_count,
+        "rootSettingsFunction": root_settings_function,
+        "objectBuilder": object_builder,
+        "enumBuilder": enum_builder,
+        "literalBuilder": literal_builder,
+        "modelCatalog": model_catalog,
+        "datadogAllowlist": datadog_allowlist,
+        "datadogTagFields": datadog_tag_fields,
+        "datadogRedactedFields": datadog_redacted_fields,
+        "datadogRedactedSet": datadog_redacted_set,
+        "userConfigDirectoriesVariable": user_config_directories_variable,
+        "schemaBuilders": sorted(schema_builders),
+    }
+
+
+def load_javascript_surface(
+    source_path: Path, discovered: dict[str, Any]
+) -> dict[str, Any]:
     helper = Path(__file__).with_name("parse_javascript_surface.mjs")
     node = shutil.which("node")
     bun = shutil.which("bun")
     if node:
-        command = [node, "--max-old-space-size=4096", str(helper), str(source_path)]
+        command = [
+            node,
+            "--max-old-space-size=4096",
+            str(helper),
+            str(source_path),
+            json.dumps(
+                {
+                    "targetCallees": sorted(set(discovered["roles"].values())),
+                    "environmentProxies": [discovered["environmentProxy"]],
+                },
+                separators=(",", ":"),
+            ),
+        ]
     elif bun:
-        command = [bun, str(helper), str(source_path)]
+        command = [
+            bun,
+            str(helper),
+            str(source_path),
+            json.dumps(
+                {
+                    "targetCallees": sorted(set(discovered["roles"].values())),
+                    "environmentProxies": [discovered["environmentProxy"]],
+                },
+                separators=(",", ":"),
+            ),
+        ]
     else:
         raise RuntimeError("source inventory v3 requires node or bun for the vendored Acorn parser")
     process = subprocess.run(
@@ -485,6 +764,43 @@ def scan_expression_end(source: bytes, start: int) -> int:
             return trim_range(source, start, index)[1]
         index += 1
     return trim_range(source, start, len(source))[1]
+
+
+def direct_call_identifiers(source: bytes) -> set[str]:
+    values: set[str] = set()
+    index = 0
+    while index < len(source):
+        current = source[index]
+        if current in (34, 39, 96):
+            index = skip_quoted(source, index, current)
+            continue
+        if current == 47 and index + 1 < len(source):
+            following = source[index + 1]
+            if following == 47:
+                index = skip_line_comment(source, index)
+                continue
+            if following == 42:
+                index = skip_block_comment(source, index)
+                continue
+            if regex_can_start(source, index):
+                index = skip_regex(source, index)
+                continue
+        if not is_identifier_start(current):
+            index += 1
+            continue
+        end = index + 1
+        while end < len(source) and is_identifier_part(source[end]):
+            end += 1
+        cursor = skip_space(source, end)
+        previous = index - 1
+        while previous >= 0 and source[previous] in b" \t\r\n":
+            previous -= 1
+        if cursor < len(source) and source[cursor] == 40 and (
+            previous < 0 or source[previous] not in (46, 63)
+        ):
+            values.add(decode(source[index:end]))
+        index = end
+    return values
 
 
 def expression_kind(source: bytes, start: int, end: int) -> str:
@@ -1274,34 +1590,51 @@ class JsLiteralParser:
             raise ValueError(f"missing array delimiter at offset {self.index}")
 
 
-def root_settings_keys(source: bytes) -> set[str]:
-    marker = source.find(b"function M7t(e,{strictPolicyHelperKeys")
-    if marker < 0:
-        return set()
-    opening = source.find(b"return ye({", marker)
-    if opening < 0:
-        return set()
-    return object_keys(source, opening + len(b"return ye("))
-
-
-def static_enum_groups(source: bytes) -> set[str]:
+def static_enum_groups(source: bytes, enum_builder: str) -> set[str]:
     groups: set[str] = set()
-    for match in STATIC_ENUM_RE.finditer(source):
+    pattern = re.compile(
+        rb"\b"
+        + re.escape(enum_builder.encode())
+        + rb"\(\[((?:\s*['\"](?:\\.|[^'\"]){1,160}['\"]\s*,?)+)\]\)"
+    )
+    for match in pattern.finditer(source):
         values = [decode(value) for value in re.findall(rb"['\"]((?:\\.|[^'\"]){1,160})['\"]", match.group(1))]
         if values:
             groups.add(" | ".join(values))
     return groups
 
 
-def static_event_fields(source: bytes, functions: set[str]) -> list[str]:
+def callsite_static_values(rows: list[dict[str, Any]]) -> set[str]:
+    values: set[str] = set()
+    for row in rows:
+        argument = row.get("nameArgument", {})
+        value = argument.get("staticValue") or argument.get("resolvedStaticValue")
+        if isinstance(value, str):
+            values.add(value)
+    return values
+
+
+def callsite_template_shapes(rows: list[dict[str, Any]]) -> set[str]:
+    values: set[str] = set()
+    for row in rows:
+        argument = row.get("nameArgument", {})
+        value = argument.get("templateShape") or argument.get("resolvedTemplateShape")
+        if isinstance(value, str):
+            values.add(value)
+    return values
+
+
+def event_fields_from_callsites(rows: list[dict[str, Any]]) -> list[str]:
     fields: dict[str, set[str]] = {}
-    for match in STATIC_EVENT_OBJECT_RE.finditer(source):
-        function = decode(match.group("function"))
-        if function not in functions:
+    for row in rows:
+        argument = row.get("nameArgument", {})
+        event = argument.get("staticValue") or argument.get("resolvedStaticValue")
+        if not isinstance(event, str):
             continue
-        event = decode(match.group("event"))
-        opening = match.end() - 1
-        fields.setdefault(event, set()).update(object_keys(source, opening))
+        payload = row.get("payload", {})
+        fields.setdefault(event, set()).update(payload.get("directKeys", []))
+        fields[event].update(payload.get("shorthandKeys", []))
+        fields[event].update(payload.get("expandedKeys", []))
     return [
         f"{event}\t{','.join(sorted(values)) if values else '<no-static-fields>'}"
         for event, values in sorted(fields.items())
@@ -1316,8 +1649,13 @@ def object_keys_after(source: bytes, marker: bytes) -> set[str]:
     return object_keys(source, opening)
 
 
-def user_config_directories(source: bytes) -> set[str]:
-    match = re.search(rb'_Fd=\[([^\]]+)\],bFd=new Set\(_Fd\)', source)
+def user_config_directories(source: bytes, variable: str) -> set[str]:
+    encoded = re.escape(variable.encode())
+    match = re.search(
+        rb"\b" + encoded + rb"=\[([^\]]+)\],[A-Za-z_$][A-Za-z0-9_$]*="
+        rb"new Set\(" + encoded + rb"\)",
+        source,
+    )
     if not match:
         return set()
     return {decode(value) for value in re.findall(rb"['\"]([^'\"]+)['\"]", match.group(1))}
@@ -1326,7 +1664,8 @@ def user_config_directories(source: bytes) -> set[str]:
 def tool_catalog(source: bytes) -> set[str]:
     values: set[str] = set()
     patterns = [
-        rb'\[("Bash","BashOutput","KillShell","PowerShell".*?)\],imS=\[(.*?)\]',
+        rb'\[("Bash","BashOutput","KillShell","PowerShell".*?)\],'
+        rb'[A-Za-z_$][A-Za-z0-9_$]*=\[(.*?)\]',
         rb'BUILTIN_TOOL_NAMES\s*=\s*\[(.*?)\]',
     ]
     for pattern in patterns:
@@ -1337,6 +1676,39 @@ def tool_catalog(source: bytes) -> set[str]:
                     for value in re.findall(rb"['\"]([^'\"]+)['\"]", group)
                 )
     return values
+
+
+def schema_property_identifiers(
+    source: bytes, schema_builders: list[str]
+) -> set[str]:
+    if not schema_builders:
+        return set()
+    alternatives = rb"|".join(
+        re.escape(builder.encode()) for builder in schema_builders
+    )
+    pattern = re.compile(
+        rb"\b([A-Za-z_$][A-Za-z0-9_$]{0,100})\s*:\s*(?:"
+        + alternatives
+        + rb")\("
+    )
+    return static_values(pattern, source)
+
+
+def sdk_control_subtypes(source: bytes, literal_builder: str) -> set[str]:
+    pattern = re.compile(
+        rb"subtype:\s*"
+        + re.escape(literal_builder.encode())
+        + rb"\(\s*['\"]([a-z0-9_.:-]+)['\"]\s*\)"
+    )
+    return static_values(pattern, source)
+
+
+def otel_span_names(source: bytes, metric_names: set[str]) -> set[str]:
+    pattern = re.compile(
+        rb"\b[A-Za-z_$][A-Za-z0-9_$]*\(\s*['\"]"
+        rb"(claude_code\.[a-z0-9_.-]+)['\"]"
+    )
+    return static_values(pattern, source) - metric_names
 
 
 def claude_storage_namespaces(source: bytes) -> set[str]:
@@ -1369,8 +1741,18 @@ def event_family(value: str) -> str:
     return "tengu_other"
 
 
-def extract_datadog_allowlist(source: bytes) -> set[str]:
-    match = re.search(rb"LCd\s*=.*?new Set\(\[(.*?)\]\),\s*hsb\s*=", source, re.DOTALL)
+def extract_datadog_allowlist(
+    source: bytes, variable: str, next_variable: str
+) -> set[str]:
+    match = re.search(
+        rb"\b"
+        + re.escape(variable.encode())
+        + rb"\s*=\s*new Set\(\[(.*?)\]\),\s*"
+        + re.escape(next_variable.encode())
+        + rb"\s*=",
+        source,
+        re.DOTALL,
+    )
     if not match:
         return set()
     return {
@@ -1462,18 +1844,20 @@ def resolved_argument_record(
 def callsite_rows(
     source: bytes,
     calls: list[dict[str, Any]],
-    callee_names: set[str],
+    callee_roles: dict[str, str],
     resolver: AssignmentResolver,
     include_payload: bool,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     semantic_values: list[dict[str, Any]] = []
     for call in calls:
-        if call["callee"] not in callee_names:
+        role = callee_roles.get(call["callee"])
+        if role is None:
             continue
         arguments = call["arguments"]
         row: dict[str, Any] = {
             "callee": call["callee"],
+            "calleeRole": role,
             "offset": call["offset"],
             "line": call["line"],
             "column": call["column"],
@@ -1481,7 +1865,7 @@ def callsite_rows(
             "functionKind": call.get("functionKind", "top-level"),
             "arguments": [expression_record(source, start, end) for start, end in arguments],
         }
-        semantic: dict[str, Any] = {"callee": call["callee"]}
+        semantic: dict[str, Any] = {"calleeRole": role}
         if arguments:
             event = resolved_argument_record(
                 source,
@@ -1523,20 +1907,29 @@ def callsite_rows(
             }
         rows.append(row)
         semantic_values.append(semantic)
-    add_comparison_fields(rows, semantic_values, "+".join(sorted(callee_names)))
+    rows_and_semantics = sorted(
+        zip(rows, semantic_values, strict=True), key=lambda pair: pair[0]["offset"]
+    )
+    rows = [pair[0] for pair in rows_and_semantics]
+    semantic_values = [pair[1] for pair in rows_and_semantics]
+    add_comparison_fields(
+        rows,
+        semantic_values,
+        "+".join(sorted(set(callee_roles.values()))),
+    )
     return rows
 
 
 def message_callsite_rows(
     source: bytes,
     calls: list[dict[str, Any]],
-    callee_names: set[str],
+    callee_roles: dict[str, str],
     resolver: AssignmentResolver,
 ) -> list[dict[str, Any]]:
     return callsite_rows(
         source,
         calls,
-        callee_names,
+        callee_roles,
         resolver,
         include_payload=False,
     )
@@ -1697,11 +2090,13 @@ def environment_access_rows(
 
 
 def environment_schema_rows(
-    source: bytes, locator: LineLocator
+    source: bytes, locator: LineLocator, builder: str
 ) -> list[dict[str, Any]]:
     builders: dict[str, dict[str, Any]] = {}
     pattern = re.compile(
-        rb"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*We\.(str|bool|triBool|int|enum)\("
+        rb"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*"
+        + re.escape(builder.encode())
+        + rb"\.(str|bool|triBool|int|enum)\("
     )
     for match in pattern.finditer(source):
         opening = match.end() - 1
@@ -1787,15 +2182,22 @@ def extract_method_arguments(expression: bytes, method: bytes) -> list[bytes]:
 
 
 def root_settings_schema_rows(
-    source: bytes, locator: LineLocator
+    source: bytes,
+    locator: LineLocator,
+    settings_function: str,
+    object_builder: str,
+    enum_builder: str,
 ) -> list[dict[str, Any]]:
-    marker = source.find(b"function M7t(e,{strictPolicyHelperKeys")
+    marker = source.find(
+        f"function {settings_function}(e,{{strictPolicyHelperKeys".encode()
+    )
     if marker < 0:
         return []
-    return_marker = source.find(b"return ye({", marker)
+    return_prefix = f"return {object_builder}(".encode()
+    return_marker = source.find(return_prefix + b"{", marker)
     if return_marker < 0:
         return []
-    opening = return_marker + len(b"return ye(")
+    opening = return_marker + len(return_prefix)
     closing = find_matching(source, opening)
     if closing < 0:
         return []
@@ -1829,7 +2231,10 @@ def root_settings_schema_rows(
                 for value in extract_method_arguments(expression_bytes, method)
             ]
             enum_values: set[str] = set()
-            for match in re.finditer(rb"\bNr\s*\(", expression_bytes):
+            enum_pattern = re.compile(
+                rb"\b" + re.escape(enum_builder.encode()) + rb"\s*\("
+            )
+            for match in enum_pattern.finditer(expression_bytes):
                 enum_open = match.end() - 1
                 enum_close = find_matching(expression_bytes, enum_open, 40, 41)
                 if enum_close < 0:
@@ -1848,14 +2253,7 @@ def root_settings_schema_rows(
                             expression_bytes[arg_start:arg_end],
                         )
                     )
-            builders = sorted(
-                set(
-                    decode(value)
-                    for value in re.findall(
-                        rb"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", expression_bytes
-                    )
-                )
-            )
+            builders = sorted(direct_call_identifiers(expression_bytes))
             row = {
                 "kind": entry["kind"],
                 "key": key,
@@ -1887,16 +2285,18 @@ def root_settings_schema_rows(
 
 def model_catalog_rows(
     source: bytes,
+    catalog_symbol: str,
 ) -> tuple[
     list[dict[str, Any]],
     list[dict[str, Any]],
     list[dict[str, Any]],
     list[dict[str, Any]],
 ]:
-    marker = source.find(b"RQc={")
+    marker_prefix = f"{catalog_symbol}=".encode()
+    marker = source.find(marker_prefix + b"{")
     if marker < 0:
         return [], [], [], []
-    opening = marker + len(b"RQc=")
+    opening = marker + len(marker_prefix)
     closing = find_matching(source, opening)
     if closing < 0:
         return [], [], [], []
@@ -2019,26 +2419,44 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
 
     locator = LineLocator(source)
-    javascript_surface = load_javascript_surface(source_path)
+    discovered = discover_semantic_symbols(source)
+    javascript_surface = load_javascript_surface(source_path, discovered)
     environment_like = {decode(value) for value in ENV_PREFIX_RE.findall(source)}
     direct_environment: set[str] = set()
     for match in ENV_PROCESS_RE.finditer(source):
         direct_environment.add(decode(match.group(1) or match.group(2)))
-    proxy_environment = {decode(value) for value in ENV_PROXY_RE.findall(source)}
+    proxy_pattern = re.compile(
+        rb"\b"
+        + re.escape(discovered["environmentProxy"].encode())
+        + rb"\.([A-Z][A-Z0-9_]{2,})\b"
+    )
+    proxy_environment = static_values(proxy_pattern, source)
     environment = environment_like | direct_environment | proxy_environment
 
-    first_party_events = static_values(FIRST_PARTY_EVENT_RE, source)
-    first_party_templates = template_values(source)
-    otel_events = static_values(OTEL_EVENT_RE, source)
+    first_party_events: set[str] = set()
+    first_party_templates: set[str] = set()
+    otel_events: set[str] = set()
     tengu_identifiers = static_values(TENGU_RE, source, 0)
-    datadog_events = extract_datadog_allowlist(source)
-    datadog_tag_fields = extract_datadog_fields(source, b"hsb", b"gsb")
-    datadog_redacted_fields = extract_datadog_fields(source, b"gsb", b"ysb")
-    spans = static_values(SPAN_RE, source)
-    feature_flags = static_values(FEATURE_FLAG_RE, source)
-    growthbook_keys = static_values(GROWTHBOOK_KEY_RE, source)
+    datadog_events = extract_datadog_allowlist(
+        source,
+        discovered["datadogAllowlist"],
+        discovered["datadogTagFields"],
+    )
+    datadog_tag_fields = extract_datadog_fields(
+        source,
+        discovered["datadogTagFields"].encode(),
+        discovered["datadogRedactedFields"].encode(),
+    )
+    datadog_redacted_fields = extract_datadog_fields(
+        source,
+        discovered["datadogRedactedFields"].encode(),
+        discovered["datadogRedactedSet"].encode(),
+    )
+    spans: set[str] = set()
+    feature_flags: set[str] = set()
+    growthbook_keys: set[str] = set()
     models = static_values(MODEL_RE, source, 0)
-    control_subtypes = static_values(CONTROL_SUBTYPE_RE, source)
+    control_subtypes = sdk_control_subtypes(source, discovered["literalBuilder"])
     hook_events = {
         decode(value).strip("'\"") for value in HOOK_EVENT_RE.findall(source)
     }
@@ -2054,16 +2472,20 @@ def main() -> int:
     named_components = static_values(NAMED_COMPONENT_RE, source)
     slash_commands = static_values(SLASH_COMMAND_RE, source)
     known_tools = tool_catalog(source)
-    schema_properties = static_values(SCHEMA_PROPERTY_RE, source)
-    settings_keys = root_settings_keys(source)
+    schema_properties = schema_property_identifiers(
+        source, discovered["schemaBuilders"]
+    )
+    settings_keys: set[str] = set()
     storage_namespaces = static_values(STORAGE_NAMESPACE_RE, source)
     first_party_storage_namespaces = claude_storage_namespaces(source)
-    config_directories = user_config_directories(source)
+    config_directories = user_config_directories(
+        source, discovered["userConfigDirectoriesVariable"]
+    )
     beta_identifiers = static_values(BETA_IDENTIFIER_RE, source, 0)
     protocol_events = static_values(PROTOCOL_EVENT_RE, source, 0)
-    enum_groups = static_enum_groups(source)
-    first_party_event_fields = static_event_fields(source, {"H", "Fv"})
-    third_party_event_fields = static_event_fields(source, {"Nd"})
+    enum_groups = static_enum_groups(source, discovered["enumBuilder"])
+    first_party_event_fields: list[str] = []
+    third_party_event_fields: list[str] = []
     first_party_env_fields = object_keys_after(
         source, b'return{platform:"",node_version:"",terminal:""'
     )
@@ -2106,54 +2528,55 @@ def main() -> int:
         )
         for match in METRIC_RE.finditer(source)
     ]
-    family_counts = Counter(event_family(value) for value in first_party_events)
-    family_rows = [f"{family}\t{count}" for family, count in sorted(family_counts.items())]
-
-    target_callees = {"H", "Fv", "Nd", "et", "CB", "T", "Error", "TypeError", "RangeError"}
     calls = javascript_surface["calls"]
     assignments: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for assignment in javascript_surface["assignments"]:
         assignments[assignment["name"]].append(assignment)
     resolver = AssignmentResolver(source, assignments)
 
+    roles = discovered["roles"]
+    first_party_roles = {
+        roles["firstPartyEvent"]: "firstPartyEvent",
+        roles["firstPartyEventAsync"]: "firstPartyEventAsync",
+    }
     first_party_callsites = callsite_rows(
         source,
         calls,
-        {"H", "Fv"},
+        first_party_roles,
         resolver,
         include_payload=True,
     )
     otel_callsites = callsite_rows(
         source,
         calls,
-        {"Nd"},
+        {roles["otelStructuredEvent"]: "otelStructuredEvent"},
         resolver,
         include_payload=True,
     )
     feature_callsites = callsite_rows(
         source,
         calls,
-        {"et"},
+        {roles["featureValue"]: "featureValue"},
         resolver,
         include_payload=False,
     )
     growthbook_callsites = callsite_rows(
         source,
         calls,
-        {"CB"},
+        {roles["dynamicConfig"]: "dynamicConfig"},
         resolver,
         include_payload=False,
     )
     error_callsites = message_callsite_rows(
         source,
         calls,
-        {"Error", "TypeError", "RangeError"},
+        {name: name for name in ("Error", "TypeError", "RangeError")},
         resolver,
     )
     diagnostic_callsites = message_callsite_rows(
         source,
         calls,
-        {"T"},
+        {roles["diagnostic"]: "diagnostic"},
         resolver,
     )
     error_template_offsets = call_offsets_with_template_arguments(
@@ -2162,7 +2585,7 @@ def main() -> int:
         {"Error", "TypeError", "RangeError"},
     )
     diagnostic_template_offsets = call_offsets_with_template_arguments(
-        calls, javascript_surface["templates"], {"T"}
+        calls, javascript_surface["templates"], {roles["diagnostic"]}
     )
     error_templates = [
         row for row in error_callsites if row["offset"] in error_template_offsets
@@ -2172,6 +2595,24 @@ def main() -> int:
         for row in diagnostic_callsites
         if row["offset"] in diagnostic_template_offsets
     ]
+
+    first_party_events = callsite_static_values(first_party_callsites)
+    first_party_templates = {
+        value
+        for value in callsite_template_shapes(first_party_callsites)
+        if value.startswith("tengu_")
+    }
+    otel_events = callsite_static_values(otel_callsites)
+    feature_flags = callsite_static_values(feature_callsites)
+    growthbook_keys = callsite_static_values(growthbook_callsites)
+    first_party_event_fields = event_fields_from_callsites(first_party_callsites)
+    third_party_event_fields = event_fields_from_callsites(otel_callsites)
+    family_counts = Counter(event_family(value) for value in first_party_events)
+    family_rows = [
+        f"{family}\t{count}" for family, count in sorted(family_counts.items())
+    ]
+    metric_names = {row.split("\t", 1)[0] for row in metric_rows}
+    spans = otel_span_names(source, metric_names)
 
     string_literals, template_literals = literal_rows(
         source, javascript_surface["strings"], javascript_surface["templates"]
@@ -2189,7 +2630,9 @@ def main() -> int:
         for row in environment_accesses
         if row["accessor"] == "process.env.bracket" and row["name"] is None
     ]
-    environment_schema = environment_schema_rows(source, locator)
+    environment_schema = environment_schema_rows(
+        source, locator, discovered["environmentBuilder"]
+    )
     observability_environment_schema = [
         row for row in environment_schema if OBSERVABILITY_NAME_RE.search(row["name"])
     ]
@@ -2200,9 +2643,22 @@ def main() -> int:
         and OBSERVABILITY_NAME_RE.search(row["name"])
         and "fallbackExpression" in row
     ]
-    settings_schema = root_settings_schema_rows(source, locator)
+    settings_schema = root_settings_schema_rows(
+        source,
+        locator,
+        discovered["rootSettingsFunction"],
+        discovered["objectBuilder"],
+        discovered["enumBuilder"],
+    )
+    settings_keys = {
+        row["key"] for row in settings_schema if isinstance(row.get("key"), str)
+    }
+    schema_properties = schema_property_identifiers(
+        source, discovered["schemaBuilders"]
+    )
+    schema_properties.update(settings_keys)
     model_catalog, model_pricing, model_aliases, model_metadata = model_catalog_rows(
-        source
+        source, discovered["modelCatalog"]
     )
     telemetry_endpoints = {
         value
@@ -2325,21 +2781,46 @@ def main() -> int:
             }
         )
 
-    by_callee = {
-        callee: [row for row in rows if row["callee"] == callee]
-        for callee, rows in {
-            "H": first_party_callsites,
-            "Fv": first_party_callsites,
-            "Nd": otel_callsites,
-            "et": feature_callsites,
-            "CB": growthbook_callsites,
-        }.items()
+    role_rows = {
+        "firstPartyEvent": [
+            row
+            for row in first_party_callsites
+            if row["calleeRole"] == "firstPartyEvent"
+        ],
+        "firstPartyEventAsync": [
+            row
+            for row in first_party_callsites
+            if row["calleeRole"] == "firstPartyEventAsync"
+        ],
+        "otelStructuredEvent": otel_callsites,
+        "featureValue": feature_callsites,
+        "dynamicConfig": growthbook_callsites,
     }
     declaration_counts = Counter(javascript_surface.get("declarations", {}))
     settings_direct = [row for row in settings_schema if row.get("key") is not None]
     settings_spreads = [row for row in settings_schema if row["kind"] == "spread"]
+    completion_gaps: list[str] = []
+    for label, value in {
+        "environment schema": environment_schema,
+        "root settings schema": settings_schema,
+        "model catalog": model_catalog,
+        "model pricing tiers": model_pricing,
+        "model aliases": model_aliases,
+        "Datadog allowlist": datadog_events,
+        "Datadog tag fields": datadog_tag_fields,
+        "Datadog redacted fields": datadog_redacted_fields,
+        "user config directories": config_directories,
+        "schema property identifiers": schema_properties,
+        "SDK control subtypes": control_subtypes,
+        "first-party event callsites": first_party_callsites,
+        "OTEL event callsites": otel_callsites,
+        "feature-value callsites": feature_callsites,
+        "dynamic-config callsites": growthbook_callsites,
+    }.items():
+        if not value:
+            completion_gaps.append(f"detected subsystem produced no {label}")
     summary = {
-        "formatVersion": 3,
+        "formatVersion": 4,
         "version": (repo / "VERSION").read_text(encoding="utf-8").strip(),
         "canonicalSource": {
             "path": "extracted/cli.js",
@@ -2347,18 +2828,24 @@ def main() -> int:
             "sha256": sha256(source_path),
         },
         "javascriptParser": javascript_surface["parser"],
+        "discoveredSymbols": discovered,
         "methods": {
+            "symbolDiscovery": "stable export names, function-body literals, schema constructor shapes, catalog notes, and subsystem-specific field anchors discover release-local minified symbols before AST extraction",
             "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
-            "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for every H/Fv/Nd callsite",
+            "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
             "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-            "environmentSchema": "joins uppercase export getters to minified variables assigned through We.str/bool/triBool/int/enum builders; options expressions and every static/dynamic process.env or K access callsite are retained",
-            "rootSettingsSchema": "parses every top-level entry and spread in the M7t settings object, preserving complete RHS expressions, builder names, descriptions, enum literals, defaults, and catch expressions",
-            "modelCatalog": "parses the hand-maintained baked RQc JavaScript literal into complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+            "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
+            "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
+            "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
             "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings",
         },
         "coverage": {
             "targetCallsites": {
-                callee: call_coverage(rows) for callee, rows in by_callee.items()
+                role: {
+                    "symbol": roles[role],
+                    **call_coverage(rows),
+                }
+                for role, rows in role_rows.items()
             },
             "messageCallsites": {
                 "Error+TypeError+RangeError": len(error_callsites),
@@ -2412,10 +2899,15 @@ def main() -> int:
             ),
             "dynamicExpressionsRetained": True,
             "rootSettingsKeysMatchStructuredRows": (
-                len(settings_keys) == len(settings_direct)
+                settings_keys == {row["key"] for row in settings_direct}
             ),
             "modelCatalogParsed": bool(model_catalog and model_metadata),
-            "knownStaticExtractionGaps": [],
+            "environmentSchemaParsed": bool(environment_schema),
+            "datadogSurfaceParsed": bool(
+                datadog_events and datadog_tag_fields and datadog_redacted_fields
+            ),
+            "semanticSymbolsDiscovered": len(discovered["roles"]) == 6,
+            "knownStaticExtractionGaps": completion_gaps,
             "nonRecoverableBoundaries": [
                 "runtime values returned by remote configuration, APIs, user files, environment variables, or server-side systems are not present as concrete release-bundle values",
                 "source removed before shipping by minification, tree shaking, compilation, or absent source maps cannot be reconstructed from the release artifact",
@@ -2429,7 +2921,11 @@ def main() -> int:
         json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8"
     )
 
-    print("source inventory: PASS")
+    print(
+        "source inventory: PASS"
+        if not completion_gaps
+        else "source inventory: FAIL"
+    )
     print(f"inventory format: {summary['formatVersion']}")
     print(f"inventory files: {len(files)}")
     print(f"first-party callsites: {len(first_party_callsites)}")
@@ -2447,6 +2943,10 @@ def main() -> int:
     print(f"environment access/schema: {len(environment_accesses)}/{len(environment_schema)}")
     print(f"root settings entries: {len(settings_direct)} + {len(settings_spreads)} spreads")
     print(f"model catalog entries: {len(model_catalog)}")
+    if completion_gaps:
+        for gap in completion_gaps:
+            print(f"gap: {gap}")
+        return 1
     return 0
 
 

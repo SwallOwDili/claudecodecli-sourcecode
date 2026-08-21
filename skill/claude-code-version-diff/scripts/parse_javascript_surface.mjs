@@ -5,8 +5,20 @@ import { parse } from "../vendor/acorn/acorn.mjs";
 
 const sourcePath = process.argv[2];
 if (!sourcePath) {
-  process.stderr.write("usage: parse_javascript_surface.mjs <source>\n");
+  process.stderr.write(
+    "usage: parse_javascript_surface.mjs <source> [discovered-symbols-json]\n",
+  );
   process.exit(2);
+}
+
+let discoveredSymbols = {};
+if (process.argv[3]) {
+  try {
+    discoveredSymbols = JSON.parse(process.argv[3]);
+  } catch (error) {
+    process.stderr.write(`invalid discovered-symbols JSON: ${error.message}\n`);
+    process.exit(2);
+  }
 }
 
 const source = fs.readFileSync(sourcePath, "utf8");
@@ -18,16 +30,12 @@ const ast = parse(source, {
 });
 
 const targetCallees = new Set([
-  "H",
-  "Fv",
-  "Nd",
-  "et",
-  "CB",
-  "T",
+  ...(discoveredSymbols.targetCallees ?? []),
   "Error",
   "TypeError",
   "RangeError",
 ]);
+const environmentProxies = new Set(discoveredSymbols.environmentProxies ?? []);
 const calls = [];
 const assignments = [];
 const strings = [];
@@ -124,7 +132,7 @@ function environmentRecord(node, parent) {
       ...fallbackRecord(node, parent),
     };
   }
-  if (identifierName(node.object) === "K") {
+  if (environmentProxies.has(identifierName(node.object))) {
     const name = node.computed
       ? node.property.type === "Literal" && typeof node.property.value === "string"
         ? node.property.value
@@ -249,5 +257,6 @@ process.stdout.write(
     templates,
     environmentAccesses,
     declarations,
+    discoveredSymbols,
   }),
 );

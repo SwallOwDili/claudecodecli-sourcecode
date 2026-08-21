@@ -1,4 +1,4 @@
-# 模型、认证、Provider 与请求装配
+# Claude Code CLI 2.1.235 模型、认证、Provider 与请求装配
 
 这一层决定 Claude Code 最终把什么上下文交给哪个模型、通过哪条网络路径发送、使用哪种凭据，以及哪些 beta、缓存、thinking 和工具能力能够进入请求。它不是一个简单的 `model + apiKey + messages` 对象：同一个模型别名在 first-party、Bedrock、Vertex、Foundry、Anthropic cloud variants、Mantle 或 gateway 下，模型 ID、鉴权材料、endpoint、可用 beta 和失败恢复路径都可能不同。
 

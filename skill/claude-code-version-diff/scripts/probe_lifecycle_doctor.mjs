@@ -6,6 +6,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { resolveProbeTarget } from "./probe_target.mjs";
 
 function runCli(binary, args, options) {
   return new Promise((resolve, reject) => {
@@ -33,11 +34,13 @@ function matchingLines(output, patterns) {
 }
 
 async function main() {
-  const binary = process.env.CLAUDE_BIN
-    ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
-  const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
-  const expectedSha256 = process.env.CLAUDE_SHA256
-    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
+  const {
+    binary,
+    expectedVersion,
+    expectedSha256,
+    expectedGitSha,
+  } = resolveProbeTarget(import.meta.url);
+  const expectedCommit = expectedGitSha.slice(0, 12);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-lifecycle-doctor-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -78,8 +81,8 @@ async function main() {
 
   const doctorLines = matchingLines(doctorRun.stdout, [
     /^Claude Code doctor$/,
-    /^Running: native \(2\.1\.235\)$/,
-    /^Commit: ba01fa45e3d1$/,
+    /^Running: native \([^)]+\)$/,
+    /^Commit: [0-9a-f]{12}$/,
     /^Platform: darwin-arm64$/,
     /^Search: OK \(bundled\)$/,
     /^Auto-updates: disabled \(set by env: DISABLE_AUTOUPDATER\)$/,
@@ -102,8 +105,8 @@ async function main() {
     updateGateExitZero: updateRun.exitStatus === 0,
     updateGateMessageExact: updateText === "Updates are disabled by your administrator. Contact your IT team to get the latest version.",
     doctorExitZero: doctorRun.exitStatus === 0,
-    doctorIdentifiesNativeVersion: doctorText.includes("Running: native (2.1.235)"),
-    doctorIdentifiesCommit: doctorText.includes("Commit: ba01fa45e3d1"),
+    doctorIdentifiesNativeVersion: doctorText.includes(`Running: native (${expectedVersion})`),
+    doctorIdentifiesCommit: doctorText.includes(`Commit: ${expectedCommit}`),
     doctorIdentifiesPlatform: doctorText.includes("Platform: darwin-arm64"),
     doctorIdentifiesBundledSearch: doctorText.includes("Search: OK (bundled)"),
     doctorReportsAutoUpdateGate: doctorText.includes("Auto-updates: disabled (set by env: DISABLE_AUTOUPDATER)"),
@@ -125,8 +128,8 @@ async function main() {
       binarySha256: await sha256(binary),
     },
     commands: {
-      updateDisabled: "DISABLE_UPDATES=1 $CLAUDE_2_1_235 update",
-      doctor: "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_2_1_235 doctor",
+      updateDisabled: "DISABLE_UPDATES=1 $CLAUDE_TARGET update",
+      doctor: "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_TARGET doctor",
     },
     input: {
       updateDisabled: { disableUpdates: true },

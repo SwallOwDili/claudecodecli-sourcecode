@@ -118,6 +118,7 @@ tengu_cowork_chrome_automode_default
 tengu_crimson_vector
 tengu_cuddly_willow
 tengu_daemon_refuse_stale_upgrade
+tengu_dash_flame
 tengu_defer_cap_ms
 tengu_deferred_stub_tool
 tengu_destructive_command_warning
@@ -171,6 +172,7 @@ tengu_jiggly_mochi
 tengu_juniper_bassoon
 tengu_juniper_relay
 tengu_juniper_sundial
+tengu_juniper_vale
 tengu_kairos_brief
 tengu_kairos_brief_config
 tengu_kairos_brief_stop_hook_text
@@ -186,6 +188,7 @@ tengu_kestrel_moor
 tengu_keybinding_customization_release
 tengu_lantern_prism
 tengu_lantern_spool
+tengu_lantern_wick_mode
 tengu_lapis_anchor
 tengu_lapis_anchor_budget
 tengu_lapis_anchor_user_turn
@@ -252,6 +255,7 @@ tengu_pewter_brook
 tengu_pewter_canteen
 tengu_pewter_kite_ms
 tengu_pewter_owl_model
+tengu_pewter_summit
 tengu_playful_lobster
 tengu_plugin_autoupdate_allow_credential_helper
 tengu_plugin_binary_assets
@@ -286,6 +290,7 @@ tengu_saffron_lattice
 tengu_saffron_picker_dim
 tengu_saffron_wren
 tengu_sage_compass2
+tengu_salt_marsh
 tengu_satchel_banjo
 tengu_scalable_quiche
 tengu_scratch
@@ -333,6 +338,7 @@ tengu_ultraplan_config
 tengu_ultraplan_prompt_identifier
 tengu_ultraplan_timeout_seconds
 tengu_ultrareview_post_enabled
+tengu_umber_kestrel
 tengu_umber_lattice
 tengu_umber_petrel
 tengu_vellum_anchor

@@ -1,4 +1,4 @@
-# 会话、检查点与 Memory：Claude Code 到底保存了什么
+# Claude Code CLI 2.1.235 会话、检查点与 Memory：Claude Code 到底保存了什么
 
 用户看到的是一条连续对话，但 Claude Code 需要同时保存四类完全不同的状态：消息图、JSONL transcript、文件 checkpoint 和 memory。它们的生命周期、恢复能力和失败边界不同。把它们统称为“会话缓存”，会直接导致错误预期，例如认为 `resume` 可以恢复正在运行的 shell，或认为 rewind 能撤销已经推送到远端的 commit。
 

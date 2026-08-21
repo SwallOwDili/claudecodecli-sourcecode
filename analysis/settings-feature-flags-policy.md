@@ -1,4 +1,4 @@
-# Settings、Feature Flags 与 Managed Policy
+# Claude Code CLI 2.1.235 Settings、Feature Flags 与 Managed Policy
 
 Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。
 

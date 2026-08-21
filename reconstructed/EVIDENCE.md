@@ -48,7 +48,7 @@
 - `enigo-0.6.1`、`objc2-app-kit` 和项目路径 `claude-native/src/input/enigo_wrap.rs`。
 - 导出：`key`、`keys`、`typeText`、`moveMouse`、`mouseButton`、`mouseScroll`、`mouseLocation`、`getFrontmostAppInfo`。
 - 二进制保留 F1-F20、左右修饰键、媒体/亮度/照明/Launchpad/Mission Control/Numpad 等 Enigo key 名。
-- 原版错误文本已逐项运行确认，包括 `No keys provided`、invalid key/action/button/axis。
+- 原版错误文本已逐项运行确认，包括 `No keys provided`、invalid key/action/button/axis 和 Accessibility `NoPermission`；探针还确认不同 API 在创建 Enigo 前后的参数校验顺序并不相同。
 - 原版链接 AppKit 并保留 `NSWorkspace`、`frontmostApplication`、`localizedName`、`bundleIdentifier`；重建直接使用同一路径。
 
 ### Derived / Compatible
@@ -65,9 +65,9 @@
 - ScreenCaptureKit 的 display/application/window/filter/configuration/capture 路径；AppKit 应用管理；CGEvent tap；TCC APIs。
 - Spotlight 反汇编直接读取 `kMDItemCFBundleIdentifier`、`NSMetadataItemPathKey`、`NSMetadataItemDisplayNameKey`，并检查 `LSBackgroundOnly` / `LSUIElement`。
 - 图标函数反汇编显示 `64x64`、RGBA、device RGB、NSGraphicsContext、`.copy`、PNG。
-- 原版应用列表保留 Spotlight 顺序和重复 bundle ID；当前机器两版语义列表均为 247 条且逐项一致。
+- 原版应用列表保留 Spotlight 顺序和重复 bundle ID；发布二进制还保留 `NSMetadataQuery failed to start (Spotlight may be indexing or disabled)`。本次隔离运行中 Spotlight 无法启动，原版和重建版都以同一 rejected Promise 合同结束。
 - `appUnderPoint` 返回 Dock 等覆盖窗口，不过滤系统 UI，并且结果没有 `pid`。
-- 显示器、TCC、optional integer、运行应用、图标、全屏截图和区域截图已实测。
+- TCC、optional integer、运行应用及 Spotlight 失败合同已实测；显示器尺寸、命中应用、图标和截图在本次无显示器/无 Accessibility 环境中标为 `environment-boundary`，没有包装成已执行结果。
 
 ### Derived / Compatible
 

@@ -280,8 +280,8 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         failures.append(f"invalid source inventory summary: {error}")
         return 0
 
-    if summary.get("formatVersion", 0) < 3:
-        failures.append("source inventory formatVersion must be at least 3")
+    if summary.get("formatVersion", 0) < 4:
+        failures.append("source inventory formatVersion must be at least 4")
     parser = summary.get("javascriptParser", {})
     if parser.get("name") != "acorn" or parser.get("version") != "8.15.0":
         failures.append("source inventory must use vendored Acorn 8.15.0")
@@ -309,34 +309,74 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         "dynamicExpressionsRetained",
         "rootSettingsKeysMatchStructuredRows",
         "modelCatalogParsed",
+        "environmentSchemaParsed",
+        "datadogSurfaceParsed",
+        "semanticSymbolsDiscovered",
     ):
         if completion.get(field) is not True:
             failures.append(f"source inventory completion audit failed: {field}")
     if completion.get("knownStaticExtractionGaps") != []:
         failures.append("source inventory reports known static extraction gaps")
 
+    discovered = summary.get("discoveredSymbols", {})
+    roles = discovered.get("roles", {}) if isinstance(discovered, dict) else {}
+    required_roles = {
+        "firstPartyEvent",
+        "firstPartyEventAsync",
+        "otelStructuredEvent",
+        "featureValue",
+        "dynamicConfig",
+        "diagnostic",
+    }
+    if set(roles) != required_roles or not all(
+        isinstance(value, str) and value for value in roles.values()
+    ):
+        failures.append("source inventory semantic role discovery is incomplete")
+    elif len(set(roles.values())) != len(roles):
+        failures.append("source inventory semantic role symbols are not unique")
+    for field in (
+        "environmentProxy",
+        "environmentBuilder",
+        "rootSettingsFunction",
+        "objectBuilder",
+        "enumBuilder",
+        "literalBuilder",
+        "modelCatalog",
+        "datadogAllowlist",
+        "datadogTagFields",
+        "datadogRedactedFields",
+        "datadogRedactedSet",
+        "userConfigDirectoriesVariable",
+    ):
+        if not isinstance(discovered.get(field), str) or not discovered[field]:
+            failures.append(f"source inventory discovered symbol missing: {field}")
+
     target_coverage = summary.get("coverage", {}).get("targetCallsites", {})
     expected_target_files = {
-        "H": "first-party-event-callsites",
-        "Fv": "first-party-event-callsites",
-        "Nd": "otel-event-callsites",
-        "et": "feature-flag-callsites",
-        "CB": "growthbook-callsites",
+        "firstPartyEvent": "first-party-event-callsites",
+        "firstPartyEventAsync": "first-party-event-callsites",
+        "otelStructuredEvent": "otel-event-callsites",
+        "featureValue": "feature-flag-callsites",
+        "dynamicConfig": "growthbook-callsites",
     }
-    for callee, inventory_name in expected_target_files.items():
-        total = target_coverage.get(callee, {}).get("total")
+    for role, inventory_name in expected_target_files.items():
+        coverage = target_coverage.get(role, {})
+        total = coverage.get("total")
         if not isinstance(total, int) or total < 1:
-            failures.append(f"source inventory callsite coverage missing for {callee}")
+            failures.append(f"source inventory callsite coverage missing for {role}")
+        if coverage.get("symbol") != roles.get(role):
+            failures.append(f"source inventory callsite symbol mismatch for {role}")
     first_party_total = sum(
-        target_coverage.get(callee, {}).get("total", 0) for callee in ("H", "Fv")
+        target_coverage.get(role, {}).get("total", 0)
+        for role in ("firstPartyEvent", "firstPartyEventAsync")
     )
     if first_party_total != counts.get("first-party-event-callsites"):
         failures.append("first-party callsite coverage does not match JSONL count")
-    for callee in ("Nd", "et", "CB"):
-        if target_coverage.get(callee, {}).get("total") != counts.get(
-            expected_target_files[callee]
+    for role in ("otelStructuredEvent", "featureValue", "dynamicConfig"):
+        if target_coverage.get(role, {}).get("total") != counts.get(
+            expected_target_files[role]
         ):
-            failures.append(f"{callee} callsite coverage does not match JSONL count")
+            failures.append(f"{role} callsite coverage does not match JSONL count")
 
     entries = summary.get("files", [])
     expected_names: set[str] = set()
@@ -895,6 +935,188 @@ def git(repo: Path, *args: str) -> str:
     ).strip()
 
 
+def format_count(value: int) -> str:
+    return f"{value:,}"
+
+
+def validate_human_snapshot_identity(
+    repo: Path, version: str, metadata: dict, failures: list[str]
+) -> None:
+    readme = (repo / "README.md").read_text(encoding="utf-8")
+    expected_title = f"# Claude Code CLI {version} 深度逆向快照"
+    if readme.splitlines()[0] != expected_title:
+        failures.append("README title does not match VERSION")
+
+    binary_sha = metadata.get("binary", {}).get("sha256")
+    readme_sha = re.search(
+        r"^\| 原始程序 SHA-256 \| `([0-9a-f]{64})` \|$", readme, re.MULTILINE
+    )
+    if readme_sha is None or readme_sha.group(1) != binary_sha:
+        failures.append("README binary SHA-256 does not match analysis/version.json")
+
+    for relative in HUMAN_ANALYSIS_DOCS:
+        path = repo / relative
+        if not path.is_file():
+            continue
+        first_line = path.read_text(encoding="utf-8").splitlines()[0]
+        if version not in first_line:
+            failures.append(
+                f"human analysis document title does not match VERSION: {relative}"
+            )
+
+    risk_surface_path = repo / "analysis/risk-control-surface.txt"
+    if risk_surface_path.is_file():
+        risk_surface = risk_surface_path.read_text(encoding="utf-8")
+        if f"# Version: {version}" not in risk_surface.splitlines()[:3]:
+            failures.append("risk-control surface version does not match VERSION")
+
+    probe_placeholder_paths = {"README.md", *HUMAN_ANALYSIS_DOCS}
+    versioned_probe = re.compile(r"\$CLAUDE_\d+_\d+_\d+")
+    for relative in sorted(probe_placeholder_paths):
+        path = repo / relative
+        if path.is_file() and versioned_probe.search(path.read_text(encoding="utf-8")):
+            failures.append(
+                f"version-specific Claude binary placeholder found in {relative}; use $CLAUDE_TARGET"
+            )
+
+
+def validate_human_inventory_facts(repo: Path, failures: list[str]) -> None:
+    summary = json.loads(
+        (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
+    )
+    counts = summary.get("counts", {})
+    surface = (repo / "analysis/source-surface.md").read_text(encoding="utf-8")
+    table_rows: dict[str, int] = {}
+    for match in re.finditer(
+        r"^\| \[([^]]+)\]\(source-inventory/[^)]+\) \| ([0-9,]+) \|",
+        surface,
+        re.MULTILINE,
+    ):
+        name = match.group(1)
+        if name in table_rows:
+            failures.append(f"duplicate human source-surface row: {name}")
+            continue
+        table_rows[name] = int(match.group(2).replace(",", ""))
+
+    missing = sorted(set(counts) - set(table_rows))
+    extra = sorted(set(table_rows) - set(counts))
+    if missing or extra:
+        failures.append(
+            "human source-surface inventory set mismatch: "
+            f"missing={missing}, extra={extra}"
+        )
+    for name, expected in counts.items():
+        actual = table_rows.get(name)
+        if actual is not None and actual != expected:
+            failures.append(
+                f"human source-surface count mismatch for {name}: "
+                f"{actual} != {expected}"
+            )
+
+    readme = (repo / "README.md").read_text(encoding="utf-8")
+    readme_rows: dict[str, str] = {}
+    for line in readme.splitlines():
+        match = re.match(r"^\| ([^|]+?) \| (.+) \|", line)
+        if match:
+            readme_rows[match.group(1).strip()] = match.group(2)
+
+    roles = summary.get("discoveredSymbols", {}).get("roles", {})
+    coverage = summary.get("coverage", {}).get("targetCallsites", {})
+    literal_coverage = summary.get("coverage", {}).get("literalOccurrences", {})
+    expected_rows = {
+        "环境访问": [
+            format_count(counts["environment-access-identifiers"]),
+            format_count(counts["environment-access-callsites"]),
+            format_count(counts["dynamic-process-environment-callsites"]),
+            format_count(counts["environment-schema"]),
+            format_count(counts["observability-environment-schema"]),
+            format_count(counts["observability-environment-defaults"]),
+        ],
+        "一方遥测": [
+            f"`{roles['firstPartyEvent']}` {format_count(coverage['firstPartyEvent']['total'])}",
+            f"`{roles['firstPartyEventAsync']}` {format_count(coverage['firstPartyEventAsync']['total'])}",
+            format_count(counts["first-party-event-callsites"]),
+            format_count(counts["first-party-events"]),
+            format_count(counts["first-party-event-fields"]),
+        ],
+        "第三方观测": [
+            f"Datadog allowlist {format_count(counts['datadog-forwarded-events'])}",
+            f"tag {format_count(counts['datadog-tag-fields'])}",
+            f"删除字段 {format_count(counts['datadog-redacted-fields'])}",
+        ],
+        "动态观测调用": [
+            f"`{roles['otelStructuredEvent']}` {format_count(counts['otel-event-callsites'])}",
+            f"feature `{roles['featureValue']}` {format_count(counts['feature-flag-callsites'])}",
+            f"GrowthBook `{roles['dynamicConfig']}` {format_count(counts['growthbook-callsites'])}",
+        ],
+        "Settings/schema": [
+            f"根 settings {format_count(counts['root-settings-keys'])}",
+            f"{format_count(counts['root-settings-schema'])} 条结构化 schema",
+            f"typed env {format_count(counts['environment-schema'])}",
+            f"schema property {format_count(counts['schema-property-identifiers'])}",
+            f"description {format_count(counts['schema-descriptions'])}",
+            f"enum group {format_count(counts['static-enum-groups'])}",
+        ],
+        "工具与命令": [
+            f"built-in tool {format_count(counts['builtin-tool-identifiers'])}",
+            f"known-tool catalog {format_count(counts['known-tool-catalog'])}",
+            f"named component {format_count(counts['named-component-identifiers'])}",
+            f"slash command {format_count(counts['slash-command-identifiers'])}",
+        ],
+        "协议与 hooks": [
+            f"SDK control subtype {format_count(counts['sdk-control-subtypes'])}",
+            f"output protocol event {format_count(counts['output-protocol-event-identifiers'])}",
+            f"hook event {format_count(counts['hook-events'])}",
+        ],
+        "模型与 beta": [
+            f"完整 model catalog {format_count(counts['model-catalog'])}",
+            f"pricing tier {format_count(counts['model-pricing-tiers'])}",
+            f"alias {format_count(counts['model-aliases'])}",
+            f"model literal {format_count(counts['model-identifiers'])}",
+            f"date-suffixed beta/API version {format_count(counts['anthropic-beta-identifiers'])}",
+        ],
+        "API/runtime": [
+            f"API path {format_count(counts['api-paths'])}",
+            f"API/path template {format_count(counts['api-path-templates'])}",
+            f"HTTP method route {format_count(counts['http-route-identifiers'])}",
+            f"runtime require {format_count(counts['runtime-requires'])}",
+        ],
+        "存储": [
+            f"Claude storage namespace {format_count(counts['claude-storage-namespaces'])}",
+            f"全 bundle namespace {format_count(counts['storage-namespaces'])}",
+            f"用户配置目录名 {format_count(counts['user-config-directories'])}",
+        ],
+        "错误与诊断": [
+            f"调用 {format_count(counts['error-message-callsites'])}",
+            f"模板/表达式 {format_count(counts['error-message-templates'])}",
+            f"调用 {format_count(counts['diagnostic-message-callsites'])}",
+            f"模板/表达式 {format_count(counts['diagnostic-message-templates'])}",
+        ],
+        "全词法表面": [
+            f"quoted string {format_count(literal_coverage['quotedStrings'])}",
+            f"{format_count(counts['static-string-literals'])} 个唯一值",
+            f"template {format_count(literal_coverage['templates'])}",
+            f"{format_count(counts['template-literals'])} 个唯一值",
+        ],
+        "网络": [
+            f"URL {format_count(counts['urls'])}",
+            f"URL template {format_count(counts['url-templates'])}",
+            f"API/path template {format_count(counts['api-path-templates'])}",
+            f"归一化 endpoint host {format_count(counts['endpoint-hosts'])}",
+        ],
+    }
+    for label, fragments in expected_rows.items():
+        row = readme_rows.get(label)
+        if row is None:
+            failures.append(f"README inventory fact row is missing: {label}")
+            continue
+        for fragment in fragments:
+            if fragment not in row:
+                failures.append(
+                    f"README inventory fact mismatch for {label}: missing {fragment!r}"
+                )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
@@ -917,6 +1139,8 @@ def main() -> int:
         value = metadata.get("binary", {}).get(key, "")
         if not isinstance(value, str) or not value.startswith("$"):
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
+
+    validate_human_snapshot_identity(repo, version, metadata, failures)
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
     readme_first_screen = readme.split("## 快照信息", 1)[0]
@@ -955,6 +1179,7 @@ def main() -> int:
         )
 
     inventory_files = validate_source_inventory(repo, failures)
+    validate_human_inventory_facts(repo, failures)
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
     native_behavior_checks = validate_native_reconstruction_report(repo, failures)
 

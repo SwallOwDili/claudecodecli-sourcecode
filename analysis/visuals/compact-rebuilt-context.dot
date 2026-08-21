@@ -1,0 +1,48 @@
+digraph compact_before_after {
+  graph [
+    rankdir=LR,
+    bgcolor="#ffffff",
+    pad="0.28",
+    nodesep="0.55",
+    ranksep="0.50",
+    fontname="Arial, PingFang SC, Microsoft YaHei"
+  ];
+  node [
+    shape=plain,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=12
+  ];
+  edge [
+    color="#455a64",
+    penwidth=1.5,
+    arrowsize=0.78,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=10,
+    fontcolor="#263238"
+  ];
+
+  before [label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="11" COLOR="#263238">
+      <TR><TD BGCOLOR="#ffcdd2"><B>Compact 前</B></TD></TR>
+      <TR><TD BGCOLOR="#e3f2fd">正常 system prompt 与动态上下文</TD></TR>
+      <TR><TD BGCOLOR="#ffebee">长时间积累的 user / assistant 历史</TD></TR>
+      <TR><TD BGCOLOR="#ffebee">多轮 tool_use / tool_result</TD></TR>
+      <TR><TD BGCOLOR="#ffebee">文件读取、错误、修复和任务决定</TD></TR>
+      <TR><TD BGCOLOR="#fff3cd"><B>用户执行 /compact</B></TD></TR>
+    </TABLE>
+  >];
+
+  after [label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="11" COLOR="#263238">
+      <TR><TD BGCOLOR="#c8e6c9"><B>Compact 后的下一次请求</B></TD></TR>
+      <TR><TD BGCOLOR="#e3f2fd">正常 system prompt 与动态上下文</TD></TR>
+      <TR><TD BGCOLOR="#d1c4e9"><B>Summary</B>：承接远期语义</TD></TR>
+      <TR><TD BGCOLOR="#bbdefb"><B>MessagesToPreserve</B>：保留近期因果</TD></TR>
+      <TR><TD BGCOLOR="#c8e6c9"><B>文件附件</B>：恢复精确工作材料</TD></TR>
+      <TR><TD BGCOLOR="#fff3cd"><B>Plan / Skills / MCP / hooks</B>：恢复环境</TD></TR>
+      <TR><TD BGCOLOR="#ffe0b2">compact 提示与后续用户输入</TD></TR>
+    </TABLE>
+  >];
+
+  before -> after [label="总结远期历史\n保留近期消息组\n重新附加精确状态"];
+}

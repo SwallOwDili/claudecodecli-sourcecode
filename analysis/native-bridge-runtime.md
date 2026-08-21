@@ -2,6 +2,26 @@
 
 Claude Code 的主控制面在 bundled JavaScript 中，但图像、音频、键鼠、截图、应用/TCC 和 URL event 等能力通过 5 个 `.node` 模块进入 macOS 原生框架。要理解这些功能，必须把三层连起来：JavaScript 调用点定义产品语义，N-API export 定义 ABI 合同，Rust/Swift/Mach-O 分析解释底层实现。
 
+## 60 秒理解原生桥
+
+**读者问题：** 为什么导出函数名对上了还不算重建完成，截图、录音或键鼠调用失败时又应该查 JavaScript、N-API、线程、TCC 还是系统框架？
+
+**一句话模型：** JavaScript wrapper 规定产品可见的参数、返回值和生命周期，N-API 规定二进制合同，Rust/Swift 对象调用 macOS 框架并承受线程、内存和 TCC 约束；兼容重建必须同时匹配这三层，而不是只复制 export 表。
+
+![JavaScript consumer 经 N-API 进入 Rust/Swift 和 macOS 框架，再把授权状态、结果与错误返回给调用方](visuals/native-bridge-lifecycle.svg)
+
+贯穿场景：Computer Use 请求截取窗口并发送鼠标点击。JS 先用 wrapper 构造参数；N-API 创建原生对象；Swift 截图路径访问 ScreenCaptureKit/CoreGraphics 并检查授权；Rust 输入模块产生真实鼠标副作用；结果回到 JS 后被转成模型可见字段。截图失败可以重试或提示授权，已经发出的点击却不能靠 JS exception 回滚。
+
+| 层 | 合同对象 | 需要匹配的细节 | 失败表象 | 恢复/副作用边界 |
+| --- | --- | --- | --- | --- |
+| JavaScript consumer | 函数调用、参数和产品状态 | nullability、Promise/callback、字段语义、调用顺序 | 参数看似正确但 UI/Agent 行为不对 | wrapper 决定何时重试和如何展示 |
+| N-API ABI | exports、object/prototype、native handle | 类型、异常、线程安全、finalizer、架构 | load error、crash、对象失效 | export count 相同仍可能不兼容 |
+| Rust/Swift runtime | buffer、线程、资源对象 | bytes、采样率、图像格式、stop/dispose | 泄漏、竞态、错误字段不一致 | 必须显式释放长期资源 |
+| macOS/TCC | framework 与授权状态 | permission、display/window/app identity、event delivery | 无画面、无音频、输入被拒绝 | 授权和系统状态在模块外部 |
+| 外部副作用 | 键鼠、录音、URL event | 执行顺序和幂等性 | 调用失败前动作已部分发生 | 普通异常不能撤销真实输入 |
+
+后文按五个模块逐一连接 JS consumer、N-API contract、Mach-O/语言证据、资源生命周期和双跑 Probe，并始终保留 `Observed`、`Derived`、`Compatible` 三类结论。
+
 ## 五个 native module 在运行时的位置
 
 `reverse/javascript/cli.readable.js` 45-57 通过 Bun standalone 虚拟路径加载：

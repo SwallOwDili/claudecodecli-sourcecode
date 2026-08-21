@@ -1,8 +1,30 @@
 # Claude Code CLI 2.1.235 上下文治理与多层缓存
 
+> 第一次理解 `/compact`，建议先读[图文机制专题](compact-visual-guide.md)。该专题用一个贯穿场景和三张图建立心理模型；本文继续下沉到 system prompt 分段、prompt cache、tool search、context hint、microcompaction、阈值、resume 和成本细节。
+
 这份文档回答的不是“有哪些 context/cache 字段”，而是 Claude Code 在一次真实请求中如何决定：什么内容常驻、什么内容延迟加载、什么内容可以复用、什么时候清理、什么时候总结、总结后如何恢复，以及这些决定怎样影响速度、费用和回答质量。
 
 本文中的函数名是压缩 bundle 的定位符，不是 Anthropic 原始源码 API。主要证据来自 [`reverse/javascript/cli.readable.js`](../reverse/javascript/cli.readable.js)，机器结构来自 [`analysis/source-inventory/`](source-inventory/)。
+
+## 60 秒理解“治理”而不是只记 `/compact`
+
+**读者问题：** 为什么同一个长任务会先出现 cache 命中、工具 schema 延迟加载、旧工具结果变短，最后才 compact；resume 后又为什么仍能接着工作？
+
+**一句话模型：** Claude Code 先装配完整可用上下文，再用 prompt cache 复用稳定前缀、用 Tool Search 延迟 schema、用 microcompaction 清理局部大结果，只有接近有效窗口时才用 Summary 和合法消息后缀重写历史表示，并用 boundary 保持恢复关系。
+
+![上下文从装配和缓存复用，经过局部清理与全局 compact，最终形成可恢复的下一次请求](visuals/context-control-lifecycle.svg)
+
+贯穿场景：一个重构任务已经读过大量源码，MCP 又提供数十个工具，最近一次测试输出很长。下一轮请求不会立刻把整段会话总结掉：稳定 system 前缀可被缓存，未用工具 schema 可以 defer，旧 tool result 可以清理；只有有效输入预算继续逼近 compact line 时，客户端才把远期历史替换成 summary、保留近期合法消息组并写入 compact boundary。
+
+| 对象 | 治理前 | 转换 | 治理后 | 解决的问题 |
+| --- | --- | --- | --- | --- |
+| 稳定 system/message 前缀 | 每轮重复出现 | 写入 cache breakpoint 和 TTL 策略 | 逻辑内容仍在，但可被 API cache 复用 | 降低重复前缀成本与首 token 延迟 |
+| 工具 schema | 大目录全部可能驻留 | Tool Search/deferred schema 按需发现 | 只装入当前需要的完整定义 | 降低常驻 token，不缓存工具结果 |
+| 旧 tool result | 大块输出挤占窗口 | context hint 或本地 microcompaction | 占位信息加近期完整结果 | 腾出窗口，同时保留近期因果 |
+| 远期历史 | 长消息图接近有效上限 | summary + preserved groups + attachments | 更短的有效消息视图 | 继续任务，但承担摘要损失风险 |
+| Transcript 关系 | 物理事件仍完整存在 | 写 compact boundary 和保留 UUID | resume 可重建逻辑历史 | 跨进程恢复，不等于 prompt cache |
+
+下面按成功主线解释每层的 owner、阈值和状态变化，再分别处理 cache miss、prompt-too-long、预计算过期和 rapid-refill 等失败路径。
 
 ## 先看结论
 

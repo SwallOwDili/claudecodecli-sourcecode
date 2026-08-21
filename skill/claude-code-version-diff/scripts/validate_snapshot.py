@@ -189,6 +189,24 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/native-bridge-runtime.md": (6000, 10),
     "analysis/runtime-probe-index.md": (9000, 10),
 }
+READER_FIRST_ANALYSIS_DOCS = {
+    "analysis/technical-mechanism-atlas.md": "system-lifecycle",
+    "analysis/technical-architecture.md": "runtime-layers",
+    "analysis/agent-loop.md": "agent-loop-lifecycle",
+    "analysis/context-governance-and-caching.md": "context-control-lifecycle",
+    "analysis/sessions-checkpoints-memory.md": "session-recovery-lifecycle",
+    "analysis/tools-permissions-hooks.md": "tool-control-lifecycle",
+    "analysis/mcp-agents-background.md": "mcp-agent-lifecycle",
+    "analysis/resilience-and-recovery.md": "recovery-layers",
+    "analysis/models-auth-providers-request.md": "request-assembly-lifecycle",
+    "analysis/settings-feature-flags-policy.md": "settings-policy-lifecycle",
+    "analysis/tui-ide-remote-cloud.md": "interface-ownership-lifecycle",
+    "analysis/install-update-doctor-lifecycle.md": "release-lifecycle",
+    "analysis/native-bridge-runtime.md": "native-bridge-lifecycle",
+    "analysis/telemetry.md": "telemetry-pipeline",
+    "analysis/inventory-field-guide.md": "inventory-reading-lifecycle",
+    "analysis/source-surface.md": "evidence-surface-lifecycle",
+}
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
 STATIC_EVIDENCE_KINDS = {
     "runtime",
@@ -989,6 +1007,46 @@ def validate_human_snapshot_identity(
             )
 
 
+def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
+    for relative, visual_stem in READER_FIRST_ANALYSIS_DOCS.items():
+        path = repo / relative
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        first_screen = content[:7000]
+        required_markers = {
+            "60-second section": "## 60 秒",
+            "reader question": "**读者问题：**",
+            "mental model": "**一句话模型：**",
+            "scenario": "场景",
+            "state table": "| --- |",
+            "lifecycle image": f"](visuals/{visual_stem}.svg)",
+        }
+        for label, marker in required_markers.items():
+            if marker not in first_screen:
+                failures.append(
+                    f"reader-first human document is missing {label}: {relative}"
+                )
+
+        dot_path = repo / f"analysis/visuals/{visual_stem}.dot"
+        svg_path = repo / f"analysis/visuals/{visual_stem}.svg"
+        if not dot_path.is_file():
+            failures.append(f"reader-first visual source is missing: {dot_path.relative_to(repo)}")
+        else:
+            dot = dot_path.read_text(encoding="utf-8")
+            if "digraph " not in dot or not re.search(r"->.*\[label=", dot):
+                failures.append(
+                    f"reader-first visual source lacks labeled state transitions: "
+                    f"{dot_path.relative_to(repo)}"
+                )
+        if not svg_path.is_file():
+            failures.append(f"reader-first rendered visual is missing: {svg_path.relative_to(repo)}")
+        elif "<svg" not in svg_path.read_text(encoding="utf-8"):
+            failures.append(
+                f"reader-first rendered visual is invalid: {svg_path.relative_to(repo)}"
+            )
+
+
 def validate_human_inventory_facts(repo: Path, failures: list[str]) -> None:
     summary = json.loads(
         (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
@@ -1179,6 +1237,8 @@ def main() -> int:
             failures.append(
                 f"README first screen does not link human analysis document: {relative}"
             )
+
+    validate_reader_first_analysis(repo, failures)
 
     private_capture_files = find_private_capture_data(repo)
     if private_capture_files:

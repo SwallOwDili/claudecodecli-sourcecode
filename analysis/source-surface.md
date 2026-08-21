@@ -4,6 +4,26 @@
 
 本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)，再回到下面的 70 类索引定位原始证据。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
 
+## 60 秒理解“能力地图”怎么用
+
+**读者问题：** 在 bundle 里搜到一个环境变量、API path、feature key 或 schema property 后，怎样判断它是 `2.1.235` 的真实产品能力、第三方依赖、内嵌文档还是不可达线索？
+
+**一句话模型：** 全量清单先从 canonical bytes 穷举候选，再用 AST/schema/catalog/native index 找到消费者、gate、默认值和状态变化，关键路径用精确二进制 Probe 验证；证据不足的条目必须停在 Heuristic 或 Boundary，不能直接写成功能。
+
+![发布 bundle 经确定性提取形成能力候选，再通过可达调用链和 Probe 进入人类结论或明确边界](visuals/evidence-surface-lifecycle.svg)
+
+贯穿场景：清单中发现 `ENABLE_SOMETHING`。如果它只出现在第三方 README 字符串，就只能是 heuristic；如果 typed env schema 定义了类型和默认值，还要继续找实际 access callsite；如果消费者受平台、provider 和 feature gate 控制，就要记录这些条件；只有可达分支或 Probe 产生用户可观察结果后，才能写“启用该值会改变某行为”。
+
+| 层 | 主要材料 | 能证明什么 | 典型误用 |
+| --- | --- | --- | --- |
+| Canonical/extracted | 发布物实际携带的 packed bytes | 字节确实属于该 release | 冒充 Anthropic 原始仓库 |
+| Structured inventory | AST callsite、typed schema、model catalog、native index | 静态对象、表达式、字段和位置完整可重跑 | 把 identifier 数量当机制说明 |
+| Reachable mechanism | consumer、branch、gate、precedence、default、failure | 客户端在何种条件下改变什么状态 | 单个字符串命中就宣称功能存在 |
+| Exact-binary Probe | 固定命令、输入、literal result、exit status | 给定环境中精确版本实际发生的状态转移 | 外推到未触发平台、账户或服务端 |
+| Human analysis | 心智模型、场景、生命周期、影响和边界 | 读者能理解并复核的技术结论 | 删除底层证据只留故事 |
+
+下面的 70 类索引保留为“找证据的全量地图”。阅读时先选机制，再进入对应清单和调用点，不要从计数直接跳到产品结论。
+
 ## 证据等级
 
 | 等级 | 定义 | 可以如何表述 |

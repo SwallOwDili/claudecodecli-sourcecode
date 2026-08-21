@@ -1,0 +1,50 @@
+digraph compact_lifecycle {
+  graph [
+    rankdir=TB,
+    bgcolor="#ffffff",
+    pad="0.28",
+    nodesep="0.30",
+    ranksep="0.58",
+    splines=polyline,
+    fontname="Arial, PingFang SC, Microsoft YaHei"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#263238",
+    penwidth=1.4,
+    margin="0.16,0.11",
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=12
+  ];
+  edge [
+    color="#455a64",
+    penwidth=1.4,
+    arrowsize=0.75,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=10,
+    fontcolor="#263238"
+  ];
+
+  trigger [label="用户执行 /compact\n可附加总结要求", fillcolor="#fff3cd"];
+  prehook [label="PreCompact\n允许、补充指令或阻断", fillcolor="#ffe0b2"];
+  groups [label="消息分组\n保持 tool_use / tool_result 合法", fillcolor="#e3f2fd"];
+  summarize [label="总结模型调用\n禁止工具，只生成文本", fillcolor="#d1c4e9"];
+  parse [label="解析总结\n移除 <analysis>，保留 <summary>", fillcolor="#d1c4e9"];
+  rebuild [label="重建工作上下文\n摘要 + 近期消息 + 精确附件", fillcolor="#c8e6c9"];
+  boundary [label="写 compact boundary\n记录保留 UUID 与 token 元数据", fillcolor="#d7ccc8"];
+  next [label="下一次模型请求\n从更短但可继续的状态工作", fillcolor="#b2dfdb"];
+
+  { rank=same; trigger; prehook; groups; }
+  { rank=same; summarize; parse; rebuild; }
+  { rank=same; boundary; next; }
+
+  trigger -> prehook [label="启动"];
+  prehook -> groups [label="放行并附加指令"];
+  groups -> summarize [label="选择待总结前缀"];
+  summarize -> parse [label="返回双标签文本"];
+  parse -> rebuild [label="提供语义摘要"];
+  groups -> rebuild [label="保留近期合法后缀"];
+  rebuild -> boundary [label="持久化新表示"];
+  boundary -> next [label="修复逻辑消息视图"];
+}

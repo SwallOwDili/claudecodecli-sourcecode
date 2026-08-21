@@ -4,6 +4,26 @@
 
 如果你先要理解这些通道在整个请求生命周期中的位置，读 [技术架构导读](technical-architecture.md)；如果你在问 `request_id`、`cache_read_input_tokens`、`comparisonKey` 或 payload spread 是什么意思，读 [机器清单字段指南](inventory-field-guide.md)。
 
+## 60 秒理解遥测通道
+
+**读者问题：** 一次任务“很慢、反复重试、工具被拒绝而且 token 很贵”时，Claude Code 通过哪些通道记录原因；关闭一方遥测是否也会关闭管理员配置的 OTEL 或本地 debug？
+
+**一句话模型：** 运行时先把 query、model、tool、permission、compact 和 error 信号用关联 ID、token、费用与时延字段归一化，再分别经过一方流量门、用户配置的 OTEL 出口和本地诊断路径；这些通道共享部分字段，但门控、目的地、内容控制和失败策略不同。
+
+![运行时信号经过关联、隐私门和采样后，分别进入一方事件、OTEL 与本地诊断通道](visuals/telemetry-pipeline.svg)
+
+贯穿场景：一次模型请求首 token 慢，随后 Bash 等待权限，工具完成后又触发 compact。查询级 ID 把模型、permission、tool 和 compact timing 串起来；token/cache 字段解释成本；permission/hook 事件解释等待；一方事件可能被共享流量门和采样阻断，管理员显式启用的 OTEL 按自己的 exporter/content 设置发送，本地 Perfetto/debug 则写到现场文件。
+
+| 通道 | 所有者/目的地 | 进入前的关键门 | 保留的主要语义 | 失败与隐私边界 |
+| --- | --- | --- | --- | --- |
+| 一方事件 | Anthropic event pipeline | provider、nonessential traffic、telemetry/policy、killswitch、sampling | 产品事件、环境、token/cost、错误和 timing | queue/batch/retry/persist；不是所有调用点都必然发送 |
+| Datadog 分支 | 一方受控日志出口 | first-party、feature、allowlist、字段删除 | allowlist 事件和归一化 tags | 181 项 allowlist 与 26 个删除字段限制转发面 |
+| 第三方 OTEL | 用户/管理员配置 exporter | `CLAUDE_CODE_ENABLE_TELEMETRY`、protocol/exporter、content controls | metrics、structured logs、traces | 与一方 telemetry 开关不是同一状态机 |
+| 本地诊断 | 本地文件、stderr、Perfetto/profile | 对应 debug/profile 环境与运行模式 | 启动、查询阶段、内存/CPU、frame、原始诊断 | 不等于远端发送，但仍需管理本地敏感材料 |
+| Error/GrowthBook | 专用上报或复用 transport | 登录、provider、feature、policy/compliance、独立关闭开关 | scrub 后异常或 experiment attributes | 各自有额外 gate，不能并入一个“遥测总开关” |
+
+下面先给出机器覆盖，再按通道解释 queue、sampling、batch、retry、storage、auth fallback、字段删除和 prompt 正文门；数量用于证明覆盖，不替代每条通道的运行语义。
+
 完整事件名、调用表达式、payload、环境 schema、默认值和消息模板不在本文手工复制。机器清单是最终证据：
 
 - [一方事件 1,441 项](source-inventory/first-party-events.txt)

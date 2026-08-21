@@ -2,6 +2,8 @@
 
 Use this reference when writing a version snapshot README, architecture documents, or a cross-version report. The goal is a two-layer archive: deterministic machine evidence plus explanations that a user can understand without reading minified JavaScript or raw JSONL.
 
+For mechanisms with multiple phases, state transformations, retries, or version-sensitive behavior, read [reader-first-visual-explanation.md](reader-first-visual-explanation.md) before writing. That reference defines the teaching sequence and visual contract; this file remains the completeness and evidence contract.
+
 ## Required human documents
 
 Every full snapshot includes:
@@ -51,6 +53,10 @@ For each important mechanism, answer in this order:
 12. **Boundary**: what remains server-side, runtime-only, removed before shipping, or compatible rather than original.
 
 Do not replace these answers with counts, identifier lists, or field dumps.
+
+Do not present all twelve answers at the same visual level. Start with the user problem and one complete lifecycle, then reveal thresholds, branches, fields, and evidence progressively. A technically complete chapter that does not give the reader a stable mental model is incomplete as human documentation.
+
+Verification is an authoring discipline, not the default storyline. Unless the user requested a review or comparison, the main chapter explains the target mechanism directly; source disputes, rejected hypotheses, and research detours stay out of the reader path.
 
 ## Public research and target-version validation
 

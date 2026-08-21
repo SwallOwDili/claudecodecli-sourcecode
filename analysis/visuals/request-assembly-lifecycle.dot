@@ -1,0 +1,21 @@
+digraph request_assembly_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.27", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.15,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  choice [label="用户与 Agent 选择\nmodel alias / settings / env", fillcolor="#fff3cd"];
+  provider [label="Provider selector\nfirstParty / gateway / cloud", fillcolor="#e3f2fd"];
+  credential [label="Credential selector\nOAuth / key / token / helper / cloud", fillcolor="#ffe0b2"];
+  model [label="模型能力解析\nprovider ID / window / betas", fillcolor="#d1c4e9"];
+  body [label="请求装配\nsystem / messages / tools / cache / thinking", fillcolor="#c8e6c9"];
+  wire [label="Messages wire request\nendpoint / headers / stream", fillcolor="#b2dfdb"];
+  loop [label="Agent Loop\n解析流、重试、fallback、tool feedback", fillcolor="#d7ccc8"];
+
+  choice -> provider [label="解析优先级"];
+  provider -> credential [label="选择认证域"];
+  provider -> model [label="映射实际模型 ID"];
+  credential -> body [label="生成认证 header"];
+  model -> body [label="提供能力与预算"];
+  body -> wire [label="序列化并发送"];
+  wire -> loop [label="返回事件或错误"];
+}

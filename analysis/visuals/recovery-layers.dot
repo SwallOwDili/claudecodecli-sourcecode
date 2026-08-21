@@ -1,0 +1,24 @@
+digraph recovery_layers {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  fail [label="一次失败\nHTTP、流、模型输出、工具、hook、context", fillcolor="#ffccbc"];
+  classify [label="按失败对象分类\n同一请求重试还是改变状态", fillcolor="#fff3cd"];
+  attempt [label="Attempt recovery\nHTTP retry / stream fallback", fillcolor="#e3f2fd"];
+  state [label="State recovery\nmodel fallback / compact / schema refresh", fillcolor="#d1c4e9"];
+  durable [label="Durable recovery\nresume / checkpoint / rewind", fillcolor="#c8e6c9"];
+  verify [label="重新观察真实状态\ntool result、remote status、file bytes", fillcolor="#b2dfdb"];
+  terminal [label="Terminal reason\n完成、耗尽、阻断或人工接管", fillcolor="#d7ccc8"];
+  sideeffect [label="已完成外部副作用\n不会被 tombstone 或 abort 自动撤销", fillcolor="#ffe0b2"];
+
+  fail -> classify [label="检测"];
+  classify -> attempt [label="请求仍可重放"];
+  classify -> state [label="需要改变模型或上下文"];
+  classify -> durable [label="需要跨进程或文件恢复"];
+  attempt -> verify [label="重新请求"];
+  state -> verify [label="重建后继续"];
+  durable -> verify [label="恢复后复核"];
+  verify -> terminal [label="成功或耗尽"];
+  fail -> sideeffect [label="失败前可能已经发生"];
+}

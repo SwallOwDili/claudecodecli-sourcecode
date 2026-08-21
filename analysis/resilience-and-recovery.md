@@ -4,6 +4,26 @@
 
 本章把 `2.1.235` 的恢复路径按故障层拆开，重点回答：失败发生在哪、保留了什么、丢弃了什么、是否会再次执行工具、用户会看到什么，以及为什么 tombstone 不能当事务回滚。
 
+## 60 秒理解“恢复哪个对象”
+
+**读者问题：** 一次请求失败后，CLI 应该原样重试、换模型、压缩上下文、重连 MCP、恢复会话还是回退文件？为什么选错层会导致重复部署？
+
+**一句话模型：** 客户端先识别失败发生在哪个对象，再选择 attempt、模型/上下文状态或持久状态恢复；任何恢复都必须重新观察真实世界，因为 abort、tombstone 和重建消息不能撤销已经完成的外部副作用。
+
+![Claude Code 按失败对象选择请求重试、状态重建或持久恢复，并在结束前重新验证真实状态](visuals/recovery-layers.svg)
+
+贯穿场景：模型先 Edit 本地配置，再调用 Deploy MCP；Deploy 已被远端接受，但随后模型流断开。流重试或 model fallback 可以修复响应路径，tombstone 可以移除失败分支的 provisional 消息，file rewind 可以恢复本地配置，但远端部署仍存在。正确恢复必须先查询 deployment ID/status，再决定继续、补偿或终止。
+
+| 恢复层 | 恢复对象 | 保留什么 | 丢弃/替换什么 | 不能撤销什么 |
+| --- | --- | --- | --- | --- |
+| HTTP/stream retry | 同一逻辑模型请求的 attempt | 稳定请求身份和已确认状态 | 失败连接或不完整 attempt | 已执行工具和远端写入 |
+| Model/output recovery | 模型选择或未完成 assistant 输出 | 已稳定消息、计数与工具结果 | provisional assistant、失败模型分支 | 已完成 side effect |
+| Context recovery | 可发送的消息表示 | 任务目标、合法后缀、boundary | 远期历史的原始表示 | 真实文件/服务状态 |
+| MCP/tool recovery | 工具目录、调用结果和执行状态 | generation、tool ID、结构化错误 | 旧 schema 或失败调用状态 | server 已接受的非幂等动作 |
+| Session/file recovery | transcript 逻辑历史或受管文件 | 持久事件、checkpoint 字节 | 当前逻辑分支或文件版本 | 旧进程、数据库、远端事务 |
+
+后文按这五类对象展开，并用 terminal reason、request count、tool ID 和外部状态检查说明“恢复成功”到底指什么。
+
 ## 先区分七类“重来一次”
 
 | 恢复动作 | 重做对象 | 是否增加 Agent `turnCount` | 工具是否可能重复 | 典型触发 |

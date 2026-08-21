@@ -2,6 +2,26 @@
 
 `analysis/source-inventory/` 的目标是让每个版本都能确定性重跑和语义 diff，不是让读者直接吞 70 个文件。本指南把 JSONL、TSV 和 TXT 中的重要字段翻译成人话，并说明一条记录能证明什么、不能证明什么。
 
+## 60 秒学会从字段走到结论
+
+**读者问题：** 版本 diff 显示一条 `comparisonValue` 变化时，怎样判断这是模型价格、setting 默认值或 telemetry payload 真变了，而不是 minifier 让行号移动？
+
+**一句话模型：** 先按技术问题选择清单族，再读业务字段描述“这条记录是什么”，用 `comparisonKey` 配对、用 `comparisonValue` 判断语义变化，最后回到 line/offset 对应的可达 consumer、gate 和 Probe，才能把机器差异升级为行为结论。
+
+![机器清单从问题选入口，经业务语义和稳定比较字段回到源码可达性，最终形成有边界结论](visuals/inventory-reading-lifecycle.svg)
+
+贯穿场景：新旧版本的 `model-catalog.jsonl` 中某条记录配对成功，但 `comparisonValue` 的 input price 和 context window 发生变化。读者先确认 provider/model ID 和单位，再回到 catalog consumer 检查实际模型选择与成本计算；若只有 line/offset 变化，则不算功能变化；若 catalog 变了但远端仍可覆盖，则把服务端实际可用性保留为边界。
+
+| 阅读顺序 | 关键字段 | 回答的问题 | 不能直接推出什么 |
+| --- | --- | --- | --- |
+| 1. 选择文件 | 文件族、格式、提取方法 | 这是集合、映射还是结构化事实 | 产品分支一定可达 |
+| 2. 读业务语义 | callee/function/payload/schema/model fields | 调用了谁、传了什么、字段表示什么 | 默认启用或运行值 |
+| 3. 做稳定配对 | `comparisonKey` | 新旧记录是否是同一语义对象 | 内容没有变化 |
+| 4. 判断实质变化 | `comparisonValue` | 去掉位置噪声后哪些语义改变 | 用户一定能观察到 |
+| 5. 回到证据 | line/column/offset/scope/consumer/Probe | 分支、优先级、默认和结果是否可达 | 服务端内部行为 |
+
+这也是为什么本指南不会把每个 JSONL row 重写成段落：字段字典负责读懂结构，机制专题负责解释调用链，Probe 负责把关键静态结论推进到运行结果。
+
 ## 先选对入口
 
 | 你想回答的问题 | 先看 | 再回到 |

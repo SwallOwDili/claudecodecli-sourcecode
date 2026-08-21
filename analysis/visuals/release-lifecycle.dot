@@ -1,0 +1,21 @@
+digraph release_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  entry [label="PATH 入口\nlauncher / symlink", fillcolor="#fff3cd"];
+  resolved [label="真实版本文件\nversion / size / hash / signature", fillcolor="#e3f2fd"];
+  run [label="运行时装载\nBun payload + matched native modules", fillcolor="#d1c4e9"];
+  check [label="更新检查\nchannel / policy / traffic gates", fillcolor="#ffe0b2"];
+  install [label="新版本安装\ndownload / verify / atomic switch", fillcolor="#c8e6c9"];
+  doctor [label="Doctor\n按故障域诊断入口、权限、网络、配置", fillcolor="#b2dfdb"];
+  rollback [label="回退\n切回旧二进制并验证兼容边界", fillcolor="#d7ccc8"];
+
+  entry -> resolved [label="解析"];
+  resolved -> run [label="启动精确字节"];
+  run -> check [label="按 gate 查询更新"];
+  check -> install [label="允许且有新版本"];
+  install -> entry [label="切换当前入口"];
+  doctor -> resolved [label="核对实际版本"];
+  rollback -> entry [label="重新指向旧版本"];
+}

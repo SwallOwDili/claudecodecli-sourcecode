@@ -4,6 +4,26 @@
 
 第一次阅读先看 [技术机制总图](technical-mechanism-atlas.md)：它按九个子系统和三条闭环解释一次请求。本文负责组件与发布物分层；Agent Loop、会话/checkpoint、工具权限、MCP/Agents 和恢复语义分别由专题展开。官方公开原理与 `2.1.235` 实现的版本边界见 [验证矩阵](public-claims-validation.md)。
 
+## 60 秒理解这套架构
+
+**读者问题：** 为什么 Claude Code 不能被理解成“一个 TUI 加一次 Messages API 调用”，以及某个功能卡住时应该先查哪一层？
+
+**一句话模型：** 交互入口只负责接收和展示；会话与上下文层构造模型可见状态；Agent Loop 驱动决策；权限、hook 和 sandbox 控制副作用；MCP、Agent 与原生模块提供能力；transcript、checkpoint 和遥测负责延续与诊断。
+
+![Claude Code 2.1.235 从交互入口进入会话、执行、控制、扩展和持久化层](visuals/runtime-layers.svg)
+
+贯穿场景：用户在 IDE 中发起“修改配置并运行测试”。IDE 只提供输入与编辑器上下文，真正的消息图和 Agent Loop 在 CLI 运行时中；Edit/Bash 仍要经过权限和 sandbox；结果写入 transcript，文件修改留在工作区；即使 Remote viewer 断开，执行 owner 和恢复边界也不能靠 UI 外观判断。
+
+| 层 | 进入前持有什么 | 本层改变什么 | 交给下一层什么 | 典型故障表象 |
+| --- | --- | --- | --- | --- |
+| 交互入口 | 用户输入、显示状态 | 输入格式和呈现协议 | 标准化消息或控制帧 | UI 卡住、stream-json 消费错误 |
+| 会话与上下文 | transcript、memory、工具目录 | 有效消息视图、cache marker、compact | 请求所需 messages/system/tools | token 暴涨、resume 像失忆 |
+| Agent Loop | 模型状态和循环计数 | tool_use、tool_result、继续/结束条件 | 动作请求或 terminal reason | 工具后不继续、maxTurns 提前结束 |
+| 控制与扩展 | 工具输入、策略、运行边界 | 是否执行、如何执行、输出结构 | 真实观察或结构化错误 | 反复审批、sandbox 拒绝、MCP schema 旧 |
+| 持久化与观测 | 事件、文件变化、计时 | transcript/checkpoint/telemetry | resume、rewind 和诊断材料 | 历史在但文件未恢复、只知慢不知慢在哪 |
+
+后文先拆发布物，再按上述层次下沉；机器清单和源码位置留在每个机制之后，用来证明结论，而不是替代架构解释。
+
 ## 一张图看完整请求
 
 ```text

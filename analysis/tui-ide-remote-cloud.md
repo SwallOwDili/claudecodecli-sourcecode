@@ -2,6 +2,26 @@
 
 Claude Code 2.1.235 不是只有一个 terminal renderer。它同时支持交互 TUI、`--print`/stream-json、IDE integration、Remote Control、cloud/teleport、background/subagent 和桌面侧桥接。它们共享 Agent Loop 与会话对象，但输入来源、渲染责任、权限对话、附件传输、断线恢复和 session ownership 不同。
 
+## 60 秒理解界面与执行归属
+
+**读者问题：** 用户从 IDE 发起任务、再用手机 Remote Control 查看，关闭网页后任务为什么可能继续；反过来，本地 CLI 退出后为什么 viewer 不能凭会话画面继续执行？
+
+**一句话模型：** TUI、IDE、SDK 和 Remote viewer 是输入/显示端，真正的执行 owner 持有 Agent Loop、工具、权限和 transcript；断线恢复的本质是重新附着到 owner 的 session，而不是让每个界面各复制一份执行状态。
+
+![多个输入与显示端通过协议连接到唯一执行 owner，再共享 session 状态和结果流](visuals/interface-ownership-lifecycle.svg)
+
+贯穿场景：用户在 VS Code 中选中代码并发起重构，本地 CLI 运行 Agent Loop，手机 Remote viewer 接收进度并处理一个权限对话。IDE selection 是输入附件，手机是远端交互端，本地 CLI 仍拥有文件和工具执行。手机断线后可以重连并补看事件；本地 owner 退出后，只有 cloud/daemon 等实际托管执行实体仍在时才能 reattach。
+
+| 模式 | 输入/渲染 owner | Agent Loop owner | 文件与权限状态 | 断线后能恢复什么 |
+| --- | --- | --- | --- | --- |
+| Interactive TUI | 本地终端 | 本地 CLI | 本地 workspace 与对话框 | transcript 可 resume，旧进程状态消失 |
+| `--print` / SDK | 调用方消费 JSON/stream | 本地 CLI/SDK host | host 提供审批和工具边界 | 由结构化事件与 session ID 决定 |
+| IDE integration | IDE 发送 selection/context 并渲染 diff | 通常仍是本地 CLI | 编辑器状态与 CLI session 双向同步 | 重连后重发必要上下文，不复制执行器 |
+| Remote Control | web/mobile 负责 viewer/dialog | 本地终端 session | 动作仍发生在本地 owner | viewer 可重连，owner 终止则执行停止 |
+| Cloud/teleport | 本地或远端界面 | cloud/self-hosted environment | 远端文件、token 和 session ownership | 取决于远端任务与附件的耐久性 |
+
+后文先按 owner 解释正常数据流，再分别处理权限对话、token refresh、断线重连、teleport 和 cloud session 的边界。
+
 ## 一张图看清多界面架构
 
 ```text

@@ -2,6 +2,26 @@
 
 这一层决定 Claude Code 最终把什么上下文交给哪个模型、通过哪条网络路径发送、使用哪种凭据，以及哪些 beta、缓存、thinking 和工具能力能够进入请求。它不是一个简单的 `model + apiKey + messages` 对象：同一个模型别名在 first-party、Bedrock、Vertex、Foundry、Anthropic cloud variants、Mantle 或 gateway 下，模型 ID、鉴权材料、endpoint、可用 beta 和失败恢复路径都可能不同。
 
+## 60 秒理解一次请求怎样真正成形
+
+**读者问题：** 用户只写了 `--model sonnet`，为什么最终请求里的模型 ID、endpoint、认证 header、beta、cache 和工具能力会因 provider 与 base URL 不同而变化？
+
+**一句话模型：** 客户端先确定 provider，再在该 provider 的认证域中选择凭据和实际模型 ID，最后把已经治理过的 system、messages、tools、thinking、cache 与 beta 装成 wire request；任何一步的选择都会改变后续能力与失败语义。
+
+![模型别名依次经过 provider、credential、能力解析和请求装配，最终进入 Agent Loop](visuals/request-assembly-lifecycle.svg)
+
+贯穿场景：用户选择 `sonnet`，通过自定义 `ANTHROPIC_BASE_URL` 发送，并提供 `ANTHROPIC_AUTH_TOKEN`。客户端仍要先完成 provider 判定和模型别名解析；自定义 host 会影响 first-party 能力 gate；bearer token 生成 `Authorization` 而不是 `x-api-key`；请求体再加入工具 schema、cache marker 和 beta。代理返回 SSE 后，Agent Loop 才能继续工具闭环。
+
+| 对象 | 解析前 | 转换 | Wire 状态 | 用户影响 |
+| --- | --- | --- | --- | --- |
+| Provider | 多个环境 selector、gateway 状态 | 按固定优先级选中一个分支 | endpoint、region、provider label | 走错云、凭据不匹配、能力 gate 改变 |
+| Model | alias、agent override、默认/备用模型 | 映射 baked catalog 与 provider ID | 实际 `model` 和能力预算 | 窗口、thinking、价格、fallback 不同 |
+| Credential | OAuth、API key、bearer、helper、cloud credentials | 按 provider/source 选择并刷新 | `Authorization`、`x-api-key` 或云签名 | 401、helper trust、token refresh 行为 |
+| Request body | 已治理上下文和工具目录 | 加入 system/messages/tools/cache/thinking/betas | `/v1/messages` body 与 headers | token、延迟、工具和 cache 能否工作 |
+| Response | SSE 或错误状态 | 解析事件、分类 retry/fallback | assistant blocks 或 terminal failure | 一次 turn 内可能有多个 API attempt |
+
+后文沿这条成功路径解释每个 selector 和字段，再单独处理认证刷新、代理兼容、重试和 model fallback；它们不能被压成一张“凭据优先级表”。
+
 ## 先建立正确的调用链
 
 ```text

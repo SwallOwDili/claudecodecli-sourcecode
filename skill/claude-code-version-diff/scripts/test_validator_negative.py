@@ -180,6 +180,24 @@ def main() -> None:
             lambda data: b"",
             "source inventory line count mismatch",
         ),
+        (
+            "analysis/agent-loop.md",
+            lambda data: replace_once(
+                data,
+                b"## 60 \xe7\xa7\x92\xe7\x90\x86\xe8\xa7\xa3 Agent Loop",
+                b"## Agent Loop overview",
+            ),
+            "reader-first human document is missing 60-second section",
+        ),
+        (
+            "analysis/native-bridge-runtime.md",
+            lambda data: replace_once(
+                data,
+                b"](visuals/native-bridge-lifecycle.svg)",
+                b"](visuals/native-bridge-lifecycle-missing.svg)",
+            ),
+            "reader-first human document is missing lifecycle image",
+        ),
     ]
 
     for relative, mutate, expected in cases:

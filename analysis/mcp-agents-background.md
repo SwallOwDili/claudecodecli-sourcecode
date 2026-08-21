@@ -2,6 +2,26 @@
 
 Claude Code 的扩展能力不是“启动时读取一张工具列表”这么简单。MCP server 会连接、鉴权、断开和重新列工具；Tool Search 会把大目录中的 schema 延迟到需要时；子 Agent 拥有独立上下文和循环；后台任务、team mailbox 与 task claim 又把多个执行单元连接起来。理解这些机制，才能判断工具为什么突然不可用、子 Agent 为什么花费更多 token、并行为什么产生重复工作，以及 resume 后为什么需要重新发现能力。
 
+## 60 秒理解“扩展主循环”
+
+**读者问题：** MCP server 已连接为什么模型仍看不到新工具，子 Agent 启动成功为什么主 Agent 还没有结果，后台任务又为什么在 resume 后不一定还活着？
+
+**一句话模型：** MCP 管动态能力目录和 schema generation；子/后台 Agent 用隔离的 Agent Loop 执行任务；Task、mailbox 和 notification 负责协调状态；主 Agent 只有在新 schema 进入请求或完成通知进入队列后，才能把它们当成新的观察。
+
+![MCP 动态目录进入主循环，子 Agent 执行隔离任务，再通过通知回到父循环](visuals/mcp-agent-lifecycle.svg)
+
+贯穿场景：主 Agent 让子 Agent 检查测试，同时 MCP server 发布一个新工具。`tools/list_changed` 先让客户端刷新 generation，但已经组装的 Messages 请求不会被热改写；子 Agent 的 `async_launched` 只证明任务已登记，不是检查结果；完成后 notification 进入父队列，主 Agent 下一次迭代才同时看到新 schema 和子任务 findings。
+
+| 对象 | 谁拥有 | 状态变化 | 何时对主模型可见 | 失效/恢复边界 |
+| --- | --- | --- | --- | --- |
+| MCP tool catalog | MCP connection + generation | connect/list/change/relist/cache invalidation | 下一次真正重建 tools 的请求 | connected 不等于 schema 已驻留 |
+| Deferred schema | Tool Search/cache | 名称常驻，完整 schema 按需发现 | discover 后的请求 | 失效需跟随 generation |
+| 子 Agent context | 子 Agent Loop | 独立 messages/tools/model/permission/worktree | 通过 progress 或 completed notification | 不复制父级完整历史 |
+| Task/mailbox | registry/coordination layer | claim、ACK、progress、delivery、acknowledge | 父队列吸收时 | 元数据持久不等于旧进程仍运行 |
+| Worktree | Git/filesystem | 隔离文件修改 | 合并或显式读取后 | 不隔离端口、数据库和远端服务 |
+
+后文先讲一条正常的“配置 -> 发现 -> 子任务执行 -> 通知 -> 主循环继续”路径，再处理 generation 延迟、权限 bubble、重复工作和后台耐久性。
+
 ## 总体拓扑
 
 ```text

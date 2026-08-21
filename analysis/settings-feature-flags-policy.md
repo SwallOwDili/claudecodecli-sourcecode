@@ -2,6 +2,26 @@
 
 Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。
 
+## 60 秒理解“有效配置”
+
+**读者问题：** 为什么项目里明明写了 `sandbox.disabled=true`，运行时仍然启用隔离；或者 feature key 已存在，命令却没有出现？
+
+**一句话模型：** 客户端先按字段过滤不可信来源，再用该字段自己的覆盖、集合或 managed-pin 语义合并五层 settings，随后叠加环境与动态 feature 值；只有最终有效值被可达消费者读取，配置才真正改变行为。
+
+![五层配置先经过来源信任和字段级合并，再叠加动态值形成运行时有效配置](visuals/settings-policy-lifecycle.svg)
+
+贯穿场景：项目 settings 试图关闭 filesystem isolation，本机 local settings 选择模型，命令行又指定另一个模型，企业 policy 固定网络 allowlist。安全字段会先拒绝 project/local 来源；模型标量由更高有效来源覆盖；网络规则按 managed 约束合并。即使 bundle 中存在一个 feature key，若远程值、平台 gate 或消费分支未满足，UI/命令仍不会出现。
+
+| 阶段 | 输入 | 决策 | 输出 | 常见误判 |
+| --- | --- | --- | --- | --- |
+| Source loading | user/project/local/flag/policy 文件与参数 | 本次允许加载哪些普通来源 | 候选配置层 | `--setting-sources user` 能绕过 policy |
+| Field trust | 字段、来源和 workspace 信任 | 安全字段是否接受 project/local | 允许参与合并的值 | JSON 能解析就一定生效 |
+| Merge | 标量、规则集合、hooks、permissions | 覆盖、累积、去重或 managed pin | 静态有效 settings | 所有字段都是“后写覆盖前写” |
+| Dynamic gates | env、feature、GrowthBook、session/platform | 默认值、远程值和可达条件 | 当前运行值 | 搜到 feature key 就等于功能已交付 |
+| Consumer | model/sandbox/MCP/UI 等读取点 | 是否真正消费该值 | 用户可观察行为 | 改文件后所有对象都会热刷新 |
+
+后文会把 source precedence、field merge、feature reachability 和 policy lifecycle 分开讲，并保留每个关键字段的来源限制、默认值、刷新和 fail-closed 细节。
+
 ## 五层 settings 模型
 
 `reverse/javascript/cli.readable.js` 39176-39215 暴露了五个核心 settings source：

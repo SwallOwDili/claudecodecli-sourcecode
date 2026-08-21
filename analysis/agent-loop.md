@@ -4,6 +4,25 @@ Claude Code 的核心不是“调用一次模型，再把文本打印出来”�
 
 本章只描述 2.1.235 发布 bundle 中可以直接追到的客户端行为。函数名是可读化 bundle 中保留下来的压缩符号；它们不是 Anthropic 原始 TypeScript 名称。
 
+## 60 秒理解 Agent Loop
+
+**读者问题：** Claude 为什么能读文件、修改代码、运行测试、看到失败后再修一次，而不是一次回答完就结束？
+
+**一句话模型：** Agent Loop 保存一份显式循环状态，把模型输出的完整 `tool_use` 交给受控执行器，再把成对的 `tool_result` 写回消息图，直到停止条件、预算或恢复分支决定结束。
+
+![Agent Loop 从模型流启动工具，经受控执行和结果回灌后决定继续或结束](visuals/agent-loop-lifecycle.svg)
+
+贯穿场景：模型在同一响应里依次生成 Read、Edit、Bash。Read 的完整 block 一到即可开始；Edit 形成写屏障；Bash 不能越过 Edit 去测试旧文件。三个结果按各自 `tool_use_id` 回灌，完成顺序不改变配对。若测试失败，失败是下一轮模型的新观察，不等于整个用户 turn 失败。
+
+| 对象 | 本轮请求前 | 转换 | 本轮请求后 | 用户影响 |
+| --- | --- | --- | --- | --- |
+| `messages` | 用户任务和旧观察 | 加入 assistant blocks、tool results、hook/queue 消息 | 下一轮可解释的因果历史 | 回答能否基于真实结果继续 |
+| `turnCount` | 首次模型轮次从 1 开始 | 工具批次回灌或 Stop hook 重入后增加 | 达到 `maxTurns` 时终止 | 限制模型轮次，不限制单轮工具数 |
+| streaming executor | 空队列 | 完整 `tool_use` 入队、按安全性形成并发与屏障 | 批次 drain 后统一收尾 | 影响延迟、顺序和共享状态一致性 |
+| 外部状态 | 尚未执行本轮工具 | 文件、命令或远端调用已经发生 | 不随消息 tombstone 自动撤销 | fallback/abort 后必须防止重复副作用 |
+
+普通成功路径是“模型请求 -> 工具执行 -> 结果回灌 -> 再请求模型 -> 正常结束”。后文先把这条路径讲完，再进入 `max_tokens`、malformed tool、Stop hook、fallback 和 reactive compact；这些都是改变循环状态的分支，不是另一套 Agent Loop。
+
 ## 公开原理怎样变成本版结论
 
 Anthropic 当前 Agent SDK 文档把 Agent Loop 概括为收集上下文、采取行动、验证结果并重复；Engineering 文章进一步把 Agent 描述为模型在反馈闭环中使用工具和从错误中恢复。这个公开模型解释“为什么需要循环”，但不证明 `2.1.235` 的流式工具启动点、计数器、hook cap 或 fallback 顺序。

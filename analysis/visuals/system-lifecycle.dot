@@ -1,0 +1,22 @@
+digraph system_lifecycle {
+  graph [rankdir=LR, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  input [label="用户任务\n当前 session", fillcolor="#fff3cd"];
+  context [label="上下文治理\n装配、缓存、压缩", fillcolor="#e3f2fd"];
+  loop [label="Agent Loop\n请求、观察、再决策", fillcolor="#d1c4e9"];
+  control [label="工具控制管线\nschema、hook、权限、sandbox", fillcolor="#ffe0b2"];
+  world [label="外部世界\n文件、进程、MCP、远端服务", fillcolor="#ffccbc"];
+  state [label="可恢复状态\ntranscript、checkpoint、boundary", fillcolor="#c8e6c9"];
+  observe [label="可观测结果\nUI、terminal reason、telemetry", fillcolor="#b2dfdb"];
+
+  input -> context [label="装配"];
+  context -> loop [label="发送有效消息视图"];
+  loop -> control [label="产生 tool_use"];
+  control -> world [label="受控执行"];
+  world -> loop [label="回灌 tool_result"];
+  loop -> state [label="持久化历史与边界"];
+  state -> context [label="resume / compact 后重建"];
+  loop -> observe [label="结束或报告进度"];
+}

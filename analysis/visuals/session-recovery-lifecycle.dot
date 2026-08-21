@@ -1,0 +1,21 @@
+digraph session_recovery_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.50", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  action [label="会话中的动作\n消息、工具、文件修改", fillcolor="#fff3cd"];
+  graphstate [label="消息图\nUUID / parent / logical parent", fillcolor="#e3f2fd"];
+  transcript [label="Transcript\n追加事件与 compact boundary", fillcolor="#c8e6c9"];
+  checkpoint [label="File checkpoint\n保存受管文件字节", fillcolor="#d7ccc8"];
+  resume [label="Resume / fork / rewind\n选择逻辑分支并修链", fillcolor="#d1c4e9"];
+  restored [label="恢复后的工作状态\n历史视图或文件内容", fillcolor="#b2dfdb"];
+  external [label="未被统一回滚的外部状态\n进程、远端 API、已推送提交", fillcolor="#ffccbc"];
+
+  action -> graphstate [label="追加消息关系"];
+  graphstate -> transcript [label="持久化事件"];
+  action -> checkpoint [label="文件动作前后记录"];
+  transcript -> resume [label="提供历史与边界"];
+  checkpoint -> resume [label="提供可恢复文件"];
+  resume -> restored [label="重建逻辑视图或字节"];
+  action -> external [label="也可能产生"];
+}

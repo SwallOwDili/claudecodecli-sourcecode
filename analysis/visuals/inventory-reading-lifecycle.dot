@@ -1,0 +1,20 @@
+digraph inventory_reading_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  question [label="技术问题\n哪个字段或行为发生变化", fillcolor="#fff3cd"];
+  index [label="选择清单族\nTXT / TSV / JSONL", fillcolor="#e3f2fd"];
+  semantic [label="先读业务语义\ncallee、payload、schema、model value", fillcolor="#d1c4e9"];
+  compare [label="再读稳定比较\ncomparisonKey / comparisonValue", fillcolor="#c8e6c9"];
+  locate [label="最后定位源码\nline / column / offset / scope", fillcolor="#d7ccc8"];
+  reach [label="验证可达性\nconsumer、gate、default、Probe", fillcolor="#ffe0b2"];
+  claim [label="形成有边界结论\n行为变化或仅候选线索", fillcolor="#b2dfdb"];
+
+  question -> index [label="按对象选入口"];
+  index -> semantic [label="读取记录"];
+  semantic -> compare [label="去除位置噪声"];
+  compare -> locate [label="发现实质差异"];
+  locate -> reach [label="回到调用链"];
+  reach -> claim [label="确认或降级"];
+}

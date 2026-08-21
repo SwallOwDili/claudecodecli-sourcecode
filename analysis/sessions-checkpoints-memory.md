@@ -4,6 +4,25 @@
 
 本章只把 `2.1.235` 客户端中可以追到的行为写成本版事实。当前官方 Sessions、Checkpointing 和 Memory 文档用于解释目的；字段、上限和修链逻辑以发布 bundle 为准。
 
+## 60 秒理解恢复对象
+
+**读者问题：** 为什么 `--resume` 能找回对话，`rewind` 能恢复部分文件，却不能复活旧进程、撤销远端部署或让 Claude 自动记住所有历史？
+
+**一句话模型：** Transcript 保存消息图事件，compact boundary 保存历史表示的切换关系，file checkpoint 保存受管文件字节，Memory 为未来请求提供长期文本；它们分别恢复不同对象，没有一个机制能回滚整个外部世界。
+
+![消息图和文件检查点分别进入 resume、fork 或 rewind，而外部状态保留在统一回滚边界之外](visuals/session-recovery-lifecycle.svg)
+
+贯穿场景：Claude 修改 `config.json`、运行一个本地进程并调用远端部署接口，然后用户退出 CLI。重新进入时，resume 可以重建消息父链；checkpoint 可以把受管文件恢复到修改前；旧进程句柄已经消失；已提交的远端部署仍要查询、取消或补偿；Memory 只会在后续请求装载时影响模型，不是这次运行的完整快照。
+
+| 对象 | 保存形式 | 能恢复什么 | 不能恢复什么 | 用户判断 |
+| --- | --- | --- | --- | --- |
+| Session/message graph | session ID、UUID、parent/logical parent | 对话分支与逻辑顺序 | 外部工具的真实事务 | “回到哪段对话” |
+| JSONL transcript | 追加式消息和 system events | 历史、tool pair、boundary 元数据 | 旧进程内对象 | “发生过什么” |
+| File checkpoint | 受管文件的快照/差异 | 本地文件字节 | 数据库、远端 API、未覆盖路径 | “文件能否回退” |
+| Memory | 用户/项目长期文本 | 下一次上下文中的稳定说明 | 原会话逐条消息和精确运行状态 | “以后应继续记住什么” |
+
+后文先讲持久化主线，再给出 resume、fork、conversation rewind、file rewind 的恢复矩阵；任何恢复结论都必须说清“恢复的是哪个对象”。
+
 ## 一张表先分清四个对象
 
 | 对象 | 保存什么 | 主要用途 | 能恢复什么 | 不能恢复什么 |

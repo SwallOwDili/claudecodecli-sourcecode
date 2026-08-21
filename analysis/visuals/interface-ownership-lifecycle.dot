@@ -1,0 +1,22 @@
+digraph interface_ownership_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.50", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  clients [label="输入与显示端\nTUI / IDE / SDK / web / mobile", fillcolor="#fff3cd"];
+  bridge [label="传输与桥接\nJSON stream / IDE protocol / Remote bridge", fillcolor="#e3f2fd"];
+  owner [label="执行 owner\n本地 CLI 或 cloud environment", fillcolor="#d1c4e9"];
+  state [label="Session state\nmessages / tools / permissions / transcript", fillcolor="#c8e6c9"];
+  action [label="本地或云端动作\nfiles / shell / dialogs / attachments", fillcolor="#ffe0b2"];
+  reconnect [label="断线与重连\nreplay、reattach、token refresh", fillcolor="#d7ccc8"];
+  result [label="统一结果流\nprogress / permission / terminal reason", fillcolor="#b2dfdb"];
+
+  clients -> bridge [label="发送输入或控制帧"];
+  bridge -> owner [label="路由到执行端"];
+  owner -> state [label="读取并更新会话"];
+  state -> action [label="执行工具与交互"];
+  action -> result [label="产生事件"];
+  result -> clients [label="渲染或消费"];
+  reconnect -> bridge [label="恢复传输"];
+  reconnect -> state [label="重新附着而非复制 owner"];
+}

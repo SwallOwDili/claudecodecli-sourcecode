@@ -1,0 +1,54 @@
+digraph compact_recovery {
+  graph [
+    rankdir=LR,
+    bgcolor="#ffffff",
+    pad="0.28",
+    nodesep="0.34",
+    ranksep="0.70",
+    splines=polyline,
+    fontname="Arial, PingFang SC, Microsoft YaHei"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#263238",
+    penwidth=1.35,
+    margin="0.16,0.10",
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=11
+  ];
+  edge [
+    color="#455a64",
+    penwidth=1.3,
+    arrowsize=0.72,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=9.5,
+    fontcolor="#263238"
+  ];
+
+  attempt [label="总结尝试", fillcolor="#d1c4e9"];
+  success [label="成功\n写入新上下文与 boundary", fillcolor="#c8e6c9"];
+  ptl [label="prompt-too-long", fillcolor="#ffcdd2"];
+  preserve [label="增加保留的尾部消息组\n缩小待总结前缀", fillcolor="#fff3cd"];
+  media [label="媒体过大", fillcolor="#ffcdd2"];
+  strip [label="剥离非必要媒体后重试", fillcolor="#fff3cd"];
+  model [label="模型不可用或触发 fallback", fillcolor="#ffcdd2"];
+  fallback [label="切换允许的 fallback 模型", fillcolor="#fff3cd"];
+  blocked [label="PreCompact 阻断\n不写成功 boundary", fillcolor="#ef9a9a"];
+  refill [label="compact 后窗口快速回填", fillcolor="#ffe0b2"];
+  breaker [label="快速回填熔断\n停止继续浪费自动 compact 调用", fillcolor="#ef9a9a"];
+
+  attempt -> success [label="有效 summary"];
+  attempt -> ptl [label="请求仍超窗"];
+  ptl -> preserve [label="按 token 缺口调整"];
+  preserve -> attempt [label="重试"];
+  attempt -> media [label="media_too_large"];
+  media -> strip [label="首次命中"];
+  strip -> attempt [label="重试"];
+  attempt -> model [label="fallback signal"];
+  model -> fallback [label="选择下一模型"];
+  fallback -> attempt [label="重试"];
+  blocked -> attempt [label="用户再次触发", style=dashed];
+  success -> refill [label="后续内容重新占满窗口"];
+  refill -> breaker [label="连续快速发生"];
+}

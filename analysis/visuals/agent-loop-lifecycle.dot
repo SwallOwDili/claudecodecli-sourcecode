@@ -1,0 +1,21 @@
+digraph agent_loop_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  state [label="循环状态\nmessages / turnCount / recovery", fillcolor="#e3f2fd"];
+  request [label="模型请求与流\nassistant blocks", fillcolor="#d1c4e9"];
+  schedule [label="流式工具调度\n并发安全分类与屏障", fillcolor="#fff3cd"];
+  execute [label="受控执行\nvalidate -> hook -> permission -> call", fillcolor="#ffe0b2"];
+  feedback [label="结果回灌\n按 tool_use_id 配对", fillcolor="#c8e6c9"];
+  decide [label="继续条件\nqueue / Stop hook / maxTurns / terminal", fillcolor="#b2dfdb"];
+  external [label="外部副作用\n文件、命令、远端写入", fillcolor="#ffccbc"];
+
+  state -> request [label="装配本次迭代"];
+  request -> schedule [label="完成 tool_use block 即入队"];
+  schedule -> execute [label="按屏障顺序启动"];
+  execute -> external [label="改变外部状态"];
+  execute -> feedback [label="产生 tool_result"];
+  feedback -> decide [label="吸收工具观察"];
+  decide -> state [label="继续时更新消息与计数"];
+}

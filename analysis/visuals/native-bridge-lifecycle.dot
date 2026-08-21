@@ -1,0 +1,21 @@
+digraph native_bridge_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.27", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.15,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  js [label="JavaScript consumer\n参数、Promise/callback、产品语义", fillcolor="#fff3cd"];
+  napi [label="N-API contract\nexports / object / prototype / errors", fillcolor="#e3f2fd"];
+  native [label="Rust/Swift implementation\n线程、缓冲区、对象生命周期", fillcolor="#d1c4e9"];
+  os [label="macOS frameworks\nAppKit / CoreGraphics / Audio / Events", fillcolor="#ffe0b2"];
+  permission [label="OS/TCC 状态\n授权、拒绝、可恢复错误", fillcolor="#ffccbc"];
+  result [label="JS-visible result\n字段、bytes、status、exception", fillcolor="#c8e6c9"];
+  dispose [label="资源释放\nstop / close / finalizer", fillcolor="#b2dfdb"];
+
+  js -> napi [label="调用 ABI"];
+  napi -> native [label="创建或使用原生对象"];
+  native -> os [label="调用平台能力"];
+  os -> permission [label="检查授权与系统状态"];
+  permission -> result [label="返回数据或错误"];
+  result -> js [label="恢复产品语义"];
+  native -> dispose [label="结束时释放"];
+}

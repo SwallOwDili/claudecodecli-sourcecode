@@ -4,6 +4,26 @@
 
 本章解释客户端本地执行控制面。它不声称恢复 Anthropic 服务端账户风控、abuse score 或封禁规则；发布 bundle 没有这些服务端内部实现证据。
 
+## 60 秒理解动作控制
+
+**读者问题：** 为什么模型明明“决定执行 Bash”，用户仍可能看到审批、hook 拒绝、sandbox 错误，或者工具失败后模型还能继续回答？
+
+**一句话模型：** `tool_use` 只是动作提案；客户端必须先证明工具和输入合法，再经过可编程 hook、权限与企业 policy、运行时 sandbox，执行后还要验证输出并把成功或错误按原 ID 回灌给 Agent Loop。
+
+![一个 tool_use 依次经过查找校验、PreToolUse、权限、sandbox、执行和 PostToolUse](visuals/tool-control-lifecycle.svg)
+
+贯穿场景：模型要执行 `Bash("curl https://example.test")`。名称和 JSON 正确并不代表动作能发生：PreToolUse 可以改写命令或拒绝；permission rule 可以 ask/deny；managed policy 可以压过项目设置；sandbox 可以允许进程启动却阻断域名或凭据读取；命令成功后 PostToolUse 还能追加反馈，但不能撤销已经发出的网络请求。
+
+| 阶段 | 所有者 | 输入状态变化 | 失败时是否已产生副作用 | Agent Loop 收到什么 |
+| --- | --- | --- | --- | --- |
+| 查找与 schema | 工具 registry/validator | 名称、alias、JSON、类型变成可执行输入 | 否 | unknown tool 或 validation error result |
+| PreToolUse | hook runner | 允许、修改、询问或拒绝；修改后重新校验 | 否 | hook feedback/deny result |
+| Permission/policy | 权限决策器和 managed source | 根据 mode、rule、来源决定 allow/ask/deny | 否 | approval 或 denial reason |
+| Sandbox/tool call | 运行时和工具实现 | 真正访问文件、网络、进程或远端系统 | 可能已经发生 | 成功输出、abort 或结构化错误 |
+| PostToolUse/output | hook 和 output validator | 追加反馈、校验返回合同 | 是 | 与原 `tool_use_id` 配对的 result |
+
+关键边界是“前置控制能阻止副作用，后置控制只能影响后续决策”。所以本文会把拒绝、执行失败、后置阻断和 Stop hook 重入分开讲，而不是统称为权限失败。
+
 ## 完整控制管线
 
 `2.1.235` 单工具核心路径位于 `reverse/javascript/cli.readable.js` 316092-316487。用可读语义展开如下：

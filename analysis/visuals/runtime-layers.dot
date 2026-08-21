@@ -1,0 +1,20 @@
+digraph runtime_layers {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.34", ranksep="0.50", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.18,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  surface [label="交互入口\nTUI / print / SDK / IDE / Remote", fillcolor="#fff3cd"];
+  session [label="会话与上下文层\n消息图、system prompt、cache、memory", fillcolor="#e3f2fd"];
+  engine [label="执行引擎\nAgent Loop、stream、tool scheduler", fillcolor="#d1c4e9"];
+  policy [label="控制层\npermission、hook、sandbox、managed policy", fillcolor="#ffe0b2"];
+  extension [label="扩展与原生层\nMCP、Agent、skills、N-API", fillcolor="#ffccbc"];
+  durable [label="持久化与观测层\ntranscript、checkpoint、telemetry、doctor", fillcolor="#c8e6c9"];
+
+  surface -> session [label="提交输入或恢复会话"];
+  session -> engine [label="提供有效请求状态"];
+  engine -> policy [label="申请执行动作"];
+  policy -> extension [label="放行受控能力"];
+  extension -> engine [label="返回观察结果"];
+  engine -> durable [label="记录状态与结果"];
+  durable -> session [label="为下一轮或 resume 恢复"];
+}

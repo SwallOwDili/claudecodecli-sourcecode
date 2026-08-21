@@ -2,6 +2,26 @@
 
 版本归档不能只保存 `claude --version`。Claude Code 的安装生命周期决定“正在运行的到底是哪一个字节文件”、更新能否原子切换、旧版本是否仍可回退、native module 与主 bundle 是否匹配，以及 doctor 看到的是 PATH、symlink、签名、权限还是 provider 配置问题。
 
+## 60 秒理解版本生命周期
+
+**读者问题：** `claude --version` 显示 `2.1.235` 时，怎样证明正在运行的是哪个文件；自动更新失败或回退后，又为什么不能只改一个 symlink 就宣布完成？
+
+**一句话模型：** PATH 入口必须先解析到真实版本文件并核对 hash、签名和架构；更新器在策略允许时下载、校验并切换入口；Doctor 按故障域检查安装与运行依赖；回退还要验证 settings、transcript 和 native module 的向后兼容。
+
+![Claude Code 从 PATH 入口解析真实版本文件，经更新切换、Doctor 检查和回退验证形成完整生命周期](visuals/release-lifecycle.svg)
+
+贯穿场景：PATH 中的 `claude` 指向当前 launcher，真实文件位于版本目录。更新器发现新 channel 版本后下载并切换入口，但新版本 native module 装载失败。Doctor 必须同时核对 resolved path、主文件 hash/签名、Bun payload 与 `.node` 匹配；回退到 `2.1.235` 后还要确认新版本写入的 settings 或 transcript 没有让旧版解析失败。
+
+| 对象 | 更新前 | 转换 | 更新/回退后 | 验证重点 |
+| --- | --- | --- | --- | --- |
+| PATH entry | launcher/symlink | 安装器原子切换目标 | 指向新或旧真实版本 | 不能只看入口文件内容 |
+| Real version file | 固定 bytes、hash、signature、arch | 下载与完整性校验 | 可重复识别的发布物 | `--version`、SHA-256、签名一致 |
+| Embedded/native payload | 主 bundle 与 5 个 `.node` 成套 | 随版本整体更换 | 加载同一 release 的 ABI | 不能混用旧 native module |
+| Settings/transcript | 旧 schema 与持久数据 | 新版本可能迁移或新增字段 | 回退时仍要可解析 | 二进制回退不等于数据降级 |
+| Update/Doctor state | channel、policy、last check、faults | 查询、安装、诊断、提示 | 明确成功或具体故障域 | 禁止安装、禁止检查、隐藏命令要区分 |
+
+后文先解释 `2.1.235` 发布物与安装状态机，再进入更新 gate、Doctor 故障域和回滚边界；每一步都以真实版本文件为基准。
+
 ## 2.1.235 发布物形态
 
 本快照的目标是 macOS arm64 Bun standalone executable：

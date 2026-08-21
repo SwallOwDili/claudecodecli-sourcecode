@@ -1,0 +1,21 @@
+digraph evidence_surface_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  bundle [label="发布 bundle\ncanonical bytes", fillcolor="#fff3cd"];
+  structured [label="确定性提取\nAST/schema/catalog/native indexes", fillcolor="#e3f2fd"];
+  candidate [label="能力候选\nidentifier、field、endpoint、command", fillcolor="#d1c4e9"];
+  mechanism [label="机制验证\nreachable call chain + gates + defaults", fillcolor="#ffe0b2"];
+  probe [label="精确版本 Probe\ncommand / input / literal result / exit", fillcolor="#c8e6c9"];
+  docs [label="人类结论\n机制专题与跨版本比较", fillcolor="#b2dfdb"];
+  boundary [label="明确边界\nserver-side、runtime-only、build-time removed", fillcolor="#d7ccc8"];
+
+  bundle -> structured [label="解析"];
+  structured -> candidate [label="穷举静态表面"];
+  candidate -> mechanism [label="回到可达消费者"];
+  mechanism -> probe [label="对关键状态做运行验证"];
+  probe -> docs [label="提升证据等级"];
+  mechanism -> docs [label="形成 Static / Derived 结论"];
+  candidate -> boundary [label="证据不足时降级"];
+}

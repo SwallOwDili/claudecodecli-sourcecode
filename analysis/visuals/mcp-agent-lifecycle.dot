@@ -1,0 +1,21 @@
+digraph mcp_agent_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  config [label="可信配置\nMCP servers / Agent definitions", fillcolor="#fff3cd"];
+  registry [label="动态目录\ntools/list generation / deferred schema", fillcolor="#e3f2fd"];
+  parent [label="主 Agent Loop\n拆分任务与接收通知", fillcolor="#d1c4e9"];
+  child [label="子/后台 Agent Loop\n独立 messages、tools、permission", fillcolor="#ffe0b2"];
+  work [label="Task / worktree / MCP call\n领取、执行、持久或临时状态", fillcolor="#ffccbc"];
+  notify [label="Mailbox / task notification\nACK、progress、completed", fillcolor="#c8e6c9"];
+  merge [label="主循环合并观察\n继续、追问或结束", fillcolor="#b2dfdb"];
+
+  config -> registry [label="连接并发现能力"];
+  registry -> parent [label="提供可驻留或延迟工具"];
+  parent -> child [label="启动隔离任务"];
+  child -> work [label="调用工具或领取任务"];
+  work -> notify [label="报告状态与结果"];
+  notify -> merge [label="进入父队列"];
+  merge -> parent [label="触发下一次决策"];
+}

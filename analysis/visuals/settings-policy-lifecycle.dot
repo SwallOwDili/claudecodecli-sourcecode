@@ -1,0 +1,20 @@
+digraph settings_policy_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  sources [label="配置来源\nuser / project / local / flag / policy", fillcolor="#fff3cd"];
+  trust [label="来源与信任过滤\n字段允许从哪里读取", fillcolor="#ffe0b2"];
+  merge [label="按字段合并\n覆盖、集合、managed pin", fillcolor="#e3f2fd"];
+  dynamic [label="动态值\nenv / feature / GrowthBook / session", fillcolor="#d1c4e9"];
+  effective [label="有效配置\n当前进程真正消费的值", fillcolor="#c8e6c9"];
+  consumer [label="运行时消费者\nmodel、sandbox、hooks、MCP、UI", fillcolor="#b2dfdb"];
+  refresh [label="监听与失效\n文件变更、policy refresh、restart", fillcolor="#d7ccc8"];
+
+  sources -> trust [label="加载"];
+  trust -> merge [label="拒绝非法来源"];
+  merge -> dynamic [label="叠加运行时值"];
+  dynamic -> effective [label="解析 gate 与默认值"];
+  effective -> consumer [label="驱动行为"];
+  refresh -> sources [label="触发重读"];
+}

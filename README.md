@@ -8,8 +8,19 @@
 
 这个仓库同时服务两类读者：人需要理解系统为什么这样设计，比较器需要稳定、无遗漏地逐版本 diff。不要从 70 个 JSONL/TXT 文件开始读，也不要把字段数量当成技术分析。
 
+核心专题统一采用三层阅读结构，技术细节没有被摘要替换：
+
+| 阅读层 | 先回答什么 | 内容形态 |
+| --- | --- | --- |
+| 60 秒模型 | 这个机制解决什么问题、拥有哪份状态、一次成功路径怎样流动 | 读者问题、单句模型、贯穿场景、状态变化表、可编辑机制图 |
+| 10 分钟机制 | gate、优先级、阈值、并发、失败、重试、恢复和用户影响 | 原有完整调用链与专题正文 |
+| 证据层 | 结论如何复核、哪些仍是边界 | 源码范围、字段语义、Probe、literal result、exit status、机器清单 |
+
+`analysis/visuals/` 中每张发布图都同时保留 Graphviz `.dot` 和渲染后的 `.svg`。图只负责建立状态模型；函数定位、数值阈值、失败分支、隐私/安全/成本影响和版本边界仍保留在正文与证据索引中。
+
 | 入口 | 解决的问题 |
 | --- | --- |
+| [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
 | [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 35 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到 19 条本版变化、字段字典、误区和证据缺口 |
 | [`analysis/technical-mechanism-atlas.md`](analysis/technical-mechanism-atlas.md) | **快速总览**：一次请求跨越的九个子系统、三条闭环、状态归属、故障表现和专题阅读路由 |
 | [`analysis/public-claims-validation.md`](analysis/public-claims-validation.md) | 官方 Claude Code/Agent SDK/Engineering 原理与 `2.1.235` bundle、精确二进制探针逐项对照，防止版本倒灌 |
@@ -112,6 +123,8 @@
 |   |-- public-sources/manifest.json    官方页面响应、去噪正文与逐摘录 SHA-256
 |   |-- public-source-excerpts.md       与本版验证问题对应的固定官方摘录
 |   |-- runtime-probe-index.md          27 条精确二进制探针的人类解释与字段指南
+|   |-- compact-visual-guide.md         /compact 的读者优先图文机制样板
+|   |-- visuals/                        可复现的 Graphviz 图表源文件与 SVG
 |   |-- technical-architecture.md       面向人的完整技术架构导读
 |   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义
 |   |-- context-governance-and-caching.md 上下文治理、多层缓存、压缩与恢复

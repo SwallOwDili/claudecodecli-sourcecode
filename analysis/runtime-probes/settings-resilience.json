@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:29.089Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "allLoadedSources": "$CLAUDE_2_1_235 --print SETTINGS_POLICY_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+    "flagModel": "$CLAUDE_2_1_235 --print SETTINGS_FLAG_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+    "localModel": "$CLAUDE_2_1_235 --print SETTINGS_LOCAL_MODEL_MARKER --setting-sources user,project,local",
+    "userModel": "$CLAUDE_2_1_235 --print SETTINGS_USER_MODEL_MARKER --setting-sources user",
+    "retry529": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print RETRY_529_MARKER --model claude-sonnet-4-5",
+    "noRetry400": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print NO_RETRY_400_MARKER --model claude-sonnet-4-5",
+    "fallback": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print MODEL_FALLBACK_MARKER --model claude-sonnet-4-5 --fallback-model claude-haiku-4-5"
+  },
+  "input": {
+    "settingsLayers": {
+      "user": "claude-haiku-4-5",
+      "project": "claude-sonnet-4-5",
+      "local": "claude-opus-4-5",
+      "flag": "claude-opus-4-6",
+      "primary": "claude-sonnet-4-5",
+      "fallback": "claude-haiku-4-5"
+    },
+    "retry529": {
+      "controlledResponses": [
+        529,
+        529,
+        200
+      ]
+    },
+    "noRetry400": {
+      "controlledResponses": [
+        400
+      ]
+    },
+    "fallback": {
+      "primaryModel": "claude-sonnet-4-5",
+      "fallbackModel": "claude-haiku-4-5",
+      "controlledResponses": [
+        529,
+        529,
+        529,
+        200
+      ]
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "policyModel": {
+      "result": "SETTINGS_POLICY_MODEL_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "flagModel": {
+      "result": "SETTINGS_FLAG_MODEL_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "localModel": {
+      "result": "SETTINGS_LOCAL_MODEL_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "userModel": {
+      "result": "SETTINGS_USER_MODEL_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "retry529": {
+      "result": "RETRY_529_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "noRetry400": {
+      "result": "API Error: 400 controlled invalid request",
+      "subtype": "success",
+      "isError": true,
+      "exitStatus": 1
+    },
+    "fallback": {
+      "result": "MODEL_FALLBACK_MARKER_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "policyModel": 0,
+    "flagModel": 0,
+    "localModel": 0,
+    "userModel": 0,
+    "retry529": 0,
+    "noRetry400": 1,
+    "fallback": 0
+  },
+  "observed": {
+    "settingsModels": {
+      "allLoadedSources": "claude-opus-4-6",
+      "flag": "claude-opus-4-6",
+      "local": "claude-opus-4-5",
+      "userOnly": "claude-haiku-4-5"
+    },
+    "managedPolicyBoundary": "The exact binary reads macOS managed settings from /Library/Application Support/ClaudeCode; the environment field CLAUDE_CODE_MANAGED_SETTINGS_PATH did not redirect that runtime path in this probe.",
+    "retry529": {
+      "requestCount": 3,
+      "models": [
+        "claude-sonnet-4-5",
+        "claude-sonnet-4-5",
+        "claude-sonnet-4-5"
+      ]
+    },
+    "noRetry400": {
+      "requestCount": 1
+    },
+    "fallback": {
+      "requestCount": 4,
+      "models": [
+        "claude-sonnet-4-5",
+        "claude-sonnet-4-5",
+        "claude-sonnet-4-5",
+        "claude-haiku-4-5"
+      ]
+    }
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "flagModelWinsAcrossLoadedSources": true,
+    "flagModelWins": true,
+    "localModelWinsWithoutFlagOrPolicy": true,
+    "userSourceFilterExcludesProjectAndLocal": true,
+    "settingsRunsSucceed": true,
+    "overloadedRequestRetried": true,
+    "overloadedRetryEventuallySucceeds": true,
+    "invalidRequestNotRetried": true,
+    "invalidRequestFails": true,
+    "fallbackRequestSequenceExact": true,
+    "fallbackEventuallySucceeds": true
+  },
+  "pass": true
+}

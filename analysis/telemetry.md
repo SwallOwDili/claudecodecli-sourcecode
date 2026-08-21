@@ -210,6 +210,16 @@ resource/attributes 可包含 service name/version、OS/arch、WSL、`OTEL_RESOU
 
 内容长度取 `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH`、通用 OTEL attribute limit、log-record attribute limit、span attribute limit 中的最小值。过长内容会被截断，不会因为单独提高其中一个限制就绕过其他限制。
 
+### Prompt 正文门：官方、静态和运行结果如何对齐
+
+当前官方 [Monitoring usage](https://code.claude.com/docs/en/monitoring-usage) 明确区分“发送 user-prompt event”和“发送 prompt 正文”：`OTEL_LOG_USER_PROMPTS` 默认关闭，`user_prompt` 在 gate 未开启时为 `<REDACTED>`。这两句话作为 `public.otel-prompt-redaction` 固定摘录；2.1.235 的 `<REDACTED>` 分支登记为 `telemetry.content-redaction`。
+
+`probe.telemetry-otlp-redaction` 又把静态分支推进到 wire-level：脚本启动本地 `/v1/logs` HTTP/JSON collector，以相同二进制分别运行默认和 `OTEL_LOG_USER_PROMPTS=1` 两个输入。默认导出中存在 user-prompt event，`promptAttribute` 为 `<REDACTED>`，原 marker 不存在；显式开启后原 marker 出现在 collector payload。两次 CLI exit status 都是 0，collector 的 `Content-Type` 均为 `application/json`。
+
+这意味着管理员开启 OTLP logs exporter 后，事件元数据可以默认离开本机，但 prompt 正文仍由单独的 content gate 控制。反过来，一旦开启正文 gate，prompt 会进入管理员指定 collector；这不是“只写本地 debug log”。该 Probe 不覆盖 `OTEL_LOG_RAW_API_BODIES`，后者范围更大，可能包含完整历史，必须单独审计。
+
+同一官方页面还说明 signal-specific endpoint/protocol 覆盖 generic 值，signal-specific headers 与 generic headers 合并，对应 `public.otel-exporter-precedence`。这个规则解释了为什么排障时不能只看 `OTEL_EXPORTER_OTLP_ENDPOINT`：logs、metrics、traces 可能各自走向不同 collector，携带不同合并 header。
+
 ### Traces 和 Perfetto 关联
 
 恢复出 10 个 span name：bash subprocess、compaction、hook、interaction、LLM request、MCP RPC、subagent spawn、tool、tool blocked-on-user、tool execution。
@@ -254,3 +264,5 @@ python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 跨版本比较器会遍历 `analysis/source-inventory/summary.json` 中登记的 70 个文件，输出 count delta、added 和 removed。JSONL 优先比较 `comparisonKey` / `comparisonValue`，忽略纯 offset/line 漂移。任何新增 exporter、endpoint、event、field、redaction、metric、span、环境变量、feature gate、默认值、settings 字段、模型或消息模板都应先出现在机器清单，再更新本文的架构解释。
 
 `summary.json` 的 completion audit 要求所有目标调用点、全部词法字符串/模板、动态表达式、根 settings 结构和模型目录均完成记录，且 `knownStaticExtractionGaps` 必须为空。不可恢复边界只剩发布产物本身不存在的内容：运行时远程配置/API/用户文件/环境值、服务端处理与风控规则，以及构建前被 minification、tree shaking 或缺失 source map 删除的信息。
+
+本专题结构化主张包括 `telemetry.otel-gate-exporters`、`telemetry.content-redaction`、`public.otel-exporter-precedence`、`public.otel-prompt-redaction` 和 `probe.telemetry-otlp-redaction`。Probe 的命令、input、literal output、exit status 和字段读法见 [精确二进制运行证据指南](runtime-probe-index.md)。

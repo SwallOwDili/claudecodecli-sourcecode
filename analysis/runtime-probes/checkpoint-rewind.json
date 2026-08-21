@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:34.062Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "createCheckpoint": "$CLAUDE_2_1_235 --print CHECKPOINT_REWIND_PROMPT_MARKER --tools Read,Edit --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+    "rewind": "$CLAUDE_2_1_235 --print --resume $SESSION_ID --rewind-files $USER_MESSAGE_UUID"
+  },
+  "input": {
+    "createCheckpoint": {
+      "file": "$WORKSPACE/checkpoint.txt",
+      "before": "CHECKPOINT_ORIGINAL\n",
+      "after": "CHECKPOINT_MODIFIED\n"
+    },
+    "rewind": {
+      "sessionId": "$SESSION_ID",
+      "userMessageUuid": "$USER_MESSAGE_UUID",
+      "sdkFileCheckpointingEnabled": true
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "createCheckpoint": {
+      "result": "CHECKPOINT_EDIT_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "rewind": "Files rewound to state at message $USER_MESSAGE_UUID"
+  },
+  "exitStatus": {
+    "version": 0,
+    "createCheckpoint": 0,
+    "rewind": 0
+  },
+  "observed": {
+    "before": "CHECKPOINT_ORIGINAL\n",
+    "afterEdit": "CHECKPOINT_MODIFIED\n",
+    "afterRewind": "CHECKPOINT_ORIGINAL\n",
+    "modelRequestsDuringCreate": 3,
+    "modelRequestsDuringRewind": 0
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "initialRunSucceeds": true,
+    "editChangedFile": true,
+    "transcriptUserUuidFound": true,
+    "rewindExitZero": true,
+    "rewindReportsTargetMessage": true,
+    "rewindRestoresOriginalBytes": true,
+    "rewindDoesNotCallModel": true
+  },
+  "pass": true
+}

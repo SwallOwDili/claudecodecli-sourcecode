@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:31.296Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "redacted": "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_2_1_235 --print TELEMETRY_REDACTED_PROMPT_MARKER --tools ''",
+    "included": "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_2_1_235 --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''"
+  },
+  "input": {
+    "redacted": {
+      "prompt": "TELEMETRY_REDACTED_PROMPT_MARKER",
+      "logUserPrompts": false
+    },
+    "included": {
+      "prompt": "TELEMETRY_INCLUDED_PROMPT_MARKER",
+      "logUserPrompts": true
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "redacted": {
+      "result": "REDACTED_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "included": {
+      "result": "INCLUDED_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "collector": {
+      "redacted": [
+        {
+          "method": "POST",
+          "url": "/v1/logs",
+          "contentType": "application/json"
+        }
+      ],
+      "included": [
+        {
+          "method": "POST",
+          "url": "/v1/logs",
+          "contentType": "application/json"
+        }
+      ]
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "redacted": 0,
+    "included": 0
+  },
+  "observed": {
+    "redacted": {
+      "exportCount": 1,
+      "userPromptEvent": true,
+      "promptAttribute": "<REDACTED>",
+      "originalPromptPresent": false
+    },
+    "included": {
+      "exportCount": 1,
+      "userPromptEvent": true,
+      "originalPromptPresent": true
+    }
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "redactedRunSucceeds": true,
+    "includedRunSucceeds": true,
+    "redactedExportObserved": true,
+    "includedExportObserved": true,
+    "redactedPayloadHasUserPromptEvent": true,
+    "redactedPayloadUsesPlaceholder": true,
+    "redactedPayloadOmitsPrompt": true,
+    "includedPayloadHasUserPromptEvent": true,
+    "includedPayloadContainsPrompt": true,
+    "exportsUseJsonContentType": true
+  },
+  "pass": true
+}

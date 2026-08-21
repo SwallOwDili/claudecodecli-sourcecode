@@ -317,6 +317,12 @@ process.stdin.on("data", async (chunk) => {
   };
   const report = {
     schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    environment: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
     target: { version: expectedVersion, binarySha256: await sha256(binary) },
     commands: {
       mcpRefresh: "$CLAUDE_2_1_235 --print MCP_REFRESH_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --mcp-config $MCP_CONFIG --strict-mcp-config --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",

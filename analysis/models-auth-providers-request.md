@@ -150,12 +150,18 @@ HTTP retry、SSE 续流、同模型请求重试、模型 fallback 和 Agent turn
 
 这给 provider/auth/request 章节增加了 wire-level 证据。它只证明客户端构造结果，不证明自定义 endpoint 实现了这些 beta，也不证明 Anthropic 服务端接受同样的 token、cache 或 routing 语义。
 
+同一报告新增 `probe.request-api-key-auth`：只提供 `ANTHROPIC_API_KEY` 时，实际 request 发送 `x-api-key: $API_KEY`，`Authorization` 不存在，CLI 最终 success、exit 0。与 `probe.request-bearer-auth` 联合后可以确认两条 credential source 产生互斥的 header shape，而不是把两种凭据同时转发。
+
+当前官方 [Authentication](https://code.claude.com/docs/en/authentication) 把 cloud provider、`ANTHROPIC_AUTH_TOKEN`、`ANTHROPIC_API_KEY`、`apiKeyHelper`、OAuth/profile/subscription 列成有序来源，并明确 bearer 与 X-Api-Key 的 header 差异，对应 `public.auth-precedence`。这是当前产品说明；2.1.235 已正向验证的范围是 bearer/API-key 两条请求装配，其他 provider 的实时云凭据和登录 entitlement 仍需各自环境探针。
+
+模型恢复也不能和 credential fallback 混写。`probe.model-fallback-sequence` 观察到主模型三次 529 后第四次使用备用模型；认证 400/401、计费、rate limit、请求尺寸和 transport 不应从这个结果推断会切模型。完整失败分类见 [韧性与恢复](resilience-and-recovery.md)。
+
 ## 跨版本比较清单
 
 每个新版本至少比较 provider precedence、first-party host 判定、credential source、helper trust gate、model alias/provider ID、Messages body 字段、beta 集合、cache TTL、thinking/effort、fallback lane、retry 参数和正向工具回灌 probe。某个 endpoint host 或压缩符号变化只作为线索；只有稳定 key、请求字段、可达分支、probe 或官方 release note 与本地证据互相印证，才写成功能变化。
 
 ## 证据与边界
 
-结构化证据条目：`provider.selection`、`provider.first-party-host`、`auth.environment-contract`、`auth.key-source`、`agent-loop.model-call`、`probe.agent-loop-tool-feedback`。
+结构化证据条目：`provider.selection`、`provider.first-party-host`、`auth.environment-contract`、`auth.key-source`、`agent-loop.model-call`、`probe.agent-loop-tool-feedback`、`probe.request-bearer-auth`、`probe.request-api-key-auth`、`probe.model-fallback-sequence`、`public.auth-precedence`、`public.fallback-chain`。精确命令、header 占位结果、模型请求序列和 exit status 见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 已证实的是客户端 selector、credential source、request state 和本地工具闭环。未从发布物中恢复的是 Anthropic 服务端的真实路由器、缓存命中算法、账户 abuse/risk score、服务端隐藏 beta 分流、容量调度和模型内部实现。这些必须保留为 `Boundary`，不能因为客户端发送了某个 header 就写成服务端一定执行了对应策略。

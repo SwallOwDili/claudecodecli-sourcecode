@@ -83,6 +83,10 @@ IDE integration 的价值通常包括：
 
 这条通道的安全边界与读取普通工作区文件不同。IDE 能提供编辑器当前状态，但客户端仍需要验证 workspace trust、路径和可执行 helper。`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL` 说明自动安装本身也有独立 gate。
 
+当前官方 [IDE integrations](https://code.claude.com/docs/en/ide-integrations) 把协议边界写得更具体：extension 在 `127.0.0.1` 的随机端口启动本地 MCP server，每次 activation 生成新 token，保存在用户权限保护的 lock file，CLI 用 `X-Claude-Code-Ide-Authorization` 连接。当前 selection 和 active-file path 会进入 prompt context；匹配的 Read deny rule 会同时阻止选中文本和 open-file notice。该公开主张登记为 `public.ide-loopback-contract`。
+
+这解释了三个容易混淆的判断：loopback transport 不等于无认证；IDE 提供上下文不等于绕过 Read deny；extension 内部 RPC 数量也不等于全部工具都暴露给模型。本快照有对应 bridge 与 permission 静态分支，但没有启动真实 VS Code extension 完成连接，因此仍标为 Public + Static，而不是成功 Probe。
+
 版本分析不能只统计 `/ide` 命令是否存在。应比较：连接协议、IDE 状态字段、自动安装 gate、selection/diagnostic payload、断线降级、是否改变工具权限。
 
 ## Remote Control：远端是 viewer，终端仍是执行 owner
@@ -96,6 +100,10 @@ Remote Control 会把本地 session 注册为可从 web/mobile 查看和交互�
 - remote credential refresh；
 - outbound event queue 和 reconnect state；
 - attachment delivery capability。
+
+当前官方 [Remote Control](https://code.claude.com/docs/en/remote-control) 明确给出 ownership：本地进程只建立出站 HTTPS，不开放入站端口；执行和 filesystem access 留在本机；连接期间 messages、responses 与 tool activity transcript 存放在 Anthropic server，用于跨设备同步和掉线重连。对应 `public.remote-local-execution` 与 `public.remote-transcript-security`。
+
+所以“代码不上传执行”与“transcript 不离开本机”是两件事。Remote Control 的工具副作用发生在本机，但同步 transcript 是服务端状态；对 ZDR/compliance 环境必须按官方 eligibility 和组织政策判断，不能只看本地 filesystem ownership。
 
 源码 302491-302493 给出一组明确的韧性参数：14 次 reconnect attempt、约 30 分钟不可达描述、24 小时内 drop 次数预算，以及 6 分钟/30 秒/5 分钟/5 秒级别的节奏常量。它不是无限重连；达到条件后会向用户表明连接耗尽。
 
@@ -124,6 +132,10 @@ Remote Control 只在满足账户/provider 条件时可用。源码保留“only
 - resume 时 remote credentials 获取失败。
 
 这不是普通 Messages API key 可以完全替代的协议。即使自定义 gateway 能跑 Agent Loop，也不代表它能注册 Remote Control session。
+
+`probe.remote-control-custom-endpoint-boundary` 使用自定义 `ANTHROPIC_BASE_URL` 运行 doctor，literal output 明确指出 Remote Control 只在 `api.anthropic.com` 路径可用，并同时报告 feature-flag evaluation 被 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 禁用。命令 exit 0，因为 doctor 正常完成诊断；`remoteControlAvailable=false` 才是被测状态。
+
+当前官方文档还说明：若断线期间 compact 改写了会话，或用户用 `/resume` 切换过 conversation，再 reconnect 会归档之前的 server session，对应 `public.remote-compact-reconnect`。本版客户端存在 reconnect/archival 分支，但本地探针没有真实登录态和服务端 session，因此不能把该 Public 主张升级成成功 Remote Control Probe。
 
 ## Cloud session 与 teleport
 
@@ -182,6 +194,6 @@ teleport 后的本地执行拥有自己的 cwd、工具和外部环境。历史�
 
 ## 证据与边界
 
-结构化证据条目：`remote-control.reconnect-budget`、`ide.command-surface`。CLI surface 见 [cli-surface.txt](cli-surface.txt)，但命令名只能证明注册；Remote Control/IDE 的成功可用性还需要登录、extension、协议和精确版本运行探针。
+结构化证据条目：`remote-control.reconnect-budget`、`ide.command-surface`、`public.remote-local-execution`、`public.remote-transcript-security`、`public.remote-compact-reconnect`、`public.ide-loopback-contract`、`probe.remote-control-custom-endpoint-boundary`。CLI surface 见 [cli-surface.txt](cli-surface.txt)，但命令名只能证明注册；当前 Probe 证明 custom endpoint 的明确不可用原因，不证明已登录 first-party 环境中的成功连接。精确命令、literal output 和 exit status 见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 服务端 session registry、claude.ai entitlement、移动端实现和 cloud runtime orchestration 不在本地 bundle 中。客户端能证明本地桥接协议、错误处理和状态字段，不能独自证明远端当前部署状态。

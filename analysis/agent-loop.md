@@ -478,13 +478,15 @@ mock response / CLI result:
 
 随后脚本使用同一个 session ID 运行 `--resume`。第三次主请求同时包含首次 user marker、首次最终助手文本 `TOOL_EXECUTION_OK` 和当前 `AGENT_LOOP_RESUME_MARKER`，最终 literal result 为 `RESUME_OK`、exit 0。
 
-固化报告 [agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json) 的 13 个 checks 全部为 true。它直接证明：
+固化报告 [agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json) 的 25 个 checks 全部为 true。它直接证明：
 
 1. 工具 schema 进入首个真实请求；
 2. 完整 `tool_use` 触发内置工具执行；
 3. 工具结果以同 ID 回到下一次请求；
 4. 最终 result 进入 success terminal state；
 5. transcript 持久化后能成功 resume 并恢复历史。
+
+同一报告随后向真实 session 发送 `/compact`，观察到 `system:compact_boundary`、`trigger=manual` 和 `preTokens=104`；再用 `--fork-session` 创建新 session。fork 请求保留 compact summary 与当前 prompt，移除 compact 前 prompt、旧 tool-use ID 和旧 assistant result。这里验证的是 Agent Loop 在下一次请求前采用了新的逻辑消息视图，不是只验证 `/compact` 命令存在。
 
 这仍有明确边界：探针只使用 `Read` 和本地 mock server，不证明 Bash/sandbox/网络工具、MCP refresh、远端模型质量或服务端缓存。它证明的是客户端 Agent Loop 合同本身。
 
@@ -499,6 +501,8 @@ mock response / CLI result:
 **本版 `Agent` 的父子回传是两阶段。** 父请求先调用 `Agent`，CLI 立即返回配对 `tool_result`，其语义是 `async_launched`，不是子任务结论。子 Agent 使用独立 prompt、独立工具表和独立 Messages 请求，完成后通过 `<task-notification>` 把 `SUBAGENT_CHILD_RESULT_MARKER` 入父队列。父循环共发出三个请求：启动、等待、消费完成通知并输出 `SUBAGENT_PARENT_OK`。把启动 ACK 当最终结果，会导致父模型重复创建子 Agent。
 
 这三条运行结论都绑定同一个 `2.1.235` 二进制 SHA-256。它们把静态字段 `stopHookBlockingCount`、`maxTurns`、message queue 和 subagent state 还原成了真实时序，而不是只证明字段存在。
+
+全部 Agent Loop 相关 Probe claim、命令、受控模型响应、literal output、exit status 和边界统一收录在 [精确二进制运行证据指南](runtime-probe-index.md)。其中 `probe.agent-loop-tool-feedback`、`probe.stop-hook-reentry`、`probe.max-turns-terminal` 证明主循环状态转移；`probe.manual-compaction-boundary` 和 `probe.session-fork-identity` 证明循环前后的会话视图变化；`probe.subagent-isolation` 与 `probe.subagent-notification-feedback` 证明父子循环不是共享一次模型调用。
 
 ## 一个具体执行例子
 

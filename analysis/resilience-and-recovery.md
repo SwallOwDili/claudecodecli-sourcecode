@@ -291,9 +291,13 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 
 这个案例说明恢复设计的核心不是“让模型再试一次”，而是保持足够的动作身份、结果和外部状态，使下一次决策不会重复不可逆副作用。
 
-## 运行探针把六类恢复边界钉死
+## 运行探针把恢复对象和计数器钉死
 
-新增探针把“静态存在恢复分支”推进到以下可观察状态：
+`probe.http-retry-classification` 使用相同命令和 `CLAUDE_CODE_MAX_RETRIES=2` 对比两种状态。受控 529 序列为 `529,529,200`，总请求数 3、最终 exit 0；受控 400 总请求数 1、exit 1。这里 `MAX_RETRIES=2` 表示初次请求之外最多再试两次，不能误读成最多两个 HTTP 请求。
+
+`probe.model-fallback-sequence` 让主模型连续收到三次 529，第四次请求切到 `claude-haiku-4-5` 并成功。实际模型序列为 primary、primary、primary、fallback。当前官方 [Model configuration](https://code.claude.com/docs/en/model-config) 也说明 fallback 面向 overloaded/unavailable/qualifying server errors，认证、计费、rate-limit、request-size 和 transport 保持各自处理；该公开主张登记为 `public.fallback-chain`，本版顺序由 Probe 单独证明。
+
+其他探针把“静态存在恢复分支”推进到以下可观察状态：
 
 - Stop hook 首次阻止后，反馈进入第二个请求；恢复对象是控制流，不撤销已完成动作。
 - `maxTurns=1` 时工具和 PostToolUse 完成，但不会启动下一次模型调用；终态为 `error_max_turns`、exit 1。
@@ -301,6 +305,7 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 - MCP `tools/list_changed` 触发重新 list，但新 schema 到第三个请求才可见；恢复有一个请求装配延迟。
 - 子 Agent 启动 ACK 与完成通知分离；父循环必须等待 task notification，不能把 ACK 当结果。
 - 原有 resume 探针证明 transcript history 可恢复，但所有探针都没有声称回滚远端副作用。
+- checkpoint 探针证明本地 Edit 可恢复原字节且 rewind 阶段模型请求为 0，但同一机制不覆盖远端副作用。
 
 这些结果分别对应“重入、预算终止、前置阻断、动态 schema 刷新、异步任务完成、历史恢复”。把它们统一写成“自动重试”会丢失状态保留、重复执行和用户可见结果的差别。
 
@@ -329,5 +334,7 @@ SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num
 - file checkpoint/rewind：`reverse/javascript/cli.readable.js` 194602-194804。
 - MCP refresh/cache invalidation：`reverse/javascript/cli.readable.js` 491915-491964、231802-231817。
 - 事件、错误和诊断清单：[source inventory](source-inventory/summary.json)。
+
+结构化运行主张：`probe.http-retry-classification`、`probe.model-fallback-sequence`、`probe.stop-hook-reentry`、`probe.max-turns-terminal`、`probe.hook-deny-feedback`、`probe.mcp-generation-refresh`、`probe.resume-history`、`probe.checkpoint-rewind-positive`。完整 command/input/literal output/exit status 和请求序列见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 恢复机制的证据边界必须保持清楚：bundle 能证明客户端如何分类、重试、改写消息和发出结果；远端服务是否幂等、服务端内部路由和账户风控仍需要对应 API/服务证据。

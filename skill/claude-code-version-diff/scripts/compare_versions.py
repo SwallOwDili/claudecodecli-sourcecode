@@ -19,6 +19,7 @@ HUMAN_ANALYSIS_PATHS = (
     "README.md",
     "analysis/technical-mechanism-atlas.md",
     "analysis/public-claims-validation.md",
+    "analysis/runtime-probe-index.md",
     "analysis/technical-architecture.md",
     "analysis/agent-loop.md",
     "analysis/context-governance-and-caching.md",
@@ -378,6 +379,7 @@ def mechanism_evidence_report(repo: Path, old_branch: str, new_branch: str) -> l
                 old_sources[source_id].get("url"),
                 old_sources[source_id].get("excerptIds"),
                 old_sources[source_id].get("excerptSha256"),
+                old_sources[source_id].get("excerptSourceVerified"),
             )
             != (
                 new_sources[source_id].get("status"),
@@ -387,6 +389,7 @@ def mechanism_evidence_report(repo: Path, old_branch: str, new_branch: str) -> l
                 new_sources[source_id].get("url"),
                 new_sources[source_id].get("excerptIds"),
                 new_sources[source_id].get("excerptSha256"),
+                new_sources[source_id].get("excerptSourceVerified"),
             )
         )
         lines.extend(
@@ -433,11 +436,13 @@ def mechanism_evidence_report(repo: Path, old_branch: str, new_branch: str) -> l
             observations[claim_id] = json.dumps(
                 {
                     "target": report.get("target"),
+                    "environment": report.get("environment"),
                     "commands": report.get("commands"),
                     "input": report.get("input"),
                     "pass": report.get("pass"),
                     "literalOutput": report.get("literalOutput"),
                     "exitStatus": report.get("exitStatus"),
+                    "observed": report.get("observed"),
                     "observedRequestCount": report.get("observedRequestCount"),
                     "checks": report.get("checks"),
                 },

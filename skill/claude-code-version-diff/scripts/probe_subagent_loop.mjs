@@ -250,6 +250,12 @@ async function main() {
   };
   const report = {
     schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    environment: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
     target: { version: expectedVersion, binarySha256: await sha256(binary) },
     commands: {
       subagentLoop: "$CLAUDE_2_1_235 --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",

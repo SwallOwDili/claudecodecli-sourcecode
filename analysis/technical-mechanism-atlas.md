@@ -164,15 +164,16 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动、验证结果、重复”；工程文章强调 context 是有限资源，工具是确定性系统与非确定性 Agent 之间的契约，多 Agent 通过独立上下文并行探索。它们解释了设计动机，但不自动证明某个版本的 CLI 有某个字段、阈值或调用顺序。
 
-本仓库采用三层证据：
+本仓库采用三类正向证据和一类明确边界：
 
 | 层级 | 能回答什么 | 不能回答什么 |
 | --- | --- | --- |
 | 官方公开主张 | 产品设计意图、概念模型、当前文档行为 | `2.1.235` 是否已包含后来新增的实现 |
 | `2.1.235` bundle 静态证据 | 客户端分支、默认值、阈值、状态字段、调用链 | 服务端未下发的值、真实账户策略、未走到的分支结果 |
 | `2.1.235` 隔离运行探针 | 精确二进制对给定输入的实际输出和 exit status | 未触发路径、远端依赖、所有平台和账户差异 |
+| Boundary | 说明为什么发布物、当前探针或公开资料不足以证明 | 不用“可能支持”填补缺失证据 |
 
-逐项映射见 [公开主张与 2.1.235 验证矩阵](public-claims-validation.md)。
+逐项映射见 [公开主张与 2.1.235 验证矩阵](public-claims-validation.md)。27 条 Probe 的命令、输入、literal output、exit status、状态变化和窄边界见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 ## 按问题选择阅读入口
 
@@ -192,6 +193,7 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 | `.node` 到底被谁调用、能重建到什么程度 | [Native Bridge](native-bridge-runtime.md) | [原生重建证据](../reconstructed/EVIDENCE.md) |
 | 字段表里的值是什么意思 | [机器清单字段指南](inventory-field-guide.md) | [全量能力面](source-surface.md) |
 | 遥测会记录什么、怎么判断慢在哪 | [遥测、日志与诊断](telemetry.md) | [字段指南](inventory-field-guide.md) |
+| 某条 Probe 到底执行了什么、能证明到哪 | [精确二进制运行证据指南](runtime-probe-index.md) | [结构化证据注册表](mechanism-evidence.jsonl) |
 
 ## 证据索引
 
@@ -207,4 +209,4 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 函数名、行号和分支来自发布 bundle 的可读化布局，不是 Anthropic 原始 TypeScript 模块名。跨版本比较应优先比较状态语义、稳定字段、阈值和可达分支，不能把压缩符号改名本身当成功能变化。
 
-核心结论的机器可校验证据合同见 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)。validator 会检查文件、真实行数、范围内 anchors、Probe 报告字段、官方来源 manifest 和 excerpt 引用；不能再靠“文档够长、出现关键词”通过。
+核心结论的机器可校验证据合同见 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)。validator 会检查文件、真实行数、范围内 anchors、Probe 报告字段、每个 Probe claim 是否进入人类索引、官方来源 manifest、引用逐句命中状态和 excerpt hash；不能再靠“文档够长、出现关键词”通过。

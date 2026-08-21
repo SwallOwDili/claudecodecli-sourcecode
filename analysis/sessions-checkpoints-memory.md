@@ -202,6 +202,14 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 看 dry-run diff、`canRewind`、`skippedLinks` 和目标 message 是否有 checkpoint。再区分未跟踪文件、symlink、外部副作用和旧 checkpoint 已被 100 项上限裁剪的情况。
 
+### 精确二进制如何证明 fork 与 rewind
+
+`probe.session-fork-identity` 先在同一真实 session 上完成工具闭环和 manual compact，再执行 `--fork-session`。报告观察到 fork session ID 与原 ID 不同，fork 请求包含 compact summary 和当前 prompt，同时不包含 compact 前 prompt、tool-use ID 与旧 assistant result。这证明 fork 复制的是 compact 后的逻辑会话状态，不是让两个 session 继续共用同一个 transcript ID。
+
+`probe.checkpoint-rewind-positive` 使用 Read/Edit 把临时文件从 `CHECKPOINT_ORIGINAL` 改为 `CHECKPOINT_MODIFIED`，然后从真实 transcript 提取 user message UUID，调用独立 `--rewind-files`。CLI literal output 为 `Files rewound to state at message $USER_MESSAGE_UUID`，文件最终字节恢复为 `CHECKPOINT_ORIGINAL`，rewind 阶段 Messages 请求数为 0。
+
+这个结果很关键：file rewind 是由本地 checkpoint 数据驱动的补偿操作，不需要模型重新生成反向 Edit。它只恢复被跟踪的文件字节；Bash 修改、subagent 外部路径、远端部署、数据库写入和已经发送的消息仍在恢复边界之外。
+
 ### 长会话列表突然少了
 
 先看 `cleanupPeriodDays`、显式清理和 `--no-session-persistence`，不要把 transcript 清理与 memory、Git history 或 provider cache 混为一谈。
@@ -233,5 +241,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 - `MEMORY.md` 200 行/25KB 入口处理：`reverse/javascript/cli.readable.js` 114154 附近。
 - SDK `rewindFiles` 的 dry-run、错误和 `skippedLinks`：canonical bundle 的 SDK engine 暴露路径。
 - storage/schema/event 全量集合：[source inventory](source-inventory/summary.json)。
+
+结构化运行主张：`probe.resume-history`、`probe.manual-compaction-boundary`、`probe.session-fork-identity`、`probe.checkpoint-rewind-positive`。公开边界：`public.session-fork-identity`、`public.checkpoint-boundaries`、`public.memory-budget`。命令、输入、literal output、exit status 和报告字段见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 这些位置证明客户端的状态和分支。服务端保存策略、远端 session 产品、账户级 retention 和未写入发布物的原始实现不在本仓库可恢复范围内。

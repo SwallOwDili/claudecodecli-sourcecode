@@ -10,6 +10,8 @@ import process from "node:process";
 
 const MARKERS = {
   request: "REQUEST_SHAPE_MARKER",
+  apiKey: "API_KEY_REQUEST_MARKER",
+  cacheDisabled: "CACHE_DISABLED_REQUEST_MARKER",
   hookDeny: "HOOK_DENY_PROMPT_MARKER",
   hookReason: "HOOK_DENY_MARKER",
   stop: "STOP_REENTRY_PROMPT_MARKER",
@@ -282,6 +284,7 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
     CLAUDE_CONFIG_DIR: configDir,
     ANTHROPIC_BASE_URL: `http://127.0.0.1:${server.address().port}`,
     ANTHROPIC_AUTH_TOKEN: "runtime-control-probe-token",
+    ANTHROPIC_API_KEY: "",
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
     DISABLE_AUTOUPDATER: "1",
     DISABLE_ERROR_REPORTING: "1",
@@ -302,6 +305,8 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
   });
 
   let requestRun;
+  let apiKeyRun;
+  let cacheDisabledRun;
   let hookDenyRun;
   let stopRun;
   let maxTurnsRun;
@@ -312,6 +317,22 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
       "--session-id", randomUUID(),
       MARKERS.request,
     ]);
+    apiKeyRun = await run([
+      ...commonArgs,
+      "--tools", "",
+      "--session-id", randomUUID(),
+      MARKERS.apiKey,
+    ], {
+      ...baseEnv,
+      ANTHROPIC_AUTH_TOKEN: "",
+      ANTHROPIC_API_KEY: "api-key-probe-token",
+    });
+    cacheDisabledRun = await run([
+      ...commonArgs,
+      "--tools", "Read",
+      "--session-id", randomUUID(),
+      MARKERS.cacheDisabled,
+    ], { ...baseEnv, DISABLE_PROMPT_CACHING: "1" });
     hookDenyRun = await run([
       ...commonArgs,
       "--settings", settingsFile,
@@ -349,11 +370,13 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
   });
   const hookEvents = await readJsonLines(hookLog);
   const requestGroups = Object.fromEntries(Object.entries(MARKERS)
-    .filter(([key]) => ["request", "hookDeny", "stop", "maxTurns"].includes(key))
+    .filter(([key]) => ["request", "apiKey", "cacheDisabled", "hookDeny", "stop", "maxTurns"].includes(key))
     .map(([key, marker]) => [key, requests.filter(({ body }) => JSON.stringify(body.messages).includes(marker))]));
 
   const requestShapeBody = requestGroups.request[0]?.body;
   const requestShapeHeaders = requestGroups.request[0]?.headers ?? {};
+  const apiKeyHeaders = requestGroups.apiKey[0]?.headers ?? {};
+  const cacheDisabledBody = requestGroups.cacheDisabled[0]?.body;
   const hookDenySecond = requestGroups.hookDeny[1]?.body;
   const hookDenyToolResult = containsBlock(hookDenySecond?.messages, (value) =>
     value.type === "tool_result"
@@ -378,6 +401,13 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
     requestModelMatches: requestShapeBody?.model === "claude-sonnet-4-5",
     requestAdvertisesRead: requestShapeBody?.tools?.some((tool) => tool.name === "Read") ?? false,
     requestHasCacheControl: countCacheControls(requestShapeBody) > 0,
+    apiKeyExitZero: apiKeyRun.exitStatus === 0,
+    apiKeyResultSuccess: resultEvent(apiKeyRun)?.result === "AUXILIARY_OK",
+    apiKeyHeaderObserved: apiKeyHeaders["x-api-key"] === "api-key-probe-token",
+    apiKeyAuthorizationAbsent: apiKeyHeaders.authorization === undefined,
+    cacheDisabledExitZero: cacheDisabledRun.exitStatus === 0,
+    cacheDisabledResultSuccess: resultEvent(cacheDisabledRun)?.result === "AUXILIARY_OK",
+    cacheDisabledRemovesCacheControl: countCacheControls(cacheDisabledBody) === 0,
     hookDenyExitZero: hookDenyRun.exitStatus === 0,
     hookDenyResultSuccess: resultEvent(hookDenyRun)?.result === "HOOK_DENY_OK",
     hookDenyEventObserved: hookEvents.some((event) => event.event === "PreToolUse" && event.toolUseId === "toolu_hook_deny_probe"),
@@ -394,18 +424,28 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
 
   const report = {
     schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    environment: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
     target: {
       version: expectedVersion,
       binarySha256: await sha256(binary),
     },
     commands: {
       requestShape: "$CLAUDE_2_1_235 --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+      apiKey: "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_2_1_235 --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
+      cacheDisabled: "DISABLE_PROMPT_CACHING=1 $CLAUDE_2_1_235 --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
       hookDeny: "$CLAUDE_2_1_235 --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
       stopReentry: "$CLAUDE_2_1_235 --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
       maxTurns: "$CLAUDE_2_1_235 --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID",
     },
     input: {
       requestShape: { prompt: MARKERS.request, auth: "ANTHROPIC_AUTH_TOKEN", tools: ["Read"] },
+      apiKey: { prompt: MARKERS.apiKey, auth: "ANTHROPIC_API_KEY", tools: [] },
+      cacheDisabled: { prompt: MARKERS.cacheDisabled, disablePromptCaching: true, tools: ["Read"] },
       hookDeny: { prompt: MARKERS.hookDeny, toolUseId: "toolu_hook_deny_probe", hookReason: MARKERS.hookReason },
       stopReentry: { prompt: MARKERS.stop, firstModelResult: "STOP_FIRST_END", feedback: MARKERS.stopReason },
       maxTurns: { prompt: MARKERS.maxTurns, maxTurns: 1, toolUseId: "toolu_max_turns_probe" },
@@ -413,6 +453,8 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
     literalOutput: {
       version: versionRun.stdout.trim(),
       requestShape: normalizeResult(requestRun),
+      apiKey: normalizeResult(apiKeyRun),
+      cacheDisabled: normalizeResult(cacheDisabledRun),
       hookDeny: normalizeResult(hookDenyRun),
       stopReentry: normalizeResult(stopRun),
       maxTurns: normalizeResult(maxTurnsRun),
@@ -420,6 +462,8 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
     exitStatus: {
       version: versionRun.exitStatus,
       requestShape: requestRun.exitStatus,
+      apiKey: apiKeyRun.exitStatus,
+      cacheDisabled: cacheDisabledRun.exitStatus,
       hookDeny: hookDenyRun.exitStatus,
       stopReentry: stopRun.exitStatus,
       maxTurns: maxTurnsRun.exitStatus,
@@ -433,6 +477,15 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
         anthropicBetaPresent: typeof requestShapeHeaders["anthropic-beta"] === "string",
         cacheControlCount: countCacheControls(requestShapeBody),
         toolNames: requestShapeBody?.tools?.map((tool) => tool.name) ?? [],
+      },
+      apiKey: {
+        requestCount: requestGroups.apiKey.length,
+        authHeader: apiKeyHeaders.authorization === undefined ? "absent" : "present",
+        apiKeyHeader: apiKeyHeaders["x-api-key"] === undefined ? "absent" : "$API_KEY",
+      },
+      cacheDisabled: {
+        requestCount: requestGroups.cacheDisabled.length,
+        cacheControlCount: countCacheControls(cacheDisabledBody),
       },
       hookDeny: {
         requestCount: requestGroups.hookDeny.length,
@@ -455,6 +508,8 @@ if (process.env.PROBE_HOOK_MODE === "deny" && event.hook_event_name === "PreTool
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   if (!report.pass) {
     process.stderr.write(requestRun.stderr);
+    process.stderr.write(apiKeyRun.stderr);
+    process.stderr.write(cacheDisabledRun.stderr);
     process.stderr.write(hookDenyRun.stderr);
     process.stderr.write(stopRun.stderr);
     process.stderr.write(maxTurnsRun.stderr);

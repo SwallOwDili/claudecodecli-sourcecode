@@ -40,7 +40,11 @@ def digest(data: bytes) -> str:
 
 
 def normalize_text(value: str) -> str:
-    return re.sub(r"\s+", " ", html.unescape(value)).strip()
+    normalized = html.unescape(value).translate(
+        str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
+    )
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return re.sub(r"\s+([,.;:!?])", r"\1", normalized)
 
 
 def semantic_text(body: bytes) -> str:
@@ -49,17 +53,19 @@ def semantic_text(body: bytes) -> str:
     return normalize_text(" ".join(parser.parts))
 
 
-def excerpt_hashes(path: Path) -> dict[str, str]:
+def excerpt_blocks(path: Path) -> tuple[dict[str, str], dict[str, list[str]]]:
     content = path.read_text(encoding="utf-8")
     headings = list(re.finditer(r"^## `([^`]+)`\s*$", content, re.MULTILINE))
-    output: dict[str, str] = {}
+    hashes: dict[str, str] = {}
+    quote_lines: dict[str, list[str]] = {}
     for index, heading in enumerate(headings):
         end = headings[index + 1].start() if index + 1 < len(headings) else len(content)
         block = content[heading.end():end]
-        quotes = re.findall(r"^>\s?(.*)$", block, re.MULTILINE)
+        quotes = [normalize_text(value) for value in re.findall(r"^>\s?(.*)$", block, re.MULTILINE)]
         normalized = normalize_text(" ".join(quotes))
-        output[heading.group(1)] = digest(normalized.encode())
-    return output
+        hashes[heading.group(1)] = digest(normalized.encode())
+        quote_lines[heading.group(1)] = quotes
+    return hashes, quote_lines
 
 
 def fetch(url: str) -> tuple[int, bytes]:
@@ -67,6 +73,8 @@ def fetch(url: str) -> tuple[int, bytes]:
         result = subprocess.run(
             [
                 "curl", "-L", "--compressed", "--silent", "--show-error",
+                "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
+                "--connect-timeout", "15", "--max-time", "90",
                 "--output", body_file.name, "--write-out", "%{http_code}", url,
             ],
             check=True,
@@ -84,11 +92,21 @@ def main() -> None:
     manifest_path = repo / "analysis/public-sources/manifest.json"
     excerpts_path = repo / "analysis/public-source-excerpts.md"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    hashes = excerpt_hashes(excerpts_path)
+    hashes, quote_lines = excerpt_blocks(excerpts_path)
 
     for source in manifest["sources"]:
         status, body = fetch(source["url"])
-        visible = semantic_text(body).encode()
+        visible_text = semantic_text(body)
+        visible = visible_text.encode()
+        source_matches = {
+            excerpt_id: all(line in visible_text for line in quote_lines[excerpt_id])
+            for excerpt_id in source["excerptIds"]
+        }
+        missing = [excerpt_id for excerpt_id, matched in source_matches.items() if not matched]
+        if missing:
+            raise ValueError(
+                f"quoted excerpts are not present in visible source text for {source['id']}: {missing}"
+            )
         source.update(
             status=status,
             bytes=len(body),
@@ -96,6 +114,7 @@ def main() -> None:
             semanticTextBytes=len(visible),
             semanticTextSha256=digest(visible),
             excerptSha256={excerpt_id: hashes[excerpt_id] for excerpt_id in source["excerptIds"]},
+            excerptSourceVerified=source_matches,
         )
 
     manifest["schemaVersion"] = 2
@@ -103,7 +122,8 @@ def main() -> None:
     manifest["captureMethod"] = (
         "curl HTTP GET with redirects and content decoding; sha256 covers response bytes; "
         "semanticTextSha256 covers whitespace-normalized visible HTML text with script/style/svg/"
-        "noscript/template content removed; excerptSha256 covers normalized quoted excerpts"
+        "noscript/template content removed; excerptSha256 covers normalized quoted excerpts; "
+        "excerptSourceVerified requires every normalized quoted line to occur in visible source text"
     )
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
 

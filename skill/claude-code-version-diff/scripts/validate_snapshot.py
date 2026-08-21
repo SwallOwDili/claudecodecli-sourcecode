@@ -71,6 +71,12 @@ HUMAN_ANALYSIS_DOCS = {
         "Probe",
         "Boundary",
     ),
+    "analysis/runtime-probe-index.md": (
+        "literalOutput",
+        "exitStatus",
+        "状态变化",
+        "仍然保留的边界",
+    ),
     "analysis/technical-architecture.md": (
         "request",
         "context",
@@ -181,8 +187,16 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/tui-ide-remote-cloud.md": (6000, 10),
     "analysis/install-update-doctor-lifecycle.md": (5000, 8),
     "analysis/native-bridge-runtime.md": (6000, 10),
+    "analysis/runtime-probe-index.md": (9000, 10),
 }
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
+STATIC_EVIDENCE_KINDS = {
+    "runtime",
+    "constant",
+    "consumer",
+    "surface",
+    "declaration",
+}
 MECHANISM_TOPIC_MINIMUMS = {
     "agent-loop": 8,
     "context-governance": 6,
@@ -434,6 +448,14 @@ def read_jsonl(path: Path, failures: list[str]) -> list[dict]:
     return records
 
 
+def normalize_public_text(value: str) -> str:
+    normalized = value.translate(
+        str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
+    )
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return re.sub(r"\s+([,.;:!?])", r"\1", normalized)
+
+
 def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, dict], set[str]]:
     manifest_path = repo / "analysis/public-sources/manifest.json"
     excerpts_path = repo / "analysis/public-source-excerpts.md"
@@ -499,6 +521,13 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
             failures.append(f"public source {source_id} excerptSha256 keys differ from excerptIds")
         elif not all(re.fullmatch(r"[0-9a-f]{64}", str(value)) for value in excerpt_hashes.values()):
             failures.append(f"public source {source_id} has invalid excerptSha256")
+        source_verified = source.get("excerptSourceVerified")
+        if not isinstance(source_verified, dict) or set(source_verified) != set(excerpt_ids):
+            failures.append(
+                f"public source {source_id} excerptSourceVerified keys differ from excerptIds"
+            )
+        elif not all(value is True for value in source_verified.values()):
+            failures.append(f"public source {source_id} has unverified quoted excerpts")
     excerpts = excerpts_path.read_text(encoding="utf-8")
     heading_matches = list(re.finditer(r"^## `([^`]+)`\s*$", excerpts, re.MULTILINE))
     excerpt_ids = {match.group(1) for match in heading_matches}
@@ -517,7 +546,7 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
         if not re.search(r"^>\s+\S", block, re.MULTILINE):
             failures.append(f"public excerpt {match.group(1)} has no quoted content")
         quotes = re.findall(r"^>\s?(.*)$", block, re.MULTILINE)
-        normalized = re.sub(r"\s+", " ", " ".join(quotes)).strip()
+        normalized = normalize_public_text(" ".join(quotes))
         observed_excerpt_hashes[match.group(1)] = hashlib.sha256(normalized.encode()).hexdigest()
     declared = set(declared_owners)
     if excerpt_ids != declared:
@@ -592,6 +621,7 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
     sources, excerpt_ids = validate_public_sources(repo, failures)
     source_cache: dict[str, list[str]] = {}
     claim_ids: set[str] = set()
+    probe_claim_ids: set[str] = set()
     topic_counts: dict[str, int] = {}
     for index, record in enumerate(records, 1):
         claim_id = record.get("claimId")
@@ -614,6 +644,18 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
             topic_counts[topic] = topic_counts.get(topic, 0) + 1
 
         if evidence_class == "Static":
+            static_kind = record.get("staticEvidenceKind")
+            if static_kind not in STATIC_EVIDENCE_KINDS:
+                failures.append(
+                    f"mechanism evidence {claim_id} has invalid staticEvidenceKind"
+                )
+            if static_kind in {"surface", "declaration"} and not isinstance(
+                record.get("evidenceLimitation"), str
+            ):
+                failures.append(
+                    f"mechanism evidence {claim_id} must state evidenceLimitation "
+                    f"for {static_kind} evidence"
+                )
             source_view = record.get("sourceView")
             relative = record.get("path")
             if SOURCE_VIEW_PATHS.get(source_view) != relative:
@@ -657,6 +699,7 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
                     )
 
         elif evidence_class == "Probe":
+            probe_claim_ids.add(claim_id)
             report_relative = record.get("reportPath")
             if (
                 not isinstance(report_relative, str)
@@ -675,6 +718,19 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
                 failures.append(f"mechanism evidence {claim_id} has invalid probe report: {error}")
                 continue
             target = report.get("target", {})
+            captured_at = report.get("capturedAt")
+            if not isinstance(captured_at, str) or not re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", captured_at
+            ):
+                failures.append(
+                    f"mechanism evidence {claim_id} probe report has invalid capturedAt"
+                )
+            environment = report.get("environment", {})
+            for metadata_field in ("platform", "arch", "nodeVersion"):
+                if not isinstance(environment.get(metadata_field), str) or not environment[metadata_field]:
+                    failures.append(
+                        f"mechanism evidence {claim_id} probe environment missing {metadata_field}"
+                    )
             if not isinstance(target.get("version"), str) or not target["version"]:
                 failures.append(f"mechanism evidence {claim_id} probe target missing version")
             if not re.fullmatch(r"[0-9a-f]{64}", str(target.get("binarySha256", ""))):
@@ -757,6 +813,14 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
             )
     if len(records) < 90:
         failures.append(f"mechanism evidence has {len(records)} records; minimum is 90")
+    probe_index_path = repo / "analysis/runtime-probe-index.md"
+    if not probe_index_path.is_file():
+        failures.append("missing analysis/runtime-probe-index.md")
+    else:
+        probe_index = probe_index_path.read_text(encoding="utf-8")
+        for probe_claim_id in sorted(probe_claim_ids):
+            if f"`{probe_claim_id}`" not in probe_index:
+                failures.append(f"Probe claim is missing from runtime probe index: {probe_claim_id}")
     validate_markdown_source_references(repo, failures)
     return len(records)
 
@@ -774,6 +838,17 @@ def validate_native_reconstruction_report(repo: Path, failures: list[str]) -> in
         return 0
     if report.get("schemaVersion") != 1 or report.get("pass") is not True:
         failures.append("native reconstruction behavior report did not pass schema 1")
+    captured_at = report.get("capturedAt")
+    if not isinstance(captured_at, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", captured_at
+    ):
+        failures.append("native reconstruction report has invalid capturedAt")
+    environment = report.get("environment", {})
+    for metadata_field in ("platform", "arch", "nodeVersion"):
+        if not isinstance(environment.get(metadata_field), str) or not environment[metadata_field]:
+            failures.append(
+                f"native reconstruction environment missing {metadata_field}"
+            )
     if report.get("target", {}).get("version") != version.get("version"):
         failures.append("native reconstruction report version differs from snapshot")
     if report.get("target", {}).get("binarySha256") != version.get("binary", {}).get("sha256"):

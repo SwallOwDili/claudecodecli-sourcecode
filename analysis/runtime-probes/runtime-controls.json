@@ -1,11 +1,19 @@
 {
   "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:21.352Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
   "target": {
     "version": "2.1.235",
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
     "requestShape": "$CLAUDE_2_1_235 --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+    "apiKey": "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_2_1_235 --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
+    "cacheDisabled": "DISABLE_PROMPT_CACHING=1 $CLAUDE_2_1_235 --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
     "hookDeny": "$CLAUDE_2_1_235 --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
     "stopReentry": "$CLAUDE_2_1_235 --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
     "maxTurns": "$CLAUDE_2_1_235 --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID"
@@ -14,6 +22,18 @@
     "requestShape": {
       "prompt": "REQUEST_SHAPE_MARKER",
       "auth": "ANTHROPIC_AUTH_TOKEN",
+      "tools": [
+        "Read"
+      ]
+    },
+    "apiKey": {
+      "prompt": "API_KEY_REQUEST_MARKER",
+      "auth": "ANTHROPIC_API_KEY",
+      "tools": []
+    },
+    "cacheDisabled": {
+      "prompt": "CACHE_DISABLED_REQUEST_MARKER",
+      "disablePromptCaching": true,
       "tools": [
         "Read"
       ]
@@ -42,6 +62,18 @@
       "isError": false,
       "exitStatus": 0
     },
+    "apiKey": {
+      "result": "AUXILIARY_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "cacheDisabled": {
+      "result": "AUXILIARY_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
     "hookDeny": {
       "result": "HOOK_DENY_OK",
       "subtype": "success",
@@ -64,6 +96,8 @@
   "exitStatus": {
     "version": 0,
     "requestShape": 0,
+    "apiKey": 0,
+    "cacheDisabled": 0,
     "hookDeny": 0,
     "stopReentry": 0,
     "maxTurns": 1
@@ -79,6 +113,15 @@
       "toolNames": [
         "Read"
       ]
+    },
+    "apiKey": {
+      "requestCount": 1,
+      "authHeader": "absent",
+      "apiKeyHeader": "$API_KEY"
+    },
+    "cacheDisabled": {
+      "requestCount": 1,
+      "cacheControlCount": 0
     },
     "hookDeny": {
       "requestCount": 2,
@@ -107,6 +150,13 @@
     "requestModelMatches": true,
     "requestAdvertisesRead": true,
     "requestHasCacheControl": true,
+    "apiKeyExitZero": true,
+    "apiKeyResultSuccess": true,
+    "apiKeyHeaderObserved": true,
+    "apiKeyAuthorizationAbsent": true,
+    "cacheDisabledExitZero": true,
+    "cacheDisabledResultSuccess": true,
+    "cacheDisabledRemovesCacheControl": true,
     "hookDenyExitZero": true,
     "hookDenyResultSuccess": true,
     "hookDenyEventObserved": true,

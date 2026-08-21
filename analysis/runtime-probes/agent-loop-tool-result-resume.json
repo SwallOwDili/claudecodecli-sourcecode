@@ -1,5 +1,11 @@
 {
   "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:18.208Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
   "target": {
     "version": "2.1.235",
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
@@ -7,7 +13,9 @@
   "commands": {
     "baseline": "$CLAUDE_2_1_235 --version",
     "initial": "$CLAUDE_2_1_235 --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-    "resume": "$CLAUDE_2_1_235 --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID"
+    "resume": "$CLAUDE_2_1_235 --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+    "compact": "$CLAUDE_2_1_235 --print '/compact COMPACT_REQUEST_MARKER retain key facts' --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+    "fork": "$CLAUDE_2_1_235 --print AGENT_LOOP_FORK_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID --fork-session"
   },
   "input": {
     "initialPrompt": "AGENT_LOOP_INITIAL_MARKER",
@@ -17,23 +25,49 @@
       "file": "$WORKSPACE/probe-fixture.txt"
     },
     "fixtureContent": "AGENT_LOOP_FILE_MARKER",
-    "resumePrompt": "AGENT_LOOP_RESUME_MARKER"
+    "resumePrompt": "AGENT_LOOP_RESUME_MARKER",
+    "compactPrompt": "/compact COMPACT_REQUEST_MARKER retain key facts",
+    "forkPrompt": "AGENT_LOOP_FORK_MARKER"
   },
   "literalOutput": {
     "version": "2.1.235 (Claude Code)",
     "initialResult": "TOOL_EXECUTION_OK",
     "initialSubtype": "success",
     "resumeResult": "RESUME_OK",
-    "resumeSubtype": "success"
+    "resumeSubtype": "success",
+    "compactResult": "",
+    "compactSubtype": "success",
+    "compactEventTypes": [
+      "system:status",
+      "system:status",
+      "system:init",
+      "system:compact_boundary",
+      "user:",
+      "user:",
+      "result:success"
+    ],
+    "compactBoundary": {
+      "trigger": "manual",
+      "preTokens": 104
+    },
+    "forkResult": "FORK_OK",
+    "forkSubtype": "success",
+    "sessionIds": {
+      "initial": "$SESSION_ID",
+      "fork": "$FORK_SESSION_ID"
+    }
   },
   "exitStatus": {
     "version": 0,
     "initial": 0,
-    "resume": 0
+    "resume": 0,
+    "compact": 0,
+    "fork": 0
   },
-  "observedRequestCount": 3,
+  "observedRequestCount": 5,
   "checks": {
     "exactVersion": true,
+    "exactBinarySha256": true,
     "initialExitZero": true,
     "initialResultSuccess": true,
     "firstRequestHasPrompt": true,
@@ -45,7 +79,18 @@
     "resumeResultSuccess": true,
     "resumeRequestHasInitialPrompt": true,
     "resumeRequestHasInitialAssistantResult": true,
-    "resumeRequestHasCurrentPrompt": true
+    "resumeRequestHasCurrentPrompt": true,
+    "compactCommandExitZero": true,
+    "compactCommandProducedResult": true,
+    "compactBoundaryEmitted": true,
+    "forkExitZero": true,
+    "forkResultSuccess": true,
+    "forkSessionIdDiffers": true,
+    "forkRequestOmitsPreCompactPrompt": true,
+    "forkRequestOmitsPreCompactToolUseId": true,
+    "forkRequestOmitsPreCompactAssistantResult": true,
+    "forkRequestHasCompactSummary": true,
+    "forkRequestHasCurrentPrompt": true
   },
   "pass": true
 }

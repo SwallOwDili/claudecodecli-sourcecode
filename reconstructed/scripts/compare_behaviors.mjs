@@ -375,6 +375,12 @@ if (reportPath) {
   for (const modules of Object.values(originalArchitectures)) modules.sort();
   const report = {
     schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    environment: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
     target: { version, binarySha256: versionRecord.binary.sha256 },
     evidenceClasses: {
       original: "Observed: release modules and same-input runtime outputs",

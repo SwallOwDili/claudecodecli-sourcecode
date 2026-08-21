@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:33.021Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "allowedWrite": "$CLAUDE_2_1_235 --print SANDBOX_ALLOWED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
+    "deniedWrite": "$CLAUDE_2_1_235 --print SANDBOX_DENIED_WRITE_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions",
+    "deniedNetwork": "$CLAUDE_2_1_235 --print SANDBOX_DENIED_NETWORK_MARKER --settings $SANDBOX_SETTINGS --tools Bash --permission-mode bypassPermissions --dangerously-skip-permissions"
+  },
+  "input": {
+    "settings": {
+      "enabled": true,
+      "failIfUnavailable": true,
+      "allowUnsandboxedCommands": false,
+      "filesystemDenyWrite": "$OUTSIDE",
+      "networkAllowedDomains": [],
+      "networkStrictAllowlist": true
+    },
+    "allowedWrite": {
+      "target": "$WORKSPACE/allowed.txt",
+      "content": "ALLOWED"
+    },
+    "deniedWrite": {
+      "target": "$OUTSIDE/denied.txt",
+      "content": "BLOCKED"
+    },
+    "deniedNetwork": {
+      "target": "http://127.0.0.1:$PORT/probe"
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "allowedWrite": {
+      "result": "SANDBOX_ALLOWED_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "deniedWrite": {
+      "result": "SANDBOX_DENIED_WRITE_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    },
+    "deniedNetwork": {
+      "result": "SANDBOX_DENIED_NETWORK_OK",
+      "subtype": "success",
+      "isError": false,
+      "exitStatus": 0
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "allowedWrite": 0,
+    "deniedWrite": 0,
+    "deniedNetwork": 0
+  },
+  "observed": {
+    "allowedWrite": {
+      "requestCount": 2,
+      "fileContent": "ALLOWED",
+      "toolError": false
+    },
+    "deniedWrite": {
+      "requestCount": 2,
+      "fileExists": false,
+      "toolError": true
+    },
+    "deniedNetwork": {
+      "requestCount": 2,
+      "serverHitCount": 0,
+      "toolError": true
+    }
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "allowedRunSucceeds": true,
+    "allowedWriteCreatedFile": true,
+    "allowedToolResultIsSuccess": true,
+    "deniedWriteRunCompletesLoop": true,
+    "deniedWriteReturnsToolError": true,
+    "deniedWriteDidNotCreateFile": true,
+    "deniedNetworkRunCompletesLoop": true,
+    "deniedNetworkReturnsToolError": true,
+    "deniedNetworkDidNotReachServer": true
+  },
+  "pass": true
+}

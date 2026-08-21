@@ -124,6 +124,8 @@ async function main() {
   const binary = process.env.CLAUDE_BIN
     ?? path.join(os.homedir(), ".local/share/claude/versions/2.1.235");
   const expectedVersion = process.env.CLAUDE_VERSION ?? "2.1.235";
+  const expectedSha256 = process.env.CLAUDE_SHA256
+    ?? "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748";
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-agent-loop-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
@@ -136,6 +138,8 @@ async function main() {
 
   const initialPrompt = "AGENT_LOOP_INITIAL_MARKER";
   const resumePrompt = "AGENT_LOOP_RESUME_MARKER";
+  const forkPrompt = "AGENT_LOOP_FORK_MARKER";
+  const compactPrompt = "/compact COMPACT_REQUEST_MARKER retain key facts";
   const fileMarker = "AGENT_LOOP_FILE_MARKER";
   const fixture = path.join(workspace, "probe-fixture.txt");
   await writeFile(fixture, `${fileMarker}\n`, { mode: 0o600 });
@@ -156,6 +160,7 @@ async function main() {
     const isProbeRequest = body.tools?.some((tool) => tool.name === "Read")
       || bodyText.includes(initialPrompt)
       || bodyText.includes(resumePrompt)
+      || bodyText.includes(forkPrompt)
       || bodyText.includes(toolUseId);
     if (!isProbeRequest) {
       writeSse(response, textResponse(body.model ?? "claude-probe", "AUXILIARY_OK"));
@@ -167,6 +172,10 @@ async function main() {
       writeSse(response, toolResponse(body.model ?? "claude-probe", toolUseId, fixture));
     } else if (mainBodies.length === 2) {
       writeSse(response, textResponse(body.model ?? "claude-probe", "TOOL_EXECUTION_OK"));
+    } else if (bodyText.includes(forkPrompt)) {
+      writeSse(response, textResponse(body.model ?? "claude-probe", "FORK_OK"));
+    } else if (bodyText.includes("COMPACT_REQUEST_MARKER")) {
+      writeSse(response, textResponse(body.model ?? "claude-probe", "COMPACT_SUMMARY_OK"));
     } else {
       writeSse(response, textResponse(body.model ?? "claude-probe", "RESUME_OK"));
     }
@@ -200,6 +209,8 @@ async function main() {
 
   let initial;
   let resumed;
+  let forked;
+  let compacted;
   try {
     initial = await runCli(binary, [
       ...commonArgs,
@@ -211,17 +222,36 @@ async function main() {
       "--resume", sessionId,
       resumePrompt,
     ], { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] });
+    compacted = await runCli(binary, [
+      ...commonArgs,
+      "--resume", sessionId,
+      compactPrompt,
+    ], { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] });
+    forked = await runCli(binary, [
+      ...commonArgs,
+      "--resume", sessionId,
+      "--fork-session",
+      forkPrompt,
+    ], { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] });
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
 
   const initialEvents = parseStream(initial.stdout);
   const resumeEvents = parseStream(resumed.stdout);
+  const compactEvents = parseStream(compacted.stdout);
+  const forkEvents = parseStream(forked.stdout);
   const initialResult = resultEvent(initialEvents);
   const resumeResult = resultEvent(resumeEvents);
+  const compactResult = resultEvent(compactEvents);
+  const compactBoundary = compactEvents.find((event) => event.type === "system" && event.subtype === "compact_boundary");
+  const forkResult = resultEvent(forkEvents);
+  const initialSystem = initialEvents.find((event) => event.type === "system" && event.subtype === "init");
+  const forkSystem = forkEvents.find((event) => event.type === "system" && event.subtype === "init");
   const firstBody = mainBodies[0];
   const secondBody = mainBodies[1];
-  const resumeBody = mainBodies.at(-1);
+  const resumeBody = mainBodies.find((body) => JSON.stringify(body.messages).includes(resumePrompt));
+  const forkBody = mainBodies.find((body) => JSON.stringify(body.messages).includes(forkPrompt));
   const secondRequestHasToolUse = containsBlock(secondBody?.messages, (value) =>
     value.type === "tool_use" && value.id === toolUseId && value.name === "Read"
   );
@@ -231,6 +261,7 @@ async function main() {
       && JSON.stringify(value.content).includes(fileMarker)
   );
   const resumeBodyText = JSON.stringify(resumeBody?.messages);
+  const forkBodyText = JSON.stringify(forkBody?.messages);
   const versionRun = await runCli(binary, ["--version"], {
     cwd: workspace,
     env,
@@ -240,6 +271,7 @@ async function main() {
 
   const checks = {
     exactVersion: literalVersion === `${expectedVersion} (Claude Code)`,
+    exactBinarySha256: await sha256(binary) === expectedSha256,
     initialExitZero: initial.exitStatus === 0,
     initialResultSuccess: initialResult?.subtype === "success",
     firstRequestHasPrompt: JSON.stringify(firstBody?.messages).includes(initialPrompt),
@@ -252,9 +284,28 @@ async function main() {
     resumeRequestHasInitialPrompt: resumeBodyText.includes(initialPrompt),
     resumeRequestHasInitialAssistantResult: resumeBodyText.includes("TOOL_EXECUTION_OK"),
     resumeRequestHasCurrentPrompt: resumeBodyText.includes(resumePrompt),
+    compactCommandExitZero: compacted.exitStatus === 0,
+    compactCommandProducedResult: compactResult !== undefined,
+    compactBoundaryEmitted: compactBoundary !== undefined,
+    forkExitZero: forked.exitStatus === 0,
+    forkResultSuccess: forkResult?.result === "FORK_OK",
+    forkSessionIdDiffers: typeof initialSystem?.session_id === "string"
+      && typeof forkSystem?.session_id === "string"
+      && forkSystem.session_id !== initialSystem.session_id,
+    forkRequestOmitsPreCompactPrompt: !forkBodyText.includes(initialPrompt),
+    forkRequestOmitsPreCompactToolUseId: !forkBodyText.includes(toolUseId),
+    forkRequestOmitsPreCompactAssistantResult: !forkBodyText.includes("TOOL_EXECUTION_OK"),
+    forkRequestHasCompactSummary: forkBodyText.includes("COMPACT_SUMMARY_OK"),
+    forkRequestHasCurrentPrompt: forkBodyText.includes(forkPrompt),
   };
   const report = {
     schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    environment: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
     target: {
       version: expectedVersion,
       binarySha256: await sha256(binary),
@@ -263,12 +314,16 @@ async function main() {
       baseline: "$CLAUDE_2_1_235 --version",
       initial: "$CLAUDE_2_1_235 --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
       resume: "$CLAUDE_2_1_235 --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+      compact: "$CLAUDE_2_1_235 --print '/compact COMPACT_REQUEST_MARKER retain key facts' --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+      fork: "$CLAUDE_2_1_235 --print AGENT_LOOP_FORK_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID --fork-session",
     },
     input: {
       initialPrompt,
       modelToolUse: { id: toolUseId, name: "Read", file: "$WORKSPACE/probe-fixture.txt" },
       fixtureContent: fileMarker,
       resumePrompt,
+      compactPrompt,
+      forkPrompt,
     },
     literalOutput: {
       version: literalVersion,
@@ -276,11 +331,26 @@ async function main() {
       initialSubtype: initialResult?.subtype ?? null,
       resumeResult: resumeResult?.result ?? null,
       resumeSubtype: resumeResult?.subtype ?? null,
+      compactResult: compactResult?.result ?? null,
+      compactSubtype: compactResult?.subtype ?? null,
+      compactEventTypes: compactEvents.map((event) => `${event.type}:${event.subtype ?? ""}`),
+      compactBoundary: compactBoundary === undefined ? null : {
+        trigger: compactBoundary.compact_metadata?.trigger ?? compactBoundary.trigger ?? null,
+        preTokens: compactBoundary.compact_metadata?.pre_tokens ?? compactBoundary.pre_tokens ?? null,
+      },
+      forkResult: forkResult?.result ?? null,
+      forkSubtype: forkResult?.subtype ?? null,
+      sessionIds: {
+        initial: initialSystem?.session_id === undefined ? null : "$SESSION_ID",
+        fork: forkSystem?.session_id === undefined ? null : "$FORK_SESSION_ID",
+      },
     },
     exitStatus: {
       version: versionRun.exitStatus,
       initial: initial.exitStatus,
       resume: resumed.exitStatus,
+      compact: compacted.exitStatus,
+      fork: forked.exitStatus,
     },
     observedRequestCount: mainBodies.length,
     checks,
@@ -290,6 +360,8 @@ async function main() {
   if (!report.pass) {
     process.stderr.write(initial.stderr);
     process.stderr.write(resumed.stderr);
+    process.stderr.write(compacted.stderr);
+    process.stderr.write(forked.stderr);
     process.exitCode = 1;
   }
 }

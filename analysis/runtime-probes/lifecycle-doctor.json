@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T08:52:37.548Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "updateDisabled": "DISABLE_UPDATES=1 $CLAUDE_2_1_235 update",
+    "doctor": "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_2_1_235 doctor"
+  },
+  "input": {
+    "updateDisabled": {
+      "disableUpdates": true
+    },
+    "doctor": {
+      "settingsFile": "$CONFIG/settings.json",
+      "settingsContent": "{invalid",
+      "customEndpoint": "http://127.0.0.1:9",
+      "disableAutoUpdater": true,
+      "disableNonessentialTraffic": true
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "updateDisabled": "Updates are disabled by your administrator. Contact your IT team to get the latest version.",
+    "doctor": [
+      "Claude Code doctor",
+      "Running: native (2.1.235)",
+      "Commit: ba01fa45e3d1",
+      "Platform: darwin-arm64",
+      "Search: OK (bundled)",
+      "Auto-updates: disabled (set by env: DISABLE_AUTOUPDATER)",
+      "Auto-update channel: latest",
+      "Last update attempt: none recorded",
+      "Invalid settings",
+      "- $CONFIG/settings.json: Invalid or malformed JSON",
+      "Remote Control",
+      "Remote Control is only available when using Claude via api.anthropic.com. ANTHROPIC_BASE_URL is set and does not point at api.anthropic.com, so this session is using a custom endpoint — unset it (or run in a shell without it) to use Remote Control.",
+      "- Not connected to the Anthropic API (api.anthropic.com)",
+      "- Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)"
+    ]
+  },
+  "exitStatus": {
+    "version": 0,
+    "updateDisabled": 0,
+    "doctor": 0
+  },
+  "observed": {
+    "doctorLineCount": 14,
+    "invalidSettingsDetected": true,
+    "remoteControlAvailable": false,
+    "autoUpdatesEnabled": false
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "updateGateExitZero": true,
+    "updateGateMessageExact": true,
+    "doctorExitZero": true,
+    "doctorIdentifiesNativeVersion": true,
+    "doctorIdentifiesCommit": true,
+    "doctorIdentifiesPlatform": true,
+    "doctorIdentifiesBundledSearch": true,
+    "doctorReportsAutoUpdateGate": true,
+    "doctorReportsInvalidSettings": true,
+    "doctorReportsRemoteCustomEndpointBoundary": true,
+    "doctorReportsFeatureEvaluationBoundary": true
+  },
+  "pass": true
+}

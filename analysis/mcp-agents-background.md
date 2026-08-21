@@ -200,6 +200,10 @@ Exit status: 0
 
 恢复 transcript 不会凭空复活只存在旧进程内存中的后台 Promise。版本报告必须区分 durable background task 与普通进程内 task。
 
+当前官方 [Enterprise network configuration](https://code.claude.com/docs/en/network-config) 进一步说明：background agents 不运行在派发它们的 terminal 内，而由按需启动、可超过 shell 生命周期的 per-user supervisor 承载。仅在某个 shell 里 export proxy、CA 或 mTLS 变量，会导致“哪个 shell 首次启动 supervisor”决定配置是否继承；user/managed settings 的 `env` 才是所有 background session 都能稳定读取的配置入口。该主张登记为 `public.background-network-settings`。
+
+这是当前文档对 supervisor ownership 的说明，不等于本快照已完成 supervisor 重启/reattach Probe。2.1.235 对 background/task 的客户端分支可以静态定位，但跨进程 durability 仍需另建长生命周期运行场景后才能写成 Probe。
+
 ## Task registry 与 claim
 
 Agent team 需要共享任务状态，但不能让多个 teammate 同时无条件执行同一任务。`2.1.235` 的 task claim 路径位于 `reverse/javascript/cli.readable.js` 202474-202511，核心语义是：
@@ -337,5 +341,7 @@ Messages #3: tools 开始包含 probe_new
 - 子 Agent 状态和消息队列：`reverse/javascript/cli.readable.js` 306930、307605-307608 附近。
 - task claim：`reverse/javascript/cli.readable.js` 202474-202511。
 - team mailbox：`reverse/javascript/cli.readable.js` 279171-279317。
+
+结构化运行主张：`probe.mcp-generation-refresh`、`probe.mcp-refresh-delay`、`probe.subagent-isolation`、`probe.subagent-notification-feedback`。公开主张：`public.mcp-roots-change`、`public.multiagent-context`、`public.agent-teams-coordination`、`public.multiagent-compression`、`public.background-network-settings`。完整命令、请求序列、literal output 和 exit status 见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 这些证据证明客户端已经携带对应控制与协作路径。实际 MCP server 行为、远端 team 服务、feature flag 和组织权限仍需按目标环境另做运行验证。

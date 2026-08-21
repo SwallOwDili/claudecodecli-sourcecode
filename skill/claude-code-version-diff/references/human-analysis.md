@@ -27,6 +27,7 @@ analysis/source-surface.md
 analysis/mechanism-evidence.jsonl
 analysis/public-sources/manifest.json
 analysis/public-source-excerpts.md
+analysis/runtime-probe-index.md
 analysis/runtime-probes/*.json
 ```
 
@@ -66,7 +67,7 @@ Create `analysis/public-claims-validation.md` and record:
 
 Use the labels `Public`, `Static`, `Probe`, and `Boundary`. Never use a current documentation page to fill an implementation gap in an old branch, and never infer implementation solely from a release-note sentence or lexical hit.
 
-Public research must be reproducible enough to detect documentation drift. Store HTTP status, response-body byte length, raw-body SHA-256, normalized visible-text SHA-256, per-excerpt SHA-256, retrieval timestamp, URL, and excerpt IDs in `analysis/public-sources/manifest.json`. Store the short passages actually used to form hypotheses in `analysis/public-source-excerpts.md`. Every official Anthropic URL cited in snapshot Markdown must have a manifest record. A URL alone is not a stable research record, and an HTML hash alone is not readable evidence.
+Public research must be reproducible enough to detect documentation drift. Store HTTP status, response-body byte length, raw-body SHA-256, normalized visible-text SHA-256, per-excerpt SHA-256, per-excerpt source-presence verification, retrieval timestamp, URL, and excerpt IDs in `analysis/public-sources/manifest.json`. Store the short passages actually used to form hypotheses in `analysis/public-source-excerpts.md`, and require every normalized quoted line to occur in the captured visible page text. Every official Anthropic URL cited in snapshot Markdown must have a manifest record. A URL alone is not a stable research record, and an HTML hash alone is not readable evidence.
 
 ## Structured mechanism evidence
 
@@ -74,12 +75,14 @@ Every strong mechanism claim must have one unique row in `analysis/mechanism-evi
 
 Set validator-enforced minimums for every core topic and a nontrivial total claim floor. A long chapter with zero registered claims is incomplete, even when the prose is accurate; a large inventory is not a substitute for mechanism evidence.
 
-- `Static` rows name the exact source view and path, a real line range within that file, and anchors that occur inside the range. Use `extracted/cli.js` only for canonical packed line numbers and `reverse/javascript/cli.readable.js` only for readable-view line numbers. Never attach a readable-view six-digit line number to the one-line packed bundle.
+- `Static` rows name the exact source view and path, a real line range within that file, and anchors that occur inside the range. They must also classify `staticEvidenceKind` as `runtime`, `constant`, `consumer`, `surface`, or `declaration`. `surface` and `declaration` prove only a registered command, schema/help contract, or user-facing message and must state `evidenceLimitation`; they cannot silently stand in for an executed branch. Use `extracted/cli.js` only for canonical packed line numbers and `reverse/javascript/cli.readable.js` only for readable-view line numbers. Never attach a readable-view six-digit line number to the one-line packed bundle.
 - `Probe` rows point to a committed normalized report and identify fields containing the exact command, controlled input, literal output, exit status, and required checks. Prefer successful state transitions. Empty lists, validation errors, missing-session errors, and command help prove only their narrow command/error surface.
 - `Public` rows resolve both a source ID in the public manifest and an excerpt ID in the excerpt file.
 - `Boundary` rows state why the claim cannot be recovered from the shipped client.
 
 At least one exact-binary positive probe must exercise the central Agent Loop contract when the release can be isolated: advertise a real tool schema, receive a complete `tool_use`, execute a reversible tool, observe a paired `tool_result` in the next Messages request, reach a success result, then resume the created session and prove history injection. Record the target binary SHA-256. A mock Messages endpoint is acceptable because the object under test is the client loop; the report must state that it does not prove model quality or server-side behavior.
+
+Maintain `analysis/runtime-probe-index.md` as the human bridge over normalized reports. It must explain report field semantics, list every `Probe` claim ID exactly once or more, translate command/input/literal output/exit status into a state transition, and state the narrow boundary of each probe family. The validator must reject an unindexed Probe claim.
 
 ## Mechanism atlas
 

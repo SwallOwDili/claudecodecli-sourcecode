@@ -26,6 +26,12 @@ userSettings
 
 `--setting-sources` 只能选择 user/project/local 这三个普通来源；实现仍会加入 `flagSettings` 与 `policySettings`。所以“只加载 user”不等于“绕过 managed policy”，也不应被写成一种策略逃逸方式。
 
+当前官方 [Settings](https://code.claude.com/docs/en/settings) 给出的普通顺序是 managed > command line > local > project > user，同时提醒 permission rules 和安全敏感字段存在例外。`public.settings-precedence` 保存原句；本版五层 source 构造登记为 Static。
+
+`probe.settings-layer-precedence` 再使用四个不同 model 值做运行确认：加载 user/project/local 并提供 `--settings` 时最终 model 为 flag 的 `claude-opus-4-6`；移除 flag 后 local 的 `claude-opus-4-5` 胜出；限制为 `--setting-sources user` 后得到 user 的 `claude-haiku-4-5`。这些值进入真实 Messages request，并非只读取配置文件后打印。
+
+macOS managed settings 来自固定系统目录，探针没有修改管理员路径，因此没有伪造 policy 胜出结果。managed > CLI 仍由官方主张和真实静态 merge 分支证明。这种分层写法比声称“所有五层都 probe 过”更准确。
+
 ## 合并不是所有字段都用同一算法
 
 最容易误导用户的说法是“后面的配置覆盖前面的配置”。实际字段至少有四种合并语义：
@@ -127,6 +133,8 @@ userSettings
 
 settings 系统维护内部写时间，用于区分自身写入与外部文件变化；还维护 enabled source cache。不同子系统对配置变化的响应不同：
 
+当前官方文档说明大多数 user/project/local/managed 设置会在运行中重新加载并触发 ConfigChange，对应 `public.settings-live-reload`。这是一条当前产品主张；2.1.235 每个字段是否热更新仍需看具体 consumer 是否重读，不能因为 watcher 存在就把所有初始化对象写成动态刷新。
+
 - 一部分 UI 设置可立即重绘；
 - tool/MCP/plugin 变化会触发 registry 或 cache invalidation；
 - provider/auth/client 对象常需要重新构造；
@@ -174,6 +182,6 @@ settings source 只决定规则集合；permissions 仍按 deny、ask、allow �
 
 ## 证据与边界
 
-结构化证据条目：`settings.layer-order`、`settings.managed-sandbox-gates`、`update.settings-migration`。字段目录见 [root-settings-schema.jsonl](source-inventory/root-settings-schema.jsonl)，但 schema 行只证明声明；每个高风险字段仍要回到实际读取、merge 和执行分支验证。
+结构化证据条目：`settings.layer-order`、`settings.managed-sandbox-gates`、`settings.managed-permission-lock`、`settings.managed-cli-permission-lock`、`update.settings-migration`、`public.settings-precedence`、`public.settings-live-reload`、`probe.settings-layer-precedence`。字段目录见 [root-settings-schema.jsonl](source-inventory/root-settings-schema.jsonl)，但 schema 行只证明声明；`staticEvidenceKind=declaration` 会把这种证据与真实执行分支分开。managed-only permission 的运行证据分别落在规则聚合只返回 `policySettings`，以及 CLI/session allow rule 在 permission context 构造前被清空两个分支。Probe 的命令、受控值、最终 request model 和 exit status 见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 客户端能证明本地 precedence、source restrictions 和 policy hook。组织后台如何下发 entitlement、服务端如何做账户风控、某个用户实时拿到什么 flag 不在静态 bundle 内，必须保留为运行时或服务端边界。

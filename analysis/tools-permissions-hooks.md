@@ -195,6 +195,16 @@ strict 模式无匹配时会 fail closed。域名 allow 不自动等于所有 so
 
 bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim masking、host injection、AWS pair 与 SigV4 等控制面。它们的目的不是替代 secret manager，而是减少把本地凭据原文暴露给工具进程、网络目标或模型上下文的概率。
 
+### 精确运行探针：bypassPermissions 后 sandbox 仍然生效
+
+`probe.sandbox-filesystem-enforcement` 和 `probe.sandbox-network-enforcement` 都显式使用 `bypassPermissions` 与 `--dangerously-skip-permissions`，目的是排除交互式 permission prompt，让测试只观察 sandbox 层。
+
+文件探针先在 workspace 内执行受控 Bash 写入，文件内容成为 `ALLOWED`，tool result 为 success；随后写入 `denyWrite` 目标，CLI 主循环仍 exit 0，但 paired tool result 为 error，目标文件不存在。这里“进程 exit 0”表示 Agent Loop 正常处理了工具失败，不表示被拒绝的写入成功。
+
+网络探针配置严格空域名表并访问受控本地 HTTP server。Bash tool result 为 error，server hit count 为 0，说明请求没有穿透到目标。这个结果和官方 [Sandboxing](https://code.claude.com/docs/en/sandboxing) 的两层说明一致：permission 决定是否允许发起动作，OS sandbox 决定已启动子进程能触及什么。
+
+因此安全审计至少要同时记录 permission decision、tool result、文件/网络副作用和进程 exit status。只看到 `bypassPermissions`、`exit 0` 或“模型最后说成功”都不能推断动作越过 sandbox。
+
 ## Workspace trust 与扩展信任
 
 以下 gate 在工具执行前后影响可装载能力：
@@ -285,5 +295,7 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 - hook event：[hook-events.txt](source-inventory/hook-events.txt)。
 - hook/permission/schema 字段说明：[schema-descriptions.txt](source-inventory/schema-descriptions.txt)。
 - root settings 结构：[root-settings-schema.jsonl](source-inventory/root-settings-schema.jsonl)。
+
+结构化运行主张：`probe.hook-deny-feedback`、`probe.sandbox-filesystem-enforcement`、`probe.sandbox-network-enforcement`。公开主张：`public.permission-order`、`public.sandbox-dimensions`、`public.hook-lifecycle`。命令、受控输入、literal output、exit status 与副作用检查见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 字段存在只证明客户端认识这个配置。真正的行为结论必须同时查看默认值、来源优先级、feature/platform gate、调用位置和失败分支。

@@ -2,7 +2,7 @@
 
 本页回答一个经常被忽略的问题：网上或官方文档描述的是“Claude Code 当前应该怎么工作”，而这个仓库归档的是一个确定的旧发布物。公开资料可以帮助我们提出正确问题，但只有在 `2.1.235` bundle 中找到可达分支，或用同一版本二进制触发出结果，才能把结论写成本版本事实。
 
-调研刷新：2026-08-21。公开网页会继续更新。本次不再只保存 URL：每个响应的 HTTP 状态、字节数、原始响应 SHA-256、去噪正文 SHA-256、逐摘录 SHA-256 和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。这些哈希证明“当时读到的响应”和“可读语义是否变化”，不把当前文档发布日期倒推成本版本发布日期。
+调研刷新：2026-08-21。公开网页会继续更新。本次不再只保存 URL：26 个响应的 HTTP 状态、字节数、原始响应 SHA-256、去噪正文 SHA-256、33 条逐摘录 SHA-256、逐句正文命中状态和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。刷新脚本会拒绝任何不能在当次可见正文逐句找到的“引用”。这些哈希证明“当时读到的响应”和“可读语义是否变化”，不把当前文档发布日期倒推成本版本发布日期。
 
 ## 证据标签
 
@@ -32,6 +32,15 @@
 - [MCP](https://code.claude.com/docs/en/mcp)
 - [Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Agent teams](https://code.claude.com/docs/en/agent-teams)
+- [Monitoring usage](https://code.claude.com/docs/en/monitoring-usage)
+- [Settings](https://code.claude.com/docs/en/settings)
+- [Model configuration](https://code.claude.com/docs/en/model-config)
+- [Authentication](https://code.claude.com/docs/en/authentication)
+- [Enterprise network configuration](https://code.claude.com/docs/en/network-config)
+- [Remote Control](https://code.claude.com/docs/en/remote-control)
+- [IDE integrations](https://code.claude.com/docs/en/ide-integrations)
+- [Setup](https://code.claude.com/docs/en/setup)
+- [Troubleshooting](https://code.claude.com/docs/en/troubleshooting)
 
 ### Anthropic Engineering
 
@@ -59,6 +68,17 @@
 | 大工具目录可用 Tool Search 延迟加载 schema | `Static` | `defer_loading`、ToolSearch、缓存和失效，114258-114369、156521-156552、231802-231817 | 节省的是 prompt 中常驻 schema token，不是延迟安装工具 |
 | subagent 在独立上下文中工作并向主 Agent 返回结果 | `Static` + `Probe` | 默认 `maxTurns: 200`、`model: inherit`、`permissionMode: bubble`；精确探针观察独立 prompt/tools 请求、异步启动 tool result 和 completed task notification | 独立上下文与两阶段回传均已正向证实；启动 ACK 不是最终结果 |
 | agent teams 通过任务和消息协作 | `Public` + `Static` | 官方 Agent Teams 页面明确标注适用于 2.1.178 起；本版 task claim、team mailbox、send/broadcast/shutdown 路径位于 202474-202511、279171-279317 | 2.1.235 客户端与公开版本范围相容；账户、配置和 feature gate 仍决定实际可用性 |
+| settings 使用 managed、CLI、local、project、user 多层来源 | `Public` + `Static` + `Probe` | 官方顺序；bundle merge/source 限制；精确探针观察 flag > local > project > user 和 `--setting-sources user` | 普通 scalar 的已触发顺序已证实；managed 路径因系统目录限制保留静态/官方证据 |
+| 529 可重试而受控 400 不重试 | `Static` + `Probe` | retry 分类分支；探针请求次数分别为 3 和 1 | “请求失败”不能统一解释，status 分类直接影响延迟和重复风险 |
+| 主模型不可用时按 chain fallback | `Public` + `Static` + `Probe` | 当前模型文档；连续 529 计数与 `fui=3`；探针模型序列为 primary x3 -> fallback x1 | 本路径正向证实；认证、计费、rate limit、尺寸和 transport 不自动套用该序列 |
+| API bearer 与 API key 使用不同 header | `Public` + `Static` + `Probe` | 官方 credential 顺序；request builder；两次受控 wire capture | bearer 使用 Authorization，API key 使用 x-api-key，二者不会在这两个路径同时发送 |
+| prompt caching 可被环境开关移出请求 | `Static` + `Probe` | request cache marker 分支；默认 3 个 marker，禁用后为 0 | 证明请求形状，不证明服务端 cache hit 或最终账单 |
+| OTLP prompt 正文默认脱敏 | `Public` + `Static` + `Probe` | monitoring 文档；`<REDACTED>` 分支；本地 `/v1/logs` collector 双跑 | 默认导出事件但隐藏正文；显式开启后正文进入管理员配置的 collector |
+| sandbox 在 permission bypass 后仍执行文件/网络限制 | `Public` + `Static` + `Probe` | 两层官方说明、sandbox policy 分支、denyWrite 与零网络命中探针 | permission 与 OS sandbox 是独立控制层，不能用 bypassPermissions 推断子进程无限制 |
+| manual compact、fork、file rewind 分别改变不同状态 | `Public` + `Static` + `Probe` | compact boundary、message graph、checkpoint；同版本正向探针 | compact 改逻辑历史，fork 换 session ID，rewind 恢复被跟踪文件；都不回滚远端动作 |
+| doctor 是只读多故障域诊断，DISABLE_UPDATES 阻断手动更新 | `Public` + `Static` + `Probe` | setup 文档；update gate/doctor 分支；真实 literal output | 禁用 auto updater 与禁用全部 update 不是同一开关 |
+| Remote Control 执行留在本机、transcript 经服务端同步 | `Public` + `Static` + `Probe` + `Boundary` | 官方连接/安全说明；本地 reconnect/attachment 代码；custom endpoint doctor 诊断 | 本版能证明客户端边界与不可用原因；未用真实账号触发成功连接和服务端 entitlement |
+| IDE 使用 loopback MCP、token 和 Read deny 过滤编辑器上下文 | `Public` + `Static` | 当前 IDE 协议文档与本版 IDE bridge/tool/permission 分支 | 没有在本探针环境启动真实 VS Code extension，故不升级为成功 IDE Probe |
 
 ## Agent Loop：从公开四步到客户端状态机
 
@@ -151,7 +171,25 @@ Observed request result: resume 请求包含 AGENT_LOOP_INITIAL_MARKER、TOOL_EX
 Result: 本版成功 resume 会恢复已持久化历史并加入当前输入
 ```
 
-报告中的 13 个布尔检查全部为 true，主 Messages 请求数为 3。该探针证明客户端实际行为，不依赖“存在某个字符串”或“错误路径能打印提示”。
+报告中的 25 个布尔检查全部为 true；初始工具闭环加 resume 的 Messages 请求数为 3，后续同一脚本还验证 manual compact 与 fork。该探针证明客户端实际行为，不依赖“存在某个字符串”或“错误路径能打印提示”。
+
+### 补强探针矩阵
+
+完整命令、受控输入、字段解释和 27 条 Claim ID 见 [精确二进制运行证据指南](runtime-probe-index.md)。这里列出影响公开主张判定的 literal result，避免把当前官网文字直接倒灌进旧版本。
+
+| 报告 | 受控输入 | Literal output / observable result | Exit | 结论 |
+| --- | --- | --- | ---: | --- |
+| `settings-resilience.json` | 四层不同 model；529/400；fallback model | settings 最终值为 flag/local/user；529 请求 3 次，400 请求 1 次；模型序列 primary x3 -> fallback | 成功路径 0，400 为 1 | 层级、retry 分类和 fallback 顺序均为本版实际行为 |
+| `telemetry-otlp.json` | 本地 `/v1/logs` collector；prompt gate 开/关 | 默认 `user_prompt=<REDACTED>` 且原 marker 不存在；开启后原 marker 出现 | 0 / 0 | monitoring 文档中的 prompt 隐私门在 2.1.235 可达 |
+| `sandbox-enforcement.json` | bypassPermissions；workspace/denyWrite；空域名表 | workspace 文件内容 `ALLOWED`；denyWrite 文件不存在；HTTP server hit count 0 | 0 / 0 / 0 | 工具循环成功结束不等于被拒绝的子动作成功，必须读 tool result 和副作用 |
+| `agent-loop-tool-result-resume.json` | persisted session；`/compact`；fork | `system:compact_boundary`、`trigger=manual`、新 fork session ID；旧结构历史不进 fork 请求 | 0 / 0 | manual compact 与 fork 的状态转换正向证实 |
+| `checkpoint-rewind.json` | Read/Edit 将文件改为 `CHECKPOINT_MODIFIED`；真实 user UUID | `Files rewound to state at message $USER_MESSAGE_UUID`；最终字节恢复 `CHECKPOINT_ORIGINAL`；rewind 阶段模型请求 0 | 0 | file rewind 是本地补偿操作，不依赖再次询问模型 |
+| `runtime-controls.json` | bearer、API key、cache disable、hook deny、Stop hook、maxTurns | Authorization/x-api-key 二选一；cache marker 3 -> 0；deny feedback；Stop 第二请求；`error_max_turns` | 成功路径 0，maxTurns 为 1 | request、cache、控制 hook 和预算终态均有 wire/runtime 证据 |
+| `lifecycle-doctor.json` | `DISABLE_UPDATES=1`；损坏 settings；custom endpoint | 管理员禁用更新；doctor 输出 version/commit/platform/search/update/settings/Remote Control 原因 | 0 / 0 | update gate 与 doctor 多故障域可达，自定义 endpoint 边界有明确诊断 |
+| `mcp-refresh.json` / `subagent-loop.json` | list_changed；child prompt/tool | 第二次 list；新工具第三请求出现；父循环收到 async ACK 和 completed notification | 0 / 0 | 动态工具与异步 child 都按请求边界进入主循环 |
+| `native-reconstruction.json` | 原始与兼容模块相同输入 | contract PASS、behavior PASS、23 checks | 0 | arm64 兼容层达到已覆盖调用合同，x86_64 仍是静态边界 |
+
+这些 Probe 使用本地协议对端的原因，是把变量限制在客户端。它们没有把本地 mock 返回成功写成“Anthropic 服务端也已成功”，也没有把 doctor 的不可用诊断写成真实 Remote Control 成功连接。
 
 ### MCP 空配置状态
 

@@ -461,6 +461,12 @@ thin client 会采用 worker 的真实状态：`enabled`、`effective_window`、
 
 这条 probe 证明了三件事：缓存 marker 真正进入 wire body；tool schema 与 system/message cache breakpoint 同时参与本轮请求成本；credential source 会改变 header 形状。它没有证明服务端命中率或账单结果，后者仍需响应 usage 中的 `cache_read_input_tokens` / `cache_creation_input_tokens` 验证。
 
+`probe.prompt-cache-disable` 对同类请求设置 `DISABLE_PROMPT_CACHING=1`。默认请求的 `cacheControlCount=3`，禁用后的请求为 0，两次命令均成功。这把“开关被读取”升级为“请求体确实改变”；它仍不等于服务端返回 cache miss，因为禁用后客户端根本不再声明这些 breakpoint。
+
+`probe.manual-compaction-boundary` 则验证另一条完全不同的路径：`/compact` 输出流出现 `system:compact_boundary`，`trigger=manual`、`preTokens=104`。随后 fork 请求保留生成的 compact summary 和当前 prompt，但不再包含 compact 前 prompt、旧 tool-use ID 和旧 assistant result。这里删除的是送模结构历史，不是删除磁盘上一切事件，也不是清空 memory。
+
+当前官方 [Troubleshooting](https://code.claude.com/docs/en/troubleshooting) 还解释了 autocompact thrashing：如果 compact 后大文件或 tool output 数次立即重新填满窗口，CLI 会停止重试以避免继续浪费 API 调用。这条 `Public` 主张登记为 `public.autocompact-thrashing`；2.1.235 的具体计数器和终止分支仍以 bundle 静态证据为准，不能从当前文档倒推所有旧版本阈值。
+
 ## 本版本可观测字段
 
 和上下文治理直接相关的事件至少包括：
@@ -488,3 +494,5 @@ thin client 会采用 worker 的真实状态：`enabled`、`effective_window`、
 - 构建前已删除的源码、注释和原始模块名。
 
 因此文中把“客户端会发送什么、何时发送、收到错误后怎样处理”写成确定事实，把服务端未随产物发布的部分保留为边界。
+
+本专题直接使用的运行主张包括 `probe.request-cache-shape`、`probe.prompt-cache-disable` 和 `probe.manual-compaction-boundary`；公开主张包括 `public.context-auto-compaction`、`public.cache-invalidation`、`public.autocompact-thrashing`。逐条命令、输入、literal output 与 exit status 见 [精确二进制运行证据指南](runtime-probe-index.md)。

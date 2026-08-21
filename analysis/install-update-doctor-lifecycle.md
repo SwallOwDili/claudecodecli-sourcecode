@@ -77,12 +77,12 @@ Auto-update 至少需要：
 
 两个名字表达的范围不同：
 
-- `DISABLE_AUTOUPDATER` 面向自动安装/自动切换；
-- `DISABLE_UPDATES` 更可能抑制更新检查或更新相关流量/surface；
-- `DISABLE_UPGRADE_COMMAND`、`DISABLE_DOCTOR_COMMAND` 控制命令 surface；
-- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 还可能间接关闭更新检查。
+- `DISABLE_AUTOUPDATER` 停止后台 update check/install，但手动 `claude update` 与 `claude install` 仍可使用；
+- `DISABLE_UPDATES` 阻断包括手动命令在内的全部客户端更新路径；
+- `DISABLE_UPGRADE_COMMAND`、`DISABLE_DOCTOR_COMMAND` 只控制命令 surface；
+- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 会影响 update check 和 feature evaluation，但不等价于管理员锁定所有更新命令。
 
-具体版本必须检查调用点后再描述。不能看到一个“disable update”字符串，就写成所有 update 行为都停止。面向企业部署时还要区分“客户端不自动更新”和“IT 有自己的强制分发”。
+这组范围同时由当前官方 Setup 文档和本版运行 Probe 交叉验证。面向企业部署时仍要区分“客户端不更新”和“IT 已经通过其他渠道强制分发”；前者不自动推出后者。
 
 ## Doctor 不是一个健康布尔值
 
@@ -101,6 +101,10 @@ Auto-update 至少需要：
 | 风控 | sandbox availability、managed policy、permission mode |
 
 readable JS 583492 保留“Claude Code can't auto-update · run `claude doctor`”；594139 还在 project MCP approval 因 settings error 被跳过时要求用 doctor 列出错误。这证明 doctor 是聚合诊断入口，而不是只检查 binary version。
+
+当前官方 [Setup](https://code.claude.com/docs/en/setup) 把 `claude doctor` 定义为不启动 session 的只读安装与 settings 诊断，对应 `public.doctor-readonly`。`probe.lifecycle-doctor-update` 又在隔离环境中加入损坏 JSON settings、自定义 endpoint、禁用 auto updater 与非必要流量，真实输出同时识别 native `2.1.235`、commit `ba01fa45e3d1`、`darwin-arm64`、bundled search、auto-update gate、invalid settings 和 Remote Control 不可用原因。
+
+同一探针执行 `DISABLE_UPDATES=1 claude update`，literal output 为 `Updates are disabled by your administrator. Contact your IT team to get the latest version.`，exit 0。这里 exit 0 表示管理员禁用策略被正常处理，不表示更新已经完成。
 
 ## Installation checks 与 command gates
 
@@ -164,6 +168,6 @@ Standalone 中的 `.node` 由主 executable 内嵌和加载。混用不同版本
 
 ## 证据与边界
 
-结构化证据条目：`update.settings-migration`、`native.bundle-entrypoints`。发布物身份由 [version.json](version.json)、[unpack-manifest.json](unpack-manifest.json) 和 runtime probe 共同证明。
+结构化证据条目：`update.settings-migration`、`native.bundle-entrypoints`、`public.doctor-readonly`、`public.disable-updates`、`probe.exact-binary-identity`、`probe.lifecycle-doctor-update`。发布物身份由 [version.json](version.json)、[unpack-manifest.json](unpack-manifest.json) 和 runtime probe 共同证明。命令、literal output、exit status 和 doctor 字段逐项解释见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 本地 bundle 能证明 update/doctor command surface、配置迁移和错误文案。下载服务、release channel 后端、签名发布流水线和 updater 服务端策略不在客户端快照内；它们需要独立网络捕获或官方发布基础设施证据。

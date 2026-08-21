@@ -133,13 +133,28 @@ task-notification:completed
 
 `probe.remote-control-custom-endpoint-boundary` 在 `ANTHROPIC_BASE_URL` 指向受控自定义 endpoint 时，doctor 明确报告 Remote Control 只支持 `api.anthropic.com`，同时报告 feature evaluation 被非必要流量开关禁用。这个 Probe 证明“为什么不可用”的客户端诊断，不证明一次已登录的真实 Remote Control 成功连接。
 
+`probe.feature-override-unreachable` 在同一隔离环境中额外设置：
+
+```text
+CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
+```
+
+命令仍 exit 0，并逐字输出：
+
+```text
+- Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)
+- Remote Control rollout could not be verified for this account (no server response this session)
+```
+
+受控输入让在线求值关闭；若本地 override 分支可达，gate reader 会在 disabled 判断前返回 true。实际结果没有把 rollout 变成 enabled，与 readable source 中提前 `return` 和 override no-op 相互印证。这个 Probe 只证明 `2.1.235` 的该本地 override 没有激活 `tengu_ccr_bridge`，不证明真实账号的在线 flag 值。
+
 ## 原生兼容重建
 
-`probe.native-original-compatible` 对原始与独立重建模块运行相同 contract 和输入。报告共 23 个检查项，其中 17 项是真实原版/兼容对照，5 项是 `environment-boundary`，1 项是最低覆盖审计；不能把总数直接写成 23 项行为双跑。`probe.native-architecture-boundary` 明确限制：arm64 compatible 经过构建和运行，原版两个 Computer Use 模块的 x86_64 slice 只有静态证据，compatible x86_64 没有构建和执行。
+`probe.native-original-compatible` 对原始与独立重建模块运行相同 contract 和输入。报告共 23 个检查项，本次其中 22 项是真实原版/兼容对照，1 项是最低覆盖审计；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，没有 `environment-boundary`。不能把覆盖审计也写成行为双跑。`probe.native-architecture-boundary` 明确限制：arm64 compatible 经过构建和运行，原版两个 Computer Use 模块的 x86_64 slice 只有静态证据，compatible x86_64 没有构建和执行。
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
-## 27 条 Probe 结论索引
+## 28 条 Probe 结论索引
 
 | Claim ID | 报告 | 核心状态变化 |
 | --- | --- | --- |
@@ -155,7 +170,7 @@ task-notification:completed
 | `probe.subagent-isolation` | `subagent-loop.json` | child 有独立 prompt、tools 和 API call |
 | `probe.subagent-notification-feedback` | `subagent-loop.json` | async ACK 与 completed notification 分离 |
 | `probe.exact-binary-identity` | `runtime-controls.json` | 版本和发布 SHA-256 一致 |
-| `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract；17 项真实对照、5 项环境边界、1 项覆盖审计 |
+| `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract；22 项真实对照、0 项环境边界、1 项覆盖审计 |
 | `probe.native-architecture-boundary` | `native-reconstruction.json` | x86_64 只保留原版静态证据 |
 | `probe.settings-layer-precedence` | `settings-resilience.json` | flag、local、project、user 运行优先级可观察 |
 | `probe.http-retry-classification` | `settings-resilience.json` | 529 重试，400 不重试 |
@@ -170,6 +185,7 @@ task-notification:completed
 | `probe.prompt-cache-disable` | `runtime-controls.json` | 禁用 prompt caching 后 cache marker 为零 |
 | `probe.lifecycle-doctor-update` | `lifecycle-doctor.json` | 更新 gate 与 doctor 多故障域诊断可达 |
 | `probe.remote-control-custom-endpoint-boundary` | `lifecycle-doctor.json` | 自定义 endpoint 明确阻断 Remote Control |
+| `probe.feature-override-unreachable` | `lifecycle-doctor.json` | 内部环境 override 未在 disabled gate 前把 rollout 变成 true |
 
 ## 仍然保留的边界
 

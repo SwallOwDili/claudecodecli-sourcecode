@@ -227,11 +227,11 @@ Workflow 的“确定性”保证编排输入可比较，不保证 Agent 输出�
 已确认的产品边界：
 
 - artifact 支持 HTML/Markdown 内容、publish/live-edit、读取 live version 和 comment/thread 操作；
--发布/读取需要 claude.ai subscription 登录；Console account、remote launch machine 未登录、host-injected credential 都有不同拒绝文案；
+- 发布/读取需要 claude.ai subscription 登录；Console account、remote launch machine 未登录、host-injected credential 都有不同拒绝文案；
 - publish 前会验证 session 是否看过当前 live version，避免基于旧版本覆盖；
 - artifact ID/URL 有严格 UUID/host 解析，隐藏控制字符、HTML entity 和标题/描述长度会被规范化；
 - comment 内容被显式标为 untrusted DATA；自动回复/编辑还有 plan mode、permission、content gate、hourly cap 和 circuit breaker；
--远端 publish/comment 是不可撤销副作用，失败后出现 `UNKNOWN whether changed` 时必须重新读取远端对象，不能盲目重试。
+- 远端 publish/comment 是不可撤销副作用，失败后出现 `UNKNOWN whether changed` 时必须重新读取远端对象，不能盲目重试。
 
 完整 Artifact/Design/文件传输生命周期由独立专题继续拆解；这里只界定它在 29 个工具中的状态所有权。
 

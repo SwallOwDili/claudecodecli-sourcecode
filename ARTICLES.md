@@ -4,7 +4,7 @@
 
 ## 先读这三篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 35 章，从发布物、请求装配、Agent Loop、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥和版本变化。
+1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 36 章，从发布物、请求装配、Agent Loop、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥、产品表面和版本变化。
 2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
 
@@ -18,6 +18,16 @@
 4. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
 5. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
 
+## 本轮完成的产品表面深挖
+
+1. [103 个 Slash Command 生命周期](analysis/slash-command-reference.md)：103/103 精确覆盖，逐命令说明 `local`、`local-jsx`、`prompt`、thin-client twin、可见性、gate、状态 owner、失败和副作用。
+2. [31 个 Hook 事件参考](analysis/hooks-event-reference.md)：31/31 精确覆盖，解释事件时机、公共/专属字段、matcher、command/HTTP/MCP 载体、阻塞、输入输出修改、超时和后置副作用边界。
+3. [29 个 Storage v5 namespace](analysis/storage-v5-reference.md)：29/29 精确覆盖，解释 typed key、scope、atomic/in-place/append、前置条件、真实 consumer、敏感度，以及本版不会自行创建 v5 backend 的边界。
+4. [Workflow、Artifact 与 Design 数据链](analysis/workflow-artifact-design.md)：从确定性 Workflow/journal，到 Artifact 文件身份、CSP、comments/DB/assets，再到 Design build/diff/validate/upload/sidecar。
+5. [Feature Flags 与 Remote Config](analysis/feature-flags-remote-config.md)：解释 361 个 key、498 个调用点背后的启用门、属性、fresh/disk/default、实验 exposure、刷新、账号切换和不可用 override。
+6. [TUI、输入、无障碍、媒体、IDE 与 Chrome](analysis/tui-input-accessibility-media-ide-chrome.md)：把 renderer/composer/spellcheck/paste/image/voice/IDE/Chrome 的状态机、阈值、权限、重试和竞态串起来。
+7. [后台执行、Channels 与 Cloud](analysis/cloud-background-channels.md)：区分本地 task/supervisor、Cron/loop/Monitor/Push、Channel 队列、Remote Control、本地/云执行 owner、CCR/BYOC/self-hosted runner。
+
 ## 按问题阅读
 
 | 你想弄清楚什么 | 对应文章 |
@@ -28,6 +38,13 @@
 | 156 个 settings 字段各自从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](analysis/settings-reference.md) |
 | `--print`、stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md) |
 | Plugin 安装后为什么仍不可见，Skill/command/LSP 何时刷新 | [Plugins、Skills、Commands 与 LSP](analysis/plugins-skills-commands-lsp.md) |
+| 103 个 slash command 哪些可见、谁执行、改变什么状态 | [Slash Command 全量参考](analysis/slash-command-reference.md) |
+| 31 个 Hook 事件何时运行、能阻止或修改什么 | [Hooks 全事件参考](analysis/hooks-event-reference.md) |
+| 29 个 Storage namespace 各存什么、怎样写、哪些只是声明 | [Storage v5 全量参考](analysis/storage-v5-reference.md) |
+| Workflow、Artifact、Design 为什么不是同一种“生成内容” | [Workflow、Artifact 与 Design](analysis/workflow-artifact-design.md) |
+| 同一版本为什么不同账号拿到不同功能，flag 缓存怎样刷新 | [Feature Flags 与 Remote Config](analysis/feature-flags-remote-config.md) |
+| TUI 输入、拼写、图片、语音、IDE、Chrome 的状态怎样汇入 Agent Loop | [TUI、媒体、IDE 与 Chrome](analysis/tui-input-accessibility-media-ide-chrome.md) |
+| 后台命令、定时唤醒、Channel、Remote Control、Cloud 到底在哪里跑 | [后台执行、Channels 与 Cloud](analysis/cloud-background-channels.md) |
 | system prompt、messages、tools、provider 和请求体怎样装配 | [技术架构导读](analysis/technical-architecture.md) |
 | Prompt Cache、Tool Search、microcompaction 和 auto-compact 有什么区别 | [上下文治理与多层缓存](analysis/context-governance-and-caching.md) |
 | Resume、fork、rewind、checkpoint 和 Memory 分别恢复什么 | [会话、检查点与 Memory](analysis/sessions-checkpoints-memory.md) |

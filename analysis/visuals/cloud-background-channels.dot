@@ -1,0 +1,101 @@
+digraph cloud_background_channels {
+  graph [
+    rankdir=LR,
+    bgcolor="#ffffff",
+    pad="0.30",
+    nodesep="0.30",
+    ranksep="0.62",
+    splines=polyline,
+    compound=true,
+    newrank=true,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    label="Claude Code 2.1.235: 后台、入站事件与远端执行的状态所有权",
+    labelloc=t,
+    fontsize=15
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#263238",
+    penwidth=1.35,
+    margin="0.16,0.11",
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=10.2
+  ];
+  edge [
+    color="#455a64",
+    penwidth=1.35,
+    arrowsize=0.72,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=8.4,
+    fontcolor="#263238"
+  ];
+
+  subgraph cluster_local {
+    label="本地 runtime";
+    color="#90a4ae";
+    style="rounded";
+    local_turn [label="前台 Agent Loop\n吸收队列并决定下一步", fillcolor="#d1c4e9"];
+    isolation [label="Git / worktree guard\n限定可写 checkout", fillcolor="#fff3cd"];
+    local_task [label="Bash / local Agent / Task\n执行并登记 task state", fillcolor="#ffe0b2"];
+    local_result [label="输出文件 + notification\n在下一请求边界回灌", fillcolor="#c8e6c9"];
+  }
+
+  subgraph cluster_inbound {
+    label="调度与入站";
+    color="#90a4ae";
+    style="rounded";
+    cron [label="Cron / ScheduleWakeup\n时间到点时排队", fillcolor="#e3f2fd"];
+    monitor [label="Monitor / Channel\n事件到达时排队", fillcolor="#e3f2fd"];
+    push [label="PushNotification\n本地提醒或远端推送", fillcolor="#b2dfdb"];
+  }
+
+  subgraph cluster_remote {
+    label="Remote Control / cloud";
+    color="#90a4ae";
+    style="rounded";
+    viewer [label="Web / mobile viewer\n发送控制与显示事件", fillcolor="#f8bbd0"];
+    remote_bridge [label="Remote bridge\n鉴权、重连、事件同步", fillcolor="#ffccbc"];
+    cloud_session [label="Cloud session\n远端 Agent Loop 与 event stream", fillcolor="#ffe0b2"];
+    teleport [label="teleport / attach\n迁移或重新附着 session", fillcolor="#c8e6c9"];
+  }
+
+  subgraph cluster_runner {
+    label="Self-hosted runner";
+    color="#90a4ae";
+    style="rounded";
+    runner_api [label="Runner API\nregister / poll / token / release", fillcolor="#f8bbd0"];
+    runner [label="Runner supervisor\n按 capacity 领取 session", fillcolor="#ffccbc"];
+    child [label="Claude child process\nstream-json + --resume", fillcolor="#ffe0b2"];
+    governed_repo [label="受治理 workspace\nGit config / hooks / secrets", fillcolor="#fff3cd"];
+  }
+
+  local_turn -> isolation [label="选择隔离边界"];
+  isolation -> local_task [label="允许后执行"];
+  local_task -> local_result [label="写输出并更新状态"];
+  local_result -> local_turn [label="通知唤醒下一轮"];
+
+  cron -> local_turn [label="到期后 enqueue", color="#1976d2"];
+  monitor -> local_turn [label="事件后 enqueue", color="#1976d2"];
+  local_turn -> push [label="必要时主动提醒", color="#1976d2"];
+
+  viewer -> remote_bridge [label="控制请求 / 进度显示", dir=both, arrowtail=normal, style=dashed, color="#c62828"];
+  remote_bridge -> local_turn [label="同步 transcript / 控制响应", dir=both, arrowtail=normal, style=dashed, color="#c62828"];
+
+  local_turn -> cloud_session [label="create/attach / 增量 events", dir=both, arrowtail=normal, style=dashed, color="#c62828"];
+  cloud_session -> teleport [label="提供 session state", style=dashed, color="#c62828"];
+  teleport -> local_turn [label="转为本地继续", style=dashed, color="#c62828"];
+
+  runner_api -> runner [label="assignment/token / events/release", dir=both, arrowtail=normal, style=dashed, color="#c62828"];
+  runner -> child [label="spawn 并注入远端环境"];
+  child -> governed_repo [label="读写实际 workspace"];
+
+  boundary_note [
+    shape=note,
+    label="红色虚线 = 服务端/网络 Boundary\n静态源码可证明客户端协议与失败分支，\n不能证明 entitlement、计费或一次真实远端成功",
+    fillcolor="#ffebee",
+    color="#c62828",
+    fontsize=9.2
+  ];
+  boundary_note -> remote_bridge [style=dashed, arrowhead=none, color="#c62828"];
+}

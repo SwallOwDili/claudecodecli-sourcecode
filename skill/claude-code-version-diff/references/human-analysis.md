@@ -14,6 +14,13 @@ analysis/builtin-tools-reference.md
 analysis/settings-reference.md
 analysis/cli-sdk-output-protocol.md
 analysis/plugins-skills-commands-lsp.md
+analysis/slash-command-reference.md
+analysis/hooks-event-reference.md
+analysis/storage-v5-reference.md
+analysis/workflow-artifact-design.md
+analysis/feature-flags-remote-config.md
+analysis/tui-input-accessibility-media-ide-chrome.md
+analysis/cloud-background-channels.md
 analysis/technical-mechanism-atlas.md
 analysis/public-claims-validation.md
 analysis/technical-architecture.md
@@ -42,13 +49,16 @@ README routes readers into these documents and keeps hashes/counts secondary.
 
 ## Exhaustive product-surface references
 
-The mechanism chapters explain shared architecture. They do not prove that every product surface has been covered. A full snapshot must therefore maintain five additional contracts:
+The mechanism chapters explain shared architecture. They do not prove that every product surface has been covered. A full snapshot must therefore maintain eight additional contracts:
 
 1. `completeness-audit.md` enumerates authoritative capability surfaces, assigns each one `Deep`, `Documented`, `Inventory only`, or `Boundary`, and names the exact work still needed. A validator PASS or a large word count never upgrades a row.
 2. `builtin-tools-reference.md` contains a machine-checkable marker block matching the exact release-local built-in-tool inventory. Every tool gets owned state, input/output, side effects, persistence, failure, retry/recovery, user impact, cost, privacy, security, and evidence boundaries.
 3. `settings-reference.md` contains a machine-checkable marker block matching every direct root setting. Each field explains source eligibility, validation, merge semantics, runtime consumer, reload/lifecycle, user impact and whether evidence is declaration-only or reaches a consumer. Spread-derived capability keys stay separate from direct properties.
 4. `cli-sdk-output-protocol.md` separates TUI/text/JSON/stream-JSON, stdin/stdout envelopes, bidirectional control requests, responses, observation events, partial messages, structured output retries, session/resume/fork and process-terminal failure. A mixed subtype inventory must be decomposed before counting RPCs.
 5. `plugins-skills-commands-lsp.md` traces marketplace/source trust, downloaded bytes, install registry, enabled settings, current session registry, model listing, reload invalidation, MCP generation and LSP process/diagnostics as separate states.
+6. `slash-command-reference.md` contains a machine-checkable marker block matching every release-local slash command. Every command states type/twin, interactive/noninteractive/thin-client ownership, visibility and enablement, changed state, persistence, failure, user impact and remote/service boundary. Hidden, disabled, stub and host-only objects are never presented as generally available features.
+7. `hooks-event-reference.md` contains a machine-checkable marker block matching every release-local Hook event. Every event states timing, common and event-specific fields, matcher, supported runner types, blocking/mutation semantics, timeout/error behavior, sensitive data and whether the hooked side effect has already occurred.
+8. `storage-v5-reference.md` contains a machine-checkable marker block matching every release-local Claude storage namespace. Every namespace states typed key and scope, real reader/writer evidence, write discipline and preconditions, backend reachability, concurrency/migration/retention boundary and sensitivity. A namespace or factory declaration alone never proves the backend is active.
 
 Coverage markers prove exact set membership; they still do not replace the per-item mechanism explanation. When a source inventory contains commands, hook events, protocol events, storage namespaces or other enumerable product objects, validate the human coverage set and keep any identifier without lifecycle-level explanation visible in `completeness-audit.md`.
 
@@ -247,6 +257,24 @@ Trace provider selection precedence, model alias/catalog resolution, credential-
 
 Trace user, project, local, CLI/flag, and managed-policy sources separately. For important settings, state merge semantics rather than only source order: scalar replacement, map merge, list concatenation/deduplication, deletion/reset behavior, invalid-value fallback, and managed-only restrictions. Show how remote feature evaluation, environment overrides, and enterprise policy gates enter reachable branches. Do not treat the presence of an environment name as proof that it wins or is reachable.
 
+The dedicated feature-flags/remote-config guide must trace online enablement, trust/auth, attributes, fresh memory, disk last-known-good, baked fallback, blocking versus stale readers, payload validation, experiment exposure, refresh cadence, auth/account reset, consumer gates and server-side boundaries. Explicitly identify dead, shadowed or no-op override paths and verify a surprising one with an exact-binary probe when practical.
+
+## Slash commands, Hooks, and Storage references
+
+For slash commands, distinguish parser registration from menu visibility, manual execution, model invocation and thin-client dispatch. Follow each command to its owned App/session/settings/file/process/task/remote state, and state whether success means an intermediate UI/task launch or a committed result.
+
+For Hooks, separate pre-action control from post-action observation. Record command, HTTP and MCP runner differences, per-event timeout, exit/JSON semantics, updated input/output validation, fail-open/fail-closed behavior, concurrency and the exact side effect state at event time.
+
+For Storage v5, trace typed key construction, scope, segment hardening, backend creation/selection, read/write/update/append/watch calls, atomic/in-place/append discipline and preconditions. Do not infer namespace-wide transactions, locks, migrations, TTL or retention from a generic storage API or identifier.
+
+## Workflow, Artifact, Design, UI/media, and Cloud product guides
+
+Workflow coverage must join script parsing, deterministic restrictions, permission, task/journal, async launch, same-session resume, cache adoption and local/remote owner. Artifact coverage must join concrete file identity, TOCTOU defense, size/MIME/CSP, publish/update identity, comments/DB/assets/watch and non-rollback boundaries. Design coverage must join local build/diff/validate/capture, sidecar, project ownership, consent/plan and remote upload.
+
+TUI/media coverage must join renderer, composer, keyboard/Vim/focus, accessibility, spellcheck process, paste/image pipeline, voice capture/STT and their thresholds, retries and privacy. IDE/Chrome coverage must distinguish discovery, auth/socket identity, selection/page state, permission timer, disconnect, timeout and late side effects.
+
+Background/Channels/Cloud coverage must distinguish local shell/agent/task/supervisor ownership, Cron/loop/Monitor/Push wakeups, unsolicited Channel queues, Remote Control viewer versus executor, cloud/CCR/BYOC/self-hosted runner state, reconnect/cursor behavior and service-side orchestration boundaries.
+
 ## TUI, IDE, remote control, and cloud chapter
 
 Separate local TUI/print/SDK modes, IDE discovery and bidirectional context, local socket or protocol ownership, Remote Control reconnect and attachment lifecycle, and cloud/teleport session ownership. Explain where input, rendering, files, approval state, and transcripts live; what survives disconnect; what is retransmitted; and which behavior depends on remote services. Include reconnect limits and user-visible failure states when recoverable.
@@ -330,6 +358,8 @@ Before publication, verify:
 - resilience/recovery distinguishes every retry/fallback counter and states which side effects remain;
 - models/auth/providers/request explains selector and credential precedence plus the actual Messages request shape;
 - settings/feature flags/policy explains per-field merge semantics and managed-only gates;
+- slash commands, Hook events and Claude storage namespaces have exact marker coverage plus per-item lifecycle explanations;
+- Workflow/Artifact/Design, feature evaluation, TUI/media/IDE/Chrome and background/Channels/Cloud have dedicated owner/failure/boundary guides with editable diagrams;
 - TUI/IDE/remote/cloud distinguishes local state from remote ownership and reconnect behavior;
 - install/update/doctor distinguishes launcher, immutable version file, migration, update gates, and rollback compatibility;
 - native bridge analysis joins JavaScript consumers to N-API contracts, lifetimes, side effects, and architecture limits, with a machine report separating arm64 runtime coverage from x86_64 static-only evidence;

@@ -1,0 +1,29 @@
+digraph HooksEventLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.42", ranksep="0.68"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#45413c", fillcolor="#f7f6f2", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=9, color="#625f58", fontcolor="#45413c"];
+
+  event [label="运行时事件\nprompt / tool / compact / session", fillcolor="#fff3cd"];
+  gate [label="来源 + trust gate\ndisableAllHooks / managed-only", fillcolor="#fce8e6"];
+  select [label="event registry\nmatcher + if + once + dedupe", fillcolor="#e8f0ff"];
+  input [label="构造 hook input\n公共字段 + 事件字段", fillcolor="#e8f0ff"];
+  run [label="并发执行匹配 hooks\ncommand / HTTP / MCP / callback", fillcolor="#e5f6ef"];
+  parse [label="解析 exit code 与 JSON\n校验 hookEventName", fillcolor="#e5f6ef"];
+  before [label="前置决策\nblock / allow / ask / update", fillcolor="#fff3cd"];
+  after [label="后置反馈\ncontext / display / retry / watch", fillcolor="#fff3cd"];
+  persist [label="transcript / attachment / log\n过长输出持久化或截断", fillcolor="#e8f0ff"];
+  sidefx [label="已完成的外部副作用\n不会被后置 hook 回滚", fillcolor="#fce8e6"];
+
+  event -> gate [label="触发"];
+  gate -> select [label="允许装载"];
+  gate -> event [label="跳过", color="#b3261e", fontcolor="#b3261e"];
+  select -> input [label="选中匹配项"];
+  input -> run [label="传 JSON / 环境"];
+  run -> parse [label="返回 stdout/stderr/status"];
+  parse -> before [label="动作尚未发生"];
+  parse -> after [label="动作已发生或阶段已完成"];
+  before -> event [label="阻止或改写后继续"];
+  after -> persist [label="追加可观察状态"];
+  persist -> event [label="进入下一阶段"];
+  after -> sidefx [label="只能影响后续"];
+}

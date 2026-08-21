@@ -94,6 +94,55 @@ HUMAN_ANALYSIS_DOCS = {
         "reload-plugins",
         "diagnostics",
     ),
+    "analysis/slash-command-reference.md": (
+        "SLASH_COMMAND_COVERAGE_BEGIN",
+        "103/103",
+        "local-jsx",
+        "thinClientDispatch",
+        "isEnabled:false",
+    ),
+    "analysis/hooks-event-reference.md": (
+        "HOOK_EVENT_COVERAGE_BEGIN",
+        "31",
+        "PreToolUse",
+        "PostToolBatch",
+        "fail closed",
+    ),
+    "analysis/storage-v5-reference.md": (
+        "STORAGE_NAMESPACE_COVERAGE_BEGIN",
+        "29",
+        "tryCreateV5Backend",
+        "updateText",
+        "Boundary",
+    ),
+    "analysis/workflow-artifact-design.md": (
+        "Workflow",
+        "Artifact",
+        "Design Sync",
+        "TOCTOU",
+        "sidecar",
+    ),
+    "analysis/feature-flags-remote-config.md": (
+        "remoteEvalFeatureValues",
+        "cachedGrowthBookFeatures",
+        "CLAUDE_INTERNAL_FC_OVERRIDES",
+        "pendingExposures",
+        "360",
+    ),
+    "analysis/tui-input-accessibility-media-ide-chrome.md": (
+        "Screen reader",
+        "Spellcheck",
+        "Voice",
+        "IDE integration",
+        "Claude in Chrome",
+    ),
+    "analysis/cloud-background-channels.md": (
+        "Background Agent",
+        "Cron",
+        "Channel",
+        "Remote Control",
+        "self-hosted runner",
+    ),
     "analysis/technical-mechanism-atlas.md": (
         "三条必须同时理解的闭环",
         "外部状态",
@@ -215,6 +264,13 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/settings-reference.md": (18000, 10),
     "analysis/cli-sdk-output-protocol.md": (12000, 12),
     "analysis/plugins-skills-commands-lsp.md": (10000, 10),
+    "analysis/slash-command-reference.md": (12000, 10),
+    "analysis/hooks-event-reference.md": (15000, 10),
+    "analysis/storage-v5-reference.md": (18000, 12),
+    "analysis/workflow-artifact-design.md": (12000, 10),
+    "analysis/feature-flags-remote-config.md": (18000, 12),
+    "analysis/tui-input-accessibility-media-ide-chrome.md": (24000, 15),
+    "analysis/cloud-background-channels.md": (24000, 15),
     "analysis/technical-mechanism-atlas.md": (6000, 8),
     "analysis/public-claims-validation.md": (6000, 8),
     "analysis/sessions-checkpoints-memory.md": (6000, 10),
@@ -233,6 +289,13 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/settings-reference.md": "settings-resolution-lifecycle",
     "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
     "analysis/plugins-skills-commands-lsp.md": "plugin-skill-lsp-lifecycle",
+    "analysis/slash-command-reference.md": "slash-command-lifecycle",
+    "analysis/hooks-event-reference.md": "hooks-event-lifecycle",
+    "analysis/storage-v5-reference.md": "storage-v5-lifecycle",
+    "analysis/workflow-artifact-design.md": "workflow-artifact-design-lifecycle",
+    "analysis/feature-flags-remote-config.md": "feature-flags-remote-config-lifecycle",
+    "analysis/tui-input-accessibility-media-ide-chrome.md": "tui-media-ide-chrome-lifecycle",
+    "analysis/cloud-background-channels.md": "cloud-background-channels",
     "analysis/technical-mechanism-atlas.md": "system-lifecycle",
     "analysis/technical-architecture.md": "runtime-layers",
     "analysis/agent-loop.md": "agent-loop-lifecycle",
@@ -268,6 +331,7 @@ MECHANISM_TOPIC_MINIMUMS = {
     "resilience": 6,
     "models-auth-providers": 5,
     "settings-policy": 5,
+    "feature-flags-remote-config": 8,
     "tui-ide-remote-cloud": 5,
     "install-update-doctor": 4,
     "native-bridge": 6,
@@ -1376,6 +1440,71 @@ def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> Non
     )
     report_exact_coverage(
         "slash-command", sorted(expected_commands), actual_commands, failures
+    )
+
+    slash_reference = (repo / "analysis/slash-command-reference.md").read_text(
+        encoding="utf-8"
+    )
+    slash_marker_block = text_between(
+        slash_reference,
+        "<!-- SLASH_COMMAND_COVERAGE_BEGIN -->",
+        "<!-- SLASH_COMMAND_COVERAGE_END -->",
+    )
+    actual_slash_markers = re.findall(
+        r"^\d{3} (.+)$", slash_marker_block, re.MULTILINE
+    )
+    report_exact_coverage(
+        "slash-command reference",
+        expected_commands,
+        actual_slash_markers,
+        failures,
+        require_order=True,
+    )
+
+    expected_hooks = (
+        inventory_dir / "hook-events.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    hook_reference = (repo / "analysis/hooks-event-reference.md").read_text(
+        encoding="utf-8"
+    )
+    hook_marker_block = text_between(
+        hook_reference,
+        "<!-- HOOK_EVENT_COVERAGE_BEGIN -->",
+        "<!-- HOOK_EVENT_COVERAGE_END -->",
+    )
+    actual_hook_markers = re.findall(
+        r"^<!-- hook-event:([^>]+) -->$", hook_marker_block, re.MULTILINE
+    )
+    report_exact_coverage(
+        "Hook event",
+        expected_hooks,
+        actual_hook_markers,
+        failures,
+        require_order=True,
+    )
+
+    expected_storage_namespaces = (
+        inventory_dir / "claude-storage-namespaces.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    storage_reference = (repo / "analysis/storage-v5-reference.md").read_text(
+        encoding="utf-8"
+    )
+    storage_marker_block = text_between(
+        storage_reference,
+        "<!-- STORAGE_NAMESPACE_COVERAGE_BEGIN -->",
+        "<!-- STORAGE_NAMESPACE_COVERAGE_END -->",
+    )
+    actual_storage_markers = re.findall(
+        r"^<!-- storage-namespace:([^>]+) -->$",
+        storage_marker_block,
+        re.MULTILINE,
+    )
+    report_exact_coverage(
+        "Claude storage namespace",
+        expected_storage_namespaces,
+        actual_storage_markers,
+        failures,
+        require_order=True,
     )
 
 

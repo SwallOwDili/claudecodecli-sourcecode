@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T11:45:26.121Z",
+  "capturedAt": "2026-08-21T21:14:01.180Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -154,9 +154,8 @@
     {
       "label": "swift display size",
       "module": "computer-use-swift.node",
-      "comparison": "environment-boundary",
-      "status": "pass",
-      "boundary": "No display was visible to either module in this execution environment"
+      "comparison": "exact",
+      "status": "pass"
     },
     {
       "label": "swift running applications",
@@ -191,16 +190,14 @@
     {
       "label": "swift application under point",
       "module": "computer-use-swift.node",
-      "comparison": "environment-boundary",
-      "status": "pass",
-      "boundary": "Accessibility permission prevented a read-only pointer query"
+      "comparison": "exact",
+      "status": "pass"
     },
     {
       "label": "swift application icon",
       "module": "computer-use-swift.node",
-      "comparison": "environment-boundary",
-      "status": "pass",
-      "boundary": "Spotlight did not provide an installed-application path"
+      "comparison": "normalized-semantic",
+      "status": "pass"
     },
     {
       "label": "swift unhide empty",
@@ -211,16 +208,14 @@
     {
       "label": "swift full screenshot shape",
       "module": "computer-use-swift.node",
-      "comparison": "environment-boundary",
-      "status": "pass",
-      "boundary": "No display was visible to either module in this execution environment"
+      "comparison": "schema-and-invariants",
+      "status": "pass"
     },
     {
       "label": "swift region screenshot shape",
       "module": "computer-use-swift.node",
-      "comparison": "environment-boundary",
-      "status": "pass",
-      "boundary": "No display was visible to either module in this execution environment"
+      "comparison": "schema-and-invariants",
+      "status": "pass"
     },
     {
       "label": "behavior check count",

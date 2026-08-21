@@ -1,0 +1,55 @@
+digraph WorkflowArtifactDesignLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.45", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#45413c", fillcolor="#f7f6f2", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=9, color="#625f58", fontcolor="#45413c"];
+
+  input [label="本地输入\nscript / HTML / design system", fillcolor="#fff3cd"];
+
+  subgraph cluster_workflow {
+    label="Workflow: 模型执行状态";
+    color="#5b8def";
+    wf_gate [label="gate + schema + determinism\npermission review", fillcolor="#e8f0ff"];
+    wf_persist [label="持久化 scriptPath\nrunId + transcriptDir", fillcolor="#e8f0ff"];
+    wf_run [label="后台 VM\nphase / parallel / agent", fillcolor="#e8f0ff"];
+    wf_journal [label="journal + task terminal\nresume 按调用键复用", fillcolor="#e8f0ff"];
+  }
+
+  subgraph cluster_artifact {
+    label="Artifact: 页面与协作状态";
+    color="#2f8f6b";
+    art_pin [label="Read policy + realpath\nidentity/hash/size/MIME", fillcolor="#e5f6ef"];
+    art_consent [label="按 action 授权\npublish / comments / DB / assets", fillcolor="#e5f6ef"];
+    art_publish [label="staged upload + commit\nURL / version / contract", fillcolor="#e5f6ef"];
+    art_live [label="watch / comments / page data\nDB / asset lifecycle", fillcolor="#e5f6ef"];
+  }
+
+  subgraph cluster_design {
+    label="Design Sync: 仓库与远端项目";
+    color="#a2642a";
+    ds_build [label="repo build + previews\nowned files / generated cache", fillcolor="#f9eadc"];
+    ds_diff [label="remote sidecar + diff\nvalidate / capture / grade", fillcolor="#f9eadc"];
+    ds_upload [label="finalize plan\nexplicit writes + deletes", fillcolor="#f9eadc"];
+    ds_remote [label="Design project\nnew sidecar / remote state", fillcolor="#f9eadc"];
+  }
+
+  input -> wf_gate [label="Workflow"];
+  wf_gate -> wf_persist [label="校验和允许"];
+  wf_persist -> wf_run [label="async_launched"];
+  wf_run -> wf_journal [label="phase/agent 终态"];
+  wf_journal -> wf_run [label="同 session resume\n仅重跑变化调用"];
+
+  input -> art_pin [label="Artifact"];
+  art_pin -> art_consent [label="具体 bytes 被钉住"];
+  art_consent -> art_publish [label="允许远端写"];
+  art_publish -> art_live [label="URL/version + 可选 watch"];
+  art_live -> art_pin [label="republish 通知后\n重新读取再编辑"];
+
+  input -> ds_build [label="design-sync"];
+  ds_build -> ds_diff [label="bundle + 本地 verdict"];
+  ds_diff -> ds_upload [label="ok + 人工判断完成"];
+  ds_upload -> ds_remote [label="远端写入"];
+  ds_remote -> ds_diff [label="sidecar 并发校验"];
+
+  wf_journal -> art_pin [label="产出文件\n不自动发布"];
+  ds_build -> art_pin [label="本地打包资产\n仍需 Artifact 授权", style=dashed];
+}

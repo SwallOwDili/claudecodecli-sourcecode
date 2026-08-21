@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:29.089Z",
+  "capturedAt": "2026-08-21T21:12:44.340Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,13 +11,13 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "allLoadedSources": "$CLAUDE_2_1_235 --print SETTINGS_POLICY_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
-    "flagModel": "$CLAUDE_2_1_235 --print SETTINGS_FLAG_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
-    "localModel": "$CLAUDE_2_1_235 --print SETTINGS_LOCAL_MODEL_MARKER --setting-sources user,project,local",
-    "userModel": "$CLAUDE_2_1_235 --print SETTINGS_USER_MODEL_MARKER --setting-sources user",
-    "retry529": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print RETRY_529_MARKER --model claude-sonnet-4-5",
-    "noRetry400": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print NO_RETRY_400_MARKER --model claude-sonnet-4-5",
-    "fallback": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_2_1_235 --print MODEL_FALLBACK_MARKER --model claude-sonnet-4-5 --fallback-model claude-haiku-4-5"
+    "allLoadedSources": "$CLAUDE_TARGET --print SETTINGS_POLICY_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+    "flagModel": "$CLAUDE_TARGET --print SETTINGS_FLAG_MODEL_MARKER --settings $FLAG_SETTINGS --setting-sources user,project,local",
+    "localModel": "$CLAUDE_TARGET --print SETTINGS_LOCAL_MODEL_MARKER --setting-sources user,project,local",
+    "userModel": "$CLAUDE_TARGET --print SETTINGS_USER_MODEL_MARKER --setting-sources user",
+    "retry529": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print RETRY_529_MARKER --model claude-sonnet-4-5",
+    "noRetry400": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print NO_RETRY_400_MARKER --model claude-sonnet-4-5",
+    "fallback": "CLAUDE_CODE_MAX_RETRIES=2 $CLAUDE_TARGET --print MODEL_FALLBACK_MARKER --model claude-sonnet-4-5 --fallback-model claude-haiku-4-5"
   },
   "input": {
     "settingsLayers": {

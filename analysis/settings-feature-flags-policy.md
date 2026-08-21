@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 Settings、Feature Flags 与 Managed Policy
 
-Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。
+Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。远端求值、fresh/disk/default、exposure、刷新和账号切换的完整链见 [Feature Flags 与 Remote Config 专题](feature-flags-remote-config.md)。
 
 ## 60 秒理解“有效配置”
 
@@ -116,7 +116,7 @@ macOS managed settings 来自固定系统目录，探针没有修改管理员路
 - UI 命令已对用户显示；
 - 功能在所有 provider 可用。
 
-2.1.235 同时存在 baked default、环境 override、settings gate、provider gate、account/org capability 和 remote feature value。一个功能真正可用，通常需要多门同时打开。
+2.1.235 同时存在 baked default、settings gate、provider gate、account/org capability 和 remote feature value。它还保留 environment/config override 的导出名与死代码外形，但本版 `getEnvironmentOverrides()` 在解析 `CLAUDE_INTERNAL_FC_OVERRIDES` 前提前返回，config override 读写也是 no-op；不能把它列为当前可用门。一个功能真正可用，通常需要多门同时打开。
 
 ### 建议的 feature 可达性表
 
@@ -124,7 +124,7 @@ macOS managed settings 来自固定系统目录，探针没有修改管理员路
 | --- | --- |
 | key | 稳定 flag/settings/env 名 |
 | default | bundle 内默认值 |
-| source | environment、settings、GrowthBook、account API |
+| source | baked default、GrowthBook、account API；environment/config override 在本版不可达 |
 | provider gate | first-party only 或云 provider 限制 |
 | policy gate | managed setting 是否可禁用/强制 |
 | surface gate | 命令、工具或 UI 是否注册 |
@@ -177,6 +177,10 @@ settings source 只决定规则集合；permissions 仍按 deny、ask、allow �
 ### “设置了 flag，命令还是不存在”
 
 检查 provider、account/org capability、command registration 和 protocol gate。flag key 存在不是成功 probe。
+
+### “设置了 `CLAUDE_INTERNAL_FC_OVERRIDES` 仍没变化”
+
+不要继续猜 JSON 语法。本版 override parse 分支不可达，精确二进制在禁用在线求值时把 `tengu_ccr_bridge` override 设为 true，doctor 仍报告 rollout 无法验证。应检查真实 feature service、账号/org、provider、policy 和 consumer surface，而不是依赖该内部变量。
 
 ### “企业配置偶尔消失”
 

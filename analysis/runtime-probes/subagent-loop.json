@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:23.062Z",
+  "capturedAt": "2026-08-21T21:12:28.340Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,7 +11,7 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "subagentLoop": "$CLAUDE_2_1_235 --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID"
+    "subagentLoop": "$CLAUDE_TARGET --print SUBAGENT_PARENT_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Agent --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID"
   },
   "input": {
     "parentPrompt": "SUBAGENT_PARENT_PROMPT_MARKER",

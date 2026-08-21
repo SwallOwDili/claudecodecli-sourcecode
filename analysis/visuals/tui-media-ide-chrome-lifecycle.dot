@@ -1,0 +1,30 @@
+digraph TuiMediaIdeChromeLifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.2", nodesep="0.55", ranksep="0.72"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#45413c", fillcolor="#f7f6f2", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=9, color="#625f58", fontcolor="#45413c"];
+
+  local [label="键盘 / Vim / paste / voice\n产生本地输入", fillcolor="#fff3cd"];
+  composer [label="Composer store\ntext / mode / cursor / attachments", fillcolor="#e8f0ff"];
+  renderer [label="TUI renderer\nframe diff / screen reader / cursor", fillcolor="#f3e8ff"];
+  turn [label="提交快照\nprompt + image + IDE context", fillcolor="#e5f6ef"];
+  agent [label="Agent Loop\nmessages / tool_use / tool_result", fillcolor="#e5f6ef"];
+  ide [label="IDE bridge\nactive file / selection / diff", fillcolor="#fff3cd"];
+  chrome [label="Chrome bridge\nselected device / pending call / timer", fillcolor="#fde8e7"];
+  page [label="Extension + browser\ntab / page / domain permission", fillcolor="#f9eadc"];
+
+  { rank=same; local; ide; }
+  { rank=same; composer; renderer; }
+  { rank=same; agent; chrome; page; }
+
+  local -> composer [label="更新文字与附件"];
+  composer -> renderer [label="渲染并声明光标"];
+  renderer -> composer [label="分发 focus 与 key 事件"];
+  ide -> turn [label="附加当前快照"];
+  composer -> turn [label="冻结并提交"];
+  turn -> agent [label="启动模型 turn"];
+  agent -> chrome [label="派发 browser tool"];
+  chrome -> page [label="路由到设备与 tab"];
+  page -> chrome [label="返回结果或权限请求"];
+  chrome -> agent [label="完成或拒绝 pending call"];
+  page -> chrome [label="断线时使调用失败", style=dashed, color="#b44c43", fontcolor="#8f332d"];
+}

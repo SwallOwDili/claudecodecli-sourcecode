@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:21.352Z",
+  "capturedAt": "2026-08-21T21:12:05.972Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,12 +11,12 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "requestShape": "$CLAUDE_2_1_235 --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
-    "apiKey": "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_2_1_235 --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
-    "cacheDisabled": "DISABLE_PROMPT_CACHING=1 $CLAUDE_2_1_235 --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
-    "hookDeny": "$CLAUDE_2_1_235 --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-    "stopReentry": "$CLAUDE_2_1_235 --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
-    "maxTurns": "$CLAUDE_2_1_235 --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID"
+    "requestShape": "$CLAUDE_TARGET --print REQUEST_SHAPE_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+    "apiKey": "ANTHROPIC_API_KEY=$API_KEY $CLAUDE_TARGET --print API_KEY_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools '' --session-id $SESSION_ID",
+    "cacheDisabled": "DISABLE_PROMPT_CACHING=1 $CLAUDE_TARGET --print CACHE_DISABLED_REQUEST_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --session-id $SESSION_ID",
+    "hookDeny": "$CLAUDE_TARGET --print HOOK_DENY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+    "stopReentry": "$CLAUDE_TARGET --print STOP_REENTRY_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools '' --session-id $SESSION_ID",
+    "maxTurns": "$CLAUDE_TARGET --print MAX_TURNS_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --settings $SETTINGS --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 1 --session-id $SESSION_ID"
   },
   "input": {
     "requestShape": {

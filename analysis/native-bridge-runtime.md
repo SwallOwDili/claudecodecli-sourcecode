@@ -213,7 +213,7 @@ reconstructed native validation: PASS
 
 通过说明重建实现满足当前检查过的外部合同，不说明内部算法等同原始源码。
 
-机器报告把 23 项拆为：17 项真实原版/重建对照、5 项 `environment-boundary` 和 1 个最低覆盖审计。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态；`environment-boundary` 明确记录本轮没有显示器、Accessibility 或 Spotlight 能力时哪些检查没有触发。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
+机器报告把 23 项拆为：22 项真实原版/重建对照和 1 个最低覆盖审计。22 项对照中有 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本轮 `environment-boundary` 为 0。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态。报告 schema 仍保留 `environment-boundary`，以便后续在没有显示器、Accessibility 或 Spotlight 能力时明确记录未触发项。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
 
 ## 架构与平台边界
 

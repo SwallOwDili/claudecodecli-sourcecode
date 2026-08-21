@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度，读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC、event 和 slash command，读 [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) 查动态扩展、reload 和 language server 生命周期。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+需要查全量表面时，不要在本卷里翻零散提及：读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度，读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [29 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合，读 [Workflow/Artifact/Design](workflow-artifact-design.md)、[Feature Flags/Remote Config](feature-flags-remote-config.md)、[TUI/媒体/IDE/Chrome](tui-input-accessibility-media-ide-chrome.md) 与 [后台/Channels/Cloud](cloud-background-channels.md) 查产品状态机。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -848,7 +848,13 @@ Root schema记录字段类型、description、enum和嵌套对象，但每个字
 
 ### 23.3 Feature flag 的证据等级
 
-本版机器清单有 361 个 feature flag候选。名称只能说明存在评估调用，不能直接证明默认值、账户 rollout或用户已获得功能。可靠结论需要同时满足 consumer branch、默认/fallback、event、schema或 release note。
+本版机器清单有 361 个静态 feature key、498 个 `et()` 调用点、6 个静态 GrowthBook config key 和 12 个 `CB()` 调用点。名称只能说明存在读取调用，不能直接证明默认值、账户 rollout或用户已获得功能。可靠结论需要同时满足 reader 类型、consumer branch、默认/fallback、policy/provider/surface/protocol gate 和运行证据。
+
+在线 feature evaluation 还依赖一方事件通道：`DISABLE_GROWTHBOOK`、非一方 provider、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`、`DISABLE_TELEMETRY` 或 `DO_NOT_TRACK` 可以让在线求值关闭。显式 `CLAUDE_CODE_GB_DISK_CACHE_WHEN_TELEMETRY_OFF` 只允许一方 provider 在关闭在线流量时读旧磁盘值，不会让它变 fresh。
+
+同步 reader 的实际可达顺序是 fresh memory -> disk cache -> baked default；disk cache 没有读取 TTL。gate reader 对 cached true 走快路径，对 false/缺失则可能阻塞初始化。默认 refresh 是 360 分钟；远端 cadence 以 5-360 分钟为基准并加 0.9-1.1 jitter，360 分钟向上的 jitter 会再封顶。
+
+本版虽然导出 `CLAUDE_INTERNAL_FC_OVERRIDES` 相关 API，但 `getEnvironmentOverrides()` 在 parse 前提前返回，config override 读写也是 no-op。精确二进制把 `tengu_ccr_bridge` override 设为 true 后，doctor 仍报告 feature evaluation disabled、rollout 无法验证。它不能作为用户可用的强开入口。
 
 ### 23.4 Policy helper
 
@@ -1009,7 +1015,7 @@ Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。
 
 ### 26.7 架构覆盖
 
-ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 17 个真实原版/兼容对照、5 个 `environment-boundary` 和 1 个最低覆盖审计组成；不能把全部 23 项都称为行为双跑。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
+ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 22 个真实原版/兼容对照和 1 个最低覆盖审计组成；22 个对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次没有 `environment-boundary`。不能把覆盖审计也称为行为双跑。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
 
 ## 27. 安装、更新与 Doctor
 
@@ -1217,7 +1223,7 @@ Doctor分别检查：
 - 70类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 135条机制证据：74 Static、27 Probe、33 Public、1 Boundary；
+- 146条机制证据：83 Static、28 Probe、33 Public、2 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29个 built-in tool identifier、188个 known-tool catalog项；
@@ -1238,7 +1244,8 @@ Doctor分别检查：
 - filesystem/network sandbox；
 - file checkpoint rewind；
 - doctor/update gate和 Remote Control负向边界；
-- 原生 contract、17项原版/兼容对照、5项环境边界和1项覆盖审计。
+- 内部 feature override 不可达；
+- 原生 contract、22项原版/兼容对照、0项环境边界和1项覆盖审计。
 
 ### 33.3 尚未形成正向 Probe 的部分
 
@@ -1264,6 +1271,13 @@ Doctor分别检查：
 | Retry、fallback、恢复与副作用 | [resilience-and-recovery.md](resilience-and-recovery.md) |
 | Model、provider、auth、request | [models-auth-providers-request.md](models-auth-providers-request.md) |
 | Settings、feature flag、policy | [settings-feature-flags-policy.md](settings-feature-flags-policy.md) |
+| Feature evaluation、disk cache、refresh、exposure | [feature-flags-remote-config.md](feature-flags-remote-config.md) |
+| 103 个 slash command 的 host、gate 与状态 owner | [slash-command-reference.md](slash-command-reference.md) |
+| 31 个 Hook 事件的字段、阻塞与 timeout | [hooks-event-reference.md](hooks-event-reference.md) |
+| 29 个 Storage namespace 的 key、写入与 consumer | [storage-v5-reference.md](storage-v5-reference.md) |
+| Workflow、Artifact、Design 的数据与发布边界 | [workflow-artifact-design.md](workflow-artifact-design.md) |
+| TUI、输入、拼写、图片、语音、IDE、Chrome | [tui-input-accessibility-media-ide-chrome.md](tui-input-accessibility-media-ide-chrome.md) |
+| 后台 task、Cron、Channel、Remote、Cloud 与 runner | [cloud-background-channels.md](cloud-background-channels.md) |
 | TUI、IDE、Remote、cloud | [tui-ide-remote-cloud.md](tui-ide-remote-cloud.md) |
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
@@ -1272,7 +1286,69 @@ Doctor分别检查：
 | 公开资料与本版证据边界 | [public-claims-validation.md](public-claims-validation.md) |
 | 每条 Probe命令和原始结果 | [runtime-probe-index.md](runtime-probe-index.md) |
 
-## 35. 最终准确性边界
+## 35. 七个容易被清单掩盖的产品状态机
+
+### 35.1 Slash Command：103 是静态集合，不是菜单数量
+
+`2.1.235` 的 command object 分成 `local`、`local-jsx` 和 `prompt`。同名 command 还可能有 interactive/noninteractive/thin-client twin。判断一个命令是否可用，必须分别看：
+
+1. parser 是否能解析；
+2. 当前 host 选中了哪一个 twin；
+3. `isEnabled`、`isHidden`、availability、feature、provider、policy 是否放行；
+4. handler 是修改 App/session/settings/file/process/task，还是生成 prompt 进入 Agent Loop；
+5. handler 返回后，状态是否真正持久化或由远端确认。
+
+因此 `version`、`pause-memory`、`loops` 等保留 object/identifier 的命令不能自动写成当前可用；hidden、stub、host-only 和 remote-event-only 也必须单独标出。103/103 marker 证明集合未漏，不替代逐命令失败边界。
+
+### 35.2 Hooks：前置控制与后置观察不能混写
+
+31 个事件至少跨越 prompt、tool、compact、session、config/file、MCP elicitation、task/team/worktree 和 display/notification。共同 runner 之外，每个事件的时机、matcher 字段和阻塞语义不同：
+
+- `PreToolUse` 在 permission/call 前，可 deny/defer/update input，timeout fail closed；
+- `PostToolUse`、`PostToolBatch` 和 `PostCompact` 已处于副作用或状态变换之后，不能回滚；
+- `Stop` 可让 Agent Loop 继续，但有连续阻止 cap；
+- `UserPromptSubmit`、`ConfigChange`、`TaskCompleted` 等 exit 2 的对象不同；
+- command、HTTP 和 MCP Hook 的可用事件、环境、输出和网络信任边界不同。
+
+“配置了 hook”只证明配置存在；还要观察 matcher、runner 启动、timeout、exit/JSON 解析和调用方是否采纳结果。
+
+### 35.3 Storage v5：namespace 不是自动事务数据库
+
+29 个 Claude namespace 用 typed key 把 segment、scope 和允许形状固定下来；底层支持 atomic replace、in-place 和 append 等写入纪律，也有 expected stat/value/version 一类 precondition。它解决的是路径、key 与单次写入合同，不自动提供：
+
+- namespace-wide lock；
+- 跨 key transaction；
+- 统一 migration；
+- 统一 TTL/retention；
+- consumer 的业务幂等。
+
+更关键的是，本版 `tryCreateV5Backend()` 直接返回空。也就是说，storage v5 consumer 和 key contract 大量存在，但不能宣称普通本地 CLI 一定自行创建并启用 backend。`identity`、`recording`、`scratch`、`sessionLog` 等缺少足够 active consumer 的 namespace 保持 Boundary。
+
+### 35.4 Workflow、Artifact、Design：三条链没有共享事务
+
+Workflow 把自包含脚本、phase、agent call、journal、run/task ID 和同 session resume 绑定；`async_launched` 只证明运行已登记。Artifact 则把具体本地文件身份、hash/version、supporting files、CSP、远端 URL、comments/DB/assets/watch 绑定，发布批准针对 bytes，不只是路径字符串。Design Sync 再把本地 repo、build/diff/validate/capture、sidecar、远端 project 和 ownership 对齐。
+
+三者可以串联，却不能共同回滚：Workflow 后续 phase 失败不会撤销已发布 Artifact；Artifact URL 不证明 Design project 已同步；远端 upload 成功也不会把本地 Git 状态自动变干净。
+
+### 35.5 TUI、媒体、IDE、Chrome：输入不是一条字符串
+
+Composer 持有文本、selection、Vim mode、permission comment、history 和 focus；renderer 还区分 alternate screen、screen reader、native cursor 和 diff strategy。Spellcheck 是受限本地子进程，有批量、缓存、字符过滤、timeout 和 circuit breaker。Paste 先做 gesture 分类，再按 MIME/bytes/扩展名走文本、文件、native image processor 或 clipboard fallback。Voice 是本地 capture + 远端 STT + 文本注入，不是直接把音频当普通 message。
+
+IDE 与 Chrome 又拥有各自的 socket/token/selection/page/permission/timer state。断线、tool timeout 和迟到页面副作用是三种结果；permission dialog 可以暂停计时，却不能倒放已发生的浏览器动作。
+
+### 35.6 Background、Channels、Remote 与 Cloud：显示端不等于执行 owner
+
+本地 Bash/Agent 可由 task/supervisor 承载，Cron/loop/Monitor/Channel 只负责在请求边界排入新 input/notification。Remote Control 通常是远端看、本地 CLI 执行；cloud session、CCR/BYOC/self-hosted runner 才把 Agent Loop 或 workspace owner 放到远端环境。
+
+所以关闭终端、关闭网页、resume transcript、停止 task、断开 viewer 的效果不同。`async_launched`、task metadata、Channel notification、remote event cursor 和 runner lease 也不是同一种完成信号。长 cloud task 在 `2.1.235` 使用增量 event cursor/owned state，减少重复扫描历史；它优化本地消费，不证明远端 worker 更快或更便宜。
+
+### 35.7 Feature Flags：同版本差异来自状态链，不来自版本号本身
+
+Feature manager 同时持有 fresh map、disk last-known-good、experiment metadata、pending/logged exposure、auth identity、generation 和 refresh loop。每个 consumer 还要继续通过 settings、policy、provider、command/tool surface 和协议门。
+
+这套结构解释了四个用户现象：同版本不同账号不同；退出登录后 rollout 改变；关闭非必要流量后在线求值关闭；旧 disk true 在刷新前继续生效。它也解释了准确性边界：客户端可以证明取值和消费顺序，不能恢复服务端 targeting rule、账号实时值、entitlement 或实验分配。
+
+## 36. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

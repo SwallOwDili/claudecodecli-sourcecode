@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:37.548Z",
+  "capturedAt": "2026-08-21T21:13:45.930Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,8 +11,9 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "updateDisabled": "DISABLE_UPDATES=1 $CLAUDE_2_1_235 update",
-    "doctor": "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_2_1_235 doctor"
+    "updateDisabled": "DISABLE_UPDATES=1 $CLAUDE_TARGET update",
+    "doctor": "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_TARGET doctor",
+    "featureOverride": "CLAUDE_INTERNAL_FC_OVERRIDES='{\"tengu_ccr_bridge\":true}' CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_TARGET doctor"
   },
   "input": {
     "updateDisabled": {
@@ -24,6 +25,12 @@
       "customEndpoint": "http://127.0.0.1:9",
       "disableAutoUpdater": true,
       "disableNonessentialTraffic": true
+    },
+    "featureOverride": {
+      "key": "tengu_ccr_bridge",
+      "requestedValue": true,
+      "disableNonessentialTraffic": true,
+      "customEndpoint": "http://127.0.0.1:9"
     }
   },
   "literalOutput": {
@@ -43,19 +50,27 @@
       "Remote Control",
       "Remote Control is only available when using Claude via api.anthropic.com. ANTHROPIC_BASE_URL is set and does not point at api.anthropic.com, so this session is using a custom endpoint — unset it (or run in a shell without it) to use Remote Control.",
       "- Not connected to the Anthropic API (api.anthropic.com)",
-      "- Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)"
+      "- Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)",
+      "- Remote Control rollout could not be verified for this account (no server response this session)"
+    ],
+    "featureOverride": [
+      "Remote Control",
+      "- Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)",
+      "- Remote Control rollout could not be verified for this account (no server response this session)"
     ]
   },
   "exitStatus": {
     "version": 0,
     "updateDisabled": 0,
-    "doctor": 0
+    "doctor": 0,
+    "featureOverride": 0
   },
   "observed": {
-    "doctorLineCount": 14,
+    "doctorLineCount": 15,
     "invalidSettingsDetected": true,
     "remoteControlAvailable": false,
-    "autoUpdatesEnabled": false
+    "autoUpdatesEnabled": false,
+    "featureOverrideActivatedRemoteControlRollout": false
   },
   "checks": {
     "exactVersion": true,
@@ -70,7 +85,10 @@
     "doctorReportsAutoUpdateGate": true,
     "doctorReportsInvalidSettings": true,
     "doctorReportsRemoteCustomEndpointBoundary": true,
-    "doctorReportsFeatureEvaluationBoundary": true
+    "doctorReportsFeatureEvaluationBoundary": true,
+    "featureOverrideDoctorExitZero": true,
+    "featureOverrideDoesNotEnableEvaluation": true,
+    "featureOverrideDoesNotEnableRollout": true
   },
   "pass": true
 }

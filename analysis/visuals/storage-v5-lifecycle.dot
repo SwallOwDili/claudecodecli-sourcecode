@@ -1,0 +1,28 @@
+digraph StorageV5Lifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.42", ranksep="0.68"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#45413c", fillcolor="#f7f6f2", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=9, color="#625f58", fontcolor="#45413c"];
+
+  consumer [label="业务 consumer\nsettings / task / plugin / daemon", fillcolor="#fff3cd"];
+  key [label="typed key factory\nnamespace + segments", fillcolor="#e8f0ff"];
+  validate [label="key/scope validation\nreserved names + segment rules", fillcolor="#e8f0ff"];
+  adapter [label="可选 storageV5 adapter\nread/write/update/list/subscribe", fillcolor="#e5f6ef"];
+  discipline [label="precondition + publish discipline\natomic / inPlace / followAtomic", fillcolor="#e5f6ef"];
+  harden [label="leaf hardening\nno symlink / hardlink / swap", fillcolor="#fce8e6"];
+  durable [label="durable logical value\nitem / stream / scope", fillcolor="#fff3cd"];
+  fallback [label="既有磁盘路径\nadapter 缺失或调用方回退", fillcolor="#f7f6f2"];
+  observe [label="subscribe / list / recovery copy\nconsumer-specific cleanup", fillcolor="#e8f0ff"];
+  boundary [label="本版 tryCreateV5Backend 返回空\n不证明 CLI 自建 v5 backend", fillcolor="#fce8e6"];
+
+  consumer -> key [label="构造逻辑键"];
+  key -> validate [label="拒绝非法 shape"];
+  validate -> adapter [label="提交操作"];
+  adapter -> discipline [label="携带写合同"];
+  discipline -> harden [label="发布叶值"];
+  harden -> durable [label="写入成功"];
+  durable -> observe [label="通知或枚举"];
+  observe -> consumer [label="刷新业务状态"];
+  validate -> fallback [label="adapter 未提供"];
+  fallback -> consumer [label="读取/写入旧路径"];
+  boundary -> adapter [label="仅可注入，非本地创建", style=dashed, color="#b3261e", fontcolor="#b3261e"];
+}

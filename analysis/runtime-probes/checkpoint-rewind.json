@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:34.062Z",
+  "capturedAt": "2026-08-21T21:13:23.314Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,8 +11,8 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "createCheckpoint": "$CLAUDE_2_1_235 --print CHECKPOINT_REWIND_PROMPT_MARKER --tools Read,Edit --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-    "rewind": "$CLAUDE_2_1_235 --print --resume $SESSION_ID --rewind-files $USER_MESSAGE_UUID"
+    "createCheckpoint": "$CLAUDE_TARGET --print CHECKPOINT_REWIND_PROMPT_MARKER --tools Read,Edit --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+    "rewind": "$CLAUDE_TARGET --print --resume $SESSION_ID --rewind-files $USER_MESSAGE_UUID"
   },
   "input": {
     "createCheckpoint": {

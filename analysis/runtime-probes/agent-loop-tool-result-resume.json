@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-21T08:52:18.208Z",
+  "capturedAt": "2026-08-21T21:11:52.656Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -11,11 +11,11 @@
     "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
   },
   "commands": {
-    "baseline": "$CLAUDE_2_1_235 --version",
-    "initial": "$CLAUDE_2_1_235 --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
-    "resume": "$CLAUDE_2_1_235 --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
-    "compact": "$CLAUDE_2_1_235 --print '/compact COMPACT_REQUEST_MARKER retain key facts' --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
-    "fork": "$CLAUDE_2_1_235 --print AGENT_LOOP_FORK_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID --fork-session"
+    "baseline": "$CLAUDE_TARGET --version",
+    "initial": "$CLAUDE_TARGET --print AGENT_LOOP_INITIAL_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID",
+    "resume": "$CLAUDE_TARGET --print AGENT_LOOP_RESUME_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+    "compact": "$CLAUDE_TARGET --print '/compact COMPACT_REQUEST_MARKER retain key facts' --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID",
+    "fork": "$CLAUDE_TARGET --print AGENT_LOOP_FORK_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Read --permission-mode bypassPermissions --dangerously-skip-permissions --resume $SESSION_ID --fork-session"
   },
   "input": {
     "initialPrompt": "AGENT_LOOP_INITIAL_MARKER",

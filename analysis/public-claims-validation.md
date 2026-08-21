@@ -187,7 +187,7 @@ Result: 本版成功 resume 会恢复已持久化历史并加入当前输入
 | `runtime-controls.json` | bearer、API key、cache disable、hook deny、Stop hook、maxTurns | Authorization/x-api-key 二选一；cache marker 3 -> 0；deny feedback；Stop 第二请求；`error_max_turns` | 成功路径 0，maxTurns 为 1 | request、cache、控制 hook 和预算终态均有 wire/runtime 证据 |
 | `lifecycle-doctor.json` | `DISABLE_UPDATES=1`；损坏 settings；custom endpoint | 管理员禁用更新；doctor 输出 version/commit/platform/search/update/settings/Remote Control 原因 | 0 / 0 | update gate 与 doctor 多故障域可达，自定义 endpoint 边界有明确诊断 |
 | `mcp-refresh.json` / `subagent-loop.json` | list_changed；child prompt/tool | 第二次 list；新工具第三请求出现；父循环收到 async ACK 和 completed notification | 0 / 0 | 动态工具与异步 child 都按请求边界进入主循环 |
-| `native-reconstruction.json` | 原始与兼容模块相同输入和环境能力审计 | contract PASS；17 项真实对照、5 项 `environment-boundary`、1 项最低覆盖审计，共 23 checks | 0 | arm64 兼容层达到已触发调用合同；环境缺失项没有冒充双跑，x86_64 仍是静态边界 |
+| `native-reconstruction.json` | 原始与兼容模块相同输入和环境能力审计 | contract PASS；22 项真实对照、0 项 `environment-boundary`、1 项最低覆盖审计，共 23 checks | 0 | arm64 兼容层达到已触发调用合同；本次显示器、Accessibility 与应用图标路径均形成实际对照，x86_64 仍是静态边界 |
 
 这些 Probe 使用本地协议对端的原因，是把变量限制在客户端。它们没有把本地 mock 返回成功写成“Anthropic 服务端也已成功”，也没有把 doctor 的不可用诊断写成真实 Remote Control 成功连接。
 

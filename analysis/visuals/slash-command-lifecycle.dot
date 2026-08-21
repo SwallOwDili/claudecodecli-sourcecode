@@ -1,0 +1,34 @@
+digraph SlashCommandLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.42", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#45413c", fillcolor="#f7f6f2", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=9, color="#625f58", fontcolor="#45413c"];
+
+  input [label="用户输入 /name args\n或 host 注入 command", fillcolor="#fff3cd"];
+  parse [label="parser + alias + dynamic registry\n选择候选 command"];
+  twin [label="按 host 选择 twin\nlocal / local-jsx / prompt", fillcolor="#e8f0ff"];
+  gate [label="isEnabled / isHidden / availability\nrequires / feature / policy", fillcolor="#fde9e7"];
+
+  local [label="local handler\ntext / settings / file / host call", fillcolor="#e5f6ef"];
+  jsx [label="local-jsx component\ndialog / picker / panel", fillcolor="#e5f6ef"];
+  prompt [label="prompt expansion\n进入 Agent Loop", fillcolor="#e5f6ef"];
+  control [label="thin-client dispatch\ncontrol-request / post-text / twin", fillcolor="#f1e9fb"];
+
+  state [label="提交 owned state\nsession / settings / process / remote"];
+  result [label="可观察 result\ntext / UI / task / remote status", fillcolor="#fff3cd"];
+  hidden [label="隐藏 / disabled / stub / host-only\nidentifier 仍可留在 inventory", fillcolor="#f4d7d4"];
+
+  input -> parse [label="解析名字和参数"];
+  parse -> twin [label="找到静态或动态对象"];
+  twin -> gate [label="当前 host 实现"];
+  gate -> hidden [label="gate 不满足"];
+  gate -> local [label="type=local"];
+  gate -> jsx [label="type=local-jsx"];
+  gate -> prompt [label="type=prompt"];
+  twin -> control [label="thin client"];
+  control -> local [label="host response/post-text"];
+  local -> state [label="handler 成功"];
+  jsx -> state [label="用户确认"];
+  prompt -> state [label="Agent/tool 完成"];
+  state -> result [label="持久化或返回"];
+  result -> parse [label="reload/generation 改变后\n下一条命令重选", style=dashed];
+}

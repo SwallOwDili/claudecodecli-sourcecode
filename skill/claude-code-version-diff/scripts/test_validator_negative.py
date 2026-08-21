@@ -72,6 +72,35 @@ def expect_rejection(
         raise RuntimeError(f"failed to restore {relative}")
 
 
+def expect_missing_rejection(
+    repo: Path,
+    validator: Path,
+    relative: str,
+    expected: str,
+) -> None:
+    path = repo / relative
+    original = path.read_bytes()
+    original_hash = sha256(original)
+    displaced = path.with_name(path.name + ".negative-test-missing")
+    if displaced.exists():
+        raise RuntimeError(f"negative-test displacement already exists: {displaced}")
+    try:
+        path.replace(displaced)
+        result = run_validator(repo, validator, fast=True)
+        output = text_output(result)
+        if result.returncode == 0:
+            raise RuntimeError(f"validator accepted missing file for {relative}")
+        if expected not in output:
+            raise RuntimeError(
+                f"validator rejected missing {relative} for an unexpected reason:\n{output}"
+            )
+    finally:
+        if displaced.exists():
+            displaced.replace(path)
+    if sha256(path.read_bytes()) != original_hash:
+        raise RuntimeError(f"failed to restore missing-file case for {relative}")
+
+
 def replace_once(original: bytes, old: bytes, new: bytes) -> bytes:
     if old not in original:
         raise RuntimeError(f"negative-test anchor is missing: {old!r}")
@@ -248,6 +277,33 @@ def main() -> None:
             ),
             "human slash-command coverage mismatch",
         ),
+        (
+            "analysis/slash-command-reference.md",
+            lambda data: replace_once(
+                data,
+                b"001 add-dir",
+                b"001 add-dir-missing",
+            ),
+            "human slash-command reference coverage mismatch",
+        ),
+        (
+            "analysis/hooks-event-reference.md",
+            lambda data: replace_once(
+                data,
+                b"<!-- hook-event:ConfigChange -->",
+                b"<!-- hook-event:ConfigChangeMissing -->",
+            ),
+            "human Hook event coverage mismatch",
+        ),
+        (
+            "analysis/storage-v5-reference.md",
+            lambda data: replace_once(
+                data,
+                b"<!-- storage-namespace:agentMemory -->",
+                b"<!-- storage-namespace:agentMemoryMissing -->",
+            ),
+            "human Claude storage namespace coverage mismatch",
+        ),
     ]
 
     full_regeneration_cases = {
@@ -264,8 +320,15 @@ def main() -> None:
             fast=relative not in full_regeneration_cases,
         )
 
+    expect_missing_rejection(
+        repo,
+        validator,
+        "analysis/feature-flags-remote-config.md",
+        "missing human analysis document: analysis/feature-flags-remote-config.md",
+    )
+
     print("validator negative tests: PASS")
-    print(f"cases checked: {len(cases)}")
+    print(f"cases checked: {len(cases) + 1}")
     print("restoration: PASS")
 
 

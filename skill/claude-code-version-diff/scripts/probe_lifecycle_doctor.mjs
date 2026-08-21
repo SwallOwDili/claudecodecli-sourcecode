@@ -78,6 +78,14 @@ async function main() {
     env: baseEnv,
     stdio: ["ignore", "pipe", "pipe"],
   });
+  const featureOverrideRun = await runCli(binary, ["doctor"], {
+    cwd: workspace,
+    env: {
+      ...baseEnv,
+      CLAUDE_INTERNAL_FC_OVERRIDES: '{"tengu_ccr_bridge":true}',
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 
   const doctorLines = matchingLines(doctorRun.stdout, [
     /^Claude Code doctor$/,
@@ -94,10 +102,17 @@ async function main() {
     /^Remote Control is only available when using Claude via api\.anthropic\.com\./,
     /^- Not connected to the Anthropic API \(api\.anthropic\.com\)$/,
     /^- Feature-flag evaluation disabled \(disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\)$/,
+    /^- Remote Control rollout could not be verified for this account \(no server response this session\)$/,
   ]).map((line) => line.includes("Invalid or malformed JSON")
     ? "- $CONFIG/settings.json: Invalid or malformed JSON"
     : line);
   const doctorText = doctorLines.join("\n");
+  const featureOverrideLines = matchingLines(featureOverrideRun.stdout, [
+    /^Remote Control$/,
+    /^- Feature-flag evaluation disabled \(disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\)$/,
+    /^- Remote Control rollout could not be verified for this account \(no server response this session\)$/,
+  ]);
+  const featureOverrideText = featureOverrideLines.join("\n");
   const updateText = updateRun.stdout.trim();
   const checks = {
     exactVersion: versionRun.stdout.trim() === `${expectedVersion} (Claude Code)`,
@@ -113,6 +128,9 @@ async function main() {
     doctorReportsInvalidSettings: doctorText.includes("$CONFIG/settings.json: Invalid or malformed JSON"),
     doctorReportsRemoteCustomEndpointBoundary: doctorText.includes("Remote Control is only available when using Claude via api.anthropic.com."),
     doctorReportsFeatureEvaluationBoundary: doctorText.includes("Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)"),
+    featureOverrideDoctorExitZero: featureOverrideRun.exitStatus === 0,
+    featureOverrideDoesNotEnableEvaluation: featureOverrideText.includes("Feature-flag evaluation disabled (disabled by CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)"),
+    featureOverrideDoesNotEnableRollout: featureOverrideText.includes("Remote Control rollout could not be verified for this account (no server response this session)"),
   };
 
   const report = {
@@ -130,6 +148,7 @@ async function main() {
     commands: {
       updateDisabled: "DISABLE_UPDATES=1 $CLAUDE_TARGET update",
       doctor: "DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_TARGET doctor",
+      featureOverride: "CLAUDE_INTERNAL_FC_OVERRIDES='{\"tengu_ccr_bridge\":true}' CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_BASE_URL=http://127.0.0.1:9 $CLAUDE_TARGET doctor",
     },
     input: {
       updateDisabled: { disableUpdates: true },
@@ -140,22 +159,31 @@ async function main() {
         disableAutoUpdater: true,
         disableNonessentialTraffic: true,
       },
+      featureOverride: {
+        key: "tengu_ccr_bridge",
+        requestedValue: true,
+        disableNonessentialTraffic: true,
+        customEndpoint: "http://127.0.0.1:9",
+      },
     },
     literalOutput: {
       version: versionRun.stdout.trim(),
       updateDisabled: updateText,
       doctor: doctorLines,
+      featureOverride: featureOverrideLines,
     },
     exitStatus: {
       version: versionRun.exitStatus,
       updateDisabled: updateRun.exitStatus,
       doctor: doctorRun.exitStatus,
+      featureOverride: featureOverrideRun.exitStatus,
     },
     observed: {
       doctorLineCount: doctorLines.length,
       invalidSettingsDetected: doctorText.includes("Invalid or malformed JSON"),
       remoteControlAvailable: false,
       autoUpdatesEnabled: false,
+      featureOverrideActivatedRemoteControlRollout: false,
     },
     checks,
     pass: Object.values(checks).every(Boolean),
@@ -164,6 +192,7 @@ async function main() {
   if (!report.pass) {
     process.stderr.write(updateRun.stderr);
     process.stderr.write(doctorRun.stderr);
+    process.stderr.write(featureOverrideRun.stderr);
     process.exitCode = 1;
   }
 }

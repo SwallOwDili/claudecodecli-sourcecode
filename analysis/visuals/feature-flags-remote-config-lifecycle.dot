@@ -1,0 +1,38 @@
+digraph feature_flags_remote_config_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  startup [label="启动与消费者读取\net / CB / H_e / fq", fillcolor="#e3f2fd"];
+  enabled [label="在线求值门\nprovider + traffic/telemetry + DISABLE_GROWTHBOOK", fillcolor="#fff3cd"];
+  disk [label="磁盘 last-known-good\ncachedGrowthBookFeatures\n无读取 TTL", fillcolor="#ffe0b2"];
+  trust [label="Trust 与认证\nOAuth refresh 5s\nauth headers", fillcolor="#d1c4e9"];
+  eval [label="Remote eval\n/api/eval-authed\n失败回退 /api/eval", fillcolor="#bbdefb"];
+  validate [label="Payload 清洗与 generation guard\n拒绝 malformed / valueless / old client", fillcolor="#b2dfdb"];
+  memory [label="Fresh 内存 map\nvalues + experiments + non-default", fillcolor="#c8e6c9"];
+  exposure [label="Exposure\nfresh 立即去重\ndisk 先 pending", fillcolor="#f8bbd0"];
+  consumer [label="功能消费者继续判定\npolicy / auth / surface / protocol", fillcolor="#c5cae9"];
+  result [label="用户可见结果\nenabled / disabled / unverifiable", fillcolor="#dcedc8"];
+  refresh [label="刷新循环\n默认 360m\nflagged jitter + 一次 0-5s 补试", fillcolor="#d7ccc8"];
+  failure [label="失败保持旧状态\ninvalid/empty/network error\n不清空 last-known-good", fillcolor="#ffcdd2"];
+  reset [label="Auth/account/org 变化\nreset + generation++\n旧响应不得提交", fillcolor="#ffccbc"];
+
+  startup -> enabled [label="检查外层门"];
+  enabled -> disk [label="disabled 或启动快速读"];
+  enabled -> trust [label="允许在线求值"];
+  trust -> eval [label="组装 attributes 与 auth"];
+  eval -> validate [label="收到 payload"];
+  eval -> failure [label="请求失败"];
+  validate -> memory [label="有效且仍是当前 client"];
+  validate -> failure [label="空值/畸形/旧 generation"];
+  memory -> disk [label="写入值、实验与时间戳"];
+  memory -> exposure [label="首次读取"];
+  disk -> exposure [label="登记 pending"];
+  memory -> consumer [label="source=payload"];
+  disk -> consumer [label="source=disk 或 fallback"];
+  consumer -> result [label="其余门全部满足"];
+  refresh -> eval [label="周期 refresh"];
+  failure -> refresh [label="保留旧值后等待"];
+  reset -> trust [label="重新初始化"];
+  memory -> reset [label="bearer/account/org 改变"];
+}

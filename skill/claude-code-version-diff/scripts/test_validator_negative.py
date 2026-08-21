@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -16,12 +17,23 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def run_validator(repo: Path, validator: Path) -> subprocess.CompletedProcess[str]:
+def run_validator(
+    repo: Path,
+    validator: Path,
+    *,
+    fast: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    command = [sys.executable, str(validator), str(repo)]
+    environment = os.environ.copy()
+    if fast:
+        command.append("--negative-test-fast")
+        environment["CLAUDE_VALIDATOR_NEGATIVE_TEST"] = "1"
     return subprocess.run(
-        [sys.executable, str(validator), str(repo)],
+        command,
         cwd=repo,
         text=True,
         capture_output=True,
+        env=environment,
     )
 
 
@@ -35,6 +47,8 @@ def expect_rejection(
     relative: str,
     mutate: Callable[[bytes], bytes],
     expected: str,
+    *,
+    fast: bool = True,
 ) -> None:
     path = repo / relative
     original = path.read_bytes()
@@ -44,7 +58,7 @@ def expect_rejection(
         raise RuntimeError(f"negative mutation did not change {relative}")
     try:
         path.write_bytes(changed)
-        result = run_validator(repo, validator)
+        result = run_validator(repo, validator, fast=fast)
         output = text_output(result)
         if result.returncode == 0:
             raise RuntimeError(f"validator accepted negative case for {relative}")
@@ -198,10 +212,57 @@ def main() -> None:
             ),
             "reader-first human document is missing lifecycle image",
         ),
+        (
+            "analysis/builtin-tools-reference.md",
+            lambda data: replace_once(
+                data,
+                b"| `Artifact` |",
+                b"| `ArtifactMissing` |",
+            ),
+            "human built-in tool coverage mismatch",
+        ),
+        (
+            "analysis/settings-reference.md",
+            lambda data: replace_once(
+                data,
+                b"001 $schema",
+                b"001 schema_missing",
+            ),
+            "human direct root setting coverage mismatch",
+        ),
+        (
+            "analysis/cli-sdk-output-protocol.md",
+            lambda data: replace_once(
+                data,
+                b"| `initialize` | client -> loop |",
+                b"| `initialize_missing` | client -> loop |",
+            ),
+            "human SDK subtype coverage mismatch",
+        ),
+        (
+            "analysis/cli-sdk-output-protocol.md",
+            lambda data: replace_once(
+                data,
+                b"`add-dir`, `autocompact`",
+                b"`add-dir-missing`, `autocompact`",
+            ),
+            "human slash-command coverage mismatch",
+        ),
     ]
 
+    full_regeneration_cases = {
+        "analysis/source-inventory/summary.json",
+        "analysis/source-inventory/environment-schema.jsonl",
+    }
     for relative, mutate, expected in cases:
-        expect_rejection(repo, validator, relative, mutate, expected)
+        expect_rejection(
+            repo,
+            validator,
+            relative,
+            mutate,
+            expected,
+            fast=relative not in full_regeneration_cases,
+        )
 
     print("validator negative tests: PASS")
     print(f"cases checked: {len(cases)}")

@@ -1,0 +1,25 @@
+digraph builtin_tool_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.50", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  request [label="模型生成 tool_use\n工具名 + 专属输入", fillcolor="#fff3cd"];
+  common [label="统一控制管线\nlookup / schema / hook / permission / sandbox", fillcolor="#ffe0b2"];
+  machine [label="允许：进入工具专属状态机\n文件、进程、任务、工作流、远端对象", fillcolor="#e3f2fd"];
+  effect [label="状态改变或外部副作用\nprocess / session / project / remote", fillcolor="#d7ccc8"];
+  persist [label="持久化与通知\ntranscript / storage / task event", fillcolor="#c8e6c9"];
+  result [label="paired tool_result\n结构化成功、拒绝或错误", fillcolor="#b2dfdb"];
+  loop [label="Agent Loop 继续决策\n或等待后台完成通知", fillcolor="#d1c4e9"];
+  denied [label="拒绝：未执行专属动作\n校验、权限或策略拒绝", fillcolor="#ffcdd2"];
+
+  request -> common [label="解析并裁决"];
+  { rank=same; machine; denied; }
+  common -> machine;
+  common -> denied;
+  machine -> effect [label="执行专属动作"];
+  effect -> persist [label="记录可恢复状态"];
+  persist -> result [label="映射输出 schema"];
+  result -> loop [label="按 tool_use_id 回灌"];
+  denied -> result [label="形成 is_error 反馈"];
+  machine -> loop [label="后台启动后先返回 task ID", style=dashed];
+}

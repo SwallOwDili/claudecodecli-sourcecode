@@ -2,7 +2,7 @@
 
 本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
-本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)，再回到下面的 70 类索引定位原始证据。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
+本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [36 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)，再回到下面的 70 类索引定位原始证据。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
 
 ## 60 秒理解“能力地图”怎么用
 

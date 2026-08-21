@@ -1,0 +1,40 @@
+digraph plugin_skill_lsp_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.40", ranksep="0.54", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  plugin_source [label="Plugin 入口\nstartup: marketplace entry / --plugin-dir\nruntime: /reload-plugins 做 full refresh\ncommand entry 会在本地生成目录", fillcolor="#fff3cd"];
+  skill_source [label="Skill 入口\nstartup: bundled / user / project / plugin / account\nruntime: /reload-skills 只清 cache 并重扫磁盘", fillcolor="#fff3cd"];
+  plugin_policy [label="Plugin 安装与信任门\nallow/block / sideload / managed", fillcolor="#ffe0b2"];
+  skill_policy [label="Skill 来源与可见性门\nsafe / bare / strict / override / sync", fillcolor="#ffe0b2"];
+  cache [label="Marketplace 下载与版本化缓存\nregistry / marketplaceCache / pluginCache", fillcolor="#d7ccc8"];
+  manifest [label="Manifest 解析\ncommands / skills / agents / hooks / MCP / LSP", fillcolor="#e3f2fd"];
+  skill_scan [label="Skill 扫描或账号同步\n来源 gate / frontmatter / conflict / budget", fillcolor="#e3f2fd"];
+  registry [label="当前 session registry\n命令、工具、Agent、Hook、Server generation", fillcolor="#c8e6c9"];
+  runtime [label="Plugin 运行组件\nHook / MCP client / LSP process / Monitor", fillcolor="#d7ccc8"];
+  model [label="模型与用户可见 surface\nslash listing / Skill / tools / diagnostics", fillcolor="#b2dfdb"];
+  fail [label="隔离错误并继续\nblocked / invalid / missing / crash", fillcolor="#ffcdd2"];
+
+  { rank=same; plugin_source; skill_source; }
+  { rank=same; plugin_policy; skill_policy; }
+  { rank=same; manifest; skill_scan; }
+  { rank=same; registry; fail; }
+  { rank=same; runtime; model; }
+
+  plugin_source -> plugin_policy [label="startup 或 full refresh"];
+  skill_source -> skill_policy [label="startup / sync"];
+  skill_source -> skill_scan [label="/reload-skills", style=dashed];
+  plugin_policy -> cache [label="marketplace plugin"];
+  plugin_policy -> manifest [label="本地 plugin-dir"];
+  skill_policy -> skill_scan [label="允许后扫描"];
+  cache -> manifest [label="读取固定版本"];
+  manifest -> registry [label="加载有效组件"];
+  skill_scan -> registry [label="装入 Skill/command"];
+  registry -> runtime [label="启动运行对象"];
+  registry -> model [label="生成当前可见能力"];
+  runtime -> model [label="tools / diagnostics / notifications"];
+  plugin_policy -> fail [label="策略拒绝", style=dashed, constraint=false];
+  manifest -> fail [label="组件错误", style=dashed, constraint=false];
+  skill_policy -> fail [label="来源禁用", style=dashed, constraint=false];
+  skill_scan -> fail [label="格式/冲突/同步失败", style=dashed, constraint=false];
+}

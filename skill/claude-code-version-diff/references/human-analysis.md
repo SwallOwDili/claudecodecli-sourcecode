@@ -9,6 +9,11 @@ For mechanisms with multiple phases, state transformations, retries, or version-
 Every full snapshot includes:
 
 ```text
+analysis/completeness-audit.md
+analysis/builtin-tools-reference.md
+analysis/settings-reference.md
+analysis/cli-sdk-output-protocol.md
+analysis/plugins-skills-commands-lsp.md
 analysis/technical-mechanism-atlas.md
 analysis/public-claims-validation.md
 analysis/technical-architecture.md
@@ -34,6 +39,18 @@ analysis/runtime-probes/*.json
 ```
 
 README routes readers into these documents and keeps hashes/counts secondary.
+
+## Exhaustive product-surface references
+
+The mechanism chapters explain shared architecture. They do not prove that every product surface has been covered. A full snapshot must therefore maintain five additional contracts:
+
+1. `completeness-audit.md` enumerates authoritative capability surfaces, assigns each one `Deep`, `Documented`, `Inventory only`, or `Boundary`, and names the exact work still needed. A validator PASS or a large word count never upgrades a row.
+2. `builtin-tools-reference.md` contains a machine-checkable marker block matching the exact release-local built-in-tool inventory. Every tool gets owned state, input/output, side effects, persistence, failure, retry/recovery, user impact, cost, privacy, security, and evidence boundaries.
+3. `settings-reference.md` contains a machine-checkable marker block matching every direct root setting. Each field explains source eligibility, validation, merge semantics, runtime consumer, reload/lifecycle, user impact and whether evidence is declaration-only or reaches a consumer. Spread-derived capability keys stay separate from direct properties.
+4. `cli-sdk-output-protocol.md` separates TUI/text/JSON/stream-JSON, stdin/stdout envelopes, bidirectional control requests, responses, observation events, partial messages, structured output retries, session/resume/fork and process-terminal failure. A mixed subtype inventory must be decomposed before counting RPCs.
+5. `plugins-skills-commands-lsp.md` traces marketplace/source trust, downloaded bytes, install registry, enabled settings, current session registry, model listing, reload invalidation, MCP generation and LSP process/diagnostics as separate states.
+
+Coverage markers prove exact set membership; they still do not replace the per-item mechanism explanation. When a source inventory contains commands, hook events, protocol events, storage namespaces or other enumerable product objects, validate the human coverage set and keep any identifier without lifecycle-level explanation visible in `completeness-audit.md`.
 
 ## Mechanism template
 

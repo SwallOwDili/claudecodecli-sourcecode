@@ -198,6 +198,11 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
+| 当前 36 个能力面哪些已深入、哪些仍只是清单 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 29 个内置工具分别改变什么状态、怎样失败和恢复 | [内置工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| 156 个根 settings 字段从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](settings-reference.md) | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) |
+| CLI/SDK 的 stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) | [Agent Loop](agent-loop.md) |
+| Plugin、Skill、slash command 和 LSP 为什么安装后仍可能不可见 | [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) | [MCP、Agents 与后台协作](mcp-agents-background.md) |
 | 为什么 Claude 会连续调用多个工具 | [Agent Loop](agent-loop.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | 为什么长会话越来越贵或突然 compact | [上下文治理与多层缓存](context-governance-and-caching.md) | [会话、检查点与 Memory](sessions-checkpoints-memory.md) |
 | permission、hook、sandbox 谁先决定 | [工具、权限与 Hooks](tools-permissions-hooks.md) | [风控能力面](risk-control-surface.txt) |

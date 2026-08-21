@@ -175,7 +175,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 ### `MEMORY.md` 的装载边界
 
-本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和约 25KB 的边界建立可注入视图，超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 `reverse/javascript/cli.readable.js` 114154 附近。
+本版 bundle 对 `MEMORY.md` 有显式处理：入口文件按 200 行和 `25,000` 个 JavaScript UTF-16 code units 的边界建立可注入视图；纯 ASCII 时约等于 25KB，非 ASCII 文本不能把 code-unit 数严格当成 UTF-8 字节数。超出部分需要通过进一步读取或索引获取，而不是无条件把整个目录塞进每次 prompt。相关逻辑位于 `reverse/javascript/cli.readable.js` 114154 附近。
 
 这两个限制的目的不是永久删除 memory，而是控制常驻 token：
 
@@ -235,7 +235,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 ### Memory 越写越大，反而效果变差
 
-入口只保留索引、稳定事实和决策；把过程日志、原始输出和版本特定证据放进专题文件。200 行/25KB 入口边界说明 memory 的价值来自检索结构，不来自无限堆积。
+入口只保留索引、稳定事实和决策；把过程日志、原始输出和版本特定证据放进专题文件。200 行/25,000 UTF-16 code-unit 入口边界说明 memory 的价值来自检索结构，不来自无限堆积。
 
 ## 跨版本必须比较什么
 
@@ -257,7 +257,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 - compact boundary 生成与读取：见 [上下文治理专题](context-governance-and-caching.md) 中对应 bundle 索引。
 - file checkpoint 上限：`reverse/javascript/cli.readable.js` 17194、194602-194619。
 - file edit tracking 与 rewind：`reverse/javascript/cli.readable.js` 194641-194804。
-- `MEMORY.md` 200 行/25KB 入口处理：`reverse/javascript/cli.readable.js` 114154 附近。
+- `MEMORY.md` 200 行/25,000 UTF-16 code-unit 入口处理：`reverse/javascript/cli.readable.js` 114154 附近；官方当前文档把面向用户的近似口径写作 25KB。
 - SDK `rewindFiles` 的 dry-run、错误和 `skippedLinks`：canonical bundle 的 SDK engine 暴露路径。
 - storage/schema/event 全量集合：[source inventory](source-inventory/summary.json)。
 

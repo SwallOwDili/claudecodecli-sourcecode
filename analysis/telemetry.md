@@ -132,9 +132,9 @@ v3 提取器使用仓库内置 Acorn `8.15.0` 将完整 `extracted/cli.js` 解�
 | batch 间延迟 | 100 ms |
 | 基础 backoff | 500 ms |
 | 最大 backoff | 30,000 ms |
-| 最大 attempts | 8 |
+| exporter 实例内连续失败周期的最大 attempts | 8 |
 
-endpoint 默认拼接为 `https://api.anthropic.com/api/event_logging/v2/batch`；staging base URL 会切到 staging，同样允许远程 batch config 覆盖 `baseUrl`、`path`、`skipAuth`、`maxAttempts`、batch 和 queue 参数。
+endpoint 默认拼接为 `https://api.anthropic.com/api/event_logging/v2/batch`；staging base URL 会切到 staging，同样允许远程 batch config 覆盖 `baseUrl`、`path`、`skipAuth`、`maxAttempts`、batch 和 queue 参数。这里的 attempt counter 属于 exporter 实例当前连续失败周期：一次发送成功会清零，进程重启也会重建内存状态，因此不能解释成某个落盘 batch 跨启动累计最多重试八次。
 
 ### 失败持久化和重试
 
@@ -146,7 +146,7 @@ endpoint 默认拼接为 `https://api.anthropic.com/api/event_logging/v2/batch`�
 - v5 会枚举历史 telemetry stream；
 - legacy flat batch 可以迁移进 v5 stream，并用稳定 record ID 去重；
 - 空 batch 删除；
-- 达到最大 attempts 后删除遗留 batch；
+- 当前 exporter 实例的连续失败计数达到上限时删除本轮仍未发送的遗留 batch；重新启动后会重新枚举落盘数据，但不会继承上个进程的内存 attempt counter；
 - 部分发送成功时，只把未发送事件重新写回。
 
 backoff 为二次增长：`base * attempts^2`，并限制在 500 ms 至 30 s。当前 batch 的文件/stream 修改通过 promise lock 串行化，避免同进程并发覆盖。

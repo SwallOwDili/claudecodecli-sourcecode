@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -60,6 +61,39 @@ SOURCE_INVENTORY_MINIMUMS = {
     "model-aliases": 1,
 }
 HUMAN_ANALYSIS_DOCS = {
+    "analysis/completeness-audit.md": (
+        "36",
+        "Deep",
+        "Inventory only",
+        "Boundary",
+    ),
+    "analysis/builtin-tools-reference.md": (
+        "BUILTIN_TOOL_COVERAGE_BEGIN",
+        "Workflow",
+        "Artifact",
+        "CronCreate",
+        "LSP",
+    ),
+    "analysis/settings-reference.md": (
+        "SETTINGS_DIRECT_KEYS_START",
+        "156",
+        "merge",
+        "Static consumer",
+    ),
+    "analysis/cli-sdk-output-protocol.md": (
+        "42 个 schema 化 control request",
+        "46 个观察型 subtype",
+        "44 个 Managed Agents event identifier",
+        "103 个 slash command",
+        "error_max_structured_output_retries",
+    ),
+    "analysis/plugins-skills-commands-lsp.md": (
+        "marketplaceCache",
+        "skillListingBudgetFraction",
+        "local-jsx",
+        "reload-plugins",
+        "diagnostics",
+    ),
     "analysis/technical-mechanism-atlas.md": (
         "三条必须同时理解的闭环",
         "外部状态",
@@ -176,6 +210,11 @@ HUMAN_ANALYSIS_DOCS = {
     ),
 }
 HUMAN_ANALYSIS_MINIMUMS = {
+    "analysis/completeness-audit.md": (5000, 6),
+    "analysis/builtin-tools-reference.md": (9000, 10),
+    "analysis/settings-reference.md": (18000, 10),
+    "analysis/cli-sdk-output-protocol.md": (12000, 12),
+    "analysis/plugins-skills-commands-lsp.md": (10000, 10),
     "analysis/technical-mechanism-atlas.md": (6000, 8),
     "analysis/public-claims-validation.md": (6000, 8),
     "analysis/sessions-checkpoints-memory.md": (6000, 10),
@@ -190,6 +229,10 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/runtime-probe-index.md": (9000, 10),
 }
 READER_FIRST_ANALYSIS_DOCS = {
+    "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
+    "analysis/settings-reference.md": "settings-resolution-lifecycle",
+    "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
+    "analysis/plugins-skills-commands-lsp.md": "plugin-skill-lsp-lifecycle",
     "analysis/technical-mechanism-atlas.md": "system-lifecycle",
     "analysis/technical-architecture.md": "runtime-layers",
     "analysis/agent-loop.md": "agent-loop-lifecycle",
@@ -1184,10 +1227,171 @@ def validate_human_inventory_facts(repo: Path, failures: list[str]) -> None:
                 )
 
 
+def text_between(content: str, start: str, end: str) -> str:
+    start_index = content.find(start)
+    if start_index < 0:
+        return ""
+    start_index += len(start)
+    end_index = content.find(end, start_index)
+    if end_index < 0:
+        return ""
+    return content[start_index:end_index]
+
+
+def report_exact_coverage(
+    label: str,
+    expected: list[str],
+    actual: list[str],
+    failures: list[str],
+    *,
+    require_order: bool = False,
+) -> None:
+    expected_set = set(expected)
+    actual_set = set(actual)
+    duplicates = sorted({item for item in actual if actual.count(item) > 1})
+    missing = sorted(expected_set - actual_set)
+    extra = sorted(actual_set - expected_set)
+    if missing or extra or duplicates or len(actual) != len(expected):
+        failures.append(
+            f"human {label} coverage mismatch: expected={len(expected)}, "
+            f"actual={len(actual)}, unique={len(actual_set)}, missing={missing}, "
+            f"extra={extra}, duplicates={duplicates}"
+        )
+        return
+    if require_order and actual != expected:
+        failures.append(f"human {label} coverage order mismatch")
+
+
+def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> None:
+    inventory_dir = repo / "analysis/source-inventory"
+
+    expected_tools = (
+        inventory_dir / "builtin-tool-identifiers.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    tool_doc = (repo / "analysis/builtin-tools-reference.md").read_text(
+        encoding="utf-8"
+    )
+    tool_block = text_between(
+        tool_doc,
+        "<!-- BUILTIN_TOOL_COVERAGE_BEGIN -->",
+        "<!-- BUILTIN_TOOL_COVERAGE_END -->",
+    )
+    actual_tools = re.findall(r"^\| `([^`]+)` \|", tool_block, re.MULTILINE)
+    report_exact_coverage(
+        "built-in tool", expected_tools, actual_tools, failures, require_order=True
+    )
+
+    expected_settings: list[str] = []
+    for line in (inventory_dir / "root-settings-schema.jsonl").read_text(
+        encoding="utf-8"
+    ).splitlines():
+        row = json.loads(line)
+        if row.get("kind") == "property":
+            expected_settings.append(row["key"])
+    settings_doc = (repo / "analysis/settings-reference.md").read_text(
+        encoding="utf-8"
+    )
+    settings_block = text_between(
+        settings_doc,
+        "<!-- SETTINGS_DIRECT_KEYS_START -->",
+        "<!-- SETTINGS_DIRECT_KEYS_END -->",
+    )
+    actual_settings = re.findall(r"^\d{3} (.+)$", settings_block, re.MULTILINE)
+    report_exact_coverage(
+        "direct root setting",
+        expected_settings,
+        actual_settings,
+        failures,
+        require_order=True,
+    )
+
+    protocol_doc = (repo / "analysis/cli-sdk-output-protocol.md").read_text(
+        encoding="utf-8"
+    )
+    expected_sdk = (
+        inventory_dir / "sdk-control-subtypes.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    request_block = text_between(
+        protocol_doc,
+        "### 42 个 schema 化 control request",
+        "### schema 清单之外的 16 个 worker 分支",
+    )
+    actual_requests = re.findall(r"^\| `([^`]+)` \|", request_block, re.MULTILINE)
+    if len(actual_requests) != 42 or len(set(actual_requests)) != 42:
+        failures.append(
+            "human SDK control-request coverage mismatch: "
+            f"expected=42, actual={len(actual_requests)}, unique={len(set(actual_requests))}"
+        )
+
+    observation_block = text_between(
+        protocol_doc,
+        "### 46 个观察型 subtype",
+        "## 44 个 Managed Agents event identifier",
+    )
+    expected_sdk_set = set(expected_sdk)
+    actual_observations = sorted(
+        set(re.findall(r"`([^`]+)`", observation_block)) & expected_sdk_set
+    )
+    actual_observations = [item for item in actual_observations if item != "error"]
+    if len(actual_observations) != 46:
+        failures.append(
+            "human SDK observation-subtype coverage mismatch: "
+            f"expected=46, actual={len(actual_observations)}"
+        )
+    combined_sdk = sorted(
+        set(actual_requests) | set(actual_observations) | {"success", "error"}
+    )
+    report_exact_coverage(
+        "SDK subtype",
+        sorted(expected_sdk),
+        combined_sdk,
+        failures,
+    )
+
+    expected_events = (
+        inventory_dir / "output-protocol-event-identifiers.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    event_block = text_between(
+        protocol_doc,
+        "## 44 个 Managed Agents event identifier",
+        "## 103 个 slash command 的协议归属",
+    )
+    actual_events = sorted(
+        set(re.findall(r"`([^`]+)`", event_block)) & set(expected_events)
+    )
+    report_exact_coverage(
+        "output protocol event", sorted(expected_events), actual_events, failures
+    )
+
+    expected_commands = (
+        inventory_dir / "slash-command-identifiers.txt"
+    ).read_text(encoding="utf-8").splitlines()
+    command_block = text_between(
+        protocol_doc,
+        "## 103 个 slash command 的协议归属",
+        "## 失败恢复与诊断顺序",
+    )
+    actual_commands = sorted(
+        set(re.findall(r"`([^`]+)`", command_block)) & set(expected_commands)
+    )
+    report_exact_coverage(
+        "slash-command", sorted(expected_commands), actual_commands, failures
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
+    parser.add_argument(
+        "--negative-test-fast", action="store_true", help=argparse.SUPPRESS
+    )
     args = parser.parse_args()
+
+    if (
+        args.negative_test_fast
+        and os.environ.get("CLAUDE_VALIDATOR_NEGATIVE_TEST") != "1"
+    ):
+        parser.error("--negative-test-fast is reserved for test_validator_negative.py")
 
     repo = Path(args.repo).resolve()
     failures: list[str] = []
@@ -1259,8 +1463,17 @@ def main() -> int:
             + ", ".join(private_capture_files)
         )
 
-    inventory_files = validate_source_inventory(repo, failures)
+    if args.negative_test_fast:
+        inventory_summary = json.loads(
+            (repo / "analysis/source-inventory/summary.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        inventory_files = len(inventory_summary.get("files", []))
+    else:
+        inventory_files = validate_source_inventory(repo, failures)
     validate_human_inventory_facts(repo, failures)
+    validate_exhaustive_human_references(repo, failures)
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
     native_behavior_checks = validate_native_reconstruction_report(repo, failures)
 
@@ -1325,7 +1538,7 @@ def main() -> int:
 
     reverse = repo / "reverse"
     deep_output = ""
-    if reverse.is_dir():
+    if reverse.is_dir() and not args.negative_test_fast:
         deep_validator = repo / "skill/claude-code-version-diff/scripts/validate_deep_reverse.py"
         if not deep_validator.is_file():
             print("snapshot validation: FAIL")

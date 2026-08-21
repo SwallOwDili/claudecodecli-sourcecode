@@ -1,0 +1,62 @@
+digraph ClaudeCodeCliSdkProtocol {
+  graph [
+    rankdir=TB,
+    bgcolor="#FFFFFF",
+    pad="0.22",
+    nodesep="0.48",
+    ranksep="0.58",
+    fontname="Arial",
+    labelloc="t",
+    label="Claude Code 2.1.235: CLI / SDK / stream-json lifecycle"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#334155",
+    fillcolor="#F8FAFC",
+    fontcolor="#0F172A",
+    fontname="Arial",
+    fontsize=10,
+    margin="0.16,0.10"
+  ];
+  edge [
+    color="#475569",
+    fontcolor="#334155",
+    fontname="Arial",
+    fontsize=9,
+    arrowsize=0.7
+  ];
+
+  input [label="Entry\nTUI | --print | SDK host", fillcolor="#DBEAFE"];
+  gate [label="Mode and format gates\nTUI | text | json | stream-json", fillcolor="#FEF3C7"];
+  direct [label="TUI or text/json input\nlocal interaction or one prompt", fillcolor="#DBEAFE"];
+  stdin [label="stream-json StdinMessage\none JSON object per line", fillcolor="#DBEAFE"];
+  init [label="Optional initialize handshake\nconfig + capabilities + pending prompts", fillcolor="#E0E7FF"];
+  loop [label="Agent Loop\nsession/message/tool state", fillcolor="#EDE9FE"];
+  observe [label="Output projection\nTUI state | text/json | stream-json frames", fillcolor="#DCFCE7"];
+  host [label="stream-json / SDK host\ncallbacks + pending request state", fillcolor="#DBEAFE"];
+  rpc [label="Bidirectional control channel\nrequest_id + response/cancel", fillcolor="#FFEDD5"];
+  request_local [label="Request-local settlement\nerror, cancel or unsupported subtype\npending request ends; session may continue", fillcolor="#FEF3C7", color="#B45309"];
+  terminal [label="Turn result\nsuccess/error + cost/usage\nmulti-turn input or process exit", fillcolor="#DCFCE7"];
+  process_failure [label="Process-terminal failure\ninvalid startup combination, permanent close,\nor result.is_error -> exit 1", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  { rank=same; direct; stdin; }
+  { rank=same; host; rpc; loop; }
+  { rank=same; request_local; terminal; process_failure; }
+
+  input -> gate [label="selects entry mode"];
+  gate -> direct [label="TUI or text/json"];
+  gate -> stdin [label="stream-json"];
+  gate -> process_failure [label="rejects invalid combinations", color="#B91C1C", fontcolor="#991B1B"];
+  direct -> loop [label="prompt or local interaction"];
+  stdin -> init [label="initialize frame"];
+  stdin -> loop [label="first user frame uses defaults"];
+  init -> loop [label="applies session configuration"];
+  loop -> observe [label="emits state changes"];
+  host -> rpc [dir=both, label="host requests + callback responses"];
+  rpc -> loop [dir=both, label="dispatch + loop-originated requests"];
+  rpc -> request_local [label="error, cancel, unsupported request", color="#B45309", fontcolor="#92400E"];
+  rpc -> process_failure [label="permanent transport close", color="#B91C1C", fontcolor="#991B1B"];
+  observe -> terminal [label="ends each turn with result"];
+  terminal -> process_failure [label="is_error", color="#B91C1C", fontcolor="#991B1B"];
+}

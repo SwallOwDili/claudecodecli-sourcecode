@@ -125,7 +125,7 @@ Remote Control 会把本地 session 注册为可从 web/mobile 查看和交互�
 
 所以“代码不上传执行”与“transcript 不离开本机”是两件事。Remote Control 的工具副作用发生在本机，但同步 transcript 是服务端状态；对 ZDR/compliance 环境必须按官方 eligibility 和组织政策判断，不能只看本地 filesystem ownership。
 
-源码 302491-302493 给出一组明确的韧性参数：14 次 reconnect attempt、约 30 分钟不可达描述、24 小时内 drop 次数预算，以及 6 分钟/30 秒/5 分钟/5 秒级别的节奏常量。它不是无限重连；达到条件后会向用户表明连接耗尽。
+源码 302491-302493 给出一组明确的韧性参数：14 次 reconnect attempt、约 30 分钟不可达描述、24 小时内 drop 次数预算，以及 10 分钟/30 秒/5 分钟/5 秒级别的节奏常量。它不是无限重连；达到条件后会向用户表明连接耗尽。
 
 Remote Control 还区分本地可见内容与远端可交付内容。readable JS 292325 和 299402 附近保留“NOT delivered to Remote Control (phone/web) viewers”的附件提示。用户在桌面看到了文件，不等于手机端收到文件内容；报告必须记录 `rendered_locally`、附件能力和远端 delivery outcome。
 

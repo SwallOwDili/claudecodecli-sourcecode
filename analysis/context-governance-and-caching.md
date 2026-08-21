@@ -148,7 +148,7 @@ CLI 选项 `--exclude-dynamic-system-prompt-sections` 会把 cwd、env info、me
 {"type":"ephemeral","ttl":"1h","scope":"global"}
 ```
 
-只有 scope 为 `global` 时才真的写出 `scope` 字段；org 使用 API 默认组织范围。没有 boundary、关闭相关 beta、provider 不符合条件时，代码退回 org 范围，不冒充可跨组织/用户复用。证据见 408355-408412、409028-409043、410218-410219。
+只有内部值为 `global` 时，serializer 才真的在 wire 上写出 `scope:"global"`。内部 `cacheScope:"org"` 在请求里省略 `scope` 字段；本版只能证明客户端把它当作非 global 分支，不能从省略值推断服务端最终采用哪种组织、账户或默认作用域。没有 boundary、关闭相关 beta、provider 不符合条件时，代码会退回这个非 global/无 marker 分支。证据见 408355-408412、409028-409043、410218-410219；省略字段后的服务端解释属于 `Boundary`。
 
 工具列表也会影响 system prompt 的 global cache 策略。如果存在不能安全放进全局前缀的 MCP schema，代码可把 `skipGlobalCacheForSystemPrompt` 打开，避免把机器/组织特定工具描述纳入 global 前缀。
 

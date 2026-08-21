@@ -60,7 +60,7 @@
 | prompt caching 复用稳定前缀 | `Static` | system prompt 分段 cache control、message breakpoint、5m/1h TTL gating | 本版实现比“打开缓存”更细，关键在稳定边界和写入资格 |
 | session 可以继续、fork 并持久化 transcript | `Static` + `Probe` | `reverse/javascript/cli.readable.js` 323188-323443；精确二进制成功创建 session，再 `--resume`，第三次请求带回初始 prompt、初始助手结果和新 prompt | 本版的成功 resume 与 history 注入已正向证实；不存在 UUID 只作为错误分类证据 |
 | checkpointing 支持回退代码和对话 | `Static` | file checkpoint 数量上限 100；edit tracking/rewind，194602-194804 | 能恢复被跟踪文件与会话视图，不是通用外部事务回滚 |
-| memory 为 Agent 提供跨轮/跨会话持久知识 | `Static` | `MEMORY.md` 发现、截断和大小提示；200 行、25KB 处理分支，114154 附近 | memory 是注入上下文的持久文本，不是模型内部记忆 |
+| memory 为 Agent 提供跨轮/跨会话持久知识 | `Static` | `MEMORY.md` 发现、截断和大小提示；200 行、25,000 UTF-16 code-unit 处理分支，114154 附近；官方另以约 25KB 描述 | memory 是注入上下文的持久文本，不是模型内部记忆；非 ASCII 时不能把 code units 当成 UTF-8 字节 |
 | permissions 在执行前约束工具 | `Static` | PreToolUse 与 permission/policy/classifier 在 `tool.call` 前；updated input 会复验 | 权限决策不是 UI 弹窗装饰，而是工具执行调用链的一部分 |
 | sandbox 限制 shell 的文件和网络能力 | `Static` | sandbox/network/filesystem/credential settings 和执行分支进入工具策略层 | 客户端有控制面；操作系统实际强制效果仍依平台和运行配置 |
 | hooks 能观察、修改或阻止生命周期事件 | `Static` | PreToolUse、PostToolUse、PostToolBatch、Stop/SubagentStop；Stop 连续阻止默认 cap 8 | hook 能改变控制流，因此也需要超时、错误和熔断语义 |
@@ -77,7 +77,7 @@
 | sandbox 在 permission bypass 后仍执行文件/网络限制 | `Public` + `Static` + `Probe` | 两层官方说明、sandbox policy 分支、denyWrite 与零网络命中探针 | permission 与 OS sandbox 是独立控制层，不能用 bypassPermissions 推断子进程无限制 |
 | manual compact、fork、file rewind 分别改变不同状态 | `Public` + `Static` + `Probe` | compact boundary、message graph、checkpoint；同版本正向探针 | compact 改逻辑历史，fork 换 session ID，rewind 恢复被跟踪文件；都不回滚远端动作 |
 | doctor 是只读多故障域诊断，DISABLE_UPDATES 阻断手动更新 | `Public` + `Static` + `Probe` | setup 文档；update gate/doctor 分支；真实 literal output | 禁用 auto updater 与禁用全部 update 不是同一开关 |
-| Remote Control 执行留在本机、transcript 经服务端同步 | `Public` + `Static` + `Probe` + `Boundary` | 官方连接/安全说明；本地 reconnect/attachment 代码；custom endpoint doctor 诊断 | 本版能证明客户端边界与不可用原因；未用真实账号触发成功连接和服务端 entitlement |
+| Remote Control 执行留在本机、transcript 经服务端同步 | `Public` + `Static` + negative `Probe`；成功路径 `Boundary` | 官方连接/安全说明；本地 reconnect/attachment 代码；custom endpoint doctor 负向诊断 | 本版能证明客户端边界与不可用原因；未用真实账号触发成功连接和服务端 entitlement |
 | IDE 使用 loopback MCP、token 和 Read deny 过滤编辑器上下文 | `Public` + `Static` | 当前 IDE 协议文档与本版 IDE bridge/tool/permission 分支 | 没有在本探针环境启动真实 VS Code extension，故不升级为成功 IDE Probe |
 
 ## Agent Loop：从公开四步到客户端状态机
@@ -187,7 +187,7 @@ Result: 本版成功 resume 会恢复已持久化历史并加入当前输入
 | `runtime-controls.json` | bearer、API key、cache disable、hook deny、Stop hook、maxTurns | Authorization/x-api-key 二选一；cache marker 3 -> 0；deny feedback；Stop 第二请求；`error_max_turns` | 成功路径 0，maxTurns 为 1 | request、cache、控制 hook 和预算终态均有 wire/runtime 证据 |
 | `lifecycle-doctor.json` | `DISABLE_UPDATES=1`；损坏 settings；custom endpoint | 管理员禁用更新；doctor 输出 version/commit/platform/search/update/settings/Remote Control 原因 | 0 / 0 | update gate 与 doctor 多故障域可达，自定义 endpoint 边界有明确诊断 |
 | `mcp-refresh.json` / `subagent-loop.json` | list_changed；child prompt/tool | 第二次 list；新工具第三请求出现；父循环收到 async ACK 和 completed notification | 0 / 0 | 动态工具与异步 child 都按请求边界进入主循环 |
-| `native-reconstruction.json` | 原始与兼容模块相同输入 | contract PASS、behavior PASS、23 checks | 0 | arm64 兼容层达到已覆盖调用合同，x86_64 仍是静态边界 |
+| `native-reconstruction.json` | 原始与兼容模块相同输入和环境能力审计 | contract PASS；17 项真实对照、5 项 `environment-boundary`、1 项最低覆盖审计，共 23 checks | 0 | arm64 兼容层达到已触发调用合同；环境缺失项没有冒充双跑，x86_64 仍是静态边界 |
 
 这些 Probe 使用本地协议对端的原因，是把变量限制在客户端。它们没有把本地 mock 返回成功写成“Anthropic 服务端也已成功”，也没有把 doctor 的不可用诊断写成真实 Remote Control 成功连接。
 

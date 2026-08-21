@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact` 图文专题](analysis/compact-visual-guide.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [全面性审计](analysis/completeness-audit.md) · [29 个内置工具](analysis/builtin-tools-reference.md) · [156 个 Settings 字段](analysis/settings-reference.md) · [CLI/SDK/输出协议](analysis/cli-sdk-output-protocol.md) · [Plugins/Skills/Commands/LSP](analysis/plugins-skills-commands-lsp.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -24,6 +24,11 @@
 | --- | --- |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
 | [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 35 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到 19 条本版变化、字段字典、误区和证据缺口 |
+| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 36 个能力面，逐项标记 Deep、Documented、Inventory only 或 Boundary，明确哪些专题仍不能冒充“全面” |
+| [`analysis/builtin-tools-reference.md`](analysis/builtin-tools-reference.md) | **29/29 内置工具手册**：逐工具解释状态 owner、副作用、持久化、失败、恢复、成本、隐私与安全，重点下钻 Workflow、Cron、LSP、Task、Artifact 和 Worktree |
+| [`analysis/settings-reference.md`](analysis/settings-reference.md) | **156/156 根 Settings 全字段参考**：逐项说明类型、来源、merge、生命周期、consumer、用户影响和证据边界，并单独解释 4 个 spread |
+| [`analysis/cli-sdk-output-protocol.md`](analysis/cli-sdk-output-protocol.md) | **CLI、SDK 与输出协议专题**：区分 text/JSON/stream-json、本地 envelope、42 个 schema RPC、16 个额外 handler、46 个观察 subtype、44 个 Managed Agents event 和 103 个 slash command |
+| [`analysis/plugins-skills-commands-lsp.md`](analysis/plugins-skills-commands-lsp.md) | **动态扩展生命周期**：marketplace 信任、安装/enable/session registry、Skill listing、三类 slash command、reload、MCP cache 与 LSP process/diagnostics |
 | [`analysis/technical-mechanism-atlas.md`](analysis/technical-mechanism-atlas.md) | **快速总览**：一次请求跨越的九个子系统、三条闭环、状态归属、故障表现和专题阅读路由 |
 | [`analysis/public-claims-validation.md`](analysis/public-claims-validation.md) | 官方 Claude Code/Agent SDK/Engineering 原理与 `2.1.235` bundle、精确二进制探针逐项对照，防止版本倒灌 |
 | [`analysis/technical-architecture.md`](analysis/technical-architecture.md) | 从用户输入到 system prompt、工具、API、权限、compact、transcript 和遥测的完整架构图 |
@@ -73,7 +78,7 @@
 
 10 份精确二进制报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate，以及自定义 endpoint 下的 Remote Control 边界。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
-原生重建双跑也输出同目录下的 `native-reconstruction.json`：23 项逐检查结果全部通过，original arm64 为运行+静态证据，compatible arm64 为构建+运行证据；原版 x86_64 只有两个 Computer Use 静态 slice，compatible x86_64 明确标记为未构建、未运行。
+原生重建验证也输出同目录下的 `native-reconstruction.json`：23 个检查项由 17 项真实原版/兼容对照、5 项 `environment-boundary` 和 1 项最低覆盖审计组成；original arm64 为运行+静态证据，compatible arm64 为构建+运行证据。原版 x86_64 只有两个 Computer Use 静态 slice，compatible x86_64 明确标记为未构建、未运行。
 
 ## 快照信息
 
@@ -127,6 +132,11 @@
 |   |-- public-source-excerpts.md       与本版验证问题对应的固定官方摘录
 |   |-- runtime-probe-index.md          27 条精确二进制探针的人类解释与字段指南
 |   |-- compact-visual-guide.md         /compact 的读者优先图文机制样板
+|   |-- completeness-audit.md           36 个能力面的全面性审计与收口合同
+|   |-- builtin-tools-reference.md      29 个 built-in tool 的逐项机制参考
+|   |-- settings-reference.md           156 个 direct root setting 的全字段参考
+|   |-- cli-sdk-output-protocol.md      CLI/SDK 输入输出、control 与 event 协议
+|   |-- plugins-skills-commands-lsp.md  插件、Skill、命令与 LSP 动态扩展生命周期
 |   |-- visuals/                        可复现的 Graphviz 图表源文件与 SVG
 |   |-- technical-architecture.md       面向人的完整技术架构导读
 |   |-- agent-loop.md                   Agent Loop 状态机、工具调度和终止语义
@@ -246,7 +256,7 @@
 reconstructed/scripts/build_and_validate.sh extracted /tmp
 ```
 
-当前 arm64 macOS 实测为 5 个模块契约通过、23 项行为双跑通过。详细源码边界和逐模块证据见 [`reconstructed/EVIDENCE.md`](reconstructed/EVIDENCE.md)。
+当前 arm64 macOS 实测为 5 个模块契约通过；23 个报告项中有 17 项真实原版/兼容对照、5 项环境边界和 1 项最低覆盖审计。详细源码边界和逐模块证据见 [`reconstructed/EVIDENCE.md`](reconstructed/EVIDENCE.md)。
 
 ## 2.1.235 的版本变化
 
@@ -392,7 +402,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - 提取器先从稳定 export、OTEL envelope、settings/model/Datadog 锚点发现本版短符号，再由 Acorn AST 找到一方 `H` 2,162 次、`Fv` 32 次、OTEL `Nd` 52 次、feature `et` 498 次和 dynamic config `CB` 12 次。JSONL 同时保存跨版本稳定的 `calleeRole` 与本版 `callee`，并保留静态名、模板、变量/条件表达式、完整参数、函数作用域、payload property/spread 和 unresolved spread。
 - `DISABLE_TELEMETRY`、`DO_NOT_TRACK`、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 进入共享非必要流量/遥测门；error reporting 另有 `DISABLE_ERROR_REPORTING` 和组织 policy/compliance 门。
 - 一方采样由 `tengu_event_sampling_config` 按事件控制；被采中事件会把实际 `sample_rate` 写入 metadata。
-- 一方 batch config 为 `tengu_1p_event_batch_config`；默认 10 s flush、200 batch、10 s request timeout、100 ms batch delay、8 attempts、500 ms 到 30 s 二次 backoff。
+- 一方 batch config 为 `tengu_1p_event_batch_config`；默认 10 s flush、200 batch、10 s request timeout、100 ms batch delay；单个 exporter 实例当前连续失败周期最多 8 attempts，成功或进程重启会重置内存计数；backoff 为 500 ms 到 30 s。
 - 默认一方 endpoint 为 `https://api.anthropic.com/api/event_logging/v2/batch`。失败事件保存为 `1p_failed_events.<session>.<run>.json` 或 v5 `log/telemetry` stream，后续启动会重试遗留 batch。
 - 带 auth 的一方请求收到 401 时，会用基础 headers、不带 auth 再试一次。
 - 一方 envelope 可承载 event/session/model、device/email/account/org、platform/runtime/CI/remote、process memory/CPU、skill/plugin/MCP/team/head SHA 和 event-specific metadata；不是每个事件都会填满全部字段。
@@ -504,7 +514,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成和逐文件哈希、135 条机制证据、27 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、完成审计、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成和逐文件哈希、135 条机制证据、27 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、完成审计、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 17 项真实原版/兼容对照、5 项环境边界和 1 项覆盖审计。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

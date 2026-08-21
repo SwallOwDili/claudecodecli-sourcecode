@@ -1,0 +1,26 @@
+digraph settings_resolution_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.50", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  files [label="候选来源\nuser / project / local / flag / policy", fillcolor="#fff3cd"];
+  select [label="来源选择与信任过滤\n--setting-sources 只筛普通层\n敏感字段拒绝低信任来源", fillcolor="#ffe0b2"];
+  parse [label="字段 schema 校验\n非法普通值丢弃\n关键 policy 值可 fail closed", fillcolor="#ffccbc"];
+  merge [label="字段级合并\n标量覆盖 / map 合并 / list 累积\nany-true / managed pin / alias", fillcolor="#e3f2fd"];
+  dynamic [label="运行时解析\nenv / CLI / feature / provider\nmodel 与 session state", fillcolor="#d1c4e9"];
+  effective [label="有效配置与来源账本\neffective + raw sources + parse errors", fillcolor="#c8e6c9"];
+  consumers [label="消费者\nAgent Loop / tools / MCP / sandbox\nTUI / updater / remote / telemetry", fillcolor="#b2dfdb"];
+  observe [label="用户可观察结果\n请求字段、可用 surface、拒绝原因\nUI、文件、网络和后台行为", fillcolor="#d7ccc8"];
+  refresh [label="生命周期\n文件监听 / policy helper refresh\nregistry invalidation / 对象重建", fillcolor="#e8eaf6"];
+
+  files -> select [label="装载"];
+  select -> parse [label="允许的字段"];
+  parse -> merge [label="合法候选值"];
+  merge -> dynamic [label="静态有效 settings"];
+  dynamic -> effective [label="解析最终值"];
+  effective -> consumers [label="按需读取"];
+  consumers -> observe [label="改变行为"];
+  refresh -> select [label="来源变化"];
+  refresh -> consumers [label="重读、失效或重建"];
+  observe -> refresh [style=dashed, label="下一次配置变更"];
+}

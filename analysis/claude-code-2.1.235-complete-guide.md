@@ -11,6 +11,8 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
+需要查全量表面时，不要在本卷里翻零散提及：读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度，读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC、event 和 slash command，读 [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) 查动态扩展、reload 和 language server 生命周期。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
 Claude Code CLI 同时承担六类责任：
@@ -485,7 +487,7 @@ Hook 自身也有 timeout、exit code、JSON/schema 和来源信任问题。错�
 
 ### 12.3 System prompt 分段 cache
 
-system blocks会区分稳定和动态段，并应用 global/org scope。只有 `global` 才显式写出 scope；org 使用 API 默认组织范围。provider、beta、base URL、overage 和 query source 不满足时回退到 org/无对应 marker。
+system blocks会区分稳定和动态段，并在内部标记 `global`/`org`。只有 `global` 才在 wire 上显式写出 `scope:"global"`；内部 `org` 分支会省略 scope 字段。本版能证明 serializer 的字段形状，不能证明服务端如何解释省略值。provider、beta、base URL、overage 和 query source 不满足时回退到非 global/无对应 marker 分支。
 
 ### 12.4 Message breakpoint
 
@@ -522,7 +524,7 @@ Context hint 只在特定 first-party 主线程路径使用，并要求 keep-rec
 
 ### 13.3 Microcompaction
 
-本地 microcompaction面向旧 tool result：保留最新配置数量，估算至少节省 20,000 token 才执行；符合条件的旧内容持久化后，用固定占位表示替换活跃消息中的大结果。
+本地 microcompaction面向旧 tool result：保留最新配置数量，估算至少节省 20,000 token 才执行。持久化成功时用带路径的 `<persisted-output>` 短提示替换大结果；保存失败或不适合持久化时才退回 `[Old tool result content cleared]`。
 
 它不总结整个对话，也不改变用户/assistant 主结论。目的在于清理高体积、低复用的工具输出，同时保留可追溯引用。
 
@@ -659,7 +661,7 @@ File checkpoint不覆盖：
 
 ### 17.2 `MEMORY.md` 前门预算
 
-`MEMORY.md` 入口只加载前 200 行或 25KB。目的不是限制 memory总目录，而是避免每轮把所有历史经验常驻上下文。详细内容应由入口索引到单独文件，再按任务需要读取。
+`MEMORY.md` 入口只加载前 200 行或 25,000 个 JavaScript UTF-16 code units，纯 ASCII 时约等于 25KB。目的不是限制 memory总目录，而是避免每轮把所有历史经验常驻上下文。详细内容应由入口索引到单独文件，再按任务需要读取。
 
 ### 17.3 Skill/command listing 预算
 
@@ -867,7 +869,7 @@ Telemetry不能概括成“会上报”。`2.1.235` 至少有一方 analytics、
 - 默认一方事件 endpoint；
 - 每批最多 200 events；
 - batch delay 100ms；
-- 最多 8 attempts；
+- 单个 exporter 实例当前连续失败周期最多 8 attempts；成功会把计数归零，进程重启也不会延续内存计数；
 - quadratic backoff并受最大延迟限制。
 
 发送失败的 batch可以写入文件或 storage-v5 stream，在下次启动重试。401还存在无认证 fallback配置路径。`H()`调用点数量不等于 HTTP请求数量。
@@ -1007,7 +1009,7 @@ Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。
 
 ### 26.7 架构覆盖
 
-ARM64上 5 个原版/兼容模块完成 contract和 23项行为检查。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
+ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 17 个真实原版/兼容对照、5 个 `environment-boundary` 和 1 个最低覆盖审计组成；不能把全部 23 项都称为行为双跑。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
 
 ## 27. 安装、更新与 Doctor
 
@@ -1236,7 +1238,7 @@ Doctor分别检查：
 - filesystem/network sandbox；
 - file checkpoint rewind；
 - doctor/update gate和 Remote Control负向边界；
-- 原生 contract及23项行为双跑。
+- 原生 contract、17项原版/兼容对照、5项环境边界和1项覆盖审计。
 
 ### 33.3 尚未形成正向 Probe 的部分
 

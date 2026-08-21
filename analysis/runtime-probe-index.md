@@ -135,7 +135,7 @@ task-notification:completed
 
 ## 原生兼容重建
 
-`probe.native-original-compatible` 对原始与独立重建模块运行相同 contract 和输入，23 项行为检查全部通过。`probe.native-architecture-boundary` 明确限制：arm64 compatible 经过构建和运行，原版两个 Computer Use 模块的 x86_64 slice 只有静态证据，compatible x86_64 没有构建和执行。
+`probe.native-original-compatible` 对原始与独立重建模块运行相同 contract 和输入。报告共 23 个检查项，其中 17 项是真实原版/兼容对照，5 项是 `environment-boundary`，1 项是最低覆盖审计；不能把总数直接写成 23 项行为双跑。`probe.native-architecture-boundary` 明确限制：arm64 compatible 经过构建和运行，原版两个 Computer Use 模块的 x86_64 slice 只有静态证据，compatible x86_64 没有构建和执行。
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
@@ -155,7 +155,7 @@ task-notification:completed
 | `probe.subagent-isolation` | `subagent-loop.json` | child 有独立 prompt、tools 和 API call |
 | `probe.subagent-notification-feedback` | `subagent-loop.json` | async ACK 与 completed notification 分离 |
 | `probe.exact-binary-identity` | `runtime-controls.json` | 版本和发布 SHA-256 一致 |
-| `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract 与 23 项行为通过 |
+| `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract；17 项真实对照、5 项环境边界、1 项覆盖审计 |
 | `probe.native-architecture-boundary` | `native-reconstruction.json` | x86_64 只保留原版静态证据 |
 | `probe.settings-layer-precedence` | `settings-resilience.json` | flag、local、project、user 运行优先级可观察 |
 | `probe.http-retry-classification` | `settings-resilience.json` | 529 重试，400 不重试 |

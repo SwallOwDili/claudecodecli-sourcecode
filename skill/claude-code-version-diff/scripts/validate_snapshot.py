@@ -613,8 +613,17 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
     for relative in candidate_paths(repo):
         if not relative.endswith(".md"):
             continue
+        if relative.startswith("analysis/comparison-"):
+            # Deterministic comparison reports quote inventory payloads from both
+            # releases. Embedded URLs there are bundle evidence, not public claims.
+            continue
         try:
-            referenced_urls.update(official_url.findall((repo / relative).read_text(encoding="utf-8")))
+            referenced_urls.update(
+                url.rstrip(".,;:!?")
+                for url in official_url.findall(
+                    (repo / relative).read_text(encoding="utf-8")
+                )
+            )
         except (OSError, UnicodeDecodeError):
             continue
     missing_urls = sorted(referenced_urls - declared_urls)

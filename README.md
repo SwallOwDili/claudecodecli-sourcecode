@@ -27,6 +27,7 @@
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
 | [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
 | [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
+| [`analysis/semantic-comparison-2.1.233-to-2.1.235.md`](analysis/semantic-comparison-2.1.233-to-2.1.235.md) | `2.1.233 -> 2.1.235` 的机制级人类对比：旧/新行为、触发条件、失败路径、成本、遥测、native 与 `2.1.234` 归因边界 |
 | [`analysis/mechanism-evidence.jsonl`](analysis/mechanism-evidence.jsonl) | 每条核心结论对应的 evidence class、源码 view、真实行号、anchors 或运行探针字段，供 validator/comparator 自动复核 |
 | [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md) | 27 条精确二进制 Probe 的命令、受控输入、literal output、状态变化、字段读法与证明边界 |
 
@@ -54,7 +55,7 @@
 
 每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。26 个官方页面同时固化原始响应 hash、去噪正文 hash 与 33 条逐摘录 hash；刷新脚本还要求每条引用逐句存在于当次页面可见正文，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
-当前结构化机制证据共 `121` 条：`60 Static`、`27 Probe`、`33 Public`、`1 Boundary`。Static 不再被视为同一种强度：其中 `39 runtime`、`9 consumer`、`7 constant`、`3 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 14 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；telemetry、resilience、context、settings、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
+当前结构化机制证据共 `135` 条：`74 Static`、`27 Probe`、`33 Public`、`1 Boundary`。Static 不再被视为同一种强度：其中 `52 runtime`、`9 consumer`、`7 constant`、`4 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 14 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；telemetry、resilience、context、settings、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
 
 10 份精确二进制报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate，以及自定义 endpoint 下的 Remote Control 边界。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
@@ -125,6 +126,7 @@
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
 |   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
 |   |-- source-surface.md              全产品能力面和证据边界
+|   |-- semantic-comparison-2.1.233-to-2.1.235.md 机制级跨版本人类对比
 |   `-- source-inventory/              70 类确定性机器清单及逐文件哈希
 |-- reverse/
 |   |-- summary.json                   深度逆向机器摘要
@@ -279,6 +281,8 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 - VS Code 恢复多个 Claude 面板时，不再在标签页之间自动抢焦点。
 
 官方原始条目保存在 [`analysis/release-notes.md`](analysis/release-notes.md)。
+
+`2.1.233 -> 2.1.235` 的完整净差异、`2.1.234` 中间版本归因边界、上下文缓存成本、Agent 协作、权限 UI、telemetry、API/storage 和 native 不变项见 [`analysis/semantic-comparison-2.1.233-to-2.1.235.md`](analysis/semantic-comparison-2.1.233-to-2.1.235.md)。确定性逐字段报告见 [`analysis/comparison-2.1.233-to-2.1.235.md`](analysis/comparison-2.1.233-to-2.1.235.md)。
 
 ## 本版本的完整能力面
 
@@ -482,7 +486,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成和逐文件哈希、121 条机制证据、27 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、完成审计、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成和逐文件哈希、135 条机制证据、27 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、完成审计、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。原生重建另外通过 Rust/Swift 发布构建、5 模块导出契约和 23 项原版/重建版行为双跑。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

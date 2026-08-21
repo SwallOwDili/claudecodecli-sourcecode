@@ -2,6 +2,8 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact` 图文专题](analysis/compact-visual-guide.md)
+
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
 ## 先读什么
@@ -102,6 +104,7 @@
 .
 |-- VERSION
 |-- README.md
+|-- ARTICLES.md                       技术文章总入口
 |-- extracted/
 |   |-- cli.js                         Claude Code 主应用 bundle
 |   |-- *-processor.js / *-capture.js 原生模块加载器

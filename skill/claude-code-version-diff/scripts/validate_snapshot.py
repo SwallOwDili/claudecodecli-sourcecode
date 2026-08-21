@@ -1211,6 +1211,18 @@ def main() -> int:
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
     readme_first_screen = readme.split("## 快照信息", 1)[0]
+    articles_path = repo / "ARTICLES.md"
+    if "[技术文章总入口](ARTICLES.md)" not in readme[:3000]:
+        failures.append("README first screen does not expose ARTICLES.md")
+    if not articles_path.is_file():
+        failures.append("missing root technical article index: ARTICLES.md")
+    else:
+        articles = articles_path.read_text(encoding="utf-8")
+        for relative in READER_FIRST_ANALYSIS_DOCS:
+            if relative not in articles:
+                failures.append(
+                    f"ARTICLES.md does not link reader-first document: {relative}"
+                )
     for relative, required_terms in HUMAN_ANALYSIS_DOCS.items():
         path = repo / relative
         if not path.is_file():

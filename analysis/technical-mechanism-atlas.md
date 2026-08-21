@@ -192,7 +192,7 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 | `2.1.235` 隔离运行探针 | 精确二进制对给定输入的实际输出和 exit status | 未触发路径、远端依赖、所有平台和账户差异 |
 | Boundary | 说明为什么发布物、当前探针或公开资料不足以证明 | 不用“可能支持”填补缺失证据 |
 
-逐项映射见 [公开主张与 2.1.235 验证矩阵](public-claims-validation.md)。27 条 Probe 的命令、输入、literal output、exit status、状态变化和窄边界见 [精确二进制运行证据指南](runtime-probe-index.md)。
+逐项映射见 [公开主张与 2.1.235 验证矩阵](public-claims-validation.md)。30 条 Probe 的命令、输入、literal output、exit status、状态变化和窄边界见 [精确二进制运行证据指南](runtime-probe-index.md)。
 
 ## 按问题选择阅读入口
 

@@ -96,6 +96,8 @@
 
 LSP 生命周期比这个工具 object 更大：server discovery、plugin registration、diagnostic injection、disconnect/reconnect 和 prompt-cache 动态段由扩展专题继续解释。`2.1.235` 的“reconnect 不再破坏 cache”不能只写在 release 表里。
 
+精确二进制 Probe 还补了一条正向闭环：通过 `--plugin-dir` 注册 `.probe` server 后，`LSP` 实际触发 `initialize -> didOpen -> definition -> shutdown`；工具输入 `1:1` 被转换成协议坐标 `0:0`，definition 结果按原 tool-use ID 回到下一请求。首轮 request 没有常驻 LSP schema，因为本工具是 deferred；“没在首轮 tools[]”不能直接解释成“没有注册”。
+
 ### `WebFetch`、`WebSearch`
 
 二者在 261487、294601 附近注册，并标记为 deferred candidate。它们把网络内容带入上下文，因此同时受工具 permission、URL/domain policy、provider/feature gate、网络错误和内容不可信边界影响。
@@ -202,6 +204,8 @@ schema/object 位于 296923-297159。`EnterWorktree` 可以生成受限名称的
 `Skill` object 位于 282215。它把已发现 skill/command 的指令与资源注入当前 Agent，而不是启动任意同名 shell 文件。可见集合受 bundled/user/project/plugin/account 来源、workspace trust、safe/bare mode、managed policy、disable source settings、reload generation 和命名冲突影响。
 
 调用成功意味着 skill 内容已进入上下文/工具 surface；它不自动证明其中描述的外部依赖可用，也不提升 skill 内文本的权限等级。
+
+精确二进制 Probe 进一步拆开了 dispatch 的 wire shape：Plugin Skill 先在 system reminder 中以 `plugin:skill` 名进入 listing；`Skill` tool result 是 `Launching skill` acknowledgement，正文则独立注入下一次 Messages request。把 acknowledgement 当正文会漏掉真实 context 变化，把正文当 tool result 又会错误解释消息配对。
 
 ### `Workflow`
 

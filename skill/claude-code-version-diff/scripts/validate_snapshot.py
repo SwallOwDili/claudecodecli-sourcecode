@@ -61,6 +61,13 @@ SOURCE_INVENTORY_MINIMUMS = {
     "model-aliases": 1,
 }
 HUMAN_ANALYSIS_DOCS = {
+    "analysis/product-surface-evidence-map.md": (
+        "SOURCE_INVENTORY_COVERAGE_BEGIN",
+        "70/70",
+        "Product structured",
+        "Mixed heuristic",
+        "Evidence substrate",
+    ),
     "analysis/completeness-audit.md": (
         "36",
         "Deep",
@@ -259,6 +266,7 @@ HUMAN_ANALYSIS_DOCS = {
     ),
 }
 HUMAN_ANALYSIS_MINIMUMS = {
+    "analysis/product-surface-evidence-map.md": (18000, 6),
     "analysis/completeness-audit.md": (5000, 6),
     "analysis/builtin-tools-reference.md": (9000, 10),
     "analysis/settings-reference.md": (18000, 10),
@@ -285,6 +293,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/runtime-probe-index.md": (9000, 10),
 }
 READER_FIRST_ANALYSIS_DOCS = {
+    "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
     "analysis/settings-reference.md": "settings-resolution-lifecycle",
     "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
@@ -584,6 +593,107 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
                     failures.append(f"stale or edited source inventory artifact: {name}")
 
     return len(entries)
+
+
+def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
+    relative = "analysis/product-surface-evidence-map.md"
+    path = repo / relative
+    generator = repo / "skill/claude-code-version-diff/scripts/build_product_surface_map.py"
+    if not path.is_file():
+        failures.append(f"missing product surface evidence map: {relative}")
+        return
+    if not generator.is_file():
+        failures.append("missing product surface evidence map generator")
+        return
+
+    summary = json.loads(
+        (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
+    )
+    expected = [Path(entry["path"]).name for entry in summary.get("files", [])]
+    content = path.read_text(encoding="utf-8")
+    block = text_between(
+        content,
+        "<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->",
+        "<!-- SOURCE_INVENTORY_COVERAGE_END -->",
+    )
+    rows = re.findall(
+        r"^\| \[`([^`]+)`\]\(source-inventory/([^)]+)\) \| `([^`]+)` \| `([^`]+)` \|",
+        block,
+        re.MULTILINE,
+    )
+    actual = [row[0] for row in rows]
+    if actual != expected or any(label != target for label, target, _, _ in rows):
+        failures.append(
+            "product surface inventory coverage mismatch: "
+            f"expected={len(expected)}, actual={len(actual)}, "
+            f"ordered={actual == expected}"
+        )
+    allowed_domains = {
+        "request-model-network",
+        "tools-commands-protocol",
+        "settings-environment-policy",
+        "telemetry-feature",
+        "diagnostics-errors",
+        "storage-runtime",
+        "lexical-evidence",
+    }
+    allowed_classes = {
+        "Product structured",
+        "Product callsites",
+        "Product broad surface",
+        "Mixed heuristic",
+        "Dependency surface",
+        "Evidence substrate",
+    }
+    for label, _, domain, classification in rows:
+        if domain not in allowed_domains:
+            failures.append(f"product surface inventory {label} has invalid domain")
+        if classification not in allowed_classes:
+            failures.append(f"product surface inventory {label} has invalid classification")
+
+    with tempfile.TemporaryDirectory(prefix="claude-product-surface-") as temporary:
+        regenerated = Path(temporary) / "product-surface-evidence-map.md"
+        process = subprocess.run(
+            [sys.executable, str(generator), str(repo), "--output", str(regenerated)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if process.returncode != 0:
+            failures.append(
+                "product surface evidence map regeneration failed: "
+                + process.stdout.strip()
+            )
+        elif regenerated.read_bytes() != path.read_bytes():
+            failures.append(
+                "product surface evidence map differs from deterministic regeneration"
+            )
+
+
+def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
+    path = repo / "analysis/completeness-audit.md"
+    if not path.is_file():
+        return
+    rows: dict[int, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not re.match(r"^\| \d+ \|", line):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 6:
+            continue
+        rows[int(cells[0])] = cells[4]
+    if sorted(rows) != list(range(1, 37)):
+        failures.append(
+            "completeness capability coverage mismatch: "
+            f"expected=36, actual={len(rows)}"
+        )
+        return
+    for capability, state in sorted(rows.items()):
+        if state not in {"Deep", "Boundary"}:
+            failures.append(
+                f"completeness capability {capability} is not closed: {state}"
+            )
 
 
 def nested_value(document: object, dotted_path: str) -> object:
@@ -1377,11 +1487,15 @@ def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> Non
     ).read_text(encoding="utf-8").splitlines()
     request_block = text_between(
         protocol_doc,
-        "### 42 个 schema 化 control request",
-        "### schema 清单之外的 16 个 worker 分支",
+        "<!-- SDK_CONTROL_REQUESTS_START -->",
+        "<!-- SDK_CONTROL_REQUESTS_END -->",
     )
     actual_requests = re.findall(r"^\| `([^`]+)` \|", request_block, re.MULTILINE)
-    if len(actual_requests) != 42 or len(set(actual_requests)) != 42:
+    if (
+        len(actual_requests) != 42
+        or len(set(actual_requests)) != 42
+        or not set(actual_requests).issubset(set(expected_sdk))
+    ):
         failures.append(
             "human SDK control-request coverage mismatch: "
             f"expected=42, actual={len(actual_requests)}, unique={len(set(actual_requests))}"
@@ -1601,6 +1715,8 @@ def main() -> int:
         inventory_files = len(inventory_summary.get("files", []))
     else:
         inventory_files = validate_source_inventory(repo, failures)
+    validate_product_surface_map(repo, failures)
+    validate_completeness_closure(repo, failures)
     validate_human_inventory_facts(repo, failures)
     validate_exhaustive_human_references(repo, failures)
     mechanism_evidence = validate_mechanism_evidence(repo, failures)

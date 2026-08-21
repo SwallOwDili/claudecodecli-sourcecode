@@ -1,0 +1,27 @@
+digraph settings_reload_state_machine {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  source [label="来源发生变化\n文件 / Storage v5 / MDM poll\npolicy helper refresh", fillcolor="#fff3cd"];
+  settle [label="稳定与来源识别\n写稳定 1000ms\n删除 grace 1700/3200ms", fillcolor="#ffe0b2"];
+  echo [shape=diamond, label="本进程 5000ms\n写回声？", fillcolor="#e8eaf6"];
+  hook [shape=diamond, label="ConfigChange\n允许当前进程采纳？", fillcolor="#ffccbc"];
+  kept [label="保留旧 cache\n磁盘新内容不回滚", fillcolor="#ffcdd2"];
+  invalidate [label="invalidateAll()\nepoch++，清 merged/per-source/parsed/policy", fillcolor="#e3f2fd"];
+  signal [label="发出 changed(source)\n标记哪类来源变化", fillcolor="#d1c4e9"];
+  consumers [label="消费者按自己的生命周期采用\n重读 / sandbox 重建 / plugin snapshot\nUI 重绘 / session 或启动捕获", fillcolor="#c8e6c9"];
+  result [label="可观察结果\n下一读取、下一请求、显式 reload\n新 session 或重启后生效", fillcolor="#b2dfdb"];
+
+  source -> settle [label="产生事件"];
+  settle -> echo [label="canonicalize"];
+  echo -> result [label="是：吞掉重复事件", style=dashed];
+  echo -> hook [label="否：先执行 Hook"];
+  hook -> kept [label="阻断普通文件变更"];
+  kept -> result [label="当前进程继续旧行为", style=dashed];
+  hook -> invalidate [label="放行；policy 不可被 Hook veto"];
+  source -> invalidate [label="程序写 / helper 已验证更新", style=dashed];
+  invalidate -> signal [label="通知来源"];
+  signal -> consumers [label="各自订阅或下次读取"];
+  consumers -> result [label="改变运行状态"];
+}

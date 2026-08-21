@@ -2,6 +2,8 @@
 
 > 版本边界：本文只解释本仓库 `2.1.235` 分支。主清单来自 [`root-settings-schema.jsonl`](source-inventory/root-settings-schema.jsonl)：156 个 direct property 和 4 个 spread 记录。字段出现在 schema 中只证明客户端接受或识别该名字；只有定位到读取、决策或状态变化路径时，本文才标为 `Static consumer`。
 
+先读 [Settings 解析、合并与热重载专题](settings-resolution-and-reload.md)：它解释进程级 store、五层与 admin tier、四种 merge、`ConfigChange`、删除 grace、policy helper 恢复以及为什么不同字段不会同时刷新。本文随后承担逐字段字典和精确覆盖合同。
+
 ## 60 秒模型：settings 不是一个 JSON 文件
 
 **读者问题：** 为什么同一个字段写进 `.claude/settings.json` 有时生效、有时被忽略，甚至会让程序在启动时直接退出？
@@ -34,6 +36,10 @@
 | `catch -> unset` | 非法值被转为 `undefined`，不会成为有效值 |
 | `Declaration` | 已证明 schema 声明，未证明独立 consumer 或可达成功路径 |
 | `Static consumer` | `2.1.235` readable JS 中找到实际读取或决策路径；仍不等于本机账户已触发 |
+| `Alias -> Static consumer` | 字段在解析期改写为 canonical key，运行消费者读取 canonical key；alias 不形成第二份状态 |
+| `Probe` | 精确 `2.1.235` 二进制在受控输入下观察到真实 request/state sequence；仍只证明报告列出的路径 |
+
+156 个 direct key 的互斥分级是：`Probe=2`、`Alias -> Static consumer=2`、`Declaration=3`、其余 `Static consumer=149`。三个 declaration-only 字段是 `$schema`、`quietHours`、`sshConfigs`；两个 alias 是 `additionalMarketplaces`、`allowedMarketplaces`。
 
 重要消费者定位：凭据 helper 87433-87693；model request 271832-271842、allowlist 158008-158129/271855-271873；MCP allowlist 274256-274293；tool/permission/hook 主管线 316092-316487；sandbox 来源约束 32614-32646；plugin sideload policy 160531-160539/185469-190866；auto-memory 88660-88707/115078/267649；auto-compact 216024-216028/262454-263378；checkpoint 194602-194804；跨会话消息 306333-306424；用户配置 UI 和持久值投影 332541-332817。
 
@@ -79,8 +85,8 @@
 | `includeCoAuthoredBy` | `boolean`；默认 true；deprecated | 旧字段，迁移目标是 `attribution`。 | **Static consumer**：保留兼容，不应与新字段产生双重归因假设。 |
 | `includeGitInstructions` | `boolean`；默认 true | 控制内置 commit/PR 工作流说明是否进入 system prompt。 | **Static consumer**：关闭可省少量上下文，但会降低模型对仓库发布规范的默认遵循。 |
 | `permissions` | permission object；未声明 | 多来源规则按专用聚合；来源 precedence 与 `deny -> ask -> allow` 裁决顺序是两件事。 | **Static consumer 316092-316487**：决定工具是否执行。错误 allow 可能产生真实副作用；deny/ask 不能靠更具体 allow 覆盖。 |
-| `model` | `string`；未声明 | 普通层标量；真实 probe 证明 flag > local > project > user，CLI/session 解析还可进一步覆盖。 | **Static consumer 271832-271842**：进入 Messages 请求。别把文件里的 alias 直接当最终 provider model ID。 |
-| `fallbackModel` | `array<string>`；未声明 | 顺序尝试；CLI `--fallback-model` 更高；`default` 展开为默认模型。 | **Static consumer 597494 等**：只在适合 fallback 的失败类切换，可能改变质量/成本；每新 turn 仍可能回主模型。 |
+| `model` | `string`；未声明 | 普通层标量；真实 probe 证明 flag > local > project > user，CLI/session 解析还可进一步覆盖。 | **Probe + consumer 271832-271842**：受控值进入真实 Messages request。别把文件里的 alias 直接当最终 provider model ID。 |
+| `fallbackModel` | `array<string>`；未声明 | 通用 merge 的特例：高层整数组替换，不与低层去重并集；CLI `--fallback-model` 更高，`default` 展开为默认模型。 | **Probe consumer**：受控 529 序列观察到主模型 3 次后切到 fallback 并成功；root settings 的来源摄入仍由 Static 路径证明。可能改变质量/成本，每个新 turn 仍可能回主模型。 |
 | `availableModels` | `array<string>`；undefined=全可见，空数组=只默认模型 | 支持 family、version prefix、full ID；企业限制。非法 policy 值 fail closed 为空 allowlist。 | **Static consumer 158008-158129、271855-271873**：限制 picker、subagent 和 fallback；被禁模型响应可直接丢弃。 |
 | `enforceAvailableModels` | `boolean`；未声明 | 非空 allowlist 时连 Default 解析也受约束；空/未设无效。非法 policy 值按 true 处理。 | **Static consumer**：防止“Default”绕过 allowlist；误配会把默认模型重定向到第一允许项。 |
 | `modelOverrides` | `map<string,string>`；未声明 | Anthropic model ID 到 provider-specific ID 的映射，通常 managed。 | **Static consumer**：影响 Bedrock/Vertex/Foundry 等实际请求模型；错误 ARN/ID 会在 provider 侧失败。 |
@@ -117,7 +123,7 @@
 | `strictPluginOnlyCustomization` | `boolean` 或 `array<skills/agents/hooks/mcp>`；invalid -> unset | 仅 managed；按 surface 阻断非 plugin 自定义，但保留 policy 与 plugin 来源。 | **Static consumer**：与 marketplace allowlist 组合形成端到端供应链控制；单独使用不验证 plugin 来源。 |
 | `statusLine` | command object；`refreshInterval>=1`，invalid -> unset | 有事件驱动刷新，也可周期执行；`disableAllHooks` 会一并禁用。 | **Static consumer**：每次执行接收状态 JSON；慢脚本会拖累 UI，脚本也能读取会话元数据。 |
 | `prUrlTemplate` | `string`；未声明 | 用 `{host}/{owner}/{repo}/{number}/{url}` 生成 PR badge/inline link。 | **Static consumer**：只负责展示跳转，不验证目标 host；模板错误会产生误导链接。 |
-| `footerLinksRegexes` | `array<regex badge>`；invalid entry 删除，整体 invalid -> unset | 只读 user/flag/managed，忽略 project/local；最多 5 个，`/clear` 清除。 | **Static consumer**：对 tool/assistant 输出匹配并生成 URL；输出是不可信文本，模板 origin 必须固定且 scheme 受限。 |
+| `footerLinksRegexes` | `array<regex badge>`；invalid entry 删除，整体 invalid -> unset | 只读 user/flag/managed，忽略 project/local；扫描最近最多 256 条合格消息、总尾部 65,536 chars、单块 8,192 chars；每条 regex 最多扫描 200 matches，仅保留最后 20 个候选，最终 footer 最多 5 个。 | **Static consumer 431774-432010**：生成 URL 最长 2,048 chars；模板必须固定 literal origin、使用 allowlisted scheme，替换后 origin 不能漂移，dot-segment 被拒。输出是不可信文本，50ms 以上 pattern 会记录 slow warning。 |
 | `subagentStatusLine` | command object；未声明 | 每个 subagent 行把 row context JSON 写到 stdin。 | **Static consumer**：增强 agent panel；高频外部命令会增加进程和延迟成本。 |
 
 ## 5. Plugins、登录、OTEL 与输出
@@ -126,9 +132,9 @@
 | --- | --- | --- | --- |
 | `enabledPlugins` | plugin-id map，值可 boolean/版本约束结构；未声明 | 明确 precedence user<project<local<flag<policy；key 级状态可在 local 用 false 压 project true。 | **Static consumer**：决定 plugin 装载；版本/来源错误会产生 warning 或缺失命令/tool。 |
 | `extraKnownMarketplaces` | marketplace map；未声明 | 注册额外 marketplace，常放项目 settings。 | **Static consumer**：注册不等于允许；下载前仍受 strict/blocked policy。仓库可引导供应链来源。 |
-| `additionalMarketplaces` | 同上；alias | 同文件同时存在时此 alias 忽略并警告，可能被重写为 canonical key。 | **Static consumer**：兼容新名字；旧客户端可能完全忽略，跨版本组织应优先 canonical。 |
+| `additionalMarketplaces` | 同上；alias | 解析期改写为 `extraKnownMarketplaces`；同文件同时存在 canonical 时 alias 忽略并警告。 | **Alias -> Static consumer 40951-40967**：运行期只消费 canonical map；旧客户端可能完全忽略 alias，跨版本组织应优先 canonical。 |
 | `strictKnownMarketplaces` | `array<source>`；未声明 | 仅 managed；下载前 allowlist，GitHub 可 owner wildcard；不会自动注册来源。 | **Static consumer**：阻止未批准 marketplace 触盘；需与 `extraKnownMarketplaces` 配合。 |
-| `allowedMarketplaces` | 同上；managed-only alias | 与 canonical 同文件时 alias 忽略并警告；旧客户端可能不识别。 | **Static consumer**：治理兼容字段，不能假设所有版本都受它约束。 |
+| `allowedMarketplaces` | 同上；managed-only alias | 解析期改写为 `strictKnownMarketplaces`；与 canonical 同文件时 alias 忽略并警告。 | **Alias -> Static consumer 40951-40967**：治理最终读取 canonical allowlist，不能假设所有旧版本都识别 alias。 |
 | `blockedMarketplaces` | `array<source>`；未声明 | 仅 managed，下载前 blocklist；支持 GitHub owner wildcard。 | **Static consumer**：在网络/文件写入前阻断；与 allow 同时命中应按 block 处理。 |
 | `disableCommandPluginSources` | `boolean`；仅 managed | true 禁止 command marketplace source；unset 跟随 `allowManagedHooksOnly`。 | **Static consumer**：阻止 marketplace 声明的本地命令执行；非法 policy 值按 true。 |
 | `disableSideloadFlags` | `boolean`；仅 managed | true 在启动拒绝 `--plugin-dir`、`--plugin-url`、`--agents`、非 SDK `--mcp-config`。 | **Static consumer 160531-160539/190866**：堵 CLI flag 绕过 marketplace policy，但不覆盖所有 MCP API。 |
@@ -248,6 +254,8 @@
 ## 11. 字段覆盖索引
 
 下面标记区是机器校验入口：每行一个 direct key，顺序与 `root-settings-schema.jsonl` 一致；应当恰好 156 行、156 个唯一值，并与清单集合完全相等。
+
+九张逐字段表按消费者家族覆盖 `13 + 11 + 15 + 24 + 18 + 25 + 12 + 14 + 24 = 156` 个 direct key。每组的 owner、刷新模式和故障入口汇总在 [Settings 解析、合并与热重载专题的消费者家族表](settings-resolution-and-reload.md#10-156-个-direct-setting-的消费者家族)。
 
 <!-- SETTINGS_DIRECT_KEYS_START -->
 ```text

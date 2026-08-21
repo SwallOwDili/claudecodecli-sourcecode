@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度，读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [29 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合，读 [Workflow/Artifact/Design](workflow-artifact-design.md)、[Feature Flags/Remote Config](feature-flags-remote-config.md)、[TUI/媒体/IDE/Chrome](tui-input-accessibility-media-ide-chrome.md) 与 [后台/Channels/Cloud](cloud-background-channels.md) 查产品状态机。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [29 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合，读 [Workflow/Artifact/Design](workflow-artifact-design.md)、[Feature Flags/Remote Config](feature-flags-remote-config.md)、[TUI/媒体/IDE/Chrome](tui-input-accessibility-media-ide-chrome.md) 与 [后台/Channels/Cloud](cloud-background-channels.md) 查产品状态机。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1223,7 +1223,7 @@ Doctor分别检查：
 - 70类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 146条机制证据：83 Static、28 Probe、33 Public、2 Boundary；
+- 148条机制证据：83 Static、30 Probe、33 Public、2 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29个 built-in tool identifier、188个 known-tool catalog项；
@@ -1232,12 +1232,14 @@ Doctor分别检查：
 
 ### 33.2 精确二进制 Probe
 
-10份报告覆盖：
+11份运行报告覆盖，其中 10 份绑定精确 CLI 二进制，1 份用于原生模块原版/兼容对照：
 
 - Agent Loop工具闭环、resume、manual compact、fork；
 - bearer/API-key request shape和 prompt cache开关；
 - PreToolUse deny、Stop hook重入、maxTurns；
 - MCP generation refresh；
+- Plugin Skill listing、launch acknowledgement 与正文注入；
+- Plugin LSP stdio initialize/open/definition/shutdown、1-based 到 0-based 坐标和 paired result；
 - 子 Agent隔离和两阶段结果回传；
 - settings层级、529/400 retry、model fallback；
 - OTLP prompt脱敏；
@@ -1263,6 +1265,7 @@ Doctor分别检查：
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |
+| 70 类机器清单怎样归属，哪些不能直接算产品功能 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
 | Agent为何循环、何时并发、为何停止 | [agent-loop.md](agent-loop.md) |
 | Context、cache、compact和成本 | [context-governance-and-caching.md](context-governance-and-caching.md) |
 | Session、fork、checkpoint、memory | [sessions-checkpoints-memory.md](sessions-checkpoints-memory.md) |

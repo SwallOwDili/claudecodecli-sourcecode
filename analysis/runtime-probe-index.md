@@ -104,6 +104,20 @@ claude-haiku-4-5
 
 因此 MCP server 的工具表变化会推进 generation 并失效缓存，但不会修改已经装配或正在发送的请求。动态刷新按请求边界生效。
 
+### Plugin Skill 与 LSP 是两条不同的装载闭环
+
+`probe.plugin-skill-load` 用 `--plugin-dir` 装入一个隔离插件。第一个 Messages request 的 Skill listing 出现 `probe-plugin:probe-skill`；模型调用 `Skill` 后，CLI 先回灌同 ID 的 `Launching skill` acknowledgement，再把 Skill 正文 marker 注入第二个 request。也就是说，Skill 的 `tool_result` 证明 dispatch 已接受，真正的指令内容另行进入下一轮上下文，二者不能混成一个字段。
+
+`probe.plugin-lsp-roundtrip` 在同一插件中声明 stdio LSP server。首个 request 没有携带 LSP schema，符合 deferred tool surface；受控模型随后发出 `LSP` tool use 后，CLI 实际完成：
+
+```text
+initialize -> initialized -> textDocument/didOpen
+-> textDocument/definition(line=0, character=0)
+-> paired tool_result -> shutdown
+```
+
+工具输入使用编辑器坐标 `line=1, character=1`，server 收到协议坐标 `0,0`。最终 result 是 `PLUGIN_SKILL_LSP_OK`、exit 0。这个 Probe 证明 session plugin、Skill dispatch、LSP process 和 result feedback 的客户端闭环；它不证明任意第三方 language server 的语义正确，也不把 deferred schema 写成首轮常驻 schema。
+
 ### 子 Agent 的启动确认不是最终结果
 
 `probe.subagent-isolation` 观察到 child 使用自己的 prompt、工具集合和 Messages 请求，且不包含 parent prompt。`probe.subagent-notification-feedback` 记录父循环收到：
@@ -154,7 +168,7 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
-## 28 条 Probe 结论索引
+## 30 条 Probe 结论索引
 
 | Claim ID | 报告 | 核心状态变化 |
 | --- | --- | --- |
@@ -186,6 +200,8 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.lifecycle-doctor-update` | `lifecycle-doctor.json` | 更新 gate 与 doctor 多故障域诊断可达 |
 | `probe.remote-control-custom-endpoint-boundary` | `lifecycle-doctor.json` | 自定义 endpoint 明确阻断 Remote Control |
 | `probe.feature-override-unreachable` | `lifecycle-doctor.json` | 内部环境 override 未在 disabled gate 前把 rollout 变成 true |
+| `probe.plugin-skill-load` | `plugin-skill-lsp.json` | Plugin Skill listing、dispatch acknowledgement 与正文注入分离 |
+| `probe.plugin-lsp-roundtrip` | `plugin-skill-lsp.json` | deferred LSP 经 stdio 完成 1-based/0-based 坐标与结果闭环 |
 
 ## 仍然保留的边界
 

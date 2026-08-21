@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [全面性审计](analysis/completeness-audit.md) · [103 个 Slash Command](analysis/slash-command-reference.md) · [31 个 Hooks](analysis/hooks-event-reference.md) · [29 个 Storage namespace](analysis/storage-v5-reference.md) · [Feature Flags/Remote Config](analysis/feature-flags-remote-config.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [70 类证据归属地图](analysis/product-surface-evidence-map.md) · [全面性审计](analysis/completeness-audit.md) · [103 个 Slash Command](analysis/slash-command-reference.md) · [31 个 Hooks](analysis/hooks-event-reference.md) · [29 个 Storage namespace](analysis/storage-v5-reference.md) · [Feature Flags/Remote Config](analysis/feature-flags-remote-config.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -22,10 +22,12 @@
 
 | 入口 | 解决的问题 |
 | --- | --- |
+| [`analysis/product-surface-evidence-map.md`](analysis/product-surface-evidence-map.md) | **70/70 机器证据归属地图**：每一类 inventory 都标明产品结构、真实调用点、混合 heuristic、依赖 surface 或证据底座，并路由到人类机制与 Boundary |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
 | [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 36 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到产品表面、19 条本版变化、字段字典、误区和证据缺口 |
-| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 36 个能力面，逐项标记 Deep、Documented、Inventory only 或 Boundary，明确哪些专题仍不能冒充“全面” |
+| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 36 个能力面；当前 35 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
 | [`analysis/builtin-tools-reference.md`](analysis/builtin-tools-reference.md) | **29/29 内置工具手册**：逐工具解释状态 owner、副作用、持久化、失败、恢复、成本、隐私与安全，重点下钻 Workflow、Cron、LSP、Task、Artifact 和 Worktree |
+| [`analysis/settings-resolution-and-reload.md`](analysis/settings-resolution-and-reload.md) | **Settings 解析、合并与热重载专题**：进程级 store、五层与 admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新差异、remote managed settings 与 policy helper 恢复 |
 | [`analysis/settings-reference.md`](analysis/settings-reference.md) | **156/156 根 Settings 全字段参考**：逐项说明类型、来源、merge、生命周期、consumer、用户影响和证据边界，并单独解释 4 个 spread |
 | [`analysis/cli-sdk-output-protocol.md`](analysis/cli-sdk-output-protocol.md) | **CLI、SDK 与输出协议专题**：区分 text/JSON/stream-json、本地 envelope、42 个 schema RPC、16 个额外 handler、46 个观察 subtype、44 个 Managed Agents event 和 103 个 slash command |
 | [`analysis/plugins-skills-commands-lsp.md`](analysis/plugins-skills-commands-lsp.md) | **动态扩展生命周期**：marketplace 信任、安装/enable/session registry、Skill listing、三类 slash command、reload、MCP cache 与 LSP process/diagnostics |
@@ -55,7 +57,7 @@
 | [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
 | [`analysis/semantic-comparison-2.1.233-to-2.1.235.md`](analysis/semantic-comparison-2.1.233-to-2.1.235.md) | `2.1.233 -> 2.1.235` 的机制级人类对比：旧/新行为、触发条件、失败路径、成本、遥测、native 与 `2.1.234` 归因边界 |
 | [`analysis/mechanism-evidence.jsonl`](analysis/mechanism-evidence.jsonl) | 每条核心结论对应的 evidence class、源码 view、真实行号、anchors 或运行探针字段，供 validator/comparator 自动复核 |
-| [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md) | 28 条精确二进制 Probe 的命令、受控输入、literal output、状态变化、字段读法与证明边界 |
+| [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md) | 30 条精确二进制 Probe 的命令、受控输入、literal output、状态变化、字段读法与证明边界 |
 
 一次主线程请求的实际路径可以概括为：
 
@@ -81,9 +83,9 @@
 
 每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。26 个官方页面同时固化原始响应 hash、去噪正文 hash 与 33 条逐摘录 hash；刷新脚本还要求每条引用逐句存在于当次页面可见正文，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
-当前结构化机制证据共 `146` 条：`83 Static`、`28 Probe`、`33 Public`、`2 Boundary`。Static 不再被视为同一种强度：其中 `59 runtime`、`10 consumer`、`8 constant`、`4 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 15 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；telemetry、resilience、context、settings、feature evaluation、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
+当前结构化机制证据共 `148` 条：`83 Static`、`30 Probe`、`33 Public`、`2 Boundary`。Static 不再被视为同一种强度：其中 `59 runtime`、`10 consumer`、`8 constant`、`4 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 15 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；telemetry、resilience、context、settings、feature evaluation、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
 
-10 份精确二进制报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate、自定义 endpoint 下的 Remote Control 边界，以及本版内部 feature override 不可达。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
+11 份运行报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、Plugin Skill listing/正文注入、Plugin LSP stdio/坐标/结果闭环、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate、自定义 endpoint 下的 Remote Control 边界，以及本版内部 feature override 不可达；其中 10 份绑定精确 CLI 二进制，1 份是原生模块原版/兼容对照。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
 原生重建验证也输出同目录下的 `native-reconstruction.json`：本次 23 个检查项由 22 项真实原版/兼容对照和 1 项最低覆盖审计组成；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次环境没有留下 `environment-boundary`。original arm64 为运行+静态证据，compatible arm64 为构建+运行证据。原版 x86_64 只有两个 Computer Use 静态 slice，compatible x86_64 明确标记为未构建、未运行。
 
@@ -137,9 +139,10 @@
 |   |-- mechanism-evidence.jsonl        结论到源码范围/anchor/探针字段的结构化证据合同
 |   |-- public-sources/manifest.json    官方页面响应、去噪正文与逐摘录 SHA-256
 |   |-- public-source-excerpts.md       与本版验证问题对应的固定官方摘录
-|   |-- runtime-probe-index.md          28 条精确二进制探针的人类解释与字段指南
+|   |-- runtime-probe-index.md          30 条精确二进制探针的人类解释与字段指南
 |   |-- compact-visual-guide.md         /compact 的读者优先图文机制样板
 |   |-- completeness-audit.md           36 个能力面的全面性审计与收口合同
+|   |-- product-surface-evidence-map.md 70 类 inventory 的产品归属与人类路由
 |   |-- builtin-tools-reference.md      29 个 built-in tool 的逐项机制参考
 |   |-- settings-reference.md           156 个 direct root setting 的全字段参考
 |   |-- cli-sdk-output-protocol.md      CLI/SDK 输入输出、control 与 event 协议
@@ -493,7 +496,21 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 ```
 
-验证校验器会拒绝隐私路径、伪引用、未索引 Probe 和失败 required check，并确认每次负向变更都恢复原哈希：
+重新生成并核对 70 类产品归属地图：
+
+```bash
+python3 skill/claude-code-version-diff/scripts/build_product_surface_map.py . \
+  --output analysis/product-surface-evidence-map.md
+```
+
+隔离验证 Plugin Skill 与 LSP 闭环：
+
+```bash
+CLAUDE_BIN="$CLAUDE_TARGET" \
+  node skill/claude-code-version-diff/scripts/probe_plugin_skill_lsp.mjs
+```
+
+验证校验器会拒绝隐私路径、伪引用、未归属 inventory、降回 `Documented` 的能力面、未索引 Probe 和失败 required check，并确认每次负向变更都恢复原哈希：
 
 ```bash
 python3 skill/claude-code-version-diff/scripts/test_validator_negative.py .
@@ -528,7 +545,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成和逐文件哈希、146 条机制证据、28 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、完成审计、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对 29 个 built-in tool、156 个 direct setting、103 个 slash command、31 个 Hook event、29 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成、逐文件哈希与 70/70 产品归属地图、148 条机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、Acorn 版本、JSONL 比较字段、调用点覆盖、36 个能力面的 Deep/Boundary 收口、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对 29 个 built-in tool、156 个 direct setting、103 个 slash command、31 个 Hook event、29 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

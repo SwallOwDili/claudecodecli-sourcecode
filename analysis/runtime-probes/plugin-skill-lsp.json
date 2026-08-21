@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21T21:53:44.752Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "pluginSkillLsp": "$CLAUDE_TARGET --print PLUGIN_SKILL_LSP_PROMPT_MARKER --output-format stream-json --verbose --model claude-sonnet-4-5 --plugin-dir $PLUGIN_DIR --tools Skill,LSP --permission-mode bypassPermissions --dangerously-skip-permissions --session-id $SESSION_ID"
+  },
+  "input": {
+    "plugin": "isolated --plugin-dir fixture with one Skill and one stdio LSP server",
+    "skillDescription": "PLUGIN_SKILL_DESCRIPTION_MARKER",
+    "skillBody": "PLUGIN_SKILL_BODY_MARKER",
+    "sourceFile": "$WORKSPACE/fixture.probe",
+    "lspOperation": {
+      "operation": "goToDefinition",
+      "line": 1,
+      "character": 1
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "result": "PLUGIN_SKILL_LSP_OK",
+    "subtype": "success"
+  },
+  "exitStatus": {
+    "version": 0,
+    "pluginSkillLsp": 0
+  },
+  "observed": {
+    "messagesRequestCount": 3,
+    "selectedSkillName": "probe-plugin:probe-skill",
+    "firstRequestToolNames": [
+      "Skill"
+    ],
+    "lspMethods": [
+      "initialize",
+      "initialized",
+      "textDocument/didOpen",
+      "textDocument/definition",
+      "shutdown"
+    ],
+    "definitionPosition": {
+      "line": 0,
+      "character": 0
+    },
+    "pairedSkillResult": true,
+    "skillBodyInjected": true,
+    "pairedLspResult": true
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "exitZero": true,
+    "resultSuccess": true,
+    "pluginSkillListed": true,
+    "pluginSkillNameResolved": true,
+    "skillToolAdvertised": true,
+    "lspSchemaDeferredFromFirstRequest": true,
+    "pairedSkillResultObserved": true,
+    "skillBodyInjected": true,
+    "lspInitializeObserved": true,
+    "lspDidOpenObserved": true,
+    "lspDefinitionObserved": true,
+    "oneBasedPositionConvertedToZero": true,
+    "pairedLspResultObserved": true
+  },
+  "pass": true
+}

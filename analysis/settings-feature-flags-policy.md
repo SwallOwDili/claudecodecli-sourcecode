@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 Settings、Feature Flags 与 Managed Policy
 
-Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。远端求值、fresh/disk/default、exposure、刷新和账号切换的完整链见 [Feature Flags 与 Remote Config 专题](feature-flags-remote-config.md)。
+Claude Code 的配置不是一个 JSON 文件，而是一组来源、作用域、信任等级和动态值共同形成的有效配置。用户看到的同一个字段，可能来自 user settings、project settings、local settings、命令行 `--settings`/flags、企业 managed policy、环境变量、GrowthBook/feature value 或当前 session state。要解释“为什么这个开关没有生效”，必须先回答它属于哪类状态、允许从哪些来源读取、谁能覆盖谁、是否在启动后刷新。进程 store、四种 merge、`ConfigChange` 和消费者刷新模式见 [Settings 解析、合并与热重载专题](settings-resolution-and-reload.md)；远端求值、fresh/disk/default、exposure、刷新和账号切换见 [Feature Flags 与 Remote Config 专题](feature-flags-remote-config.md)。
 
 ## 60 秒理解“有效配置”
 
@@ -52,14 +52,32 @@ userSettings
 
 macOS managed settings 来自固定系统目录，探针没有修改管理员路径，因此没有伪造 policy 胜出结果。managed > CLI 仍由官方主张和真实静态 merge 分支证明。这种分层写法比声称“所有五层都 probe 过”更准确。
 
+### 谁持有有效配置
+
+readable JS `1303-1360` 的进程级 store 同时持有 `mergedSettings`、每来源缓存、每文件解析缓存、policy 派生缓存、internal-write 时间、enabled sources、`epoch` 和两类 signal。`invalidateAll()` 会推进 epoch 并清空这些派生状态，但不会修改磁盘，也不会自动重建全部 client。这个 owner 模型决定了“watcher 看见文件变化”与“某个子系统已经采用新值”之间必然还有一段生命周期。
+
+### `policySettings` 内部不是一层
+
+`41421-41676` 还把 managed policy 拆成 helper、remote、MDM/registry、managed file、SDK parent slice、HKCU fallback 和 host model overlay：
+
+- 非 remote-armed helper 成功后可以作为当前 policy 输出；
+- remote、MDM/registry、managed file 形成 admin tier 候选，第一有效对象是主要 admin winner；
+-限制性开关和 env 仍可跨 admin tier 组合，不能只看 winner 文件；
+- `parentSettingsBehavior=merge` 只允许 parent 的 restrictive slice 进入，包括 deny/ask、managed-only lock、sandbox 收紧和 MCP deny，不接纳任意放宽；
+- host-managed provider 只得到专用 model overlay，helper/env 等高风险字段会被剥离。
+
+因此 `get_settings.sources` 中的 `policySettings` 是组合结果，不是某个单一文件的原样内容。
+
 ## 合并不是所有字段都用同一算法
 
 最容易误导用户的说法是“后面的配置覆盖前面的配置”。实际字段至少有四种合并语义：
 
-1. **标量覆盖**：例如 theme、model、某些 boolean，通常由高优先级来源取最终值。
-2. **规则集合合并**：permissions、denied domains、hooks 等可能从多来源累积，再按自己的决策顺序解释。
-3. **只接受特定来源**：安全敏感字段会忽略 project/local。
-4. **managed pin**：一旦管理员部署某类约束，普通来源不能再关闭或放宽。
+1. **通用深合并**：普通 object 由 `mergeWith` 递归合并，普通数组拼接后去重；同一个 nested object 可以同时来自多个文件。
+2. **字段级特例**：`fallbackModel` 的高层数组整组替换；`extraKnownMarketplaces` 按 marketplace key 合并；policy 的 `availableModels/enforceAvailableModels` 在通用 merge 后重新 pin。
+3. **专用 resolver/规则集合**：permissions、hooks、MCP allow/deny、sandbox 等绕过“最终 object 就是答案”的假设，按自己的集合、信任和裁决顺序解释。
+4. **受限来源与 managed pin**：`J0e` 一类安全读取只遍历 policy/flag/user；部分 managed boolean 只能收紧，project/local 根本没有参赛资格。
+
+两个 marketplace alias 也不是独立 merge key：`additionalMarketplaces` 和 `allowedMarketplaces` 会在单文件解析期分别改写为 `extraKnownMarketplaces`、`strictKnownMarketplaces`；同文件同时写 alias 与 canonical 时 alias 被忽略并告警。
 
 因此版本分析需要记录的不只是 schema key，而是每个关键字段的 merge strategy、allowed sources 和 fail-closed 条件。
 
@@ -149,18 +167,40 @@ macOS managed settings 来自固定系统目录，探针没有修改管理员路
 
 `policyHelper` 执行失败必须记录是沿用静态 default、保留上次值还是启动失败。只写“支持 managed settings”无法回答真实风控问题。
 
+### Helper 的实际执行合同
+
+| 项目 | `2.1.235` 行为 |
+| --- | --- |
+| 默认 timeout | 10 秒 |
+| stdout 上限 | 1 MiB |
+| refresh | `0` 不刷新；非 0 至少 60 秒；`refreshInFlight` 禁止重叠 |
+| stdout envelope | `managedSettings`、`claudeMd`、`appendSystemPrompt` |
+| singular helper | 不支持 inline script |
+| remote-armed helper | 禁止 inline script，必须满足 path 规范、verification 和 consent |
+
+刷新失败时的状态转换是确定的：有 static default 就从 helper 切到 default；没有 default 就保留当前有效 policy。helper 恢复后再替换 default。per-OS static default 自身非法会 startup-fatal，因为一份无法验证的 fallback 比暂时没有 helper 更危险。
+
+remote-armed helper 还记录 `remoteArmGeneration`。执行期间 consent/payload 变化，即使子进程已经返回成功 JSON，输出也会被丢弃；这防止用户批准 A 后实际应用 B。
+
+### Remote managed settings 不是盲信缓存
+
+remote settings 优先尝试 Storage v5 subscription，失败或 view stand down 时保留 disk probe。cache 上限为 2 MiB；cache file 命中 symlink `ELOOP` 时按 absent 处理；account change 会 reset 所有 session/verified/consented payload 并让旧 view stand down。
+
+未验证 payload 的 `env` 只保留 allowlist。危险 shell/helper/hook/`claudeMd` 路径要求当前 `sessionCache`、`verifiedPayload`、`consentedPayload` 指向同一个 payload；否则只能停留在受限视图，不能借远端缓存获得本地代码执行权。
+
 ## Lifecycle：启动、监听、刷新、失效
 
-settings 系统维护内部写时间，用于区分自身写入与外部文件变化；还维护 enabled source cache。不同子系统对配置变化的响应不同：
+settings 系统维护 internal-write 时间、enabled source cache 和全局 epoch。不同子系统对配置变化的响应不同：
 
 当前官方文档说明大多数 user/project/local/managed 设置会在运行中重新加载并触发 ConfigChange，对应 `public.settings-live-reload`。这是一条当前产品主张；2.1.235 每个字段是否热更新仍需看具体 consumer 是否重读，不能因为 watcher 存在就把所有初始化对象写成动态刷新。
 
-- 一部分 UI 设置可立即重绘；
-- tool/MCP/plugin 变化会触发 registry 或 cache invalidation；
-- provider/auth/client 对象常需要重新构造；
-- policy helper 可以按 refresh interval 更新；
-- project trust 改变后，之前被阻止的 helper/hook/MCP 才能进入装载；
-- background agent 已复制的上下文不会自动等同于主会话最新状态。
+- 文件 watcher 等待写稳定 1000 ms、轮询 500 ms；普通删除 grace 约 1700 ms，Storage v5 user settings 约 3200 ms；
+- 本进程原子写后的 watcher echo 在 5000 ms 内被抑制；MDM 每 30 分钟 poll；flag settings 不由文件 watcher 监听；
+- 外部普通变更先执行 `ConfigChange`。Hook 阻断时当前进程保留旧 cache，但磁盘文件不会回滚；`policy_settings` 结果被强制 non-blocking，普通 Hook 不能 veto 管理员政策；
+- 放行后 `invalidateAll()` 清 merged/per-source/parsed/policy cache，再发 source-specific changed signal；
+- sandbox 订阅 signal 后更新 runtime config；plugin hooks 先比较 plugin-affecting snapshot，无关变化明确跳过 reload；UI selector 可重绘；
+- provider/auth/client、已发 request、已运行 tool、已有 subagent/daemon 是否更新，要看各自重建边界，不能从 watcher 存在推断；
+- policy helper refresh 走自己的 helper/default/retain/recover 状态机；background agent 已复制的上下文不会自动等同于主会话最新状态。
 
 跨版本比较必须关注 lifecycle，而不仅是新增 key。新增字段但未接入 reload path，和运行中可刷新是两种不同能力。
 
@@ -184,7 +224,7 @@ settings source 只决定规则集合；permissions 仍按 deny、ask、allow �
 
 ### “企业配置偶尔消失”
 
-检查 policy helper refresh、timeout、fallback payload、上次有效值策略和日志事件；不要只检查启动时文件。
+检查 remote Storage v5 是否 stand down 到 disk、cache 是否超过 2 MiB、account reset、policy helper refresh、10 秒 timeout、static default、当前 serving 状态和 consent/verification generation；不要只检查启动时文件。
 
 ## 用户影响与成本
 

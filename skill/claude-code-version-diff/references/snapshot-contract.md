@@ -12,6 +12,8 @@ analysis/unpack-manifest.json
 analysis/release-notes.md
 analysis/cli-surface.txt
 analysis/risk-control-surface.txt
+analysis/product-surface-evidence-map.md
+analysis/completeness-audit.md
 analysis/technical-architecture.md
 analysis/context-governance-and-caching.md
 analysis/inventory-field-guide.md
@@ -19,6 +21,9 @@ analysis/telemetry.md
 analysis/source-surface.md
 analysis/source-inventory/summary.json
 analysis/source-inventory/*.{txt,tsv,jsonl}
+analysis/mechanism-evidence.jsonl
+analysis/runtime-probe-index.md
+analysis/runtime-probes/*.json
 skill/claude-code-version-diff/...
 reverse/...                        Required when deep reverse is requested
 reconstructed/...                  Required when native source reconstruction is requested
@@ -51,6 +56,8 @@ Required top-level fields:
 - Source inventory format v3 must record vendored Acorn 8.15.0 as the JavaScript parser. Node or Bun may host it, but parser semantics must not depend on an unpinned global package.
 - Every JSONL row must contain stable `comparisonKey` and `comparisonValue` fields. Location fields remain evidence but are excluded from semantic comparison values.
 - Broad inventories must document dependency/embedded-document contamination boundaries. Do not label all environment-shaped tokens, schema properties, namespaces, URLs, or named components as user-facing Claude Code settings.
+- `analysis/product-surface-evidence-map.md` must be regenerated from the exact `summary.json` file set. Every registered inventory requires an explicit domain, evidence-strength classification, human reading route, and Boundary; a new inventory category must fail closed until classified.
+- `analysis/completeness-audit.md` may declare completion only when every non-Boundary capability is `Deep`. Missing third-party/remote/platform behavior belongs in a precise Boundary rather than leaving the client lifecycle indefinitely `Documented`.
 
 ## Deep-reverse files
 
@@ -99,6 +106,15 @@ Include a boundary stating that local CLI execution controls do not prove server
 - one threshold example and one cache-cost example using the version's model catalog.
 
 `analysis/inventory-field-guide.md` must explain JSONL/TSV/TXT formats, comparison fields, source locations/hashes, callsite and payload fields, environment/settings/model records, telemetry field families, heuristic boundaries, and how to translate a record into a product conclusion.
+
+`analysis/product-surface-evidence-map.md` must begin with a reader model, group inventories by product question, explain the classification labels, and keep the exact full mapping in a generated appendix. Run:
+
+```bash
+python3 skill/claude-code-version-diff/scripts/build_product_surface_map.py <repo> \
+  --output <repo>/analysis/product-surface-evidence-map.md
+```
+
+When Plugin/Skill/LSP are shipped, `probe_plugin_skill_lsp.mjs` must use an isolated session plugin and fake stdio LSP server. It must distinguish Skill launch acknowledgement from body injection, preserve deferred LSP schema semantics, verify initialize/open/request/shutdown, coordinate conversion, paired results, exact version/hash, literal output and exit status.
 
 Read [human-analysis.md](human-analysis.md) for the full writing and cross-version comparison contract.
 
@@ -149,10 +165,10 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 ## Completion checks
 
 1. Source inventory extractor reruns deterministically.
-2. Snapshot validator exits zero and reports source inventory files checked plus capture-path privacy PASS.
+2. Snapshot validator exits zero and reports source inventory files checked, deterministic product-surface mapping, closed Deep/Boundary capabilities, and capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
 4. README links every required human document; the validator confirms each document is substantive and covers its required mechanism/field families.
-5. Skill validator exits zero.
+5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification and a capability downgraded from `Deep`.
 6. Deep-reverse validator exits zero when `reverse/` exists.
 7. Git branch name equals `VERSION`.
 8. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.

@@ -175,7 +175,7 @@ Result: 本版成功 resume 会恢复已持久化历史并加入当前输入
 
 ### 补强探针矩阵
 
-完整命令、受控输入、字段解释和 27 条 Claim ID 见 [精确二进制运行证据指南](runtime-probe-index.md)。这里列出影响公开主张判定的 literal result，避免把当前官网文字直接倒灌进旧版本。
+完整命令、受控输入、字段解释和 30 条 Claim ID 见 [精确二进制运行证据指南](runtime-probe-index.md)。这里列出影响公开主张判定的 literal result，避免把当前官网文字直接倒灌进旧版本。
 
 | 报告 | 受控输入 | Literal output / observable result | Exit | 结论 |
 | --- | --- | --- | ---: | --- |

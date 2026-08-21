@@ -3,11 +3,11 @@ digraph ClaudeCodeCliSdkProtocol {
     rankdir=TB,
     bgcolor="#FFFFFF",
     pad="0.22",
-    nodesep="0.48",
-    ranksep="0.58",
+    nodesep="0.42",
+    ranksep="0.56",
     fontname="Arial",
     labelloc="t",
-    label="Claude Code 2.1.235: CLI / SDK / stream-json lifecycle"
+    label="Claude Code 2.1.235: local CLI/SDK control and Managed Agents events"
   ];
   node [
     shape=box,
@@ -16,47 +16,85 @@ digraph ClaudeCodeCliSdkProtocol {
     fillcolor="#F8FAFC",
     fontcolor="#0F172A",
     fontname="Arial",
-    fontsize=10,
-    margin="0.16,0.10"
+    fontsize=9,
+    margin="0.14,0.09"
   ];
   edge [
     color="#475569",
     fontcolor="#334155",
     fontname="Arial",
-    fontsize=9,
-    arrowsize=0.7
+    fontsize=8,
+    arrowsize=0.65
   ];
 
-  input [label="Entry\nTUI | --print | SDK host", fillcolor="#DBEAFE"];
-  gate [label="Mode and format gates\nTUI | text | json | stream-json", fillcolor="#FEF3C7"];
-  direct [label="TUI or text/json input\nlocal interaction or one prompt", fillcolor="#DBEAFE"];
-  stdin [label="stream-json StdinMessage\none JSON object per line", fillcolor="#DBEAFE"];
-  init [label="Optional initialize handshake\nconfig + capabilities + pending prompts", fillcolor="#E0E7FF"];
-  loop [label="Agent Loop\nsession/message/tool state", fillcolor="#EDE9FE"];
-  observe [label="Output projection\nTUI state | text/json | stream-json frames", fillcolor="#DCFCE7"];
-  host [label="stream-json / SDK host\ncallbacks + pending request state", fillcolor="#DBEAFE"];
-  rpc [label="Bidirectional control channel\nrequest_id + response/cancel", fillcolor="#FFEDD5"];
-  request_local [label="Request-local settlement\nerror, cancel or unsupported subtype\npending request ends; session may continue", fillcolor="#FEF3C7", color="#B45309"];
-  terminal [label="Turn result\nsuccess/error + cost/usage\nmulti-turn input or process exit", fillcolor="#DCFCE7"];
-  process_failure [label="Process-terminal failure\ninvalid startup combination, permanent close,\nor result.is_error -> exit 1", fillcolor="#FEE2E2", color="#B91C1C"];
+  subgraph cluster_local {
+    label="Local TUI / --print / Agent SDK stream-json";
+    color="#93C5FD";
+    style="rounded";
 
-  { rank=same; direct; stdin; }
-  { rank=same; host; rpc; loop; }
-  { rank=same; request_local; terminal; process_failure; }
+    entry [label="Entry gates\nTUI | text | json | stream-json", fillcolor="#DBEAFE"];
+    stdin [label="StdinMessage\nuser | control | notice\none JSON object per line", fillcolor="#DBEAFE"];
+    init [label="initialize (optional)\nonce-only config + capabilities\n+ pending prompts on reattach", fillcolor="#E0E7FF"];
+    loop [label="CLI worker / Agent Loop\nsession, transcript, tool and task state", fillcolor="#EDE9FE"];
+    observe [label="Observation stream\nassistant/user/system/stream_event\ntask, hook, compact, status", fillcolor="#DCFCE7"];
+    turn_result [label="Turn terminal: result\nsuccess or 4 error subtypes\nis_error controls exit", fillcolor="#DCFCE7"];
 
-  input -> gate [label="selects entry mode"];
-  gate -> direct [label="TUI or text/json"];
-  gate -> stdin [label="stream-json"];
-  gate -> process_failure [label="rejects invalid combinations", color="#B91C1C", fontcolor="#991B1B"];
-  direct -> loop [label="prompt or local interaction"];
-  stdin -> init [label="initialize frame"];
-  stdin -> loop [label="first user frame uses defaults"];
-  init -> loop [label="applies session configuration"];
-  loop -> observe [label="emits state changes"];
-  host -> rpc [dir=both, label="host requests + callback responses"];
-  rpc -> loop [dir=both, label="dispatch + loop-originated requests"];
-  rpc -> request_local [label="error, cancel, unsupported request", color="#B45309", fontcolor="#92400E"];
-  rpc -> process_failure [label="permanent transport close", color="#B91C1C", fontcolor="#991B1B"];
-  observe -> terminal [label="ends each turn with result"];
-  terminal -> process_failure [label="is_error", color="#B91C1C", fontcolor="#991B1B"];
+    rpc_new [label="control request NEW\nrequest_id chosen by sender", fillcolor="#FFEDD5"];
+    rpc_pending [label="PENDING\nwaiter registered before write", fillcolor="#FFEDD5"];
+    rpc_progress [label="PROGRESS*\nstarted/api_retry\nnot a settlement", fillcolor="#FEF3C7"];
+    rpc_done [label="Request terminal\nsuccess | error", fillcolor="#DCFCE7"];
+    rpc_cancel [label="Request terminal\ncancel | close | transport timeout", fillcolor="#FEE2E2", color="#B91C1C"];
+
+    entry -> stdin [label="stream-json"];
+    entry -> loop [label="TUI/text/json"];
+    stdin -> init [label="initialize first or late"];
+    stdin -> loop [label="first user may use defaults"];
+    init -> loop [label="apply / report current state"];
+    loop -> observe [label="fire-and-forget frames"];
+    observe -> turn_result [label="one result per turn"];
+
+    stdin -> rpc_new [label="host -> worker request"];
+    loop -> rpc_new [label="worker -> host callback"];
+    rpc_new -> rpc_pending [label="register + write"];
+    rpc_pending -> rpc_progress [label="control_request_progress"];
+    rpc_progress -> rpc_pending [label="timer refresh", constraint=false];
+    rpc_pending -> rpc_done [label="same request_id"];
+    rpc_pending -> rpc_cancel [label="AbortSignal / close"];
+    rpc_done -> loop [label="apply response"];
+    rpc_cancel -> loop [label="side effects may remain", style=dashed, color="#B91C1C", fontcolor="#991B1B"];
+  }
+
+  subgraph cluster_managed {
+    label="Bundled beta.sessions Managed Agents protocol (different wire)";
+    color="#86EFAC";
+    style="rounded";
+
+    post [label="Host POST persisted user event\nmessage / interrupt / confirmation\nresult / custom result / outcome", fillcolor="#DBEAFE"];
+    echo [label="Echoed persisted event\nid + processed_at\n(no local request_id)", fillcolor="#DCFCE7"];
+    running [label="session.status_running\n+ model span + agent events", fillcolor="#EDE9FE"];
+    tool [label="Tool correlation\nagent tool id -> confirmation/result\ncustom tool owner is host", fillcolor="#FFEDD5"];
+    idle [label="session.status_idle\nend_turn | requires_action | budget_reached", fillcolor="#FEF3C7"];
+    terminal [label="Session terminal\nstatus_terminated or deleted", fillcolor="#FEE2E2", color="#B91C1C"];
+    reconnect [label="SSE reconnect\nlist + reconcile seen calls/results\npreview deltas are not replayed", fillcolor="#E0E7FF"];
+
+    post -> echo [label="server assigns id"];
+    echo -> running [label="starts/resumes work"];
+    running -> tool [label="agent.tool_use/custom_tool_use"];
+    tool -> post [label="confirmation or result", constraint=false];
+    running -> idle [label="turn pauses/completes"];
+    idle -> post [label="new work or settlement", constraint=false];
+    running -> terminal [label="complete/error/delete"];
+    running -> reconnect [label="stream drop"];
+    reconnect -> running [label="dedup + continue"];
+    reconnect -> terminal [label="history says ended"];
+  }
+
+  compat [
+    label="Inventory compatibility boundary\n36 named-event parser entries\n6 webhook-only identifiers\n1 session.usage doc/parser skew\n1 session.archived lexical false positive",
+    fillcolor="#FEF3C7",
+    color="#B45309"
+  ];
+
+  observe -> post [label="NOT the same protocol", style=dashed, color="#B91C1C", fontcolor="#991B1B", constraint=false];
+  reconnect -> compat [label="classify before parsing", style=dashed];
 }

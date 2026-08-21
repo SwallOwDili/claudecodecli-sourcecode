@@ -114,6 +114,15 @@ def corrupt_discovered_symbol(original: bytes) -> bytes:
     return (json.dumps(document, indent=2, ensure_ascii=True) + "\n").encode()
 
 
+def downgrade_first_capability(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith(b"| 1 |") and b"| Deep |" in line:
+            lines[index] = line.replace(b"| Deep |", b"| Documented |", 1)
+            return b"".join(lines)
+    raise RuntimeError("negative-test capability row is missing")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
@@ -303,6 +312,20 @@ def main() -> None:
                 b"<!-- storage-namespace:agentMemoryMissing -->",
             ),
             "human Claude storage namespace coverage mismatch",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`anthropic-beta-identifiers.txt`]",
+                b"[`anthropic-beta-identifiers-missing.txt`]",
+            ),
+            "product surface inventory coverage mismatch",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            downgrade_first_capability,
+            "completeness capability 1 is not closed: Documented",
         ),
     ]
 

@@ -261,6 +261,37 @@ request -> timeout/failure -> tool error, server may remain alive
 
 `2.1.235` release note 能证明的范围是：LSP 断线/重连本身不再使整个 prompt cache 失效。发布说明没有穷举所有仍会改变 cache key/prefix 的输入，因此不能反推“只有 diagnostics、tool surface 或实际 context 内容变化才会失效”。显式 `/reload-plugins` 会重建 plugin 组件并递增 `mcp.pluginReconnectKey`；普通 LSP reconnect 与 plugin full refresh 是两条不同路径。这个修复也不是服务端 cache 命中保证，更不意味着任意 plugin/MCP reload 都不影响 cache。
 
+## 精确二进制闭环：Plugin Skill 怎样进入下一轮，LSP 怎样真正启动
+
+静态 schema 能说明 Plugin 可以声明 Skill 和 LSP，却不能单独证明发布二进制会怎样把两者接回 Agent Loop。`plugin-skill-lsp.json` 因此构造了一个临时 `--plugin-dir`：它只包含一个 Skill、一个 `.probe` 文件和一个 stdio LSP server，模型端与 server 都是本地受控 fixture。
+
+### Skill 不是“把 Markdown 塞进 tool_result”
+
+实际观察到的三步是：
+
+1. 第一个 Messages request 的 Skill listing 出现 `probe-plugin:probe-skill` 和 description marker；
+2. `Skill` tool use 获得同 ID 的 `Launching skill: probe-plugin:probe-skill` acknowledgement；
+3. Skill 正文 marker 另行注入第二个 Messages request，供下一次模型决策读取。
+
+这解释了两个常见误判：看到 launch acknowledgement 只证明 dispatch 已接受，不能只从该字符串判断正文已经进入模型；反过来，正文注入属于下一轮上下文变化，可能改变 token footprint 和 cache prefix，不能当成一个零成本的 UI 展开。
+
+### LSP schema 可 deferred，但 server 生命周期仍由 Plugin manager 持有
+
+同一探针在 allowlist 中明确给出 `LSP`，首个 request 仍只发送 `Skill` schema；这符合 `LSP.shouldDefer=true`，不代表工具未注册。受控模型发出 LSP tool use 后，真实进程顺序为：
+
+```text
+initialize
+-> initialized
+-> textDocument/didOpen
+-> textDocument/definition
+-> paired tool_result
+-> shutdown
+```
+
+工具输入是编辑器习惯的 `line=1, character=1`，fake server 收到 LSP protocol 的 `line=0, character=0`。definition 结果包含 fixture 文件位置，并以原 `tool_use_id` 回到第三个 Messages request，最终 CLI 输出 `PLUGIN_SKILL_LSP_OK`、exit 0。
+
+这个 Probe 把四层状态分开：Plugin manifest 决定 server config；tool schema residency 可以 deferred；LSP manager 持有进程、open-file 和 request；Agent Loop 只通过配对 result 观察结果。第三方 server 的索引算法、跨平台 executable 和真实项目诊断准确率仍是外部 Boundary。
+
 ## 失败矩阵
 
 | 故障 | 失败前是否下载/执行 | 当前 session 状态 | 修复动作 |
@@ -289,6 +320,8 @@ request -> timeout/failure -> tool error, server may remain alive
 ## 证据与版本边界
 
 主要 Static 范围：manifest/source/schema 39770-40080；storage key factory 38091、109295-110552；account skill sync 211650 附近；bundled/plugin prompt command 构造 181560-185186；command types 329343-369315；plugin errors/LSP errors 495609-495802；plugin refresh 与 reload 365500-365683；LSP tool 296229-296537。
+
+精确 `2.1.235` Probe：[`plugin-skill-lsp.json`](runtime-probes/plugin-skill-lsp.json) 绑定发布二进制 SHA-256，验证 Plugin Skill listing/acknowledgement/body injection，以及 LSP initialize/open/definition/shutdown、坐标换算和 paired result。探针脚本位于长期 Skill 的 `scripts/probe_plugin_skill_lsp.mjs`，后续版本可原样重跑并比较 wire shape。
 
 机器集合：[slash-command-identifiers.txt](source-inventory/slash-command-identifiers.txt)、[root-settings-schema.jsonl](source-inventory/root-settings-schema.jsonl)、[hook-events.txt](source-inventory/hook-events.txt)、[claude-storage-namespaces.txt](source-inventory/claude-storage-namespaces.txt)。
 

@@ -1,0 +1,24 @@
+digraph ConnectorCatalogMcp {
+  graph [rankdir=TB, bgcolor="#FFFFFF", pad="0.2", nodesep="0.42", ranksep="0.52", fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11, color="#334155", penwidth=1.2, margin="0.16,0.10"];
+  edge [fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9.5, color="#475569", fontcolor="#334155", penwidth=1.15, arrowsize=0.75];
+
+  intent [label="用户任务 / 关键词\n例如 Jira issues", fillcolor="#DBEAFE"];
+  directory [label="远端 Connector / Plugin / Skill Catalog\nSearch / List / Suggest", fillcolor="#E0F2FE"];
+  account [label="账号 / 组织状态\ninstall、OAuth scope、enabled", fillcolor="#FEF3C7"];
+  session [label="当前 Chat MCP clients\ndisabled / pending / connected / cached", fillcolor="#DCFCE7"];
+  refresh [label="MCP operators\nWait(5s) / Refresh / Resource read", fillcolor="#EDE9FE"];
+  tools [label="下一次 request 的真实工具池\npolicy 过滤后的 schema", fillcolor="#F1F5F9"];
+  call [label="Agent Loop 调用并回灌 tool_result", fillcolor="#D1FAE5"];
+  failure [label="搜索结果不等于可调用\n失败时保留旧 tools 或等待用户带外授权", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  intent -> directory [label="searches / lists"];
+  directory -> account [label="用户带外安装或授权"];
+  account -> session [label="在当前 chat 启用并连接"];
+  session -> refresh [label="等待 pending 或重拉 tools/list"];
+  refresh -> tools [label="按 generation 更新并应用 deny rules"];
+  tools -> call [label="advertises then executes"];
+  directory -> failure [label="仅返回 metadata", color="#B91C1C", fontcolor="#B91C1C"];
+  refresh -> failure [label="失败保留 previous tools", color="#B91C1C", fontcolor="#B91C1C"];
+  failure -> session [label="修 auth/toggle/config 后重试", style=dashed];
+}

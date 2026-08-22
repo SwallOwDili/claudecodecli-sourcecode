@@ -78,8 +78,8 @@
 <!-- TOOL_REGISTRATION_COVERAGE_BEGIN -->
 | 注册键 | 名称与 alias | 人工分类 | 注册声明信号 | 深读入口 |
 | --- | --- | --- | --- | --- |
-| `toolRegistration:ListMcpResourcesTool:1` | `ListMcpResourcesTool`; alias `ListMcpResources` | `Conditional CLI` | defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:StructuredOutput:1` | `StructuredOutput`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [CLI/SDK 协议](cli-sdk-output-protocol.md) |
+| `toolRegistration:ListMcpResourcesTool:1` | `ListMcpResourcesTool`; alias `ListMcpResources` | `Conditional CLI` | defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:StructuredOutput:1` | `StructuredOutput`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [Structured Output](structured-output-and-schema-contract.md) |
 | `toolRegistration:Edit:1` | `Edit`; alias - | `Core terminal` | permission | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:Write:1` | `Write`; alias - | `Core terminal` | permission | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:Glob:1` | `Glob`; alias - | `Core terminal` | permission, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
@@ -87,18 +87,18 @@
 | `toolRegistration:NotebookEdit:1` | `NotebookEdit`; alias - | `Core terminal` | permission, defer | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:ToolSearch:1` | `ToolSearch`; alias - | `Conditional CLI` | gate, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
 | `toolRegistration:WebFetch:1` | `WebFetch`; alias - | `Core terminal` | gate, permission, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:ExitPlanMode:1` | `ExitPlanMode`; alias - | `Core terminal` | gate, permission, dialog, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:AskUserQuestion:1` | `AskUserQuestion`; alias - | `Core terminal` | gate, permission, dialog, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:EnterPlanMode:1` | `EnterPlanMode`; alias - | `Core terminal` | gate, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
+| `toolRegistration:ExitPlanMode:1` | `ExitPlanMode`; alias - | `Core terminal` | gate, permission, dialog, defer, read-only, concurrent | [Plan Mode 与人工审批](plan-mode-and-human-approval.md) |
+| `toolRegistration:AskUserQuestion:1` | `AskUserQuestion`; alias - | `Core terminal` | gate, permission, dialog, read-only, concurrent | [Plan Mode 与人工审批](plan-mode-and-human-approval.md) |
+| `toolRegistration:EnterPlanMode:1` | `EnterPlanMode`; alias - | `Core terminal` | gate, defer, read-only, concurrent | [Plan Mode 与人工审批](plan-mode-and-human-approval.md) |
 | `toolRegistration:Skill:1` | `Skill`; alias - | `Core terminal` | gate, permission | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:Workflow:1` | `Workflow`; alias `RunWorkflow` | `Core terminal` | gate, permission | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:Agent:1` | `Agent`; alias `Task` | `Core terminal` | permission, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:ReadNotifications:1` | `ReadNotifications`; alias - | `Conditional CLI` | gate, read-only, concurrent | [后台/Channels](cloud-background-channels.md) |
+| `toolRegistration:ReadNotifications:1` | `ReadNotifications`; alias - | `Conditional CLI` | gate, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
 | `toolRegistration:ShowOnboardingRolePicker:1` | `ShowOnboardingRolePicker`; alias - | `Hosted/product` | gate, permission, dialog, read-only, concurrent | [Onboarding/Trust](onboarding-workspace-trust-and-safe-startup.md) |
 | `toolRegistration:TaskStop:1` | `TaskStop`; alias `KillShell`, `KillBash` | `Conditional CLI` | defer, concurrent | [后台/Channels](cloud-background-channels.md) |
 | `toolRegistration:SendUserMessage:1` | `SendUserMessage`; alias `Brief` | `Conditional CLI` | gate, brief, read-only, concurrent | [Brief 输出](brief-mode-and-user-visible-output.md) |
 | `toolRegistration:{"expressions":["e.name"],"kind":"template","shape":"eval_registered__${}"}:1` | dynamic `eval_registered__${name}` | `Dynamic factory` | gate, permission, read-only, concurrent | [动态与边界](#动态注册和内层工具为什么不能靠名字计数) |
-| `toolRegistration:REPL:1` | `REPL`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [工具控制](tools-permissions-hooks.md) |
+| `toolRegistration:REPL:1` | `REPL`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [REPL 程序化工具运行时](repl-programmatic-tool-runtime.md) |
 | `toolRegistration:ScheduleWakeup:1` | `ScheduleWakeup`; alias - | `Conditional CLI` | permission, defer | [后台/Channels](cloud-background-channels.md) |
 | `toolRegistration:TaskOutput:1` | `TaskOutput`; alias `AgentOutputTool`, `BashOutputTool`, `AgentOutput`, `BashOutput` | `Core terminal` | gate, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:WebSearch:1` | `WebSearch`; alias - | `Core terminal` | gate, permission, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
@@ -110,10 +110,10 @@
 | `toolRegistration:memory_write:1` | `memory_write`; alias - | `Conditional CLI` | gate, permission, defer | [Session/Memory](sessions-checkpoints-memory.md) |
 | `toolRegistration:SendFeedback:1` | `SendFeedback`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [后台模型任务](background-model-tasks-and-memory-consolidation.md) |
 | `toolRegistration:LSP:1` | `LSP`; alias - | `Core terminal` | gate, permission, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:RefreshMcpTools:1` | `RefreshMcpTools`; alias - | `Conditional CLI` | gate, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:ReadMcpResourceDirTool:1` | `ReadMcpResourceDirTool`; alias `ReadMcpResourceDir` | `Conditional CLI` | defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:ReadMcpResourceTool:1` | `ReadMcpResourceTool`; alias `ReadMcpResource` | `Conditional CLI` | defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:WaitForMcpServers:1` | `WaitForMcpServers`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
+| `toolRegistration:RefreshMcpTools:1` | `RefreshMcpTools`; alias - | `Conditional CLI` | gate, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:ReadMcpResourceDirTool:1` | `ReadMcpResourceDirTool`; alias `ReadMcpResourceDir` | `Conditional CLI` | defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:ReadMcpResourceTool:1` | `ReadMcpResourceTool`; alias `ReadMcpResource` | `Conditional CLI` | defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:WaitForMcpServers:1` | `WaitForMcpServers`; alias - | `Conditional CLI` | gate, permission, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
 | `toolRegistration:EnterWorktree:1` | `EnterWorktree`; alias - | `Core terminal` | permission, defer | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:ExitWorktree:1` | `ExitWorktree`; alias - | `Core terminal` | defer | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:TaskCreate:1` | `TaskCreate`; alias - | `Core terminal` | gate, defer, concurrent | [核心工具](builtin-tools-reference.md) |
@@ -123,31 +123,31 @@
 | `toolRegistration:CronCreate:1` | `CronCreate`; alias - | `Core terminal` | gate, permission, defer | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:CronDelete:1` | `CronDelete`; alias - | `Core terminal` | gate, defer | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:CronList:1` | `CronList`; alias - | `Core terminal` | gate, defer, read-only, concurrent | [核心工具](builtin-tools-reference.md) |
-| `toolRegistration:self_hosted_runner_get_pool:1` | `self_hosted_runner_get_pool`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_list_sessions:1` | `self_hosted_runner_list_sessions`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_list_runners:1` | `self_hosted_runner_list_runners`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_list_secrets:1` | `self_hosted_runner_list_secrets`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_read_health:1` | `self_hosted_runner_read_health`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_read_metrics:1` | `self_hosted_runner_read_metrics`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_requeue_session:1` | `self_hosted_runner_requeue_session`; alias - | `Hosted/product` | permission, defer, read-only | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_spawn_local:1` | `self_hosted_runner_spawn_local`; alias - | `Hosted/product` | permission, defer, read-only | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:self_hosted_runner_tail_log:1` | `self_hosted_runner_tail_log`; alias - | `Hosted/product` | defer, read-only, concurrent | [Cloud/Runner](cloud-background-channels.md) |
-| `toolRegistration:RemoteTrigger:1` | `RemoteTrigger`; alias - | `Conditional CLI` | gate, permission, defer, read-only, concurrent | [后台/Channels](cloud-background-channels.md) |
-| `toolRegistration:SearchMcpRegistry:1` | `SearchMcpRegistry`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:SuggestConnectors:1` | `SuggestConnectors`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:ListConnectors:1` | `ListConnectors`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [MCP/Agent](mcp-agents-background.md) |
-| `toolRegistration:{"expression":"e.name","kind":"member-or-call"}:1` | factory `e.name` #1；本版调用展开为 `ListPlugins` / `ListSkills` | `Dynamic factory` | gate, defer, read-only, concurrent | [动态与边界](#动态注册和内层工具为什么不能靠名字计数) |
-| `toolRegistration:{"expression":"e.name","kind":"member-or-call"}:2` | factory `e.name` #2；本版调用展开为 `SearchPlugins` / `SearchSkills` | `Dynamic factory` | gate, defer, read-only, concurrent | [动态与边界](#动态注册和内层工具为什么不能靠名字计数) |
-| `toolRegistration:SuggestPluginInstall:1` | `SuggestPluginInstall`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Plugin/Skill](plugins-skills-commands-lsp.md) |
-| `toolRegistration:SuggestSkills:1` | `SuggestSkills`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Plugin/Skill](plugins-skills-commands-lsp.md) |
+| `toolRegistration:self_hosted_runner_get_pool:1` | `self_hosted_runner_get_pool`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_list_sessions:1` | `self_hosted_runner_list_sessions`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_list_runners:1` | `self_hosted_runner_list_runners`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_list_secrets:1` | `self_hosted_runner_list_secrets`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_read_health:1` | `self_hosted_runner_read_health`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_read_metrics:1` | `self_hosted_runner_read_metrics`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_requeue_session:1` | `self_hosted_runner_requeue_session`; alias - | `Hosted/product` | permission, defer, read-only | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_spawn_local:1` | `self_hosted_runner_spawn_local`; alias - | `Hosted/product` | permission, defer, read-only | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:self_hosted_runner_tail_log:1` | `self_hosted_runner_tail_log`; alias - | `Hosted/product` | defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:RemoteTrigger:1` | `RemoteTrigger`; alias - | `Conditional CLI` | gate, permission, defer, read-only, concurrent | [Remote/Runner/Notifications](remote-routines-runner-and-notifications.md) |
+| `toolRegistration:SearchMcpRegistry:1` | `SearchMcpRegistry`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:SuggestConnectors:1` | `SuggestConnectors`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:ListConnectors:1` | `ListConnectors`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:{"expression":"e.name","kind":"member-or-call"}:1` | factory `e.name` #1；本版调用展开为 `ListPlugins` / `ListSkills` | `Dynamic factory` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:{"expression":"e.name","kind":"member-or-call"}:2` | factory `e.name` #2；本版调用展开为 `SearchPlugins` / `SearchSkills` | `Dynamic factory` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:SuggestPluginInstall:1` | `SuggestPluginInstall`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
+| `toolRegistration:SuggestSkills:1` | `SuggestSkills`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Connector/Catalog/MCP Operator](connectors-catalog-and-mcp-operators.md) |
 | `toolRegistration:SendUserFile:1` | `SendUserFile`; alias - | `Conditional CLI` | gate, brief, read-only, concurrent | [Brief 输出](brief-mode-and-user-visible-output.md) |
 | `toolRegistration:propose_skills:1` | `propose_skills`; alias - | `Conditional CLI` | gate, read-only, concurrent | [Plugin/Skill](plugins-skills-commands-lsp.md) |
 | `toolRegistration:ProposeGoal:1` | `ProposeGoal`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [Active Goal](active-goal-and-stop-loop.md) |
 | `toolRegistration:PushNotification:1` | `PushNotification`; alias - | `Conditional CLI` | gate, defer, read-only, concurrent | [后台/Channels](cloud-background-channels.md) |
 | `toolRegistration:DesignSync:1` | `DesignSync`; alias - | `Hosted/product` | gate, permission, defer, read-only, concurrent | [Workflow/Artifact/Design](workflow-artifact-design.md) |
-| `toolRegistration:ClaudeDesign:1` | `ClaudeDesign`; alias - | `Hosted/product` | gate, permission, read-only, concurrent | [Workflow/Artifact/Design](workflow-artifact-design.md) |
-| `toolRegistration:Projects:1` | `Projects`; alias - | `Hosted/product` | gate, read-only, concurrent | [Workflow/Artifact/Design](workflow-artifact-design.md) |
-| `toolRegistration:EndConversation:1` | `EndConversation`; alias - | `Hosted/product` | gate, permission, defer, read-only, concurrent | [Agent Loop](agent-loop.md) |
+| `toolRegistration:ClaudeDesign:1` | `ClaudeDesign`; alias - | `Hosted/product` | gate, permission, read-only, concurrent | [ClaudeDesign 与 Projects](claude-design-and-projects.md) |
+| `toolRegistration:Projects:1` | `Projects`; alias - | `Hosted/product` | gate, read-only, concurrent | [ClaudeDesign 与 Projects](claude-design-and-projects.md) |
+| `toolRegistration:EndConversation:1` | `EndConversation`; alias - | `Hosted/product` | gate, permission, defer, read-only, concurrent | [EndConversation 风控状态机](end-conversation-risk-control.md) |
 | `toolRegistration:ObserverReport:1` | `ObserverReport`; alias - | `Internal/eval` | gate, permission, read-only | [工具/权限](tools-permissions-hooks.md) |
 | `toolRegistration:SendMessage:1` | `SendMessage`; alias - | `Core terminal` | permission, defer, read-only | [核心工具](builtin-tools-reference.md) |
 | `toolRegistration:SendFile:1` | `SendFile`; alias - | `Hosted/product` | gate, permission, defer, read-only, concurrent | [后台/Channels](cloud-background-channels.md) |

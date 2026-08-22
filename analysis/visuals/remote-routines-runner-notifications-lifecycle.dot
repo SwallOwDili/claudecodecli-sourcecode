@@ -1,0 +1,23 @@
+digraph RemoteOpsLifecycle {
+  graph [rankdir=TB, bgcolor="#FFFFFF", pad="0.2", nodesep="0.42", ranksep="0.55", fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11, color="#334155", penwidth=1.2, margin="0.16,0.10"];
+  edge [fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9.5, color="#475569", fontcolor="#334155", penwidth=1.15, arrowsize=0.75];
+
+  user [label="用户 / 操作者\n创建 routine 或诊断卡住的 run", fillcolor="#DBEAFE"];
+  routine [label="RemoteTrigger 控制面\n8 actions / 20s / cursor", fillcolor="#E0F2FE"];
+  run [label="远端 run session\nlist_runs(10) / get_run_log(200)", fillcolor="#F1F5F9"];
+  runner [label="Runner 承载与运维\npool / lease / health / requeue", fillcolor="#DCFCE7"];
+  queue [label="当前会话 notification queue\npending<=100 / drain<=90k", fillcolor="#FEF3C7"];
+  loop [label="主 Agent Loop\n把外部数据作为观察继续决策", fillcolor="#EDE9FE"];
+  boundary [label="独立外部副作用\nschedule、assignment、detached process\n不会被 transcript 回滚", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  user -> routine [label="create / update / run"];
+  routine -> run [label="服务端通过预检后创建"];
+  run -> runner [label="分配给有 capacity 的 runner"];
+  runner -> queue [label="完成或外部事件投递 notification"];
+  queue -> loop [label="nudge 后由 ReadNotifications drain"];
+  loop -> routine [label="get/list 验证后再决定", style=dashed];
+  loop -> runner [label="health/tail/requeue 再观察", style=dashed];
+  routine -> boundary [label="持久化远端 schedule", color="#B91C1C", fontcolor="#B91C1C"];
+  runner -> boundary [label="改变 assignment 或 spawn OS process", color="#B91C1C", fontcolor="#B91C1C"];
+}

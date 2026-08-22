@@ -1,0 +1,71 @@
+digraph ClaudeDesignProjectsLifecycle {
+  graph [rankdir=TB, bgcolor="transparent", pad="0.20", nodesep="0.48", ranksep="0.62", fontname="Helvetica", compound=true];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10.5, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.2, color="#475569", penwidth=1.2, arrowsize=0.72];
+
+  request [label="User request\nDesign artifact + durable project doc", fillcolor="#DBEAFE"];
+  pipeline [label="Normal Agent tool pipeline\nvalidation -> permission -> call -> tool_result", fillcolor="#EDE9FE"];
+  paired [label="Bounded, paired tool_result\nreturns to the next model iteration", fillcolor="#DCFCE7"];
+  next [label="Continue task with observed state", fillcolor="#DBEAFE"];
+  external [label="External state persists\nrewind / compact cannot undo completed writes", fillcolor="#FECACA", color="#B91C1C"];
+
+  subgraph cluster_design {
+    label="ClaudeDesign: dynamic MCP + layered approval";
+    color="#0F766E";
+    style="rounded";
+    fontname="Helvetica";
+
+    d_gate [label="Policy + first-party + feature gate", fillcolor="#CCFBF1"];
+    d_init [label="initialize\ncache Mcp-Session-Id", fillcolor="#E0F2FE"];
+    d_list [label="tools/list\nmerge server hints with local safety schema", fillcolor="#DCFCE7"];
+    d_perm [label="Permission decision\nconsent / path token / durable grant", fillcolor="#FEF3C7"];
+    d_call [label="tools/call JSON\n60s timeout, one 401 refresh", fillcolor="#FFEDD5"];
+    d_result [label="Result mapping\nimage + aggregate + framework caps", fillcolor="#F3E8FF"];
+    d_reset [label="404: reset session\nand handshake once", fillcolor="#E2E8F0"];
+    d_deny [label="Fail closed\nunknown write, reserved path, no approval", fillcolor="#FECACA", color="#B91C1C"];
+
+    d_gate -> d_init;
+    d_init -> d_list;
+    d_list -> d_perm;
+    d_perm -> d_call [label="allowed / approved"];
+    d_perm -> d_deny [label="approval unreachable", color="#B91C1C"];
+    d_call -> d_reset [label="404"];
+    d_reset -> d_init [label="retry once"];
+    d_call -> d_result [label="2xx JSON"];
+  }
+
+  subgraph cluster_projects {
+    label="Projects: attached project + fixed five-method dispatcher";
+    color="#7C3AED";
+    style="rounded";
+    fontname="Helvetica";
+
+    p_gate [label="Policy + attached project id", fillcolor="#EDE9FE"];
+    p_auth [label="Auth readiness\nexpand project read/write scopes", fillcolor="#DBEAFE"];
+    p_dispatch [label="project_info / read / search\nwrite / delete", fillcolor="#DCFCE7"];
+    p_read [label="Read path\n256KB inline / 20MB raw / RAG fallback", fillcolor="#E0F2FE"];
+    p_write [label="Write path\nnamespace + budget + TOCTOU checks", fillcolor="#FEF3C7"];
+    p_remote [label="claude.ai Project\nshared persistent docs and uploads", fillcolor="#FFEDD5"];
+    p_fail [label="Fail closed\nno scope, replaced path, quota exceeded", fillcolor="#FECACA", color="#B91C1C"];
+
+    p_gate -> p_auth;
+    p_auth -> p_dispatch;
+    p_dispatch -> p_read [label="info/read/search"];
+    p_dispatch -> p_write [label="write/delete"];
+    p_read -> p_remote [label="read snapshot"];
+    p_write -> p_remote [label="remote mutation"];
+    p_auth -> p_fail [label="scope/auth failure", color="#B91C1C"];
+    p_write -> p_fail [label="path/budget failure", color="#B91C1C"];
+  }
+
+  request -> pipeline;
+  pipeline -> d_gate [lhead=cluster_design, label="visual collaboration"];
+  pipeline -> p_gate [lhead=cluster_projects, label="attached knowledge"];
+  d_result -> paired;
+  p_remote -> paired [label="bounded projection"];
+  paired -> next;
+  d_call -> external [label="successful mutation", color="#B91C1C"];
+  p_remote -> external [label="successful mutation", color="#B91C1C"];
+
+  { rank=same; paired; external; }
+}

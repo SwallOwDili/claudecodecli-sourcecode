@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -107,6 +108,65 @@ def replace_once(original: bytes, old: bytes, new: bytes) -> bytes:
     return original.replace(old, new, 1)
 
 
+def replace_in_h2_section(
+    original: bytes,
+    heading_prefix: str,
+    old: str,
+    new: str,
+    *,
+    replace_all: bool = False,
+) -> bytes:
+    content = original.decode("utf-8")
+    heading = content.find(f"## {heading_prefix}")
+    if heading < 0:
+        raise RuntimeError(
+            f"negative-test section heading is missing: {heading_prefix!r}"
+        )
+    following = content.find("\n## ", heading + 3)
+    end = len(content) if following < 0 else following
+    section = content[heading:end]
+    if old not in section:
+        raise RuntimeError(
+            f"negative-test section anchor is missing: {heading_prefix!r} / {old!r}"
+        )
+    changed = section.replace(old, new) if replace_all else section.replace(old, new, 1)
+    return (content[:heading] + changed + content[end:]).encode("utf-8")
+
+
+def remove_numbered_lifecycle(original: bytes, heading_prefix: str) -> bytes:
+    content = original.decode("utf-8")
+    heading = content.find(f"## {heading_prefix}")
+    if heading < 0:
+        raise RuntimeError(
+            f"negative-test lifecycle heading is missing: {heading_prefix!r}"
+        )
+    following = content.find("\n## ", heading + 3)
+    end = len(content) if following < 0 else following
+    section = content[heading:end]
+    changed, count = re.subn(
+        r"(?m)^(\s*)(\d+)\.\s+",
+        r"\1步骤 \2：",
+        section,
+    )
+    if count == 0:
+        raise RuntimeError(
+            f"negative-test lifecycle has no numbered steps: {heading_prefix!r}"
+        )
+    return (content[:heading] + changed + content[end:]).encode("utf-8")
+
+
+def remove_labeled_dot_edges(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    changed = 0
+    for index, line in enumerate(lines):
+        if b"->" in line and b"[label=" in line:
+            lines[index] = line.replace(b"[label=", b"[xlabel=", 1)
+            changed += 1
+    if changed == 0:
+        raise RuntimeError("negative-test DOT has no labeled edges")
+    return b"".join(lines)
+
+
 def corrupt_discovered_symbol(original: bytes) -> bytes:
     document = json.loads(original)
     roles = document["discoveredSymbols"]["roles"]
@@ -140,6 +200,22 @@ def replace_capability_state(
             return b"".join(lines)
     raise RuntimeError(
         f"negative-test capability {capability} state {old!r} is missing"
+    )
+
+
+def replace_in_capability_row(
+    original: bytes,
+    capability: int,
+    old: bytes,
+    new: bytes,
+) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith(f"| {capability} |".encode()) and old in line:
+            lines[index] = line.replace(old, new, 1)
+            return b"".join(lines)
+    raise RuntimeError(
+        f"negative-test capability {capability} row anchor {old!r} is missing"
     )
 
 
@@ -648,7 +724,7 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: remove_capability_row(data, 51),
-            "completeness capability coverage mismatch: expected=52, actual=51",
+            "completeness capability coverage mismatch: expected=54, actual=53",
         ),
         (
             "analysis/completeness-audit.md",
@@ -658,9 +734,9 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: replace_capability_state(
-                data, 52, b"| Boundary |", b"| Deep |"
+                data, 54, b"| Boundary |", b"| Deep |"
             ),
-            "completeness capability 52 must remain Boundary: Deep",
+            "last completeness capability 54 must remain Boundary: Deep",
         ),
         (
             "analysis/mechanism-evidence.jsonl",
@@ -678,6 +754,343 @@ def main() -> None:
             "analysis/mechanism-evidence.jsonl",
             lambda data: truncate_mechanism_topic_claims(data, "brief-output", 8),
             "mechanism topic 'brief-output' has 8 claims; minimum is 9",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(
+                data, "plan-mode-approval", 5
+            ),
+            "mechanism topic 'plan-mode-approval' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "structured-output", 5),
+            "mechanism topic 'structured-output' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(
+                data, "claude-design-projects", 7
+            ),
+            "mechanism topic 'claude-design-projects' has 7 claims; minimum is 8",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "repl-runtime", 5),
+            "mechanism topic 'repl-runtime' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "end-conversation", 5),
+            "mechanism topic 'end-conversation' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "remote-ops", 5),
+            "mechanism topic 'remote-ops' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(
+                data, "connector-catalog-mcp", 5
+            ),
+            "mechanism topic 'connector-catalog-mcp' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_once(
+                data,
+                "## 先分清四个责任对象".encode(),
+                "## 四个相关对象".encode(),
+            ),
+            "deep topic contract plan-mode is missing state ownership section",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_once(
+                data,
+                "## Phase 6".encode(),
+                "## Missing Phase 6".encode(),
+            ),
+            "deep topic contract plan-mode lifecycle phases are not contiguous",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "Plan Mode 不是单层提示词",
+                "Plan Mode",
+                "Planning Mode",
+            ),
+            "deep topic contract plan-mode is missing gates and thresholds section",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: data.replace(
+                b"useAutoModeDuringPlan", b"autoDuringPlanningMissing"
+            ),
+            "deep topic contract plan-mode gates are missing useAutoModeDuringPlan",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_once(
+                data,
+                "## 完整失败矩阵".encode(),
+                "## 异常列表".encode(),
+            ),
+            "deep topic contract plan-mode is missing failure and recovery section",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "Token、延迟、成本、隐私与副作用",
+                "| Privacy |",
+                "| Data scope |",
+            ),
+            "deep topic contract plan-mode user impact is missing privacy",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "证据等级与明确边界",
+                "../reverse/javascript/cli.readable.js#L",
+                "../reverse/javascript/cli.missing.js#L",
+                replace_all=True,
+            ),
+            "deep topic contract plan-mode has 0 source references; minimum is 5",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            lambda data: replace_once(
+                data,
+                "### Boundary".encode(),
+                "### 未验证范围".encode(),
+            ),
+            "deep topic contract plan-mode is missing boundary section",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: replace_once(
+                data,
+                "**读者问题：**".encode(),
+                "**核心问题：**".encode(),
+            ),
+            "deep topic contract structured-output is missing reader question",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: remove_numbered_lifecycle(data, "完整调用顺序"),
+            "deep topic contract structured-output ordered lifecycle has 0 steps",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "完整调用顺序",
+                "StructuredOutput",
+                "StructuredResultTool",
+                replace_all=True,
+            ),
+            "deep topic contract structured-output lifecycle is missing StructuredOutput injection",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "Gate、优先级与阈值",
+                "additionalProperties",
+                "closedPropertiesMissing",
+                replace_all=True,
+            ),
+            "deep topic contract structured-output gates are missing additionalProperties",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: replace_once(
+                data,
+                "## 失败与恢复".encode(),
+                "## 错误列表".encode(),
+            ),
+            "deep topic contract structured-output is missing failure and recovery section",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "证据索引",
+                "reverse/javascript/cli.readable.js:",
+                "reverse/javascript/cli.missing.js:",
+                replace_all=True,
+            ),
+            "deep topic contract structured-output has 0 source references; minimum is 5",
+        ),
+        (
+            "README.md",
+            lambda data: data.replace(
+                b"analysis/plan-mode-and-human-approval.md",
+                b"analysis/plan-mode-and-human-approval-missing.md",
+            ),
+            "deep topic contract plan-mode is not linked from README first screen",
+        ),
+        (
+            "ARTICLES.md",
+            lambda data: data.replace(
+                b"analysis/structured-output-and-schema-contract.md",
+                b"analysis/structured-output-and-schema-contract-missing.md",
+            ),
+            "deep topic contract structured-output is not linked from ARTICLES.md",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_once(
+                data,
+                b"plan-mode-and-human-approval.md",
+                b"plan-mode-and-human-approval-missing.md",
+            ),
+            "completeness capability 52 does not bind deep topic plan-mode",
+        ),
+        (
+            "skill/claude-code-version-diff/SKILL.md",
+            lambda data: data.replace(
+                b"analysis/structured-output-and-schema-contract.md",
+                b"analysis/structured-output-and-schema-contract-missing.md",
+            ),
+            "deep topic contract structured-output is not bound in Skill",
+        ),
+        (
+            "analysis/visuals/plan-mode-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: plan-mode",
+        ),
+        (
+            "analysis/visuals/plan-mode-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b"digraph PlanModeLifecycle {",
+                b"digraph PlanModeLifecycle",
+            ),
+            "deep topic visual DOT structure is invalid: plan-mode",
+        ),
+        (
+            "analysis/visuals/structured-output-lifecycle.svg",
+            lambda data: replace_once(data, b" viewBox=", b" data-viewBox="),
+            "deep topic rendered visual lacks SVG viewport: structured-output",
+        ),
+        (
+            "analysis/claude-design-and-projects.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "完整调用顺序",
+                "catalog hash",
+                "catalog fingerprint missing",
+                replace_all=True,
+            ),
+            "deep topic contract claude-design-projects lifecycle is missing catalog hash",
+        ),
+        (
+            "analysis/visuals/claude-design-projects-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: claude-design-projects",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                23,
+                b"claude-design-and-projects.md",
+                b"claude-design-and-projects-missing.md",
+            ),
+            "completeness capability 23 does not bind deep topic claude-design-projects",
+        ),
+        (
+            "analysis/repl-programmatic-tool-runtime.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "完整执行顺序",
+                "watchdog",
+                "execution guard missing",
+                replace_all=True,
+            ),
+            "deep topic contract repl-runtime lifecycle is missing watchdog",
+        ),
+        (
+            "analysis/end-conversation-risk-control.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "Gate、优先级与精确阈值",
+                "tengu_umber_kestrel",
+                "feature_config_missing",
+                replace_all=True,
+            ),
+            "deep topic contract end-conversation gates are missing feature config",
+        ),
+        (
+            "analysis/connectors-catalog-and-mcp-operators.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "证据索引",
+                "reverse/javascript/cli.readable.js:",
+                "reverse/javascript/cli.missing.js:",
+                replace_all=True,
+            ),
+            "deep topic contract connector-catalog-mcp has 0 source references; minimum is 6",
+        ),
+        (
+            "analysis/visuals/remote-routines-runner-notifications-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: remote-ops",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                7,
+                b"repl-programmatic-tool-runtime.md",
+                b"repl-programmatic-tool-runtime-missing.md",
+            ),
+            "completeness capability 7 does not bind deep topic repl-runtime",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                35,
+                b"end-conversation-risk-control.md",
+                b"end-conversation-risk-control-missing.md",
+            ),
+            "completeness capability 35 does not bind deep topic end-conversation",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                29,
+                b"remote-routines-runner-and-notifications.md",
+                b"remote-routines-runner-and-notifications-missing.md",
+            ),
+            "completeness capability 29 does not bind deep topic remote-ops",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                31,
+                b"remote-routines-runner-and-notifications.md",
+                b"remote-routines-runner-and-notifications-missing.md",
+            ),
+            "completeness capability 31 does not bind deep topic remote-ops",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                9,
+                b"connectors-catalog-and-mcp-operators.md",
+                b"connectors-catalog-and-mcp-operators-missing.md",
+            ),
+            "completeness capability 9 does not bind deep topic connector-catalog-mcp",
         ),
     ]
 
@@ -727,6 +1140,62 @@ def main() -> None:
         (
             "analysis/visuals/brief-user-output-lifecycle.svg",
             "reader-first rendered visual is missing: analysis/visuals/brief-user-output-lifecycle.svg",
+        ),
+        (
+            "analysis/plan-mode-and-human-approval.md",
+            "missing human analysis document: analysis/plan-mode-and-human-approval.md",
+        ),
+        (
+            "analysis/structured-output-and-schema-contract.md",
+            "missing human analysis document: analysis/structured-output-and-schema-contract.md",
+        ),
+        (
+            "analysis/visuals/plan-mode-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/plan-mode-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/structured-output-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/structured-output-lifecycle.svg",
+        ),
+        (
+            "analysis/claude-design-and-projects.md",
+            "missing human analysis document: analysis/claude-design-and-projects.md",
+        ),
+        (
+            "analysis/visuals/claude-design-projects-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/claude-design-projects-lifecycle.svg",
+        ),
+        (
+            "analysis/repl-programmatic-tool-runtime.md",
+            "missing human analysis document: analysis/repl-programmatic-tool-runtime.md",
+        ),
+        (
+            "analysis/end-conversation-risk-control.md",
+            "missing human analysis document: analysis/end-conversation-risk-control.md",
+        ),
+        (
+            "analysis/remote-routines-runner-and-notifications.md",
+            "missing human analysis document: analysis/remote-routines-runner-and-notifications.md",
+        ),
+        (
+            "analysis/connectors-catalog-and-mcp-operators.md",
+            "missing human analysis document: analysis/connectors-catalog-and-mcp-operators.md",
+        ),
+        (
+            "analysis/visuals/repl-programmatic-tool-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/repl-programmatic-tool-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/end-conversation-risk-control.svg",
+            "reader-first rendered visual is missing: analysis/visuals/end-conversation-risk-control.svg",
+        ),
+        (
+            "analysis/visuals/remote-routines-runner-notifications-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/remote-routines-runner-notifications-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/connectors-catalog-mcp-operators-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/connectors-catalog-mcp-operators-lifecycle.svg",
         ),
     ]
     total_cases = len(cases) + len(missing_cases)

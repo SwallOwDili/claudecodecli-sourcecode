@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
@@ -105,8 +106,8 @@ HUMAN_ANALYSIS_DOCS = {
         "Evidence substrate",
     ),
     "analysis/completeness-audit.md": (
-        "52",
-        "51 个客户端能力面",
+        "54",
+        "53 个客户端能力面",
         "Deep",
         "Inventory only",
         "Boundary",
@@ -139,6 +140,75 @@ HUMAN_ANALYSIS_DOCS = {
         "file_uuid",
         "uploadBriefAttachment",
         "proactive",
+        "Boundary",
+    ),
+    "analysis/plan-mode-and-human-approval.md": (
+        "EnterPlanMode",
+        "AskUserQuestion",
+        "ExitPlanMode",
+        "permissionMode",
+        "--plan-mode-instructions",
+        "AFK",
+        "Boundary",
+    ),
+    "analysis/structured-output-and-schema-contract.md": (
+        "StructuredOutput",
+        "AJV",
+        "additionalProperties",
+        "required",
+        "validateFormats",
+        "endsTurn",
+        "error_max_structured_output_retries",
+        "Boundary",
+    ),
+    "analysis/claude-design-and-projects.md": (
+        "ClaudeDesign",
+        "Projects",
+        "Mcp-Session-Id",
+        "plan_token",
+        "durable grant",
+        "CLAUDE_PROJECT_UUID",
+        "TOCTOU",
+        "Boundary",
+    ),
+    "analysis/repl-programmatic-tool-runtime.md": (
+        "CLAUDE_CODE_REPL",
+        "tengu_slate_harbor",
+        "S_a()",
+        "registerTool",
+        "600,000",
+        "52,428,800",
+        "replay drift",
+        "Boundary",
+    ),
+    "analysis/end-conversation-risk-control.md": (
+        "EndConversation",
+        "tengu_umber_kestrel",
+        "model floor",
+        "两次调用",
+        "background fork",
+        "ended-by-model",
+        "abort",
+        "Boundary",
+    ),
+    "analysis/remote-routines-runner-and-notifications.md": (
+        "RemoteTrigger",
+        "ReadNotifications",
+        "requeue_session",
+        "20,000 ms",
+        "90,000",
+        "spawn_local",
+        "pending",
+        "Boundary",
+    ),
+    "analysis/connectors-catalog-and-mcp-operators.md": (
+        "SearchMcpRegistry",
+        "SuggestConnectors",
+        "enabledInChat",
+        "WaitForMcpServers",
+        "RefreshMcpTools",
+        "kept-previous",
+        "user:plugins",
         "Boundary",
     ),
     "analysis/settings-reference.md": (
@@ -476,6 +546,13 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/builtin-tools-reference.md": (9000, 10),
     "analysis/tool-registration-and-host-surfaces.md": (20000, 10),
     "analysis/brief-mode-and-user-visible-output.md": (14000, 12),
+    "analysis/plan-mode-and-human-approval.md": (10000, 10),
+    "analysis/structured-output-and-schema-contract.md": (10000, 10),
+    "analysis/claude-design-and-projects.md": (18000, 12),
+    "analysis/repl-programmatic-tool-runtime.md": (14000, 10),
+    "analysis/end-conversation-risk-control.md": (14000, 10),
+    "analysis/remote-routines-runner-and-notifications.md": (20000, 12),
+    "analysis/connectors-catalog-and-mcp-operators.md": (18000, 12),
     "analysis/settings-reference.md": (18000, 10),
     "analysis/cli-sdk-output-protocol.md": (12000, 12),
     "analysis/cli-command-reference.md": (15000, 18),
@@ -520,6 +597,13 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
     "analysis/tool-registration-and-host-surfaces.md": "tool-registration-host-lifecycle",
     "analysis/brief-mode-and-user-visible-output.md": "brief-user-output-lifecycle",
+    "analysis/plan-mode-and-human-approval.md": "plan-mode-lifecycle",
+    "analysis/structured-output-and-schema-contract.md": "structured-output-lifecycle",
+    "analysis/claude-design-and-projects.md": "claude-design-projects-lifecycle",
+    "analysis/repl-programmatic-tool-runtime.md": "repl-programmatic-tool-lifecycle",
+    "analysis/end-conversation-risk-control.md": "end-conversation-risk-control",
+    "analysis/remote-routines-runner-and-notifications.md": "remote-routines-runner-notifications-lifecycle",
+    "analysis/connectors-catalog-and-mcp-operators.md": "connectors-catalog-mcp-operators-lifecycle",
     "analysis/settings-reference.md": "settings-resolution-lifecycle",
     "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
     "analysis/cli-command-reference.md": "cli-command-routing",
@@ -563,6 +647,330 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/advisor-dual-model-runtime.md": "advisor-dual-model",
     "analysis/ultrareview-cloud-review.md": "ultrareview-cloud-review",
 }
+TOPIC_DEPTH_CONTRACTS = {
+    "plan-mode": {
+        "document": "analysis/plan-mode-and-human-approval.md",
+        "visual_stem": "plan-mode-lifecycle",
+        "capability": 52,
+        "capability_markers": (r"\bPlan Mode\b", r"计划模式"),
+        "lifecycle_anchors": (
+            ("EnterPlanMode", r"\bEnterPlanMode\b"),
+            ("permission mode", r"(?:permissionMode|permission mode|权限模式)"),
+            ("AskUserQuestion", r"\bAskUserQuestion\b"),
+            ("ExitPlanMode", r"\bExitPlanMode\b"),
+            ("human approval outcome", r"(?:批准|拒绝|approve|reject|approval)"),
+            ("mode restoration", r"(?:恢复|restore)"),
+            ("implementation continuation", r"(?:实施|implement)"),
+        ),
+        "gate_markers": (
+            ("useAutoModeDuringPlan", r"\buseAutoModeDuringPlan\b"),
+            ("custom plan instructions", r"--plan-mode-instructions"),
+            ("question count range", r"1\s*[-–—]\s*4"),
+            ("option count range", r"2\s*[-–—]\s*4"),
+        ),
+        "failure_markers": (
+            ("AFK timeout", r"\bAFK\b|超时"),
+            ("rejection or feedback", r"拒绝|反馈|reject|feedback"),
+            ("permission restoration", r"恢复|restore"),
+        ),
+        "visual_anchors": (
+            "EnterPlanMode",
+            "AskUserQuestion",
+            "ExitPlanMode",
+        ),
+        "minimum_lifecycle_steps": 6,
+        "minimum_evidence_references": 5,
+        "lifecycle_phase_pattern": r"Phase\s+(\d+)",
+        "gate_scope": "document",
+        "section_patterns": {
+            "state ownership": r".*(?:状态所有权|状态归属|先分清.*责任对象).*",
+            "gates and thresholds": r".*Plan Mode 不是单层提示词.*",
+            "failure and recovery": r".*完整失败矩阵.*",
+            "user impact": r".*(?:用户影响|Token、延迟、成本、隐私与副作用).*",
+            "evidence": r".*证据等级与明确边界.*",
+            "boundary": r"Boundary",
+        },
+    },
+    "structured-output": {
+        "document": "analysis/structured-output-and-schema-contract.md",
+        "visual_stem": "structured-output-lifecycle",
+        "capability": 53,
+        "capability_markers": (r"\bStructured Output\b", r"结构化输出"),
+        "lifecycle_anchors": (
+            ("JSON Schema input", r"JSON Schema|jsonSchema"),
+            ("normalization and AJV", r"(?:规范化|normaliz).{0,100}(?:AJV|strict)|(?:AJV|strict).{0,100}(?:规范化|normaliz)"),
+            ("StructuredOutput injection", r"\bStructuredOutput\b"),
+            ("tool input validation", r"(?:tool_use|工具调用).{0,120}(?:校验|validat)|(?:校验|validat).{0,120}(?:tool_use|工具调用)"),
+            ("retry or terminal error", r"(?:错误链反馈|修正轮次|重试|retry|error_max_structured_output_retries)"),
+            ("structured result end-turn", r"(?:structured_output|endsTurn)"),
+        ),
+        "gate_markers": (
+            ("additionalProperties", r"\badditionalProperties\b"),
+            ("required", r"\brequired\b"),
+            ("validateFormats", r"\bvalidateFormats\b"),
+            ("strict fallback", r"strict.{0,100}(?:回退|fallback)|(?:回退|fallback).{0,100}strict"),
+        ),
+        "failure_markers": (
+            ("schema validation failure", r"schema.{0,100}(?:失败|错误|invalid)|(?:失败|错误|invalid).{0,100}schema"),
+            ("retry exhaustion", r"(?:重试耗尽|retry.{0,40}(?:exhaust|limit)|error_max_structured_output_retries)"),
+            ("terminal result", r"(?:终态|terminal|endsTurn|is_error)"),
+        ),
+        "visual_anchors": (
+            "JSON Schema",
+            "StructuredOutput",
+            "structured_output",
+        ),
+        "minimum_lifecycle_steps": 6,
+        "minimum_evidence_references": 5,
+    },
+    "claude-design-projects": {
+        "document": "analysis/claude-design-and-projects.md",
+        "visual_stem": "claude-design-projects-lifecycle",
+        "capability": 23,
+        "capability_markers": (
+            r"\bDesignSync\b",
+            r"\bClaudeDesign\b",
+            r"\bProjects\b",
+            r"文件传输",
+        ),
+        "lifecycle_anchors": (
+            ("Design assembly gate", r"装配 gate"),
+            ("MCP initialize", r"\binitialize\b"),
+            ("dynamic tools list", r"tools/list"),
+            ("local safety schema", r"本地 schema"),
+            ("catalog hash", r"catalog hash"),
+            ("first-party JSON transport", r"first-party JSON"),
+            ("Design consent", r"\bconsent\b"),
+            ("path plan token", r"plan_token"),
+            ("durable project grant", r"durable project grant"),
+            ("bounded result mapping", r"result.{0,100}(?:三层|受限|cap)"),
+            ("Projects dispatcher", r"(?:固定五方法|五个 method)"),
+            ("Projects scope expansion", r"(?:扩展 OAuth scope|scope expansion)"),
+            ("Projects dual transport", r"session-JWT.{0,100}teleport-org"),
+            ("project read", r"project_read"),
+            ("RAG fallback", r"project_search.{0,100}403 fallback"),
+            ("TOCTOU upload", r"local_path.{0,100}(?:TOCTOU|路径替换)"),
+            ("knowledge budget", r"knowledge budget|知识预算"),
+            ("external data boundary", r"(?:data|数据).{0,100}(?:instructions|指令)"),
+        ),
+        "gate_markers": (
+            ("Design policy", r"\ballow_design_sync\b"),
+            ("Design feature", r"\btengu_omelette_fouet\b"),
+            ("path-plan TTL", r"900,000 ms"),
+            ("Projects policy", r"\ballow_projects_tool\b"),
+            ("attached project", r"\bCLAUDE_PROJECT_UUID\b"),
+            ("local upload cap", r"26,214,400 bytes"),
+        ),
+        "failure_markers": (
+            ("MCP 404 reinitialize", r"404.{0,220}(?:re-initialize|重试一次)"),
+            ("401 refresh", r"401.{0,100}(?:刷新|refresh)"),
+            (
+                "consent or grant retry",
+                r"needs_consent|needs_project_grant",
+            ),
+            ("RAG 403 fallback", r"RAG 403|403.{0,80}fallback"),
+            ("TOCTOU rejection", r"local_path.{0,100}(?:替换|replaced)"),
+            (
+                "non-atomic remote replace",
+                r"remote-session replace.{0,120}(?:无通用 rollback|不是原子事务)",
+            ),
+        ),
+        "visual_anchors": (
+            "Normal Agent tool pipeline",
+            "initialize",
+            "Permission decision",
+            "Projects: attached project",
+            "Write path",
+            "External state persists",
+        ),
+        "minimum_lifecycle_steps": 17,
+        "minimum_evidence_references": 8,
+        "evidence_scope": "document",
+        "lifecycle_phase_pattern": r"(\d+)\.",
+        "lifecycle_phase_heading_level": 4,
+        "section_patterns": {
+            "evidence": r"证据",
+        },
+    },
+    "repl-runtime": {
+        "document": "analysis/repl-programmatic-tool-runtime.md",
+        "visual_stem": "repl-programmatic-tool-lifecycle",
+        "capabilities": (7,),
+        "capability_markers_by_number": {
+            7: (r"核心终端", r"条件工具", r"宿主注册"),
+        },
+        "lifecycle_anchors": (
+            ("outer execution budget", r"(?:执行预算|timeout)"),
+            ("context selection", r"(?:复用、恢复还是新建 context|context key)"),
+            ("sealed VM", r"sealed VM|受控全局"),
+            ("transpile and evaluate", r"Transpiler|transpile"),
+            ("inner tool pipeline", r"内层工具.{0,80}(?:管线|pipeline)"),
+            ("watchdog", r"watchdog"),
+            ("result envelope", r"(?:结果|Result).{0,80}(?:表示|envelope)"),
+            ("replay log", r"replay log|重放日志"),
+            ("replay drift", r"(?:replay )?drift|非确定性"),
+        ),
+        "gate_markers": (
+            ("CLAUDE_CODE_REPL", r"\bCLAUDE_CODE_REPL\b"),
+            ("entrypoint", r"\bentrypoint\b"),
+            ("tengu_slate_harbor", r"\btengu_slate_harbor\b"),
+            ("dormant async gate", r"S_a\(\)"),
+        ),
+        "failure_markers": (
+            ("permission denial", r"Hook/permission|权限拒绝|permission拒绝"),
+            ("timeout and watchdog", r"timeout|时间用尽|watchdog"),
+            ("replay drift", r"replay drift|drift"),
+            ("side-effect recovery", r"副作用.{0,120}(?:保留|补偿|回滚|重跑)"),
+        ),
+        "visual_anchors": (
+            "REPL tool_use",
+            "Sealed VM context",
+            "Inner tool pipeline",
+            "Replay log",
+        ),
+        "minimum_lifecycle_steps": 9,
+        "minimum_evidence_references": 6,
+        "section_patterns": {
+            "ordered lifecycle": r".*完整执行顺序.*",
+            "gates and thresholds": r".*Gate、默认值与本版实际可达分支.*",
+            "boundary": r"Boundary",
+        },
+    },
+    "end-conversation": {
+        "document": "analysis/end-conversation-risk-control.md",
+        "visual_stem": "end-conversation-risk-control",
+        "capabilities": (35,),
+        "capability_markers_by_number": {
+            35: (r"本地风控", r"企业治理", r"风险"),
+        },
+        "lifecycle_anchors": (
+            ("eligibility assembly", r"(?:装配|资格判断|isEnabled)"),
+            ("model receives rules", r"(?:完整规则|Prompt|guidance)"),
+            ("first reflection call", r"第一次.{0,80}(?:反思|reflection)"),
+            ("history confirmation", r"history.{0,80}(?:验证|扫描|确认)"),
+            ("background fork stop", r"background fork|fork"),
+            ("marker persistence", r"ended-by-model|marker"),
+            ("abort and terminal", r"abort.{0,100}(?:终态|terminal|TUI|print)"),
+            ("resume terminal restoration", r"resume.{0,100}(?:恢复|终态|endedByModel)"),
+        ),
+        "gate_markers": (
+            ("entrypoint scope", r"\bentrypoint\b"),
+            ("model floor", r"model floor|模型族与版本"),
+            ("feature config", r"\btengu_umber_kestrel\b"),
+            ("runtime blocker", r"WGo\(\)"),
+        ),
+        "failure_markers": (
+            ("first-call reflection", r"第一次误调用|reflection"),
+            ("new-user boundary", r"普通user消息|user boundary"),
+            ("marker persistence failure", r"marker append失败|marker.{0,80}失败"),
+            ("irreversible side effects", r"副作用.{0,100}(?:补偿|回滚|保留)"),
+        ),
+        "visual_anchors": (
+            "Eligible main session",
+            "First EndConversation call",
+            "Second call history check",
+            "Transcript marker",
+            "Abort controller",
+        ),
+        "minimum_lifecycle_steps": 8,
+        "minimum_evidence_references": 6,
+    },
+    "remote-ops": {
+        "document": "analysis/remote-routines-runner-and-notifications.md",
+        "visual_stem": "remote-routines-runner-notifications-lifecycle",
+        "capabilities": (29, 31),
+        "capability_markers_by_number": {
+            29: (r"Cron", r"loops", r"channels", r"主动通知"),
+            31: (r"CCR", r"BYOC", r"runner", r"cloud workflow"),
+        },
+        "lifecycle_anchors": (
+            ("tool assembly", r"工具装配"),
+            ("RemoteTrigger routing", r"\bRemoteTrigger\b"),
+            ("OAuth request timeout", r"OAuth.{0,100}(?:20 秒|20,000 ms|timeout)"),
+            ("server-parsed schedule", r"服务端解释后的时间|next_run_at"),
+            ("run listing", r"\blist_runs\b"),
+            ("run log", r"\bget_run_log\b"),
+            ("runner authentication", r"Runner.{0,100}(?:认证|OAuth-only|first-party)"),
+            ("runner operator tools", r"runner 工具|runner tools"),
+            ("detached spawn", r"\bspawn_local\b"),
+            ("health metrics log", r"Health、metrics 和 log|health.{0,80}metrics.{0,80}log"),
+            ("requeue approval", r"\brequeue_session\b"),
+            ("notification validation", r"Notification.{0,100}(?:校验|去重)"),
+            ("nudge", r"\bNudge\b|提醒模型"),
+            ("notification drain", r"\bReadNotifications\b"),
+            ("Agent Loop feedback", r"Agent Loop|下一轮"),
+        ),
+        "gate_markers": (
+            ("RemoteTrigger actions", r"\bRemoteTrigger\b"),
+            ("remote timeout", r"20,000 ms"),
+            (
+                "runner local probe timeout",
+                r"Local health/metrics timeout.{0,80}2,000 ms",
+            ),
+            ("pending backpressure", r"pending cap|Pending 满 100|`100`"),
+            ("drain budget", r"90,000"),
+        ),
+        "failure_markers": (
+            ("write timeout observation", r"20s timeout|先.{0,60}(?:get|list).{0,60}查状态"),
+            ("assignment conflict", r"assignment stale|HTTP 409|conflict"),
+            ("notification backpressure", r"Pending 满 100|buffer cap|不 ack"),
+            ("subagent drain rejection", r"Subagent.{0,80}ReadNotifications|agentId"),
+        ),
+        "visual_anchors": (
+            "RemoteTrigger 控制面",
+            "Runner 承载与运维",
+            "notification queue",
+            "主 Agent Loop",
+        ),
+        "minimum_lifecycle_steps": 15,
+        "minimum_evidence_references": 6,
+    },
+    "connector-catalog-mcp": {
+        "document": "analysis/connectors-catalog-and-mcp-operators.md",
+        "visual_stem": "connectors-catalog-mcp-operators-lifecycle",
+        "capabilities": (9,),
+        "capability_markers_by_number": {
+            9: (r"MCP", r"Tool Search", r"动态刷新"),
+        },
+        "lifecycle_anchors": (
+            ("connector host assembly", r"Connector registry tools|first-party remote host"),
+            ("registry search", r"\bSearchMcpRegistry\b"),
+            ("connector suggestion", r"\bSuggestConnectors\b"),
+            ("installed connector list", r"\bListConnectors\b"),
+            ("connector route contract", r"opt-in|错误合同"),
+            ("catalog OAuth scope", r"OAuth scope|user:plugins"),
+            ("dynamic catalog factories", r"SearchPlugins.{0,80}SearchSkills|动态 factory"),
+            ("account catalog lists", r"ListPlugins.{0,100}ListSkills"),
+            ("suggestion cards", r"Suggestion tool|卡片"),
+            ("bounded MCP wait", r"\bWaitForMcpServers\b"),
+            ("MCP tool refresh", r"\bRefreshMcpTools\b"),
+            ("MCP resources", r"resource.{0,80}(?:discovery|read|读取)|List/Read resource"),
+            ("request tool pool", r"下一次 request.{0,100}工具池|真实工具池"),
+        ),
+        "gate_markers": (
+            ("remote first-party host", r"CLAUDE_CODE_REMOTE.{0,40}firstParty"),
+            ("connector timeout", r"15,000 ms"),
+            ("bounded server wait", r"WaitForMcpServers.{0,80}5,000 ms"),
+            ("refresh fallback", r"previous tools|保留 previous tools"),
+            ("catalog pagination", r"page cap|20"),
+        ),
+        "failure_markers": (
+            ("connector opt-in", r"opt-in required|opt_in_required"),
+            ("catalog entitlement ambiguity", r"Catalog 403|not_entitled|entitlement"),
+            ("MCP auth or pending", r"still pending|needs auth|needsAuth"),
+            ("refresh keeps previous", r"kept-previous|旧 tools 保留"),
+            ("resource invalidation", r"Resource read 404|invalidate list cache"),
+        ),
+        "visual_anchors": (
+            "Connector / Plugin / Skill Catalog",
+            "当前 Chat MCP clients",
+            "MCP operators",
+            "真实工具池",
+        ),
+        "minimum_lifecycle_steps": 13,
+        "minimum_evidence_references": 6,
+    },
+}
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
 STATIC_EVIDENCE_KINDS = {
     "runtime",
@@ -604,11 +1012,25 @@ MECHANISM_TOPIC_MINIMUMS = {
     "ultrareview": 3,
     "tool-registration-hosts": 6,
     "brief-output": 9,
+    "plan-mode-approval": 6,
+    "structured-output": 6,
+    "claude-design-projects": 8,
+    "repl-runtime": 6,
+    "end-conversation": 6,
+    "remote-ops": 6,
+    "connector-catalog-mcp": 6,
 }
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
     "readable-js": "reverse/javascript/cli.readable.js",
 }
+
+
+def topic_contract_capabilities(contract: dict) -> tuple[int, ...]:
+    capabilities = contract.get("capabilities")
+    if capabilities is not None:
+        return tuple(capabilities)
+    return (contract["capability"],)
 
 
 def candidate_paths(repo: Path) -> list[str]:
@@ -1156,10 +1578,12 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             )
 
 
-def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
+def validate_completeness_closure(
+    repo: Path, failures: list[str]
+) -> dict[int, list[str]]:
     path = repo / "analysis/completeness-audit.md"
     if not path.is_file():
-        return
+        return {}
     rows: dict[int, list[str]] = {}
     row_order: list[int] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -1171,41 +1595,55 @@ def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
         capability = int(cells[0])
         row_order.append(capability)
         rows[capability] = cells
-    expected_order = list(range(1, 53))
+    expected_last_capability = max(
+        capability
+        for contract in TOPIC_DEPTH_CONTRACTS.values()
+        for capability in topic_contract_capabilities(contract)
+    ) + 1
+    expected_order = list(range(1, expected_last_capability + 1))
     if row_order != expected_order:
+        missing = sorted(set(expected_order) - set(row_order))
         failures.append(
             "completeness capability coverage mismatch: "
-            f"expected=52, actual={len(row_order)}, ordered={row_order == expected_order}"
+            f"expected={expected_last_capability}, actual={len(row_order)}, "
+            f"missing={missing}, ordered={row_order == expected_order}"
         )
-        return
 
-    for capability in range(1, 52):
+    for capability in range(1, expected_last_capability):
+        if capability not in rows:
+            continue
         state = rows[capability][4]
         if state != "Deep":
             failures.append(
                 f"completeness capability {capability} is not closed: {state}"
             )
-    if rows[52][4] != "Boundary":
+    boundary_row = rows.get(expected_last_capability)
+    if boundary_row is not None and boundary_row[4] != "Boundary":
         failures.append(
-            f"completeness capability 52 must remain Boundary: {rows[52][4]}"
+            f"last completeness capability {expected_last_capability} "
+            "must remain Boundary: "
+            f"{boundary_row[4]}"
         )
 
-    tool_documents = rows[7][3]
-    if "tool-registration-and-host-surfaces.md" not in tool_documents:
+    tool_documents = rows.get(7, ["", "", "", ""])[3]
+    if rows.get(7) is not None and "tool-registration-and-host-surfaces.md" not in tool_documents:
         failures.append(
             "completeness capability 7 does not bind the tool registration guide"
         )
 
-    brief_capability = rows[51]
-    if (
-        "Brief" not in brief_capability[1]
-        and "SendUserMessage" not in brief_capability[1]
-    ):
-        failures.append("completeness capability 51 is not the Brief capability")
-    if "brief-mode-and-user-visible-output.md" not in brief_capability[3]:
-        failures.append(
-            "completeness capability 51 does not bind the Brief output guide"
-        )
+    brief_capability = rows.get(51)
+    if brief_capability is not None:
+        if (
+            "Brief" not in brief_capability[1]
+            and "SendUserMessage" not in brief_capability[1]
+        ):
+            failures.append("completeness capability 51 is not the Brief capability")
+        if "brief-mode-and-user-visible-output.md" not in brief_capability[3]:
+            failures.append(
+                "completeness capability 51 does not bind the Brief output guide"
+            )
+
+    return rows
 
 
 def nested_value(document: object, dotted_path: str) -> object:
@@ -2237,6 +2675,341 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
             )
 
 
+def markdown_h2_section(content: str, heading_pattern: str) -> str | None:
+    heading = re.search(
+        rf"^(##|###)\s+(?:{heading_pattern})[^\n]*$",
+        content,
+        re.MULTILINE | re.IGNORECASE,
+    )
+    if heading is None:
+        return None
+    level = len(heading.group(1))
+    following = re.search(
+        rf"^#{{1,{level}}}\s+",
+        content[heading.end() :],
+        re.MULTILINE,
+    )
+    end = len(content) if following is None else heading.end() + following.start()
+    return content[heading.start() : end]
+
+
+def numbered_phase_lifecycle(
+    content: str,
+    phase_pattern: str,
+    heading_level: int = 2,
+) -> tuple[str | None, list[int]]:
+    matches = list(
+        re.finditer(
+            rf"^#{{{heading_level}}}\s+(?:{phase_pattern})[^\n]*$",
+            content,
+            re.MULTILINE | re.IGNORECASE,
+        )
+    )
+    if not matches:
+        return None, []
+    phase_numbers = [int(match.group(1)) for match in matches]
+    following = re.search(
+        rf"^#{{1,{heading_level}}}\s+",
+        content[matches[-1].end() :],
+        re.MULTILINE,
+    )
+    end = (
+        len(content)
+        if following is None
+        else matches[-1].end() + following.start()
+    )
+    return content[matches[0].start() : end], phase_numbers
+
+
+def validate_topic_visual(
+    repo: Path,
+    topic: str,
+    contract: dict,
+    failures: list[str],
+) -> None:
+    visual_stem = contract["visual_stem"]
+    dot_path = repo / f"analysis/visuals/{visual_stem}.dot"
+    svg_path = repo / f"analysis/visuals/{visual_stem}.svg"
+    if not dot_path.is_file() or not svg_path.is_file():
+        return
+
+    dot = dot_path.read_text(encoding="utf-8")
+    dot_nodes = re.findall(
+        r"^\s*[A-Za-z_][A-Za-z0-9_]*\s*\[\s*label\s*=",
+        dot,
+        re.MULTILINE,
+    )
+    dot_edges = re.findall(r"^\s*[^\n]+?->[^\n]+?\[\s*label\s*=", dot, re.MULTILINE)
+    if len(dot_nodes) < 6 or len(dot_edges) < 6:
+        failures.append(
+            f"deep topic visual is too shallow: {topic} "
+            f"(nodes={len(dot_nodes)}, labeled_edges={len(dot_edges)})"
+        )
+    for anchor in contract["visual_anchors"]:
+        if anchor not in dot:
+            failures.append(f"deep topic visual {topic} is missing state anchor: {anchor}")
+    if (
+        re.search(r"^\s*digraph\s+[A-Za-z_][A-Za-z0-9_]*\s*\{", dot) is None
+        or dot.count("{") != dot.count("}")
+        or dot.count('"') % 2 != 0
+    ):
+        failures.append(f"deep topic visual DOT structure is invalid: {topic}")
+
+    try:
+        svg_root = ET.parse(svg_path).getroot()
+    except (ET.ParseError, OSError) as error:
+        failures.append(f"deep topic rendered visual is invalid XML: {topic}: {error}")
+        return
+    if not svg_root.tag.endswith("svg") or "viewBox" not in svg_root.attrib:
+        failures.append(f"deep topic rendered visual lacks SVG viewport: {topic}")
+    namespace = {"svg": "http://www.w3.org/2000/svg"}
+    svg_nodes = svg_root.findall(".//svg:g[@class='node']", namespace)
+    svg_edges = svg_root.findall(".//svg:g[@class='edge']", namespace)
+    if len(svg_nodes) < 6 or len(svg_edges) < 6:
+        failures.append(
+            f"deep topic rendered visual is too shallow: {topic} "
+            f"(nodes={len(svg_nodes)}, edges={len(svg_edges)})"
+        )
+    svg = svg_path.read_text(encoding="utf-8")
+    for anchor in contract["visual_anchors"]:
+        if anchor not in svg:
+            failures.append(
+                f"deep topic rendered visual {topic} is missing state anchor: {anchor}"
+            )
+
+
+def validate_topic_depth_contracts(
+    repo: Path,
+    completeness_rows: dict[int, list[str]],
+    failures: list[str],
+) -> None:
+    readme = (repo / "README.md").read_text(encoding="utf-8")
+    readme_first_screen = readme.split("## 快照信息", 1)[0]
+    articles_path = repo / "ARTICLES.md"
+    articles = articles_path.read_text(encoding="utf-8") if articles_path.is_file() else ""
+    skill_path = repo / "skill/claude-code-version-diff/SKILL.md"
+    skill = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
+
+    section_contracts = {
+        "state ownership": (r".*(?:状态所有权|状态归属|谁拥有状态).*", 400),
+        "ordered lifecycle": (r".*(?:完整调用顺序|完整生命周期|端到端状态机).*", 900),
+        "gates and thresholds": (
+            r".*(?:Gate|门控).*(?:优先级|阈值)|.*(?:优先级|阈值).*(?:Gate|门控).*",
+            600,
+        ),
+        "failure and recovery": (
+            r".*(?:失败|错误).*(?:恢复|回退|重试)|.*(?:恢复|回退|重试).*(?:失败|错误).*",
+            500,
+        ),
+        "user impact": (r".*用户影响.*", 400),
+        "evidence": (r".*证据(?:索引|地图|矩阵|与).*", 400),
+        "boundary": (r".*(?:Boundary|边界).*", 200),
+    }
+
+    for topic, contract in TOPIC_DEPTH_CONTRACTS.items():
+        relative = contract["document"]
+        path = repo / relative
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        first_screen = content[:7000]
+
+        first_screen_markers = {
+            "60-second model": r"^##\s+60\s*秒",
+            "reader question": r"\*\*读者问题：\*\*",
+            "one-sentence mental model": r"\*\*一句话模型：\*\*",
+            "scenario": r"(?:贯穿)?场景[：:]",
+            "lifecycle image": re.escape(
+                f"](visuals/{contract['visual_stem']}.svg)"
+            ),
+        }
+        for label, pattern in first_screen_markers.items():
+            if re.search(pattern, first_screen, re.MULTILINE | re.IGNORECASE) is None:
+                failures.append(f"deep topic contract {topic} is missing {label}")
+
+        sections: dict[str, str] = {}
+        section_patterns = contract.get("section_patterns", {})
+        lifecycle_phase_numbers: list[int] = []
+        for label, (default_heading_pattern, minimum_length) in section_contracts.items():
+            if label == "ordered lifecycle" and "lifecycle_phase_pattern" in contract:
+                section, lifecycle_phase_numbers = numbered_phase_lifecycle(
+                    content,
+                    contract["lifecycle_phase_pattern"],
+                    contract.get("lifecycle_phase_heading_level", 2),
+                )
+                expected_phases = list(range(1, len(lifecycle_phase_numbers) + 1))
+                if lifecycle_phase_numbers and lifecycle_phase_numbers != expected_phases:
+                    failures.append(
+                        f"deep topic contract {topic} lifecycle phases are not contiguous: "
+                        f"{lifecycle_phase_numbers}"
+                    )
+            else:
+                heading_pattern = section_patterns.get(label, default_heading_pattern)
+                section = markdown_h2_section(content, heading_pattern)
+            if section is None:
+                failures.append(f"deep topic contract {topic} is missing {label} section")
+                continue
+            sections[label] = section
+            if len(section) < minimum_length:
+                failures.append(
+                    f"deep topic contract {topic} has a shallow {label} section "
+                    f"({len(section)} < {minimum_length})"
+                )
+
+        state_section = sections.get("state ownership", "")
+        if state_section and re.search(
+            r"^\|[^\n]*(?:谁拥有|owner|所有者|状态归属)[^\n]*\|$",
+            state_section,
+            re.MULTILINE | re.IGNORECASE,
+        ) is None:
+            failures.append(f"deep topic contract {topic} lacks an owned-state table")
+
+        lifecycle = sections.get("ordered lifecycle", "")
+        if lifecycle:
+            numbered_steps = re.findall(r"^\s*\d+\.\s+\S", lifecycle, re.MULTILINE)
+            phase_headings = re.findall(
+                r"^###\s+(?:阶段\s*)?\d+(?:[：:、.\s])",
+                lifecycle,
+                re.MULTILINE | re.IGNORECASE,
+            )
+            step_count = max(
+                len(numbered_steps),
+                len(phase_headings),
+                len(lifecycle_phase_numbers),
+            )
+            if step_count < contract["minimum_lifecycle_steps"]:
+                failures.append(
+                    f"deep topic contract {topic} ordered lifecycle has {step_count} steps; "
+                    f"minimum is {contract['minimum_lifecycle_steps']}"
+                )
+            search_position = 0
+            for label, pattern in contract["lifecycle_anchors"]:
+                match = re.search(
+                    pattern,
+                    lifecycle[search_position:],
+                    re.IGNORECASE | re.DOTALL,
+                )
+                if match is None:
+                    failures.append(
+                        f"deep topic contract {topic} lifecycle is missing {label}"
+                    )
+                    continue
+                search_position += match.end()
+
+        gates = (
+            content
+            if contract.get("gate_scope") == "document"
+            else sections.get("gates and thresholds", "")
+        )
+        if gates:
+            threshold = re.search(
+                r"(?:\d+\s*[-–—]\s*\d+|\d+(?:\.\d+)?\s*"
+                r"(?:次|秒|分钟|字符|节点|深度|层|项|个|KiB|MiB|MB|bytes?|tokens?))",
+                gates,
+                re.IGNORECASE,
+            )
+            if threshold is None:
+                failures.append(f"deep topic contract {topic} lacks an exact threshold")
+            for label, pattern in contract["gate_markers"]:
+                if re.search(pattern, gates, re.IGNORECASE | re.DOTALL) is None:
+                    failures.append(
+                        f"deep topic contract {topic} gates are missing {label}"
+                    )
+
+        failure_section = sections.get("failure and recovery", "")
+        if failure_section:
+            for label, pattern in contract["failure_markers"]:
+                if re.search(
+                    pattern, failure_section, re.IGNORECASE | re.DOTALL
+                ) is None:
+                    failures.append(
+                        f"deep topic contract {topic} failure/recovery is missing {label}"
+                    )
+
+        impact = sections.get("user impact", "")
+        impact_markers = {
+            "token": r"token",
+            "cost": r"成本|费用|cost",
+            "privacy": r"隐私|privacy",
+            "side effects": r"副作用|side effect",
+        }
+        impact_body = impact.split("\n", 1)[1] if "\n" in impact else ""
+        for label, pattern in impact_markers.items():
+            if impact and re.search(pattern, impact_body, re.IGNORECASE) is None:
+                failures.append(
+                    f"deep topic contract {topic} user impact is missing {label}"
+                )
+
+        evidence = (
+            content
+            if contract.get("evidence_scope") == "document"
+            else sections.get("evidence", "")
+        )
+        if evidence:
+            source_references = re.findall(
+                r"(?:\.\./)?reverse/javascript/cli\.readable\.js"
+                r"(?:#L|[:：]\s*)\d+",
+                evidence,
+                re.IGNORECASE,
+            )
+            if len(source_references) < contract["minimum_evidence_references"]:
+                failures.append(
+                    f"deep topic contract {topic} has {len(source_references)} source "
+                    f"references; minimum is {contract['minimum_evidence_references']}"
+                )
+            if "Static" not in evidence:
+                failures.append(f"deep topic contract {topic} evidence lacks Static class")
+
+        boundary = sections.get("boundary", "")
+        if boundary and re.search(
+            r"不能证明|不证明|未验证|不携带|服务端|模型内部|运行时",
+            boundary,
+        ) is None:
+            failures.append(f"deep topic contract {topic} lacks a concrete Boundary")
+
+        if relative not in readme_first_screen:
+            failures.append(f"deep topic contract {topic} is not linked from README first screen")
+        if relative not in articles:
+            failures.append(f"deep topic contract {topic} is not linked from ARTICLES.md")
+        if relative not in skill:
+            failures.append(f"deep topic contract {topic} is not bound in Skill")
+
+        markers_by_number = contract.get("capability_markers_by_number", {})
+        for capability_number in topic_contract_capabilities(contract):
+            capability_row = completeness_rows.get(capability_number)
+            if capability_row is None:
+                failures.append(
+                    f"deep topic contract {topic} has no completeness capability "
+                    f"{capability_number}"
+                )
+                continue
+
+            capability_markers = markers_by_number.get(
+                capability_number,
+                contract.get("capability_markers", ()),
+            )
+            if not any(
+                re.search(pattern, capability_row[1], re.IGNORECASE)
+                for pattern in capability_markers
+            ):
+                failures.append(
+                    f"completeness capability {capability_number} does not identify "
+                    f"deep topic {topic}"
+                )
+            if Path(relative).name not in capability_row[3]:
+                failures.append(
+                    f"completeness capability {capability_number} does not bind "
+                    f"deep topic {topic}"
+                )
+            if capability_row[4] != "Deep":
+                failures.append(
+                    f"deep topic contract {topic} is not Deep in completeness capability "
+                    f"{capability_number}: {capability_row[4]}"
+                )
+
+        validate_topic_visual(repo, topic, contract, failures)
+
+
 def validate_human_inventory_facts(repo: Path, failures: list[str]) -> None:
     summary = json.loads(
         (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
@@ -2820,7 +3593,8 @@ def main() -> int:
     else:
         inventory_files = validate_source_inventory(repo, failures)
     validate_product_surface_map(repo, failures)
-    validate_completeness_closure(repo, failures)
+    completeness_rows = validate_completeness_closure(repo, failures)
+    validate_topic_depth_contracts(repo, completeness_rows, failures)
     validate_human_inventory_facts(repo, failures)
     validate_exhaustive_human_references(repo, failures)
     mechanism_evidence = validate_mechanism_evidence(repo, failures)

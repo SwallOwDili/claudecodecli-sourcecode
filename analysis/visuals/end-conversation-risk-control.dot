@@ -1,0 +1,42 @@
+digraph EndConversationRiskControl {
+  graph [
+    rankdir=TB,
+    bgcolor="transparent",
+    pad="0.20",
+    nodesep="0.42",
+    ranksep="0.62",
+    fontname="Helvetica"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#273043",
+    penwidth=1.4,
+    fontname="Helvetica",
+    fontsize=11,
+    margin="0.14,0.10"
+  ];
+  edge [
+    color="#4B5563",
+    penwidth=1.35,
+    arrowsize=0.75,
+    fontname="Helvetica",
+    fontsize=9
+  ];
+
+  eligible [label="Eligible main session\nflag + model floor + entrypoint", fillcolor="#DCEBFF"];
+  first [label="First EndConversation call\nreturns reflection prompt", fillcolor="#FFF3CD"];
+  second [label="Second call history check\nfinds prior tool_use", fillcolor="#E8E3FF"];
+  marker [label="Transcript marker\nended-by-model (best effort)", fillcolor="#DDF5E3"];
+  abort [label="Abort controller\nreason=end_conversation", fillcolor="#FDE2E2"];
+  terminal [label="Print shutdown or TUI state\nexit/status 1", fillcolor="#DDF5E3"];
+  fork [label="Background fork\nreflect-only no-op", fillcolor="#FDE2E2"];
+
+  eligible -> first [label="admits tool"];
+  first -> second [label="asks model to reconsider"];
+  second -> marker [label="confirms prior call"];
+  marker -> abort [label="attempts persistence then aborts"];
+  abort -> terminal [label="closes current session"];
+  eligible -> fork [label="detects agentId", style=dashed, color="#B42318"];
+  fork -> first [label="returns welfare guidance", style=dashed, color="#B42318"];
+}

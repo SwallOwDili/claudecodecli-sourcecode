@@ -10,6 +10,13 @@ Every full snapshot includes:
 
 ```text
 analysis/completeness-audit.md
+analysis/plan-mode-and-human-approval.md
+analysis/structured-output-and-schema-contract.md
+analysis/claude-design-and-projects.md
+analysis/repl-programmatic-tool-runtime.md
+analysis/end-conversation-risk-control.md
+analysis/remote-routines-runner-and-notifications.md
+analysis/connectors-catalog-and-mcp-operators.md
 analysis/builtin-tools-reference.md
 analysis/settings-reference.md
 analysis/cli-sdk-output-protocol.md
@@ -63,6 +70,33 @@ The mechanism chapters explain shared architecture. They do not prove that every
 10. `storage-v5-reference.md` contains a machine-checkable marker block matching every release-local Claude storage namespace. Every namespace states typed key and scope, real reader/writer evidence, write discipline and preconditions, backend reachability, concurrency/migration/retention boundary and sensitivity. A namespace or factory declaration alone never proves the backend is active.
 
 Coverage markers prove exact set membership; they still do not replace the per-item mechanism explanation. When a source inventory contains commands, hook events, protocol events, storage namespaces or other enumerable product objects, validate the human coverage set and keep any identifier without lifecycle-level explanation visible in `completeness-audit.md`.
+
+## Deep topic contract
+
+For a multi-phase mechanism, a `Deep` completeness row is a machine-checked publication claim, not an editorial label. Register the topic once in `TOPIC_DEPTH_CONTRACTS` inside `scripts/validate_snapshot.py`; the declaration binds its article, visual stem, completeness capability, ordered lifecycle anchors, gate/threshold anchors, failure/recovery anchors, evidence floor, and visual state anchors. Adding another deep topic should require data in that declaration rather than a new one-off validator function.
+
+The bound article must expose the following reader path with real content under each section:
+
+1. `## 60 秒...`, `**读者问题：**`, `**一句话模型：**`, an explicit scenario, and the rendered lifecycle image in the first screen.
+2. `## 状态所有权...` with a table that names the owner of each changing state.
+3. `## 完整调用顺序...` with at least the contract's minimum number of numbered phases and all topic anchors in executable order. Mentioning the same symbols in an introduction does not satisfy this section.
+4. `## Gate、优先级与阈值...` with exact numeric units/ranges and every release-local gate named by the contract.
+5. `## 失败与恢复...` with validation, rejection, timeout/retry/terminal behavior, state restoration, and whether external side effects already happened.
+6. `## 用户影响...` covering token, latency/cost, privacy, and side effects instead of only describing internal fields.
+7. `## 证据索引...` with release-local `reverse/javascript/cli.readable.js#L...` references and explicit evidence classes. A contract may explicitly count full-path locators distributed beside lifecycle claims, but the evidence section must still index those ranges and name the evidence class; document scope cannot excuse bare claims without source locators.
+8. `## Boundary...` stating what the shipped client, untriggered branch, remote account, server, model internals, or missing original source cannot prove.
+
+The same article path must appear in the README first-screen reading route, `ARTICLES.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
+
+The first enforced contracts are:
+
+- `analysis/plan-mode-and-human-approval.md`: `EnterPlanMode` through real permission-mode ownership, read-only planning, `AskUserQuestion`, `ExitPlanMode`, human approval/rejection, mode restoration, and implementation.
+- `analysis/structured-output-and-schema-contract.md`: JSON Schema normalization/restrictions, strict-schema/AJV behavior, `StructuredOutput` injection, tool-input validation, retry/terminal paths, and the final `structured_output`/`endsTurn` state.
+- `analysis/claude-design-and-projects.md`: dynamic ClaudeDesign MCP initialize/discovery, client-owned safety hints, catalog hashes, consent/path/durable-grant layers, bounded result mapping, attached Project scope expansion, read/search fallbacks, TOCTOU upload protection, knowledge budgets, persistent remote effects, and server-side boundaries.
+- `analysis/repl-programmatic-tool-runtime.md`: release gates, persistent sealed VM ownership, transpilation, the full inner tool pipeline, watchdogs, result envelopes, replay-log hydration, drift detection, and external-side-effect boundaries.
+- `analysis/end-conversation-risk-control.md`: eligibility and prompt rules, first-call reflection, history-bound second confirmation, background-fork behavior, best-effort marker persistence, abort/terminal state, resume restoration, and the gap between prompt policy and hard client checks.
+- `analysis/remote-routines-runner-and-notifications.md`: RemoteTrigger control-plane actions, routine/run observation, runner authentication and operator tools, detached process side effects, requeue approval, notification validation/backpressure, bounded drain, and Agent Loop feedback.
+- `analysis/connectors-catalog-and-mcp-operators.md`: connector discovery versus chat enablement, account Plugin/Skill catalogs and OAuth scope, bounded MCP wait/refresh, kept-previous fallback, resource list/read behavior, and the next-request advertised tool pool.
 
 ## Mechanism template
 

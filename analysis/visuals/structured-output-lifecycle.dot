@@ -1,0 +1,45 @@
+digraph StructuredOutputLifecycle {
+  graph [
+    rankdir=TB,
+    bgcolor="transparent",
+    pad="0.20",
+    nodesep="0.42",
+    ranksep="0.62",
+    fontname="Helvetica"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#273043",
+    penwidth=1.4,
+    fontname="Helvetica",
+    fontsize=11,
+    margin="0.14,0.10"
+  ];
+  edge [
+    color="#4B5563",
+    penwidth=1.35,
+    arrowsize=0.75,
+    fontname="Helvetica",
+    fontsize=9
+  ];
+
+  schema [label="Caller JSON Schema\n--json-schema / SDK init", fillcolor="#DCEBFF"];
+  validator [label="Client contract\nAJV + optional strict schema", fillcolor="#E8E3FF"];
+  tool [label="StructuredOutput tool\nrequired end channel", fillcolor="#E8E3FF"];
+  loop [label="Agent Loop\nreason + ordinary tools", fillcolor="#FFF3CD"];
+  check [label="Validate tool_use.input", fillcolor="#FFF3CD"];
+  retry [label="Tool error / enforce reminder\nretry within attempt cap", fillcolor="#FDE2E2"];
+  attachment [label="Surviving structured_output\nattachment + toolUseID", fillcolor="#DDF5E3"];
+  result [label="Terminal SDK result\nstructured_output", fillcolor="#DDF5E3"];
+
+  schema -> validator [label="parses and compiles"];
+  validator -> tool [label="wraps schema"];
+  tool -> loop [label="advertises required tool"];
+  loop -> check [label="calls at completion"];
+  check -> attachment [label="accepts valid input"];
+  check -> retry [label="rejects mismatch"];
+  retry -> loop [label="feeds correction"];
+  attachment -> result [label="publishes last survivor"];
+  attachment -> retry [label="tombstone retracts", style=dashed, color="#B42318"];
+}

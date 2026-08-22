@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 技术机制总图
 
-Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；工具对象还要经过宿主与运行时 gate 才能进入请求，Brief Mode 又把普通 assistant text 与主用户可见输出拆成不同通道。登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview也会按条件启动专用状态机。
+Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；工具对象还要经过宿主与运行时 gate 才能进入请求。Plan Mode、Structured Output、REPL、Brief、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP 和 ClaudeDesign/Projects 又各自拥有独立状态机；登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview也会按条件启动。
 
 本页是阅读路由，不替代各专题。它把公开设计原则、`2.1.235` bundle 静态证据和精确版本运行探针放在同一张生命周期图里。
 
@@ -74,7 +74,7 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 这九层不是串行微服务。它们共享一个本地进程和若干显式状态对象：Agent Loop 在模型流未结束时已经能驱动工具；工具完成后可能触发 hook、消息队列和 MCP 刷新；compact 会重写下一轮发送给模型的消息视图，但 transcript 仍保留逻辑历史；fallback 可以丢弃失败模型产生的消息，却不能撤销已经发生的外部副作用。
 
-`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。另有两条经常被清单掩盖的横向合同：29 项人工维护的核心终端参考不等于 bundle 的 80 个同工厂 AST 注册调用点，更不等于一次请求的实际工具集合；普通 assistant text 存在也不等于 Brief 主视图已经收到用户可见消息。它们分别见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 和 [Brief 用户可见输出](brief-mode-and-user-visible-output.md)。
+`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。另有多条经常被清单掩盖的横向合同：29 项人工维护的核心终端参考不等于 bundle 的 80 个同工厂 AST 注册调用点，更不等于一次请求的实际工具集合；普通 assistant text 存在不等于 Brief 主视图已经收到；Connector suggestion 不等于安装；MCP refresh 不等于新工具已进入当前 request；EndConversation 的 prompt 规则不等于客户端做过语义判案。对应入口见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md) 和 [EndConversation 风控](end-conversation-risk-control.md)。
 
 ## 三条必须同时理解的闭环
 
@@ -136,13 +136,20 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 | 韧性与恢复 | attempt、fallback、abort、tombstone | retry、switch model、reactive compact、terminal | 副作用已发生却再次执行 | 出错后是否继续、是否需要人工确认 |
 | 遥测与诊断 | query/turn/tool correlation、timing、event | queue、sample、batch、export、persist | 看见“慢”但分不清慢在哪 | 能否定位模型、权限、工具或 compact |
 
-### 十二个按条件启动的专用运行时
+### 十九个按条件启动的专用运行时
 
 九条主链解释每次请求的共同骨架，下面这些机制只有在对应命令、设置、账号能力或环境出现时启动，但它们拥有独立状态、失败和副作用，不能被压扁成一个 feature flag：
 
 | 专用机制 | 触发入口 | 真正拥有的状态 | 最容易误判的地方 |
 | --- | --- | --- | --- |
 | Brief/user-visible output | `--brief`、`CLAUDE_CODE_BRIEF`、`defaultView=chat`、`/brief` | `isBriefOnly`、`SendUserMessage` tool result、附件 lane、renderer projection、单次 sentinel | 普通文字进 transcript 不等于主视图已交付；附件 error 不一定表示消息正文失败 |
+| Plan Mode/human approval | `EnterPlanMode`、启动 mode、team/Ultraplan | `mode/prePlanMode`、plan attachment/file、question/approval request | reminder 不是唯一约束；澄清答案不等于实施批准；批准后才恢复实施 mode |
+| Structured Output | `--json-schema`、SDK initialize schema | AJV validator、strict schema、专用工具、attachment、attempt counter | 类型/形状正确不等于业务事实正确；被 tombstone 的对象不能进入终态 |
+| REPL programmatic runtime | `REPL` tool、动态注册工具 | persistent VM、inner tool pairs、timer/watchdog、replay log | 外层 allow 不绕过内层 permission；resume 重放结果，不重做副作用 |
+| EndConversation | 合格主会话中的两次同名 tool call | reflection state、history boundary、ended marker、abort/terminal state | 辱骂/警告/自伤规则主要在 prompt；硬代码不重新理解语义 |
+| Remote routines/runner/notifications | `RemoteTrigger`、operator tools、queued notification | routine/run cursor、runner process/assignment、pending/drained/nudge | 控制面快照不等于远端执行成功；通知正文是外部数据且队列有背压 |
+| Connector/catalog/MCP operators | Connector/Plugin/Skill/MCP tools | registry/catalog、OAuth scope、live client generation、resource cache | suggestion 不安装；connected 不等于 enabledInChat；refresh 不改已发 request |
+| ClaudeDesign/Projects | 动态 Design MCP、attached Project tool | MCP session/catalog、consent/plan/grant、Project docs/budget | DesignSync 不是同一机制；RAG 403 fallback 只给目录；远端写不自动回滚 |
 | Auth/account/subscription | `auth login/status/logout`、`/login`、setup-token | credential、account/org/subscription、派生 cache generation | 拿到 token 不等于账号换代完成；本地 logout 不证明远端 revoke 成功 |
 | Onboarding/workspace trust | 首次启动、项目扫描、safe/bare/print | onboarding state、persisted/session trust、项目能力 registry | 扫到配置不等于已执行；接受 trust 后还必须重新发现 |
 | Thinking/Effort/Fast | settings、slash command、request attempt | thinking shape、effort、service tier、cooldown latch | UI opt-in 不等于最终请求一定携带该字段或服务端一定采用 |
@@ -219,10 +226,17 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
-| 当前 52 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 当前 54 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
 | 为什么核心参考只有 29 项，bundle 却定义了 80 个 `Yi({...})` 注册调用点 | [工具注册与宿主表面](tool-registration-and-host-surfaces.md) | [核心终端工具逐项参考](builtin-tools-reference.md) |
 | 29 项核心终端参考工具分别改变什么状态、怎样失败和恢复 | [核心终端工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | Brief 模式为什么普通文字存在但主视图仍空，附件为何只在桌面可见 | [Brief 用户可见输出](brief-mode-and-user-visible-output.md) | [Agent Loop](agent-loop.md) |
+| Plan Mode 为什么能读文件却不能实施，批准后怎样恢复权限 | [Plan Mode 与人工审批](plan-mode-and-human-approval.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| `--json-schema` 为什么通过工具调用收尾，fallback 后对象为何会消失 | [Structured Output 与 Schema 合同](structured-output-and-schema-contract.md) | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) |
+| REPL 为什么能持久变量和动态工具，又不会在 resume 时重做旧副作用 | [REPL 程序化工具运行时](repl-programmatic-tool-runtime.md) | [Agent Loop](agent-loop.md) |
+| EndConversation 哪些规则是客户端硬门控，哪些只是 prompt 约束 | [EndConversation 风控](end-conversation-risk-control.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| Remote routine、runner 与通知队列分别由谁持有和确认 | [Remote Routines、Runner 与 Notifications](remote-routines-runner-and-notifications.md) | [后台、Channels 与 Cloud](cloud-background-channels.md) |
+| Connector suggestion、账号 catalog、MCP refresh/wait/resource 各改变什么状态 | [Connector/Catalog/MCP Operators](connectors-catalog-and-mcp-operators.md) | [MCP、Agents 与后台协作](mcp-agents-background.md) |
+| ClaudeDesign 的 operation catalog、授权和 Projects 文件/RAG 怎样串起来 | [ClaudeDesign 与 Projects](claude-design-and-projects.md) | [Workflow、Artifact 与 Design](workflow-artifact-design.md) |
 | 156 个根 settings 字段从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](settings-reference.md) | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) |
 | CLI/SDK 的 stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) | [Agent Loop](agent-loop.md) |
 | Plugin、Skill、slash command 和 LSP 为什么安装后仍可能不可见 | [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) | [MCP、Agents 与后台协作](mcp-agents-background.md) |
@@ -268,6 +282,13 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 - 子 Agent 默认与隔离配置：`reverse/javascript/cli.readable.js` 156505-156518、306930 附近。
 - team mailbox 与 task claim：`reverse/javascript/cli.readable.js` 279171-279317、202474-202511。
 - Stop hook 熔断与 maxTurns：`reverse/javascript/cli.readable.js` 272253-272261、272423-272424。
+- Plan Mode 进入、计划、问答与退出审批：`reverse/javascript/cli.readable.js` 277750-281816、322141-322157、395299-396236、526806-527199。
+- Structured Output schema、工具、attempt 与终态：`reverse/javascript/cli.readable.js` 155369-155532、270482-270507、592685-592774、597607-597884。
+- REPL VM、内层工具与结果重放：`reverse/javascript/cli.readable.js` 292788-294325。
+- EndConversation gate、双调用、marker 与终态：`reverse/javascript/cli.readable.js` 301900-302055、402877-402889、602890 附近。
+- Remote routine、runner operator 与通知队列：`reverse/javascript/cli.readable.js` 291287-291487、297840-298625。
+- Connector/Catalog/MCP operators：`reverse/javascript/cli.readable.js` 154255-154330、296542-296834、298630-299430。
+- ClaudeDesign 与 Projects：`reverse/javascript/cli.readable.js` 214610-214762、299631-301897。
 - Auto Mode 权限入口与 classifier：`reverse/javascript/cli.readable.js` 395392-395501、326151-326177。
 - Plugin Eval case/run/grader/report：`reverse/javascript/cli.readable.js` 445210-448274。
 - Daemon、PTY、rendezvous 与 worker respawn：`reverse/javascript/cli.readable.js` 420733-422667。

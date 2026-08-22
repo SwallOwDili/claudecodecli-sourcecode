@@ -1,0 +1,36 @@
+digraph PlanModeLifecycle {
+  graph [rankdir=TB, bgcolor="transparent", pad="0.20", nodesep="0.55", ranksep="0.62", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.5, color="#475569", penwidth=1.2, arrowsize=0.75];
+
+  request [label="Implementation request\nnon-trivial change", fillcolor="#DBEAFE"];
+  enter [label="EnterPlanMode approval\nuser accepts or declines", fillcolor="#FEF3C7"];
+  state [label="Permission context\nmode=plan + prePlanMode", fillcolor="#EDE9FE"];
+  explore [label="Read and explore\nplan file is write exception", fillcolor="#E0F2FE"];
+  ask [label="AskUserQuestion\nclarify unresolved choices", fillcolor="#FFEDD5"];
+  submit [label="ExitPlanMode\nreads saved plan", fillcolor="#FDE68A"];
+  review [label="Human or team-lead review\napprove / reject / edit", fillcolor="#FEF3C7"];
+  implement [label="Restore implementation mode\nkeep or clear context", fillcolor="#DCFCE7"];
+  revise [label="Stay in plan mode\nfeedback + revision", fillcolor="#FECACA", color="#B91C1C"];
+  team [label="Team mailbox\nrequest_id + permissionMode", fillcolor="#CCFBF1"];
+  decline [label="Original mode retained\nimplementation may continue", fillcolor="#E2E8F0"];
+
+  { rank=same; state; decline; }
+  { rank=same; explore; ask; }
+  { rank=same; submit; team; }
+  { rank=same; implement; revise; }
+
+  request -> enter [label="requests planning"];
+  enter -> state [label="approves entry"];
+  enter -> decline [label="declines entry"];
+  state -> explore [label="stores prior mode"];
+  explore -> ask [label="clarifies choices"];
+  ask -> explore [label="returns answers"];
+  explore -> submit [label="writes and submits plan"];
+  submit -> review [label="presents saved plan"];
+  submit -> team [label="routes teammate request", style=dashed];
+  team -> review [label="delivers to leader", style=dashed];
+  review -> implement [label="approves and restores"];
+  review -> revise [label="rejects with feedback"];
+  revise -> explore [label="revises plan"];
+}

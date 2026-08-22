@@ -1,0 +1,45 @@
+digraph ReplProgrammaticToolLifecycle {
+  graph [
+    rankdir=TB,
+    bgcolor="transparent",
+    pad="0.20",
+    nodesep="0.42",
+    ranksep="0.62",
+    fontname="Helvetica"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#273043",
+    penwidth=1.4,
+    fontname="Helvetica",
+    fontsize=11,
+    margin="0.14,0.10"
+  ];
+  edge [
+    color="#4B5563",
+    penwidth=1.35,
+    arrowsize=0.75,
+    fontname="Helvetica",
+    fontsize=9
+  ];
+
+  request [label="REPL tool_use\nJavaScript + timeout", fillcolor="#DCEBFF"];
+  gate [label="Release gates\nentrypoint + feature flag", fillcolor="#FFF3CD"];
+  context [label="Sealed VM context\npersistent variables + tools", fillcolor="#E8E3FF"];
+  pipeline [label="Inner tool pipeline\nschema -> latch -> hook -> permission", fillcolor="#FFF3CD"];
+  output [label="Result envelope\ntext + virtual tool pairs + media", fillcolor="#DDF5E3"];
+  replay [label="Replay log\ncode + cached call outcomes", fillcolor="#DDF5E3"];
+  recovery [label="Resume / fresh rebuild\nreplays without repeating tools", fillcolor="#DCEBFF"];
+  asyncq [label="Dormant async queue\n8 per context + Poll settle", fillcolor="#FDE2E2"];
+
+  request -> gate [label="checks availability"];
+  gate -> context [label="creates or reuses"];
+  context -> pipeline [label="invokes wrappers"];
+  pipeline -> output [label="returns validated outcomes"];
+  output -> replay [label="records code and calls"];
+  replay -> recovery [label="hydrates later context"];
+  recovery -> context [label="restores globals", style=dashed];
+  gate -> asyncq [label="would dispatch in auto mode", style=dashed, color="#B42318"];
+  asyncq -> output [label="would inject poll event", style=dashed, color="#B42318"];
+}

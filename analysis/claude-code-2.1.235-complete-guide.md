@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 52 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [Brief 用户可见输出](brief-mode-and-user-visible-output.md) 查主视图、附件和漏调修复。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 54 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md) 和 [Brief 用户可见输出](brief-mode-and-user-visible-output.md)。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1225,8 +1225,8 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 211 条机制证据：146 Static、30 Probe、33 Public、2 Boundary；
-- 52个能力面：51项 Deep、1项 Boundary；
+- 284 条机制证据：213 Static、30 Probe、33 Public、8 Boundary；validator 逐条核对唯一 ID、topic、源码范围、anchors、Probe 字段与 Boundary；
+- 54个能力面：53项 Deep、1项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 静态 name、3 动态 expression）、188 个 known-tool catalog 项；
@@ -1271,6 +1271,13 @@ Doctor分别检查：
 | 71 类机器清单怎样归属，哪些不能直接算产品功能 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
 | 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
 | Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
+| Plan Mode 怎样阻止实施、保存计划并把批准/拒绝回灌 Agent Loop | [plan-mode-and-human-approval.md](plan-mode-and-human-approval.md) |
+| `--json-schema` 怎样变成强制收尾工具和可验证终态 | [structured-output-and-schema-contract.md](structured-output-and-schema-contract.md) |
+| REPL 怎样编排内层工具、保留变量并用结果重放恢复 | [repl-programmatic-tool-runtime.md](repl-programmatic-tool-runtime.md) |
+| EndConversation 的硬门控、两次确认、abort 与 prompt 风控边界 | [end-conversation-risk-control.md](end-conversation-risk-control.md) |
+| Remote routine、runner operator 和通知背压/ack 怎样协作 | [remote-routines-runner-and-notifications.md](remote-routines-runner-and-notifications.md) |
+| Connector/Plugin/Skill 目录与 MCP refresh/wait/resource 怎样改变 live state | [connectors-catalog-and-mcp-operators.md](connectors-catalog-and-mcp-operators.md) |
+| ClaudeDesign 动态操作与 Projects 文件/RAG/权限链怎样工作 | [claude-design-and-projects.md](claude-design-and-projects.md) |
 | Agent为何循环、何时并发、为何停止 | [agent-loop.md](agent-loop.md) |
 | Context、cache、compact和成本 | [context-governance-and-caching.md](context-governance-and-caching.md) |
 | Session、fork、checkpoint、memory | [sessions-checkpoints-memory.md](sessions-checkpoints-memory.md) |
@@ -1309,7 +1316,7 @@ Doctor分别检查：
 | 公开资料与本版证据边界 | [public-claims-validation.md](public-claims-validation.md) |
 | 每条 Probe命令和原始结果 | [runtime-probe-index.md](runtime-probe-index.md) |
 
-## 35. 七个容易被清单掩盖的产品状态机
+## 35. 十二个容易被清单掩盖的产品状态机
 
 ### 35.1 Slash Command：103 是静态集合，不是菜单数量
 
@@ -1370,6 +1377,46 @@ IDE 与 Chrome 又拥有各自的 socket/token/selection/page/permission/timer s
 Feature manager 同时持有 fresh map、disk last-known-good、experiment metadata、pending/logged exposure、auth identity、generation 和 refresh loop。每个 consumer 还要继续通过 settings、policy、provider、command/tool surface 和协议门。
 
 这套结构解释了四个用户现象：同版本不同账号不同；退出登录后 rollout 改变；关闭非必要流量后在线求值关闭；旧 disk true 在刷新前继续生效。它也解释了准确性边界：客户端可以证明取值和消费顺序，不能恢复服务端 targeting rule、账号实时值、entitlement 或实验分配。
+
+### 35.8 REPL：外层一次调用，内层仍是完整工具管线
+
+`REPL` 把一段 JavaScript 放进受宿主管理的持久 VM，让模型用 `rgf()`、`cat()`、`put()` 等 helper 串联多个工具，或用 `registerTool()` 创建后续轮次可见的动态工具。外层 transcript 只有一个 `REPL tool_use`，但每个内层调用仍会生成自己的虚拟 tool pair，并依次经过 schema、isolation latch、`PreToolUse`、permission、真实执行、`PostToolUse` 和结果配对；`REPL.checkPermissions()` 的 allow 只允许进入编排器，不能绕过内层权限。
+
+默认脚本预算是 30 秒，最高 600 秒；内层工具运行时会暂停脚本预算，另有 600 秒 wall clock 和按 native timeout 推导的 watchdog。console 总预算为 52,428,800 bytes，普通结果约 100,000 字符；未 await 的内层调用会在 finally 中 abort，而不是在外层工具结束后继续偷偷产生结果。动态工具名限制为 1-111 位字母、数字、下划线或连字符，schema 必须可 JSON 序列化且不能覆盖宿主内建 global。
+
+进程退出后 VM 不会被原样序列化。客户端记录 `code/calls/threw` replay log；resume/hydration 时再次求值旧代码，但把工具 wrapper 替换成历史缓存结果，所以变量和注册工具可以尽力恢复，已完成的 Bash/Edit/MCP 不会再次执行。调用数量、顺序或 throw 位置因 `Date.now()`、随机数或外部状态发生变化时只报告 replay drift，不伪造精确恢复。结果重放避免的是恢复期重复副作用，不是事务回滚；旧文件写入、进程和远端调用仍需显式补偿。完整 gate、timer、VM sealing、动态工具和恢复合同见 [REPL 程序化工具运行时](repl-programmatic-tool-runtime.md)。
+
+### 35.9 EndConversation：两次调用是硬门控，结束理由主要是模型约束
+
+`EndConversation` 不是模型输出一句“结束”就关闭会话。工具先受 feature flag、模型版本下限、entrypoint/scope 和主运行面 gate；第一次调用只返回完整 reflection 规则并保持 `ended:false`。第二次调用前，客户端从消息尾部回看上一轮同名 `tool_use`：普通 tool result 不会打断确认，但新的业务 user message 会让旧确认失效。子 Agent 即使继承到工具对象也只能得到 no-op 反思结果，不能结束主会话。
+
+真正结束分支会 best-effort 追加 `ended-by-model` marker，再以 `end_conversation` abort 当前 Agent Loop。marker 写失败不会阻止本次结束；TUI 写入 `endedByModel:true`，print/continue 路径以状态 1 结束，未完成工具被取消，已经完成的外部副作用保留。resume 依靠 marker 恢复会话已被模型终止的状态。
+
+“持续直接辱骂”“已经重定向和警告”“演示场景要先取得用户确认”“自伤/伤人场景不得结束”等规则被反复写进工具 prompt，但客户端没有独立语义分类器重新证明这些条件。准确表述必须把 scope/model/two-call/history/abort/terminal guard 记为程序硬控制，把结束理由记为模型行为约束。完整风险强度、失败矩阵和证据边界见 [EndConversation 风控专题](end-conversation-risk-control.md)。
+
+### 35.10 Remote routines、runner 与通知：控制面、执行面和回传面分属三个 owner
+
+`RemoteTrigger` 有 `list/get/create/update/run/create_webhook_trigger/list_runs/get_run_log` 八种 action。它用 `teleport-org` 认证和 20 秒 timeout；`list_runs` 每页 10 条，`get_run_log` 每页取最新 200 个 event，再把 transcript、工具、compact、permission、retry 和终态映射成人类可读投影。原始字段先受 16,000 字符裁剪，单 event 4,000，整体约 100,000；`eventsFetched/eventsShown/nextCursor` 明确告诉读者这不是完整远端 transcript。write timeout 只说明本地停止等待，不能证明服务端没有创建或启动 routine，因此重试前必须先 get/list 查状态。
+
+Self-hosted runner 的九个 operator tool 只在 first-party provider 和 OAuth operator token 下工作，`ANTHROPIC_API_KEY` 不能替代。API timeout 20 秒并保留 401/403/404/409/429；spawn 先询问，再以 detached/unref 进程启动，获得 spawn event 与 PID 后才写 PID file。`requeue_session` 同样要求 ask/classifier，并把观察到的 runner assignment 交给服务端做 conflict 校验，避免基于过期快照移动已改派 session。health/metrics 只探测 loopback，timeout 2 秒；health port 0 表示禁用；log tail 默认读最后 65,536 bytes 并做 credential-shaped redaction。
+
+通知回传使用独立有界队列。单条 content 上限 87,488 字符，pending 上限 100；太大或队列满时不 ack，形成真正背压。已 drain ID 只保留最近 1,000 个用于去重；nudge 只告诉模型“有几条待读”，不注入正文，最多 rearm 两次。`ReadNotifications` 只能由主会话调用，按 90,000 字符预算 oldest-first drain，原子移除本批、记录 ID、清 nudge，然后只 ack 真正 drain 的 transport event。通知 body 仍是外部数据，不因进入 tool result 自动获得 system authority。完整 operator、阈值、失败和不可逆远端边界见 [Remote Routines、Runner 与 Notifications](remote-routines-runner-and-notifications.md)。
+
+### 35.11 Connector、账号 Catalog 与 MCP Operators：发现、建议、启用和当前请求是四种状态
+
+Connector Search/Suggest/List 只在 first-party remote host gate 下出现，走 `teleport-org` route 和 15 秒 timeout。Search 关键词限制为 1-8 个、每个 1-64 字符；Suggest 接受 1-32 个搜索返回 ID。List 通过 `installedServerId` 和 live MCP client 的 `X-MCP-Server-ID` 关联出 `enabledInChat`，但这只描述当前 session 的连接投影；registry 命中不等于已连接，connected 也不等于工具已经进入正在飞行的 request。
+
+Plugin/Skill 账号目录有另一组 policy/provider/HIPAA/entrypoint gate。缺少 `user:plugins` scope 时，标准可刷新 OAuth 会在 credential lock 内扩 scope，并区分 custom client、无 refresh token、lock contention、sibling adoption、save failure 和 scope 未授予。Plugin list 每页 100、最多 20 页、每页 10 秒，失败后等待 500 ms 做一次完整重试；Skill list timeout 30 秒并限制 16 MiB response。可解析的 403 会降级为 not-entitled 空结果，所以空数组不能直接写成“账号没有插件”。
+
+SuggestPluginInstall 只返回等待 UI 接受的 card，并要求后续 `ListPlugins` 观察 enable 状态；SuggestSkills 同样不安装内容。`RefreshMcpTools` 只重读已经连接 client 的 tool list，清 cache、保留 discovery/auth 失败前的 previous tools，用 started/applied sequence 抑制过期并发结果，再重施 deny rules；它不会拨号，也不能热替换已经发出的 request。`WaitForMcpServers` 最多 poll 5 秒，返回 connected/cached/failed/pending/auth/disabled/unconfigured/unknown；Resource list/read/dir 又是 MCP 的独立 capability，空 resource 不代表没有 tools。完整状态表与错误分类见 [Connectors、Catalog 与 MCP Operators](connectors-catalog-and-mcp-operators.md)。
+
+### 35.12 ClaudeDesign 与 Projects：动态远端操作和附着项目不是旧 DesignSync 的同义词
+
+`ClaudeDesign` 首次调用会通过 `/v1/design/mcp` 做 `initialize -> tools/list`，缓存 MCP session、动态 operation schema/hint 和按 agent 记忆的 catalog hash；并发初始化共享 in-flight Promise，旧 session 返回 404 时清状态、重新握手并重试一次。transport 只接受 first-party JSON，timeout 60 秒；401 最多等待 5 秒刷新凭据并用新 token 重试一次，虽然 Accept 含 event stream，本版明确拒绝 `text/event-stream`。catalog hash LRU 最多 64 项，只用于避免重复发送相同 schema，不缓存远端 operation result。
+
+写/删权限分两层。`finalize_plan` 把 writes/deletes 各最多 20 条、单 path 最多 80 字符的计划交给人工，token 只对同一 project、精确路径集合和可枚举 target 生效，最长 15 分钟；durable project grant 由服务端确认，但不覆盖 delete、`CLAUDE.md`、`.claude` 等敏感目标，403 会使客户端失效本地 verified 状态并重新申请一次。结果侧又有三层预算：preview image 130,000 base64 字符、映射 aggregate 130,000 字符、工具框架 100,000 字符，不能混成一个文件上限。
+
+`Projects` 只操作当前会话已经 attach 的一个 Project，固定提供 `project_info/read/search/write/delete` 五种方法，不做 project discovery。首次调用可能在 credential lock 内扩 `user:projects:read/write` scope；API timeout 30 秒。`project_search` 默认 5、范围 1-15 个命中，只有 HTTP 403 才退回 `rag:false` 和文档名列表，不伪造搜索结果。read 的 inline text 上限 256 KiB，raw download 20 MiB；`local_path` write 会同时约束 lexical/real path、打开 fd 后重做 path/device/inode/regular-file 检查，并拒绝超过 25 MiB，防止校验后替换文件。新 bare filename 自动放进 `claude/` namespace，knowledge growth 以 UTF-8 bytes/4 向上估算；这些只是客户端预算前检，服务端存储、授权、RAG、团队可见性和已完成远端写的事务回滚仍是 Boundary。详见 [ClaudeDesign 与 Projects](claude-design-and-projects.md)。
 
 ## 36. Auto Mode：确定性规则之后的两阶段权限分类
 
@@ -1485,7 +1532,35 @@ Brief Mode 改变的是输出所有权，不是把回答自动缩短。`--brief`
 
 如果主线程或 SDK 的 brief turn 完全没有调用 `SendUserMessage`，客户端会在 turn end 最多插入一次 `You ended the turn without calling SendUserMessage.` meta message，让 Agent Loop 再给模型一次补发机会；sentinel guard 防止同一漏调无限循环。切换 transcript 只是改变 view projection，不删除历史；已经发出的消息、上传的附件和通知也不能被 compact、resume、tombstone 或 rewind 撤销。完整入口、schema、renderer、上传结果和证据范围见 [Brief 与用户可见输出](brief-mode-and-user-visible-output.md)。
 
-## 52. 最终准确性边界
+## 52. Plan Mode：从只读探索到人工批准的实施授权流水线
+
+Plan Mode 不是给模型追加一句“先别改代码”。`EnterPlanMode` 先打开专用确认 UI；接受后，客户端把 `toolPermissionContext.mode` 切到 `plan`，把进入前的 `default/acceptEdits/auto/...` 保存为 `prePlanMode`，并处理 Auto Mode 期间需要剥离的危险 allow rules。规划期可以按 `useAutoModeDuringPlan` 采用 Auto 分类语义，但批准后恢复的是进入前模式或用户明确选择的新模式，不会因为规划期用了 Auto 就悄悄升级权限。
+
+Agent Loop 在首次进入、compact 后和长期规划中持续注入 Plan attachment。完整 reminder 说明探索、澄清、方案设计、计划编写和退出协议；间隔不足 5 个 user turn 不重复注入，达到阈值后再用 full/sparse attachment 提醒。`--plan-mode-instructions` 只能在 `--print` host 使用，自定义中段不能移除固定只读前言、实际 plan file 路径和 `ExitPlanMode` footer。
+
+计划文件是明确的写入例外，不是 Plan Mode 允许任意 Edit。主线程和 agent 分别用规范化 slug；自定义 `plansDirectory` 解析后仍必须位于项目根内，并通过路径/链接边界。permission engine 识别当前 session 的 plan/workshop file；普通写工具、非只读 MCP 和自动批准仍受 `mode: plan` 与 `plan_mode_floor`，不能用 bypass/Auto 从侧面放行实施动作。
+
+`AskUserQuestion` 负责需求澄清，不负责批准计划。问题、选项、header、preview 和唯一性有结构化限制；少于两个选项的题目不会展示给用户。AFK 设置只有 `never/60s/5m/10m`，默认是 never；显式启用且 host 条件允许时，timeout 会连同已有部分答案回灌，但它不能代替 `ExitPlanMode` 的实施授权。SDK shutdown 还可以 park 未完成 request ID，避免把 host 关闭误记为人工拒绝。
+
+`ExitPlanMode` 从 canonical plan state 读取真实计划，交给 review UI，而不是信任模型自报正文。用户可以批准并选择退出 permission mode、编辑计划、拒绝并附反馈，或在支持时 clear context 后用批准计划自动续接。超过 200,000 字符的计划因无法完整审阅而 withholding approval，这不是 plan file 写入上限。拒绝保留 plan、`mode=plan` 和 `prePlanMode`，让模型修订后重提；team member 用 request ID 交给 lead 审批，远端 Ultraplan 则从事件流区分 pending/approved/rejected/local/remote execution target，poll 每 3 秒并最多容忍 5 次连续网络错误。
+
+批准只改变后续实施权限，不回滚规划前已经发生的副作用；远端审批存储、账号 capability、Ultraplan 容器和模型计划质量仍是 Boundary。完整 UI、mode 恢复、team/AFK/SDK/remote 失败矩阵见 [Plan Mode 与人工审批](plan-mode-and-human-approval.md)。
+
+## 53. Structured Output：Schema 不是输出装饰，而是 Agent Loop 的强制终态
+
+`--json-schema` 只在 non-interactive/SDK structured-result 路径生效。客户端先 `JSON.parse` 并要求根值是非数组 object，再以 AJV `allErrors:true, validateFormats:false` 校验 schema 和最终 tool input。预检查限制 100,000 nodes、10,000 recursion depth；strict 转换另限 32 层和 100,000 nodes，只接受受控 keyword 子集。strict 转换失败不会关闭功能，而是保留原 schema 和本地 AJV validator。
+
+真正的机制是动态创建一个专用 `StructuredOutput` 工具：它用调用方 schema 替换 `inputJSONSchema`，声明 read-only、concurrency-safe、permission allow，并要求模型在响应结尾恰好调用一次。只有刷新后的真实工具集合仍包含它，query 才设置 `requiresStructuredOutput:true`。普通推理、Read/Bash/Edit/MCP 仍可先执行；schema 只约束最终收尾对象，不证明前置业务事实正确，也不撤销前置副作用。
+
+支持的模型/provider/gate 可以把受限 schema 以 `strict:true` 发到 wire；例如 Foundry 返回特定 400 时，客户端记住该 deployment 不支持 `structured_outputs`，剥离 strict 后重试，但本地 AJV 校验仍不可绕过。`format` 不由这份 AJV 执行，strict 也不接受它，因此 `{testsPassed:true}` 通过 boolean 类型只能证明形状，不证明测试真的运行。
+
+模型调用 `StructuredOutput(input)` 后，本地校验失败会形成带 `tool_use_id`、instance path、message 和 keyword 的标准 tool error，进入下一轮修正。成功返回 `{structured_output: input, endsTurn:true}`，结果映射层把对象保存为 attachment；terminal result 取最后一个仍存活 attachment。当 model fallback tombstone 撤回包含该调用的 assistant message 时，客户端按 tool-use ID 删除 attachment并拒绝晚到结果，避免被撤回对象泄漏到最终输出。
+
+本轮普通和被撤回的 StructuredOutput 尝试累计到默认 5 次且没有存活对象时，turn 以 `error_max_structured_output_retries` 结束。这个修正轮次与“provider 不支持 strict、剥离字段后重发”的 API capability retry 不是同一种计数。每次失败都会增加 tool call、tool error、下一轮模型 token 和延迟；schema/property description 及成功对象也会进入 provider request、本地 transcript 和 stdout/SDK result，因此结构化输出不是脱敏器。
+
+客户端发布物能证明 schema 解析、AJV/strict、工具注入、attempt、attachment、tombstone 和终态；不能证明服务端 constrained decoding 的内部实现、某账号 gate 值或业务对象真实性。完整限制表、失败矩阵和 stdout 协议边界见 [Structured Output 与 Schema 合同](structured-output-and-schema-contract.md)。
+
+## 54. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

@@ -2,19 +2,21 @@
 
 这里是给人阅读的入口。机器清单、反汇编和 JSONL 用来证明结论，不应该挡在文章前面。
 
-## 先读这四篇
+## 先读这六篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 52 章，从发布物、请求装配、Agent Loop、工具注册、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥和准确性边界。
+1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 54 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥和准确性边界。
 2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
-4. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
+4. [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md)：解释“先规划、后实施”怎样由 permission mode、计划文件、工具底线、问答与人工批准共同实现。
+5. [Structured Output 与 Schema 终态](analysis/structured-output-and-schema-contract.md)：解释 `--json-schema` 如何变成本地验证的强制收尾工具，以及失败、重试、fallback、tombstone 和最终结果选择。
+6. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
 
 ![Claude Code 任务在上下文、Agent Loop、工具控制、外部状态和恢复状态之间循环](analysis/visuals/system-lifecycle.svg)
 
 ## 本轮新增的全量参考
 
 1. [71 类证据归属地图](analysis/product-surface-evidence-map.md)：71/71 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
-2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 52 个产品能力面区分 Deep 与 Boundary；51 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
+2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 54 个产品能力面区分 Deep 与 Boundary；53 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
 3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
 4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
 5. [29 项核心终端参考工具逐项说明](analysis/builtin-tools-reference.md)：维护集合 29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
@@ -23,6 +25,16 @@
 8. [完整 CLI 命令树](analysis/cli-command-reference.md)：恢复 90 个普通/隐藏/条件/fast-path/manual-parser 路径及 8 个内部入口，逐层解释 alias、arguments/options、gate、handler、副作用和失败，说明为什么顶层 `--help` 不是全貌。
 9. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
 10. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
+
+## 七个不能只写成工具名的新专题
+
+1. [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md)：从 `EnterPlanMode` 的专用批准、`prePlanMode`、周期 reminder、plan file 写入例外，到 `AskUserQuestion`、`ExitPlanMode`、批准/拒绝、AFK、SDK park、team lead 和远端 Ultraplan。
+2. [Structured Output 与 Schema 合同](analysis/structured-output-and-schema-contract.md)：从 CLI schema 解析、AJV/strict schema、工具注入，到 validation error 修正轮、重试上限、attachment、tombstone 和最终 `structured_output`。
+3. [REPL 程序化工具运行时](analysis/repl-programmatic-tool-runtime.md)：解释持久 VM 怎样编排内层工具、每个内层调用为什么仍经过 Hook/permission、动态工具怎样跨轮保留，以及 resume 为什么重放结果而不重做副作用。
+4. [EndConversation 风控](analysis/end-conversation-risk-control.md)：区分发布/模型/宿主 gate、连续两次调用、主会话限制、marker/abort/exit 这些硬控制，与“持续辱骂、已警告、自伤场景禁止结束”等 prompt 规则。
+5. [Remote Routines、Runner 与 Notifications](analysis/remote-routines-runner-and-notifications.md)：串起 8 类 RemoteTrigger、9 个 runner operator、spawn/requeue/health/log、通知的 100 项 pending、1000 drained ID、90k drain、ack 和最多两次 rearm。
+6. [Connectors、账号 Catalog 与 MCP Operators](analysis/connectors-catalog-and-mcp-operators.md)：讲清 search/list/suggest、Plugin/Skill OAuth scope expansion、suggestion card 与安装的区别，以及 refresh/wait/resource 对 live MCP 状态真正改变了什么。
+7. [ClaudeDesign 与 Projects](analysis/claude-design-and-projects.md)：讲清动态 operation catalog、project grant、预览/结果预算、Projects 五种方法、RAG 403 fallback、路径/inode TOCTOU 与远端知识配额。
 
 ## 本轮完成的产品表面深挖
 
@@ -65,6 +77,13 @@
 | 为什么核心参考是 29 项，bundle 却有 80 个 `Yi({...})` 注册调用点 | [工具注册、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md) |
 | 29 项核心终端参考工具分别改变什么状态、哪些副作用不能 rewind | [核心终端工具逐项参考](analysis/builtin-tools-reference.md) |
 | Brief 模式为什么普通文字存在但主视图仍可能看不到，附件为什么桌面与手机结果不同 | [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md) |
+| Plan Mode 为什么能读文件却不能改业务代码，批准后又怎样恢复原 permission mode | [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md) |
+| `--json-schema` 为什么不是对最终文本做一次 `JSON.parse` | [Structured Output 与 Schema 合同](analysis/structured-output-and-schema-contract.md) |
+| REPL 为什么能跨轮保留变量，却不会在 resume 时再次执行旧 Bash/Edit | [REPL 程序化工具运行时](analysis/repl-programmatic-tool-runtime.md) |
+| 模型结束会话前哪些规则是客户端硬控制，哪些只是工具 prompt 约束 | [EndConversation 风控](analysis/end-conversation-risk-control.md) |
+| Remote routine、self-hosted runner 和 queued notification 分别由谁持有、怎样背压和确认 | [Remote Routines、Runner 与 Notifications](analysis/remote-routines-runner-and-notifications.md) |
+| Connector suggestion 为什么不等于安装，MCP refresh 为什么不等于新工具已进入当前请求 | [Connectors、Catalog 与 MCP Operators](analysis/connectors-catalog-and-mcp-operators.md) |
+| ClaudeDesign 与 Projects 为什么不是旧 DesignSync 的别名，上传怎样防路径替换 | [ClaudeDesign 与 Projects](analysis/claude-design-and-projects.md) |
 | Settings 为什么写入后不一定立刻被所有子系统采用，policy helper 失败后怎样恢复 | [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md) |
 | 156 个 settings 字段各自从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](analysis/settings-reference.md) |
 | 为什么 `claude --help` 看不到 daemon/runner/hidden 命令，alias 和 gate 到底怎样分流 | [完整 CLI 命令树](analysis/cli-command-reference.md) |

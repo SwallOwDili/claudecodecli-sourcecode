@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [工具注册与宿主表面](analysis/tool-registration-and-host-surfaces.md) · [Brief 用户可见输出](analysis/brief-mode-and-user-visible-output.md) · [`/compact`](analysis/compact-visual-guide.md) · [Thinking/Fast](analysis/thinking-effort-and-fast-mode.md) · [Usage/Limits](analysis/usage-cost-credits-and-limits.md) · [Sandbox](analysis/sandbox-install-and-runtime-enforcement.md) · [全面性审计](analysis/completeness-audit.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [Plan Mode](analysis/plan-mode-and-human-approval.md) · [Structured Output](analysis/structured-output-and-schema-contract.md) · [`/compact`](analysis/compact-visual-guide.md) · [REPL](analysis/repl-programmatic-tool-runtime.md) · [风控与结束会话](analysis/end-conversation-risk-control.md) · [全面性审计](analysis/completeness-audit.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -24,8 +24,10 @@
 | --- | --- |
 | [`analysis/product-surface-evidence-map.md`](analysis/product-surface-evidence-map.md) | **71/71 机器证据归属地图**：每一类 inventory 都标明产品结构、真实调用点、混合 heuristic、依赖 surface 或证据底座，并路由到人类机制与 Boundary |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
-| [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 52 章从发布物、请求装配、Agent Loop、工具注册/权限、Brief 用户可见输出、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到最终边界 |
-| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 52 个能力面；当前 51 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
+| [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 54 章从发布物、请求装配、Agent Loop、工具注册/权限、Plan Mode、Structured Output、Brief 用户可见输出、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到最终边界 |
+| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 54 个能力面；当前 53 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
+| [`analysis/plan-mode-and-human-approval.md`](analysis/plan-mode-and-human-approval.md) | **Plan Mode 与人工审批**：进入批准、`prePlanMode`、只读边界、计划文件、`AskUserQuestion`、`ExitPlanMode`、批准/拒绝、AFK、SDK park、team lead 与 Ultraplan 远端审批 |
+| [`analysis/structured-output-and-schema-contract.md`](analysis/structured-output-and-schema-contract.md) | **Structured Output 与 Schema 终态**：`--json-schema` 解析、AJV、strict schema、`StructuredOutput` 工具注入、失败修正轮次、tombstone/fallback 与最终 `structured_output` 选择 |
 | [`analysis/auto-mode-classifier.md`](analysis/auto-mode-classifier.md) | **Auto Mode 两阶段分类器**：确定性权限前置层、可信规则来源、`$defaults`、Stage 1/2 XML verdict、fail-closed、PermissionDenied Hook、交互 fallback 与 hash-bound setup |
 | [`analysis/plugin-evaluation-harness.md`](analysis/plugin-evaluation-harness.md) | **Plugin Evaluation Harness**：case/插件信任、with/without ablation、六类 grader、3 票多数、费用上限、partial/Delta 语义、scaffold 风险与 CI exit code |
 | [`analysis/runtime-supervision-and-processes.md`](analysis/runtime-supervision-and-processes.md) | **Runtime Supervision**：Agent View、daemon、PTY host、worker、rendezvous、Storage job record、adopt/respawn、processWrapper、内存回收与 `asyncRewake` |
@@ -43,6 +45,11 @@
 | [`analysis/ultrareview-cloud-review.md`](analysis/ultrareview-cloud-review.md) | **Ultrareview**：Git scope、diff/费用 gate、cloud session、poll/recovery、本地 `--fix` 和单条 PR comment `--post` |
 | [`analysis/tool-registration-and-host-surfaces.md`](analysis/tool-registration-and-host-surfaces.md) | **80/80 工具注册调用点与宿主表面**：解释为什么 29 是人工维护的核心参考，80 是 `Yi({...})` AST 调用点，3 个动态 name expression 中两个工厂还能静态展开为 4 个名称；五类归属经 gate 后才形成一次请求的 `tools[]` |
 | [`analysis/brief-mode-and-user-visible-output.md`](analysis/brief-mode-and-user-visible-output.md) | **Brief 与用户可见输出**：`--brief`、`/brief`、`defaultView=chat`、`SendUserMessage`、附件 upload lane、主视图隐藏、单次漏调修复和 Remote viewer 差异 |
+| [`analysis/repl-programmatic-tool-runtime.md`](analysis/repl-programmatic-tool-runtime.md) | **REPL 程序化工具运行时**：持久 VM、内层工具完整权限管线、动态注册工具、虚拟 tool pair、timer 清理、结果重放与副作用不重做边界 |
+| [`analysis/end-conversation-risk-control.md`](analysis/end-conversation-risk-control.md) | **EndConversation 风控**：发布/模型/宿主 gate、连续两次调用、主会话限制、transcript marker、abort/exit，以及 prompt 规则与客户端硬校验之间的证据边界 |
+| [`analysis/remote-routines-runner-and-notifications.md`](analysis/remote-routines-runner-and-notifications.md) | **Remote Routines、Runner 与通知**：8 类远端动作、9 个 operator tool、runner spawn/requeue/health/log、100 项背压队列、90k drain、去重、ack 与最多两次 rearm |
+| [`analysis/connectors-catalog-and-mcp-operators.md`](analysis/connectors-catalog-and-mcp-operators.md) | **Connector/Catalog/MCP Operators**：Connector Search/Suggest/List、Plugin/Skill 账号目录、OAuth scope expansion、suggestion 非安装、MCP refresh/wait/resource 的 live-state 语义 |
+| [`analysis/claude-design-and-projects.md`](analysis/claude-design-and-projects.md) | **ClaudeDesign 与 Projects**：动态 operation catalog、project grant、预览/结果预算、Projects 五种方法、RAG 403 fallback、TOCTOU 文件上传和知识配额边界 |
 | [`analysis/builtin-tools-reference.md`](analysis/builtin-tools-reference.md) | **29/29 核心终端参考手册**：逐工具解释状态 owner、副作用、持久化、失败、恢复、成本、隐私与安全；29 是维护集合，不是从完整装配数组自动推导的全部工具 |
 | [`analysis/settings-resolution-and-reload.md`](analysis/settings-resolution-and-reload.md) | **Settings 解析、合并与热重载专题**：进程级 store、五层与 admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新差异、remote managed settings 与 policy helper 恢复 |
 | [`analysis/settings-reference.md`](analysis/settings-reference.md) | **156/156 根 Settings 全字段参考**：逐项说明类型、来源、merge、生命周期、consumer、用户影响和证据边界，并单独解释 4 个 spread |
@@ -101,7 +108,7 @@
 
 每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。26 个官方页面同时固化原始响应 hash、去噪正文 hash 与 33 条逐摘录 hash；刷新脚本还要求每条引用逐句存在于当次页面可见正文，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
-当前结构化机制证据共 `211` 条：`146 Static`、`30 Probe`、`33 Public`、`2 Boundary`。Static 细分为 `118 runtime`、`12 consumer`、`9 constant`、`4 surface`、`3 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么。validator 对 32 个主题设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；工具注册/宿主表面和 Brief 用户可见输出也不能退回“文章存在但证据注册为零”的状态。
+当前结构化机制证据共 `284` 条：`213 Static`、`30 Probe`、`33 Public`、`8 Boundary`。Static 细分为 `177 runtime`、`16 consumer`、`11 constant`、`4 surface`、`5 declaration`。每条记录都必须有唯一 claim ID、topic、证据等级和可复核形状；`surface`/`declaration` 只证明命令、schema 或用户提示存在，不能替代可达 runtime/consumer。Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/MCP、ClaudeDesign/Projects 都有独立 topic 最低证据和读者优先深度合同，不能退回“文章存在但证据注册为零”的状态。
 
 11 份运行报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、Plugin Skill listing/正文注入、Plugin LSP stdio/坐标/结果闭环、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate、自定义 endpoint 下的 Remote Control 边界，以及本版内部 feature override 不可达；其中 10 份绑定精确 CLI 二进制，1 份是原生模块原版/兼容对照。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
@@ -165,7 +172,7 @@
 |   |-- plugin-evaluation-harness.md    Plugin Eval ablation、grader 与报告合同
 |   |-- runtime-supervision-and-processes.md daemon、PTY、worker 与恢复监督
 |   |-- enterprise-gateway-runtime.md   身份、策略、路由、花费与遥测网关
-|   |-- completeness-audit.md           52 个能力面的全面性审计与收口合同
+|   |-- completeness-audit.md           54 个能力面的全面性审计与收口合同
 |   |-- auth-account-and-subscription-lifecycle.md 登录、账号、组织、订阅和 token 生命周期
 |   |-- onboarding-workspace-trust-and-safe-startup.md 首次启动、项目信任和安全模式
 |   |-- thinking-effort-and-fast-mode.md Thinking、Effort、Fast Mode 请求控制
@@ -180,6 +187,13 @@
 |   |-- product-surface-evidence-map.md 71 类 inventory 的产品归属与人类路由
 |   |-- tool-registration-and-host-surfaces.md 80 个 Yi 注册调用点、工厂展开、分类、gate 与请求表面
 |   |-- brief-mode-and-user-visible-output.md Brief 主视图、附件与漏调修复
+|   |-- plan-mode-and-human-approval.md Plan Mode、计划文件与人工批准/拒绝
+|   |-- structured-output-and-schema-contract.md JSON Schema、强制收尾工具与结构化终态
+|   |-- repl-programmatic-tool-runtime.md 持久 VM、内层工具管线与结果重放
+|   |-- end-conversation-risk-control.md 双调用确认、abort 与结束会话风控边界
+|   |-- remote-routines-runner-and-notifications.md 远端例程、runner operator 与通知背压
+|   |-- connectors-catalog-and-mcp-operators.md 账号目录、OAuth scope 与 MCP operators
+|   |-- claude-design-and-projects.md    Design operation 与 Projects 数据生命周期
 |   |-- builtin-tools-reference.md      29 项人工维护核心终端 reference 的逐项机制
 |   |-- settings-reference.md           156 个 direct root setting 的全字段参考
 |   |-- cli-sdk-output-protocol.md      CLI/SDK 输入输出、control 与 event 协议
@@ -598,7 +612,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希与 71/71 产品归属地图、结构化机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、52 个能力面的 Deep/Boundary 收口、读者优先专题及其 DOT/SVG、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希与 71/71 产品归属地图、结构化机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、54 个能力面的 Deep/Boundary 收口、七个新增深度专题及其 DOT/SVG、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

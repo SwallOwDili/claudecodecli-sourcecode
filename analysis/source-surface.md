@@ -2,7 +2,7 @@
 
 本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
-本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [40 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)。Auto Mode、Plugin Eval、daemon/PTY/respawn 和 Enterprise Gateway 分别下钻到 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[Runtime Supervision](runtime-supervision-and-processes.md) 与 [网关专题](enterprise-gateway-runtime.md)。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
+本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [51 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)。Auto Mode、Plugin Eval、daemon/PTY/respawn 和 Enterprise Gateway 分别下钻到 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[Runtime Supervision](runtime-supervision-and-processes.md) 与 [网关专题](enterprise-gateway-runtime.md)；Auth/Trust、Thinking/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 与 Ultrareview 的专用状态机从 [文章总入口](../ARTICLES.md) 进入。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
 
 ## 60 秒理解“能力地图”怎么用
 
@@ -273,6 +273,6 @@
 3. 对 `summary.json` 中每个清单做 count/added/removed diff。
 4. 把新字面量先归类为 product、dependency、embedded docs 或 heuristic，再写能力结论。
 5. 更新 telemetry、risk-control、native contract、README 和 release delta。
-6. 更新机制总图、公开主张验证、Agent Loop、session/checkpoint/memory、tools/permissions/hooks、MCP/Agents/background 和 resilience 专题；每项实质变化解释旧/新状态、gate、threshold、failure 和 user impact。
+6. 更新机制总图、公开主张验证、Agent Loop、session/checkpoint/memory、tools/permissions/hooks、MCP/Agents/background、resilience，以及 Auth/Trust、Thinking/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor、Ultrareview 专题；每项实质变化解释旧/新状态、gate、threshold、failure 和 user impact。
 7. 扫描所有可发布文件中的采集机 home、workspace 和 credential-shaped value；只允许 `extracted/`、`reverse/` 保留发布产物自身携带的上游构建路径证据。
 8. 要求 `completionAudit` 的全部布尔项为 true 且 `knownStaticExtractionGaps` 为空；不可恢复边界只能是发布产物本身不存在的运行时/服务端/构建前信息。

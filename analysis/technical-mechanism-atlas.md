@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 技术机制总图
 
-Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九个子系统。只看某个字段表或某个函数，无法解释它为什么能连续工作，也无法解释卡住、变贵、越权提示、resume 丢链或工具重复执行时到底是哪一层出了问题。
+Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview 又会按条件启动专用状态机。只看某个字段表或某个函数，无法解释它为什么能连续工作，也无法解释卡住、变贵、越权提示、resume 丢链或工具重复执行时到底是哪一层出了问题。
 
 本页是阅读路由，不替代各专题。它把公开设计原则、`2.1.235` bundle 静态证据和精确版本运行探针放在同一张生命周期图里。
 
@@ -136,6 +136,24 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 | 韧性与恢复 | attempt、fallback、abort、tombstone | retry、switch model、reactive compact、terminal | 副作用已发生却再次执行 | 出错后是否继续、是否需要人工确认 |
 | 遥测与诊断 | query/turn/tool correlation、timing、event | queue、sample、batch、export、persist | 看见“慢”但分不清慢在哪 | 能否定位模型、权限、工具或 compact |
 
+### 十一个按条件启动的专用运行时
+
+九条主链解释每次请求的共同骨架，下面这些机制只有在对应命令、设置、账号能力或环境出现时启动，但它们拥有独立状态、失败和副作用，不能被压扁成一个 feature flag：
+
+| 专用机制 | 触发入口 | 真正拥有的状态 | 最容易误判的地方 |
+| --- | --- | --- | --- |
+| Auth/account/subscription | `auth login/status/logout`、`/login`、setup-token | credential、account/org/subscription、派生 cache generation | 拿到 token 不等于账号换代完成；本地 logout 不证明远端 revoke 成功 |
+| Onboarding/workspace trust | 首次启动、项目扫描、safe/bare/print | onboarding state、persisted/session trust、项目能力 registry | 扫到配置不等于已执行；接受 trust 后还必须重新发现 |
+| Thinking/Effort/Fast | settings、slash command、request attempt | thinking shape、effort、service tier、cooldown latch | UI opt-in 不等于最终请求一定携带该字段或服务端一定采用 |
+| Usage/cost/credits/limits | API usage、quota header/API、`/usage` | modelUsage、cost、limit windows、auto-resume timer | 美元成本与账号额度不是同一个数；reset 不会重放旧工具 |
+| Project purge/import | CLI command、preview/confirm、archive manifest | purge/import plan、digest、文件写入进度 | digest 防输入漂移，不提供跨文件事务或自动 rollback |
+| Sandbox install/runtime | Windows install/status、每条命令 wrapper | host install state、session initializer、command result | `installed:true` 和 CLI exit 0 都不能证明动作成功且被隔离 |
+| Proxy/CA/mTLS | transport 初始化、407、cert reload、CCR relay | adapter、proxy auth cache、CA store、client identity | 主请求成功不代表 MCP/AWS/WebSocket/OTLP 同样成功 |
+| Active Goal | `/goal`、Agent Loop Stop point | session goal、Stop prompt hook、blocking counter | 模型声称完成不等于 runtime 允许结束；清目标不回滚副作用 |
+| Background model tasks | turn/session events、idle scheduler、feedback tool | recap/summary/suggestion/draft、Auto Dream lock 与 memory | `skipTranscript` 不等于不发上下文；只有 Auto Dream 改持久 memory |
+| Advisor | request-time eligibility、server tool | advisor model selection、server-tool blocks、strip retry | 不是第二个本地 Agent；咨询发生在服务端且增加 token/延迟 |
+| Ultrareview | `/ultrareview`、CLI cloud review | Git scope、cloud task/event、findings、fix/post consent | 云端 review 不直接改本地；post 只允许一条普通 PR comment |
+
 ## 状态不是都存在同一个地方
 
 ### 进程内状态
@@ -200,7 +218,7 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
-| 当前 40 个能力面哪些已深入、哪些仍只是清单 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 当前 51 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
 | 29 个内置工具分别改变什么状态、怎样失败和恢复 | [内置工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | 156 个根 settings 字段从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](settings-reference.md) | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) |
 | CLI/SDK 的 stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) | [Agent Loop](agent-loop.md) |
@@ -212,6 +230,17 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 | Plugin Eval 的高分是否来自插件，Delta 何时不可比较 | [Plugin Evaluation Harness](plugin-evaluation-harness.md) | [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) |
 | 终端退出后后台 Agent 谁持有，attach 与 respawn 为什么分离 | [Runtime Supervision](runtime-supervision-and-processes.md) | [后台、Channels 与 Cloud](cloud-background-channels.md) |
 | Enterprise Gateway 怎样串联身份、策略、路由、花费和遥测 | [Enterprise Gateway Runtime](enterprise-gateway-runtime.md) | [模型、认证与请求装配](models-auth-providers-request.md) |
+| 登录后为什么还要刷新组织、feature 和 Remote Control | [Auth、账号与订阅](auth-account-and-subscription-lifecycle.md) | [模型、认证与请求装配](models-auth-providers-request.md) |
+| 不可信仓库何时才允许加载 hooks、MCP、skills 和 helper | [Onboarding 与 Workspace Trust](onboarding-workspace-trust-and-safe-startup.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| Thinking、Effort、Fast Mode 为什么显示开启但请求仍会降级 | [Thinking、Effort 与 Fast Mode](thinking-effort-and-fast-mode.md) | [模型、认证与请求装配](models-auth-providers-request.md) |
+| `/usage` 为什么同时涉及 token、美元、额度和自动续跑 | [Usage、成本与 Limits](usage-cost-credits-and-limits.md) | [遥测、日志与诊断](telemetry.md) |
+| Purge/import 为什么 exit 1 后磁盘仍可能部分变化 | [Project Purge 与 Import](project-purge-import-and-data-lifecycle.md) | [Storage v5](storage-v5-reference.md) |
+| Sandbox status 成功为什么不证明当前命令已隔离 | [Sandbox 安装与运行](sandbox-install-and-runtime-enforcement.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| HTTPS_PROXY、CA 和 client cert 为什么只对部分调用生效 | [Proxy、CA 与 mTLS](network-proxy-ca-and-mtls.md) | [Enterprise Gateway Runtime](enterprise-gateway-runtime.md) |
+| `/goal` 为什么会在模型准备结束时重新启动一轮 | [Active Goal 与 Stop-loop](active-goal-and-stop-loop.md) | [Agent Loop](agent-loop.md) |
+| Recap、summary、suggestion、feedback 和 memory consolidation 是否同一机制 | [后台模型任务与 Memory](background-model-tasks-and-memory-consolidation.md) | [会话、检查点与 Memory](sessions-checkpoints-memory.md) |
+| Advisor 是否在本地运行第二个 Agent | [Advisor 双模型运行时](advisor-dual-model-runtime.md) | [Agent Loop](agent-loop.md) |
+| Ultrareview 在哪里审查、修复和发评论 | [Ultrareview 云端审查](ultrareview-cloud-review.md) | [后台、Channels 与 Cloud](cloud-background-channels.md) |
 | resume、fork、rewind 到底恢复什么 | [会话、检查点与 Memory](sessions-checkpoints-memory.md) | [韧性与恢复](resilience-and-recovery.md) |
 | MCP 工具为什么会动态出现或失效 | [MCP、Agents 与后台协作](mcp-agents-background.md) | [上下文治理与多层缓存](context-governance-and-caching.md) |
 | 子 Agent 是否只是另一个 prompt | [MCP、Agents 与后台协作](mcp-agents-background.md) | [Agent Loop](agent-loop.md) |
@@ -240,6 +269,17 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 - Plugin Eval case/run/grader/report：`reverse/javascript/cli.readable.js` 445210-448274。
 - Daemon、PTY、rendezvous 与 worker respawn：`reverse/javascript/cli.readable.js` 420733-422667。
 - Enterprise Gateway 启动与路由：`reverse/javascript/cli.readable.js` 625081-627750。
+- Auth/account/subscription：`reverse/javascript/cli.readable.js` 361874-361937、486299-486471、627842-627948。
+- Onboarding/workspace trust：`reverse/javascript/cli.readable.js` 593377-594275、89533-89656、91820-91909。
+- Thinking/Effort/Fast Mode：见 `thinking-effort-and-fast-mode.md` 的逐分支源码索引。
+- Usage/cost/credits/limits：见 `usage-cost-credits-and-limits.md` 的 cost、quota 与 auto-resume 源码索引。
+- Project purge/import：`reverse/javascript/cli.readable.js` 333321-334186、627978-628459、629343-629623。
+- Sandbox install/runtime：见 `sandbox-install-and-runtime-enforcement.md` 的安装链、wrapper 与 exact-binary Probe。
+- Proxy/CA/mTLS：见 `network-proxy-ca-and-mtls.md` 的 transport、CA、cert reload 与 CCR relay 索引。
+- Active Goal：见 `active-goal-and-stop-loop.md` 的 `/goal`、Stop hook 与 blocking cap 索引。
+- 后台模型任务：`reverse/javascript/cli.readable.js` 268272-270366、584410-584563、295584-296019。
+- Advisor：`reverse/javascript/cli.readable.js` 163403-163507、399749-409965。
+- Ultrareview：`reverse/javascript/cli.readable.js` 204529-205430、508681-508823、628676-628838。
 
 函数名、行号和分支来自发布 bundle 的可读化布局，不是 Anthropic 原始 TypeScript 模块名。跨版本比较应优先比较状态语义、稳定字段、阈值和可达分支，不能把压缩符号改名本身当成功能变化。
 

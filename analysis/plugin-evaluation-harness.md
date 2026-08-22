@@ -152,10 +152,14 @@ child timeout 使用 case `timeout_seconds`，超时直接 `SIGKILL`；stdout �
 | --- | ---: | --- | --- |
 | 全部 case 达阈值且无 load error | `0` | complete | 可以，仍需区分绝对分与 Delta |
 | 任一 case 低于 threshold、case load error、无 case | `1` | complete 或无有效 case | 失败证据有效；不能忽略坏 case |
-| cost ceiling、auth failure、interrupt | `2`；SIGINT 预检可为 `130` | `partial=true` | 只能分析已完成部分，不是完整 suite |
+| cost ceiling、auth failure | `2` | `partial=true`，`partialReason=cost_ceiling/auth_failed` | 只能分析已完成部分，不是完整 suite |
+| 收到 SIGINT | `130` | 若来得及生成报告，仍可为 `partial=true, partialReason=interrupted` | shell signal 退出码不能被报告内 partial 状态覆盖 |
+| 收到 SIGTERM | `143` | 若来得及生成报告，仍可为 `partial=true, partialReason=interrupted` | shell signal 退出码不能被报告内 partial 状态覆盖 |
 | CLI 参数/target/eval-dir 拒绝 | `1` | 通常没有 run report | 只证明输入合同失败 |
 
 auth 在任何 case 前做一次 preflight；确定的 WIF/auth 配置错误直接停止，瞬时 5xx/429/timeout 只告警继续。首个 run 若仍出现 auth rejection，会触发 backstop，后续所有 run 停止，避免同一坏 credential 烧完整预算 [446501-446525](../reverse/javascript/cli.readable.js#L446501)、[447374-447380](../reverse/javascript/cli.readable.js#L447374)、[447450-447455](../reverse/javascript/cli.readable.js#L447450)。
+
+suite 内部确实先把 interrupt 归一化为 `partialReason="interrupted"`，并把普通 partial 的内部 exitCode 算成 `2` [447396-447455](../reverse/javascript/cli.readable.js#L447396)。但 CLI 最外层在检测到 abort signal 后不采用这个 `2`：`fVm` 对 SIGINT 调 `ec(130)`，对 SIGTERM 调 `ec(143)` [448108-448117](../reverse/javascript/cli.readable.js#L448108)、[448181](../reverse/javascript/cli.readable.js#L448181)、[448358-448359](../reverse/javascript/cli.readable.js#L448358)。报告字段描述数据完整性，shell exit code 描述进程终止原因，两者必须同时保留。
 
 费用 ceiling 导致两臂跳过的 paid graders 不一致时，客户端仍显示已有 with/without 分数，但不再写 `score_without` 和 Delta；终端明确显示“graded under different rules” [447416-447425](../reverse/javascript/cli.readable.js#L447416)。这是正确的数据语义：异规则结果可以诊断，不能比较。
 

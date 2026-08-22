@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact`](analysis/compact-visual-guide.md) · [Auto Mode](analysis/auto-mode-classifier.md) · [Plugin Eval](analysis/plugin-evaluation-harness.md) · [后台监督](analysis/runtime-supervision-and-processes.md) · [Enterprise Gateway](analysis/enterprise-gateway-runtime.md) · [完整 CLI 命令树](analysis/cli-command-reference.md) · [全面性审计](analysis/completeness-audit.md) · [32 个 Storage namespace](analysis/storage-v5-reference.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact`](analysis/compact-visual-guide.md) · [Thinking/Fast](analysis/thinking-effort-and-fast-mode.md) · [Usage/Limits](analysis/usage-cost-credits-and-limits.md) · [Sandbox](analysis/sandbox-install-and-runtime-enforcement.md) · [Advisor](analysis/advisor-dual-model-runtime.md) · [Ultrareview](analysis/ultrareview-cloud-review.md) · [全面性审计](analysis/completeness-audit.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -24,12 +24,23 @@
 | --- | --- |
 | [`analysis/product-surface-evidence-map.md`](analysis/product-surface-evidence-map.md) | **70/70 机器证据归属地图**：每一类 inventory 都标明产品结构、真实调用点、混合 heuristic、依赖 surface 或证据底座，并路由到人类机制与 Boundary |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
-| [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 40 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到 Auto Mode、Plugin Eval、后台监督、Enterprise Gateway、产品表面、19 条本版变化、字段字典、误区和证据缺口 |
-| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 40 个能力面；当前 39 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
+| [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 51 章从发布物、请求装配、Agent Loop、工具/权限、上下文/cache/compact、会话恢复、多 Agent、遥测、原生桥接一直讲到 Auth、Trust、Thinking/Fast、Usage、数据生命周期、Sandbox、网络证书、Active Goal、后台模型任务、Advisor、Ultrareview 和最终边界 |
+| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 51 个能力面；当前 50 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
 | [`analysis/auto-mode-classifier.md`](analysis/auto-mode-classifier.md) | **Auto Mode 两阶段分类器**：确定性权限前置层、可信规则来源、`$defaults`、Stage 1/2 XML verdict、fail-closed、PermissionDenied Hook、交互 fallback 与 hash-bound setup |
 | [`analysis/plugin-evaluation-harness.md`](analysis/plugin-evaluation-harness.md) | **Plugin Evaluation Harness**：case/插件信任、with/without ablation、六类 grader、3 票多数、费用上限、partial/Delta 语义、scaffold 风险与 CI exit code |
 | [`analysis/runtime-supervision-and-processes.md`](analysis/runtime-supervision-and-processes.md) | **Runtime Supervision**：Agent View、daemon、PTY host、worker、rendezvous、Storage job record、adopt/respawn、processWrapper、内存回收与 `asyncRewake` |
 | [`analysis/enterprise-gateway-runtime.md`](analysis/enterprise-gateway-runtime.md) | **Enterprise Gateway Runtime**：OIDC/device flow、Gateway session、managed policy、provider/model 路由、CRI/JWKS、spend/Postgres、OTLP 和失败隔离 |
+| [`analysis/auth-account-and-subscription-lifecycle.md`](analysis/auth-account-and-subscription-lifecycle.md) | **Auth/Account/Subscription**：CLI/TUI/SDK 登录、OAuth/token、组织校验、setup-token、logout revoke/wipe 与运行时 cache 换代 |
+| [`analysis/onboarding-workspace-trust-and-safe-startup.md`](analysis/onboarding-workspace-trust-and-safe-startup.md) | **Onboarding/Workspace Trust**：项目风险扫描、persisted/session trust、trust 后重新发现，以及 safe/bare/print 启动责任边界 |
+| [`analysis/thinking-effort-and-fast-mode.md`](analysis/thinking-effort-and-fast-mode.md) | **Thinking/Effort/Fast Mode**：三条控制轴、request-time 优先级、模型/组织 gate、兼容性回退、service tier 冷却与成本估算 |
+| [`analysis/usage-cost-credits-and-limits.md`](analysis/usage-cost-credits-and-limits.md) | **Usage/Cost/Credits/Limits**：token 与美元账本、额度窗口、warning/checkpoint、credits 和 stale-safe auto-resume |
+| [`analysis/project-purge-import-and-data-lifecycle.md`](analysis/project-purge-import-and-data-lifecycle.md) | **Project/Data Lifecycle**：purge plan、Codex/Gemini config import、conversation archive、digest/manifest 与部分完成恢复 |
+| [`analysis/sandbox-install-and-runtime-enforcement.md`](analysis/sandbox-install-and-runtime-enforcement.md) | **Sandbox 安装与运行**：Windows install/status 和逐命令 wrapper 两条状态机，区分安装成功、工具结果和 CLI exit status |
+| [`analysis/network-proxy-ca-and-mtls.md`](analysis/network-proxy-ca-and-mtls.md) | **Proxy/CA/mTLS**：fetch/Axios/WebSocket/AWS/MCP adapter、NO_PROXY、407 helper、CA store、cert reload 与 CCR relay |
+| [`analysis/active-goal-and-stop-loop.md`](analysis/active-goal-and-stop-loop.md) | **Active Goal**：`/goal` 注册 session Stop hook，未满足时回灌原因并继续，满足/不可能时清理，连续阻止有 cap |
+| [`analysis/background-model-tasks-and-memory-consolidation.md`](analysis/background-model-tasks-and-memory-consolidation.md) | **后台模型任务**：Auto Dream、Away/Post-turn Summary、Prompt Suggestion、Feedback Draft 的状态 owner、成本、持久化和隐私差异 |
+| [`analysis/advisor-dual-model-runtime.md`](analysis/advisor-dual-model-runtime.md) | **Advisor**：request-time model rank、server tool、流式结果、fallback 重算、wire strip 和额外 token/延迟 |
+| [`analysis/ultrareview-cloud-review.md`](analysis/ultrareview-cloud-review.md) | **Ultrareview**：Git scope、diff/费用 gate、cloud session、poll/recovery、本地 `--fix` 和单条 PR comment `--post` |
 | [`analysis/builtin-tools-reference.md`](analysis/builtin-tools-reference.md) | **29/29 内置工具手册**：逐工具解释状态 owner、副作用、持久化、失败、恢复、成本、隐私与安全，重点下钻 Workflow、Cron、LSP、Task、Artifact 和 Worktree |
 | [`analysis/settings-resolution-and-reload.md`](analysis/settings-resolution-and-reload.md) | **Settings 解析、合并与热重载专题**：进程级 store、五层与 admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新差异、remote managed settings 与 policy helper 恢复 |
 | [`analysis/settings-reference.md`](analysis/settings-reference.md) | **156/156 根 Settings 全字段参考**：逐项说明类型、来源、merge、生命周期、consumer、用户影响和证据边界，并单独解释 4 个 spread |
@@ -60,7 +71,6 @@
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门 |
 | [`analysis/inventory-field-guide.md`](analysis/inventory-field-guide.md) | `comparisonKey`、payload spread、settings/env/model/遥测字段分别是什么意思 |
 | [`analysis/source-surface.md`](analysis/source-surface.md) | 按全产品能力面查证据，区分 Observed、Derived、Compatible 和 Heuristic |
-| [`analysis/semantic-comparison-2.1.233-to-2.1.235.md`](analysis/semantic-comparison-2.1.233-to-2.1.235.md) | `2.1.233 -> 2.1.235` 的机制级人类对比：旧/新行为、触发条件、失败路径、成本、遥测、native 与 `2.1.234` 归因边界 |
 | [`analysis/mechanism-evidence.jsonl`](analysis/mechanism-evidence.jsonl) | 每条核心结论对应的 evidence class、源码 view、真实行号、anchors 或运行探针字段，供 validator/comparator 自动复核 |
 | [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md) | 30 条精确二进制 Probe 的命令、受控输入、literal output、状态变化、字段读法与证明边界 |
 
@@ -88,7 +98,7 @@
 
 每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。26 个官方页面同时固化原始响应 hash、去噪正文 hash 与 33 条逐摘录 hash；刷新脚本还要求每条引用逐句存在于当次页面可见正文，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
-当前结构化机制证据共 `148` 条：`83 Static`、`30 Probe`、`33 Public`、`2 Boundary`。Static 不再被视为同一种强度：其中 `59 runtime`、`10 consumer`、`8 constant`、`4 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 15 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；telemetry、resilience、context、settings、feature evaluation、Remote Control、更新生命周期和 native 不能再退回“文档写了很多但证据注册为零”的状态。
+当前结构化机制证据共 `196` 条：`131 Static`、`30 Probe`、`33 Public`、`2 Boundary`。Static 不再被视为同一种强度：其中 `107 runtime`、`10 consumer`、`8 constant`、`4 surface`、`2 declaration`。`surface`/`declaration` 只证明命令、schema 或用户提示存在，必须同时写明不能证明什么，不能再拿一段 `.describe(...)` 文案冒充已经执行的运行分支。validator 对 30 个主题分别设置最低条数，并要求所有 Probe claim 都出现在人类可读索引中；新增的 Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway、Auth、Trust、Thinking/Fast、Usage/Limits、Data、Sandbox、Network、Active Goal、后台模型任务、Advisor 和 Ultrareview 也不能再退回“文档写了很多但证据注册为零”的状态。
 
 11 份运行报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、Plugin Skill listing/正文注入、Plugin LSP stdio/坐标/结果闭环、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate、自定义 endpoint 下的 Remote Control 边界，以及本版内部 feature override 不可达；其中 10 份绑定精确 CLI 二进制，1 份是原生模块原版/兼容对照。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
@@ -152,7 +162,18 @@
 |   |-- plugin-evaluation-harness.md    Plugin Eval ablation、grader 与报告合同
 |   |-- runtime-supervision-and-processes.md daemon、PTY、worker 与恢复监督
 |   |-- enterprise-gateway-runtime.md   身份、策略、路由、花费与遥测网关
-|   |-- completeness-audit.md           40 个能力面的全面性审计与收口合同
+|   |-- completeness-audit.md           51 个能力面的全面性审计与收口合同
+|   |-- auth-account-and-subscription-lifecycle.md 登录、账号、组织、订阅和 token 生命周期
+|   |-- onboarding-workspace-trust-and-safe-startup.md 首次启动、项目信任和安全模式
+|   |-- thinking-effort-and-fast-mode.md Thinking、Effort、Fast Mode 请求控制
+|   |-- usage-cost-credits-and-limits.md token、成本、额度、credits 和自动续跑
+|   |-- project-purge-import-and-data-lifecycle.md 项目清理、配置/会话导入和部分完成
+|   |-- sandbox-install-and-runtime-enforcement.md sandbox 安装态与逐命令运行态
+|   |-- network-proxy-ca-and-mtls.md    transport proxy、CA、mTLS 和 CCR relay
+|   |-- active-goal-and-stop-loop.md    `/goal`、Stop hook 和目标完成状态机
+|   |-- background-model-tasks-and-memory-consolidation.md 后台摘要、建议、反馈和长期记忆
+|   |-- advisor-dual-model-runtime.md   Advisor server tool 与 fallback/strip
+|   |-- ultrareview-cloud-review.md     云端 review、本地 fix 和受限 PR post
 |   |-- product-surface-evidence-map.md 70 类 inventory 的产品归属与人类路由
 |   |-- builtin-tools-reference.md      29 个 built-in tool 的逐项机制参考
 |   |-- settings-reference.md           156 个 direct root setting 的全字段参考
@@ -182,7 +203,6 @@
 |   |-- telemetry.md                   遥测、日志、重试、隐私和诊断架构
 |   |-- inventory-field-guide.md        JSONL/settings/env/model/遥测字段字典
 |   |-- source-surface.md              全产品能力面和证据边界
-|   |-- semantic-comparison-2.1.233-to-2.1.235.md 机制级跨版本人类对比
 |   `-- source-inventory/              70 类确定性机器清单及逐文件哈希
 |-- reverse/
 |   |-- summary.json                   深度逆向机器摘要
@@ -338,7 +358,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 官方原始条目保存在 [`analysis/release-notes.md`](analysis/release-notes.md)。
 
-`2.1.233 -> 2.1.235` 的完整净差异、`2.1.234` 中间版本归因边界、上下文缓存成本、Agent 协作、权限 UI、telemetry、API/storage 和 native 不变项见 [`analysis/semantic-comparison-2.1.233-to-2.1.235.md`](analysis/semantic-comparison-2.1.233-to-2.1.235.md)。确定性逐字段报告见 [`analysis/comparison-2.1.233-to-2.1.235.md`](analysis/comparison-2.1.233-to-2.1.235.md)。
+本分支只陈述 `2.1.235` 本身能由 release note、bundle 和精确二进制 Probe 证明的行为。跨版本差异应在拥有两个完整版本分支后由长期 skill 重新生成，不能把其它版本的临时分析混入本版阅读入口。
 
 ## 本版本的完整能力面
 
@@ -451,6 +471,20 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 [`analysis/technical-architecture.md`](analysis/technical-architecture.md) 先把这些系统串成一条可读调用链；[`analysis/source-surface.md`](analysis/source-surface.md) 再逐层整理 build/runtime、CLI/protocol、settings/env/schema、models/providers/auth、session/transcript/memory/cache/storage、agent/team/worktree/background、MCP/hooks/plugins/skills/LSP、IDE/Chrome/Computer Use、cloud/remote/CCR/BYOC/workflow/artifacts、install/update/doctor、UI/accessibility/voice，以及 API/error/retry/rate-limit/compact。每一层都区分 Observed、Derived、Compatible 和 Heuristic。
 
+### 十一个容易被总图压扁的专用状态机
+
+- **Auth/account/subscription**：登录不是拿到 token 就结束；credential、account/org、subscription、派生 API key/role、feature 与 Remote Control cache 要按提交顺序换代，logout 还要区分远端 revoke 和本地 wipe。
+- **Onboarding/workspace trust**：账号准备和项目信任是两份状态；项目 hooks、MCP、skills、commands、helper 和预授权规则只有 trust 后重新发现才进入 session。
+- **Thinking/Effort/Fast Mode**：三条控制轴在每次 request attempt 重新受模型能力、组织上限、provider、policy、兼容性 latch 和服务冷却裁决。
+- **Usage/cost/credits/limits**：token/美元成本账本与账号额度窗口分离；warning、checkpoint、usage credits 和 reset 后 auto-resume 又是独立状态链。
+- **Project purge/import**：preview/digest/manifest 能防输入漂移与明显损坏，却不提供跨文件事务；exit 1 后可能保留已经完成的删除或写入。
+- **Sandbox**：宿主安装态与逐命令运行态分离；`installed:true`、CLI exit 0 和工具动作成功是三个不同结论。
+- **Proxy/CA/mTLS**：fetch、Axios、WebSocket、AWS、MCP、OTLP 和 CCR relay 使用不同 adapter/信任材料，必须逐 transport 验证。
+- **Active Goal**：`/goal` 注册 session Stop hook；模型准备结束时才检查，未满足就回灌原因并继续，达到 cap 或完成后才清理。
+- **后台模型任务**：Away/Post-turn Summary、Prompt Suggestion、Feedback Draft 多数只改变临时 UI/协议状态；只有 Auto Dream 会持久改写 memory Markdown。
+- **Advisor**：不是第二个本地 Agent，而是同一个 Messages 请求中的 server tool；fallback 会重算模型组合，不支持时只 strip wire view。
+- **Ultrareview**：客户端先确定 Git scope、规模、费用和 cloud task；findings 回来后 `--fix` 才在本地 Agent Loop 执行，`--post` 只允许一条普通 PR comment。
+
 ## 打包与技术细节
 
 ### Bun standalone 格式
@@ -500,7 +534,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 从本版本开始，skill 的交付合同分成两层：
 
 - **机器证据层**：packed bytes、bytecode、native reports、结构化 inventory 和稳定语义 diff，保证没有靠人工挑选遗漏字段。
-- **人类解释层**：机制总图、公开主张验证、技术架构、Agent Loop、上下文治理/缓存、会话/checkpoint/memory、工具/权限/hooks、Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway、MCP/Agents/后台协作、韧性恢复、遥测、风控、字段字典和版本专题。每个机制必须解释 purpose、owned state、call chain、gate/precedence、threshold、failure、lifecycle、user impact、evidence 和 boundary。
+- **人类解释层**：机制总图、公开主张验证、技术架构、Agent Loop、上下文治理/缓存、会话/checkpoint/memory、工具/权限/hooks、Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway、Auth/Trust、Thinking/Effort/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor、Ultrareview、MCP/Agents/后台协作、韧性恢复、遥测、风控、字段字典和版本专题。每个机制必须解释 purpose、owned state、call chain、gate/precedence、threshold、failure、lifecycle、user impact、evidence 和 boundary。
 
 后续版本不能只更新 count table。任何新增 settings/env/model/event 字段都要说明字段语义、来源、默认/约束、谁读取、何时生效、如何失效、用户怎样观察；任何上下文/cache/compact 变化都要给出旧版和新版的状态机与成本影响。官方当前文档或 Engineering 文章只用于提出验证假设，必须标明调研日期，并分别标注目标版本的静态证据、运行 probe 和未证实边界。
 
@@ -559,7 +593,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成、逐文件哈希与 70/70 产品归属地图、148 条机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、40 个能力面的 Deep/Boundary 收口、四个高价值新增专题及其 DOT/SVG、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对 29 个 built-in tool、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始本机程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、70 类 source inventory 的确定性重生成、逐文件哈希与 70/70 产品归属地图、196 条机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、51 个能力面的 Deep/Boundary 收口、15 个专用运行专题及其 DOT/SVG、主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合，以及 5 个原生源文件哈希。它还精确核对 29 个 built-in tool、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

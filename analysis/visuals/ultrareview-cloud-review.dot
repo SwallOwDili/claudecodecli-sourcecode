@@ -1,0 +1,24 @@
+digraph ultrareview_cloud_review {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  command [label="显式 /ultrareview\n或 claude ultrareview", fillcolor="#e3f2fd"];
+  gates [label="账号 / policy / entitlement\nfirst-party 与 Git repo gate", fillcolor="#fff3cd"];
+  scope [label="固定审查范围\nPR ref 或 merge-base bundle", fillcolor="#e0f2f1"];
+  preflight [label="规模、quota 与费用确认\n500 files / 8000 lines 默认", fillcolor="#ffe0b2"];
+  remote [label="远端 multi-agent session\n注册可恢复 remote_agent task", fillcolor="#d1c4e9"];
+  poll [label="轮询进度与结果\nstage / found / verified / refuted", fillcolor="#b2dfdb"];
+  findings [label="JSON findings 或 error\n云端不直接改本地文件", fillcolor="#c8e6c9"];
+  fix [label="--fix 回到本地 Agent Loop\n经过工具权限链修改工作树", fillcolor="#f3e5f5"];
+  post [label="--post 受限 routine\n最多一条 plain PR comment", fillcolor="#ffccbc"];
+
+  command -> gates [label="申请启动 cloud review"];
+  gates -> scope [label="验证身份与仓库"];
+  scope -> preflight [label="统计并上传前确认"];
+  preflight -> remote [label="用户同意后创建 session"];
+  remote -> poll [label="持续获取远端事件"];
+  poll -> findings [label="聚合最终输出"];
+  findings -> fix [label="仅在 --fix 时本地应用"];
+  findings -> post [label="仅在当前 --post consent 下发布"];
+}

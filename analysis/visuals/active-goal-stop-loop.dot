@@ -1,0 +1,24 @@
+digraph active_goal_stop_loop {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  command [label="/goal 条件\n通过 trust 与 hook policy gate", fillcolor="#e3f2fd"];
+  state [label="主线程目标状态\ncondition / iterations / lastReason", fillcolor="#c8e6c9"];
+  work [label="Agent Loop 执行任务\n模型 -> 工具 -> 结果", fillcolor="#fff3cd"];
+  stop [label="准备结束\n运行目标 Stop prompt hook", fillcolor="#d1c4e9"];
+  blocked [label="目标未满足\n保存原因并增加迭代", fillcolor="#ffe0b2"];
+  defer [label="后台任务仍运行\n延后评估并周期性 check-in", fillcolor="#e0f2f1"];
+  terminal [label="满足或不可能\n清除 hook 与 activeGoal", fillcolor="#b2dfdb"];
+  guard [label="maxTurns / block cap\n覆盖失控重入", fillcolor="#ffccbc"];
+
+  command -> state [label="注册 session Stop hook"];
+  state -> work [label="约束主线程终止条件"];
+  work -> stop [label="模型准备结束"];
+  stop -> terminal [label="返回 success / impossible"];
+  stop -> blocked [label="返回 blocking reason"];
+  blocked -> work [label="回灌原因并重开模型轮次"];
+  stop -> defer [label="检测到后台任务"];
+  defer -> work [label="注入进度检查并等待结果"];
+  blocked -> guard [label="连续阻止超过预算"];
+}

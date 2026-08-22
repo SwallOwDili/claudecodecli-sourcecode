@@ -1,0 +1,87 @@
+digraph SandboxInstallRuntime {
+  graph [
+    rankdir=TB,
+    newrank=true,
+    bgcolor="#ffffff",
+    pad="0.25",
+    nodesep="0.38",
+    ranksep="0.62",
+    fontname="Arial",
+    fontsize=12,
+    labelloc="t",
+    label="Claude Code 2.1.235: Windows install state and per-command runtime enforcement"
+  ];
+  node [shape=box, style="filled", fontname="Arial", fontsize=10, margin="0.14,0.09", color="#52606d", fillcolor="#f5f7fa"];
+  edge [fontname="Arial", fontsize=9, color="#52606d", arrowsize=0.75];
+
+  subgraph cluster_install {
+    label="Persistent install lifecycle (native Windows only)";
+    color="#b8c7d9";
+    style="rounded";
+
+    cli [label="claude sandbox\ninstall / status", fillcolor="#e8f1fb", color="#3273a8"];
+    gate [shape=diamond, label="native Windows?\nbuild gate?\nenabledPlatforms?", fillcolor="#fff4d6", color="#b7791f"];
+    policy [shape=diamond, label="install settings\nlocked by policy?", fillcolor="#fff4d6", color="#b7791f"];
+    srt [label="srt-win install\nUAC timeout 120 s", fillcolor="#e8f1fb", color="#3273a8"];
+    durable [label="Dedicated user + credential\nWFP filters + config", fillcolor="#e7f6ec", color="#2f855a"];
+    ca [label="When TLS termination needs it:\npersistent CA + sandbox-user trust", fillcolor="#e7f6ec", color="#2f855a"];
+    readback [label="Read back user / credential / WFP\nnormalize ok | cancelled | partial | error", fillcolor="#f5f7fa"];
+    json [label="JSON result\ninstall exits 0 only for ok\nstatus always exits 0", fillcolor="#e8f1fb", color="#3273a8"];
+    partial [label="Partial durable state may remain\nretry or windows-uninstall on conflict", fillcolor="#fdecea", color="#c53030"];
+
+    { rank=same; cli; gate; policy; }
+    { rank=same; srt; durable; ca; }
+    { rank=same; readback; partial; json; }
+
+    cli -> gate;
+    gate -> policy [label="install available"];
+    gate -> json [label="unavailable", color="#c53030", constraint=false];
+    policy -> srt [label="not locked"];
+    policy -> json [label="locked", color="#c53030", constraint=false];
+    srt -> durable;
+    durable -> ca [label="configured"];
+    durable -> readback [label="no CA step"];
+    ca -> readback;
+    readback -> json [label="complete"];
+    readback -> partial [label="partial / conflict", color="#c53030"];
+    partial -> json;
+  }
+
+  subgraph cluster_runtime {
+    label="Session and per-command runtime lifecycle";
+    color="#b8c7d9";
+    style="rounded";
+
+    settings [label="sandbox.enabled + policy\nfailIfUnavailable\nallowUnsandboxedCommands", fillcolor="#e8f1fb", color="#3273a8"];
+    deps [shape=diamond, label="platform allowed +\ndependencies healthy?", fillcolor="#fff4d6", color="#b7791f"];
+    lazy [label="First applicable command\nstarts one lazy initialization promise", fillcolor="#e8f1fb", color="#3273a8"];
+    init [label="Runtime initialize\nWFP verify, proxy/CA, ACL grant+stamp", fillcolor="#e7f6ec", color="#2f855a"];
+    fail [shape=diamond, label="initialize success?", fillcolor="#fff4d6", color="#b7791f"];
+    required [shape=diamond, label="failIfUnavailable\nor managed hard gate?", fillcolor="#fff4d6", color="#b7791f"];
+    hard [label="failIfUnavailable=true\ncommand hard-fails", fillcolor="#fdecea", color="#c53030"];
+    degrade [label="default false\ndisable sandbox for this session\nrestart to retry", fillcolor="#fdecea", color="#c53030"];
+    override [shape=diamond, label="per-command unsandboxed\noverride allowed and approved?", fillcolor="#fff4d6", color="#b7791f"];
+    wrap [label="wrapWithSandbox\nor wrapWithSandboxArgv", fillcolor="#e7f6ec", color="#2f855a"];
+    spawn [label="Spawn child\ncollect tool result + side effects", fillcolor="#e8f1fb", color="#3273a8"];
+    cleanup [label="Session cleanup\nACL revoke + restore\nproxy/bridge shutdown", fillcolor="#f5f7fa"];
+    recover [label="Unexpected ACL outcome:\nsrt-win acl recover", fillcolor="#fdecea", color="#c53030"];
+
+    settings -> deps;
+    deps -> lazy [label="yes"];
+    deps -> required [label="no", color="#c53030"];
+    lazy -> init;
+    init -> fail;
+    fail -> override [label="yes"];
+    fail -> required [label="no", color="#c53030"];
+    required -> hard [label="required", color="#c53030"];
+    required -> degrade [label="optional", color="#c53030"];
+    override -> wrap [label="stay sandboxed"];
+    override -> spawn [label="approved bypass", color="#b7791f"];
+    wrap -> spawn;
+    spawn -> cleanup;
+    cleanup -> recover [label="ACE may remain", color="#c53030"];
+  }
+
+  durable -> deps [style=dashed, label="prerequisite, not proof of active runtime", color="#7b8794", constraint=false];
+  json -> settings [style=dashed, label="install does not enable settings", color="#7b8794", constraint=false];
+}

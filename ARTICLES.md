@@ -4,7 +4,7 @@
 
 ## 先读这四篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 40 章，从发布物、请求装配、Agent Loop、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥、产品表面和版本变化。
+1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 51 章，从发布物、请求装配、Agent Loop、上下文、权限、多 Agent、恢复、遥测一直讲到 Auth、Thinking/Fast、Usage、Sandbox、Advisor、Ultrareview、原生桥和准确性边界。
 2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
 4. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
@@ -14,7 +14,7 @@
 ## 本轮新增的全量参考
 
 1. [70 类证据归属地图](analysis/product-surface-evidence-map.md)：70/70 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
-2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 40 个产品能力面区分 Deep 与 Boundary；它负责证明“为什么已经讲清”或“为什么发布物无法恢复”，不以文章篇幅或清单数量冒充全面。
+2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 51 个产品能力面区分 Deep 与 Boundary；50 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
 3. [29 个内置工具逐项参考](analysis/builtin-tools-reference.md)：29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
 4. [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md)：讲清进程级 store、五层/admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新、remote managed settings 与 policy helper 恢复。
 5. [156 个 Settings 全字段参考](analysis/settings-reference.md)：156/156 direct key 逐项解释类型、来源、merge、consumer、生命周期和影响，另解释 4 个 spread。
@@ -38,6 +38,20 @@
 2. [Plugin Evaluation Harness](analysis/plugin-evaluation-harness.md)：case 信任、with/without ablation、六类 grader、3 票多数、费用中断、真实 scaffold 风险、Delta 可比性与 CI exit code。
 3. [Runtime Supervision](analysis/runtime-supervision-and-processes.md)：Agent View、daemon、PTY host、worker、rendezvous、Storage job record、respawn、memory-pressure reap 与 `asyncRewake`。
 4. [Enterprise Gateway Runtime](analysis/enterprise-gateway-runtime.md)：OIDC/device flow、Gateway session、managed policy、provider 路由、CRI、spend、Postgres、OTLP、失败隔离与服务端边界。
+
+## 十一个新拆出的专用状态机
+
+1. [Auth、账号与订阅生命周期](analysis/auth-account-and-subscription-lifecycle.md)：CLI/TUI/SDK 登录、OAuth/token、组织校验、subscription、setup-token、远端 revoke、本地 wipe 与 cache 换代。
+2. [Onboarding、Workspace Trust 与安全启动](analysis/onboarding-workspace-trust-and-safe-startup.md)：项目风险扫描、persisted/session trust、接受后重新发现，以及 `--safe-mode`、`--bare`、`--print` 的精确装载边界。
+3. [Thinking、Effort 与 Fast Mode](analysis/thinking-effort-and-fast-mode.md)：三条控制轴、请求前优先级、模型/组织 gate、兼容性 latch、service tier、429/529 冷却和成本估算。
+4. [Usage、成本、Credits 与 Limits](analysis/usage-cost-credits-and-limits.md)：token/cost 账本、plan limit、warning/checkpoint、credits、auto-resume、取消与 stale/rearm。
+5. [Project Purge、Import 与数据生命周期](analysis/project-purge-import-and-data-lifecycle.md)：项目状态清理、Codex/Gemini 配置导入、会话 ZIP/JSON 导入、digest/manifest、顺序副作用和恢复。
+6. [Sandbox 安装与运行 Enforcement](analysis/sandbox-install-and-runtime-enforcement.md)：Windows 安装/status 与逐命令 wrapper 两条状态机，解释 `installed:true`、工具结果和 CLI exit status 的不同含义。
+7. [Proxy、NO_PROXY、CA 与 mTLS](analysis/network-proxy-ca-and-mtls.md)：fetch/Axios/WebSocket/AWS/MCP 的 transport 差异、407 helper、CA store、client cert reload 和 CCR CONNECT relay。
+8. [Active Goal 与 Stop-loop](analysis/active-goal-and-stop-loop.md)：`/goal` 如何注册 session Stop hook、阻止过早结束、触发下一轮、达到 cap 并在完成后清理。
+9. [后台模型任务与 Memory Consolidation](analysis/background-model-tasks-and-memory-consolidation.md)：Auto Dream、Away Summary、Post-turn Summary、Prompt Suggestion、Feedback Draft 的 owner、成本、持久化和隐私差异。
+10. [Advisor 双模型运行时](analysis/advisor-dual-model-runtime.md)：request-time model rank、server tool、流式 result、fallback 重算、wire strip 与额外 token/延迟。
+11. [Ultrareview 云端审查](analysis/ultrareview-cloud-review.md)：Git scope、diff 上限、preflight、cloud task、poll/recovery、本地 `--fix` 与单条 PR comment `--post`。
 
 ## 按问题阅读
 
@@ -67,6 +81,17 @@
 | Plugin Eval 的高分是否真由插件造成，Delta 什么时候失效 | [Plugin Evaluation Harness](analysis/plugin-evaluation-harness.md) |
 | 退出终端后谁继续持有后台 Agent，attach 与 respawn 为什么会失败 | [Runtime Supervision](analysis/runtime-supervision-and-processes.md) |
 | Enterprise Gateway 怎样串联身份、策略、路由、花费和遥测 | [Enterprise Gateway Runtime](analysis/enterprise-gateway-runtime.md) |
+| 登录成功后哪些账号、组织、订阅和 cache 状态真正换代 | [Auth、账号与订阅生命周期](analysis/auth-account-and-subscription-lifecycle.md) |
+| 不可信仓库什么时候才允许加载 hooks、MCP、skills 和 helper | [Onboarding 与 Workspace Trust](analysis/onboarding-workspace-trust-and-safe-startup.md) |
+| Thinking、Effort、Fast Mode 为什么开启后仍可能降级 | [Thinking、Effort 与 Fast Mode](analysis/thinking-effort-and-fast-mode.md) |
+| `/usage` 的 token、美元、额度、credits 和自动续跑分别是什么 | [Usage、成本、Credits 与 Limits](analysis/usage-cost-credits-and-limits.md) |
+| purge/import 为什么失败后仍可能留下部分磁盘变化 | [Project Purge、Import 与数据生命周期](analysis/project-purge-import-and-data-lifecycle.md) |
+| sandbox status 成功为什么不等于当前 Bash 已被隔离 | [Sandbox 安装与运行 Enforcement](analysis/sandbox-install-and-runtime-enforcement.md) |
+| 主 API 代理正常但 MCP/AWS/WebSocket/OTLP 仍失败时怎么查 | [Proxy、NO_PROXY、CA 与 mTLS](analysis/network-proxy-ca-and-mtls.md) |
+| `/goal` 为什么会在模型准备结束时再开一轮 | [Active Goal 与 Stop-loop](analysis/active-goal-and-stop-loop.md) |
+| recap、summary、suggestion、feedback 和长期 memory 是否同一机制 | [后台模型任务与 Memory Consolidation](analysis/background-model-tasks-and-memory-consolidation.md) |
+| Advisor 是不是第二个本地 Agent、费用和上下文怎么变化 | [Advisor 双模型运行时](analysis/advisor-dual-model-runtime.md) |
+| Ultrareview 在哪里审、哪里修、`--post` 实际写了什么 | [Ultrareview 云端审查](analysis/ultrareview-cloud-review.md) |
 | MCP 工具何时刷新，子 Agent 和后台任务怎样回传结果 | [MCP、Agents 与后台协作](analysis/mcp-agents-background.md) |
 | Retry、fallback、reactive compact 和 file rewind 分别恢复哪一层 | [韧性与恢复](analysis/resilience-and-recovery.md) |
 | 模型别名、provider、凭据、base URL、beta 和 request body 怎样决定 | [模型、认证、Provider 与请求装配](analysis/models-auth-providers-request.md) |

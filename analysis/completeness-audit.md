@@ -2,7 +2,7 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：**`2.1.235` 发布物中可归属于产品的 39 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** Agent Loop、上下文、工具控制、会话恢复、遥测、native bridge，以及 Slash Commands、Hooks、Storage v5、Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome、后台/Channels/Cloud、Settings reload、CLI/SDK/control/output protocol、Auto Mode、Plugin Evaluation Harness、Runtime Supervision 和 Enterprise Gateway 都有独立机制文章或对应深度章节。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
+当前结论：**`2.1.235` 发布物中可归属于产品的 50 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 除 Agent Loop、上下文、工具控制、会话恢复、遥测、native bridge 和既有产品表面外，本轮又把 Auth/account/subscription、onboarding/workspace trust、Thinking/Effort/Fast Mode、usage/cost/credits/limits、project purge/import、sandbox 安装与运行、proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 和 Ultrareview 拆成独立状态机。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
 
 ## “全面”到底怎样判定
 
@@ -51,7 +51,7 @@
 | # | 能力面 | 权威产品 surface | 当前人类文档 | 当前状态 | 收口前还需要什么 |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | 发布物、提取与证据边界 | 15 packed files、bytecode、hash、manifest | README、`source-surface.md`、`technical-architecture.md` | Deep | 保持不可恢复源码边界，不把 compatible reconstruction 称为原始源码 |
-| 2 | 请求装配、模型、provider、auth | 17 model entries、4 aliases、provider/auth branches | `models-auth-providers-request.md`、完整说明书 | Deep | 真实 Bedrock/Vertex/Foundry 凭据闭环保持未 Probe 边界 |
+| 2 | 请求装配、模型、provider 与凭据选路 | 17 model entries、4 aliases、provider/credential branches | `models-auth-providers-request.md`、完整说明书 | Deep | 只负责每次请求如何选模型、endpoint 和 credential；账号/组织/subscription 生命周期见第 40 项 |
 | 3 | Agent Loop | loop state、stream parser、tool batch、terminal reason | `agent-loop.md`、完整说明书 | Deep | 保持并发、maxTurns、Stop hook、副作用边界回归 |
 | 4 | Context、Prompt Cache、Tool Search、compact | cache/compact constants、request fields、Probe | `context-governance-and-caching.md`、`compact-visual-guide.md` | Deep | 服务端 cache 命中和账单仍为 Boundary |
 | 5 | Session、transcript、fork、checkpoint、memory | message graph、32 storage namespaces 中相关对象 | `sessions-checkpoints-memory.md`、`storage-v5-reference.md` | Deep | 保持 transcript、storage backend 和外部副作用三层边界 |
@@ -89,7 +89,18 @@
 | 37 | Plugin Evaluation Harness | `plugin eval` command、case schema/trust、ablation、grader/report | `plugin-evaluation-harness.md`、完整说明书第 37 章 | Deep | with/without、六类 grader、3 票多数、费用 partial、scaffold、CI exit 和 Delta 可比性已覆盖；尚无绑定本版二进制的付费 eval 正向 Probe |
 | 38 | Runtime Supervision 与后台进程所有权 | daemon/PTY/worker/rendezvous/roster/job record | `runtime-supervision-and-processes.md`、完整说明书第 38 章 | Deep | cold start、processWrapper、socket auth、ring、adopt/respawn、stale heartbeat、pressure reap 与 `asyncRewake` 已覆盖；真实断电/service-manager 全组合保持 Boundary |
 | 39 | Enterprise Gateway Runtime | gateway command、OIDC/session、managed policy、providers、CRI、spend、OTLP | `enterprise-gateway-runtime.md`、完整说明书第 39 章 | Deep | 启动、route 顺序、身份/策略、credential replacement、failover、Postgres、JWKS/webhook、metering 和 telemetry 已覆盖；IdP/CRI issuer/provider 内部实现保持 Boundary |
-| 40 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
+| 40 | Auth、账号、组织、订阅与 setup-token | `auth login/status/logout`、OAuth/token store、org/subscription consumers | `auth-account-and-subscription-lifecycle.md`、模型/认证专题 | Deep | 远端撤销、组织 entitlement 和账号后台状态保持 Boundary |
+| 41 | Onboarding、workspace trust 与安全启动 | setup state、trust scanner、safe/bare/print startup branches | `onboarding-workspace-trust-and-safe-startup.md`、工具/settings 专题 | Deep | trust 前项目 helper 不执行；第三方项目内容本身保持外部风险 |
+| 42 | Thinking、Effort 与 Fast Mode | thinking request shape、effort precedence、service-tier/cooldown state | `thinking-effort-and-fast-mode.md`、请求装配专题 | Deep | 服务端真实调度、质量和延迟收益保持 Boundary |
+| 43 | Usage、成本、credits、limits 与自动续跑 | usage accumulator、headers/API quota state、checkpoint/auto-resume | `usage-cost-credits-and-limits.md`、遥测/会话专题 | Deep | 真实账单、额度政策、credit purchase 和 reset 服务端行为保持 Boundary |
+| 44 | Project purge、配置/会话导入与数据生命周期 | purge plans、import digest、ZIP/manifest guards、Storage history rewrite | `project-purge-import-and-data-lifecycle.md`、Storage 专题 | Deep | 顺序副作用不具备跨文件事务；外部归档来源可信度保持 Boundary |
+| 45 | Sandbox 安装与逐命令运行 enforcement | Windows install/status、session initializer、command wrapper、cleanup | `sandbox-install-and-runtime-enforcement.md`、工具/权限专题 | Deep | installed 不等于当前命令已隔离；跨平台内核实现保持平台 Boundary |
+| 46 | Proxy、NO_PROXY、CA 与 mTLS | fetch/axios/ws/AWS/MCP adapters、CA store、cert reload、CCR relay | `network-proxy-ca-and-mtls.md`、Enterprise/遥测专题 | Deep | 每个第三方 transport 和远端 TLS/policy 必须独立验证 |
+| 47 | Active Goal 与 Stop-loop | `/goal` state、session Stop prompt hook、blocking cap、SDK/Remote projection | `active-goal-and-stop-loop.md`、Agent Loop/Hooks 专题 | Deep | 目标是否真实完成仍由模型判定；已发生副作用不因目标清除而回滚 |
+| 48 | 后台模型任务与 Memory consolidation | background model queue、dedupe/cache、memory merge/flush lifecycle | `background-model-tasks-and-memory-consolidation.md`、会话/后台专题 | Deep | 服务端模型质量和跨设备最终一致性保持 Boundary |
+| 49 | Advisor 双模型运行时 | primary/advisor ownership、snapshot request、feedback injection、cost gate | `advisor-dual-model-runtime.md`、模型/Agent Loop 专题 | Deep | Advisor 质量增益和服务端 capacity 保持 Boundary |
+| 50 | Ultrareview 云端审查 | command gate、snapshot/upload、cloud task/event、review result integration | `ultrareview-cloud-review.md`、Cloud/后台专题 | Deep | 云端 worker、仓库权限、retention、计费和最终审查质量保持 Boundary |
+| 51 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
 
 ## 数量覆盖不能冒充机制覆盖
 
@@ -123,7 +134,7 @@
 
 ## 自动校验当前能证明什么
 
-本轮已经把新增专题纳入 validator：强制 Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway 正文和对应可编辑 `.dot + .svg` 存在并保留关键生命周期术语；固定 Release Notes 上游 commit、完整响应 hash、版本段 hash 与 19 条逐字原文；从 canonical key factory 独立重建 Storage 集合，并从权威 inventory 精确核对 29 个 built-in tool、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。覆盖缺项、重复项、多余项或顺序漂移会直接失败；负向测试会实际篡改 Release Notes、Storage、新专题和既有精确集合，证明拒绝后逐字恢复。
+本轮已经把 15 个专用专题纳入 validator：强制 Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway，以及 Auth、Onboarding/Trust、Thinking/Effort/Fast、Usage/Limits、Project/Data、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor、Ultrareview 的正文和对应可编辑 `.dot + .svg` 存在并保留关键生命周期术语；固定 Release Notes 上游 commit、完整响应 hash、版本段 hash 与 19 条逐字原文；从 canonical key factory 独立重建 Storage 集合，并从权威 inventory 精确核对 29 个 built-in tool、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。覆盖缺项、重复项、多余项、51 行能力矩阵或证据 topic 漂移都会直接失败；负向测试会实际篡改 Release Notes、Storage、新专题、图示、topic claim 和既有精确集合，证明拒绝后逐字恢复。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
@@ -141,4 +152,4 @@
 4. 对 changed branch 扩充 exact-binary Probe；未触发的 remote/third-party/cross-platform 行为保持 Boundary。
 5. 运行全量、负向、隐私、SVG、重建、Probe 与远端 fresh-checkout 验证后再推送。
 
-当前矩阵已达到 39 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。
+当前矩阵已达到 50 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。

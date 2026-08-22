@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 40 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [32 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合。Auto Mode、Plugin Eval、Runtime Supervision 和 Enterprise Gateway 分别有 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[后台监督专题](runtime-supervision-and-processes.md) 与 [企业网关专题](enterprise-gateway-runtime.md)；Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome 和后台/Channels/Cloud 也各有专属状态机。它们补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 51 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [32 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合。Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway、Auth/Trust、Thinking/Effort/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 和 Ultrareview 都有独立专题；Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome 和后台/Channels/Cloud 也各有专属状态机。它们补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -940,9 +940,9 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 看到 recording或 profile标识不等于默认上传。需要分别检查创建 gate、文件路径、retention和发送 consumer。
 
-## 25. `2.1.235` 新增遥测如何解释
+## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
-相对本机保留的 `2.1.233`，一方事件名净增 17、调用点增加 40。最完整的一组围绕 usage-limit自动续跑：
+本版一方事件把 usage-limit 自动续跑拆成一组可独立诊断的状态，而不是只记录一个“额度不足”结果：
 
 - armed：已进入等待；
 - cancelled：用户或状态取消；
@@ -951,7 +951,7 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 - stale_resumed：过期状态重新进入；
 - offer/menu/setting changed：UI和设置决策。
 
-其它新增事件覆盖 Remote Control pill、content block healing、device bridge reannounce/drain、goal check-in、bridge owner变化和 device/account绑定。
+其它细粒度事件覆盖 Remote Control pill、content block healing、device bridge reannounce/drain、goal check-in、bridge owner变化和 device/account绑定。
 
 这表示观测状态更细，不表示传输和隐私门被放宽：telemetry endpoint、OTEL metrics/spans、Datadog tag/redaction和一方 environment字段数量均无变化。
 
@@ -1083,9 +1083,9 @@ Doctor分别检查：
 
 这里的 `Release` 表示 Anthropic明确将变化归入 `2.1.235`；`Static` 表示发布 bundle中可找到对应状态/分支或消费者；`Probe`才表示精确二进制已在受控输入下真实触发。没有 Probe的项目不会被包装成已完成运行验证。
 
-## 29. 三个新增根 Setting
+## 29. 三个需要单独理解的根 Setting
 
-相对 `2.1.233`，`2.1.235` 根 schema净增三个字段。由于没有 `2.1.234` 快照，只有 `spellcheck`能由 release note精确归因到 `2.1.235`；其它两个只能确定在 `233 -> 235` 区间出现。
+本版根 schema 中，`spellcheck`、`autoContinueAtUsageLimit` 和 `syncClaudeAiSkills` 都有完整 consumer，但三者分别控制本地输入辅助、额度恢复和账号侧 Skill 同步，不能只按字段名推断行为。
 
 ### 29.1 `spellcheck`
 
@@ -1223,7 +1223,8 @@ Doctor分别检查：
 - 70类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 148条机制证据：83 Static、30 Probe、33 Public、2 Boundary；
+- 196条机制证据：131 Static、30 Probe、33 Public、2 Boundary；
+- 51个能力面：50项 Deep、1项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29个 built-in tool identifier、188个 known-tool catalog项；
@@ -1285,6 +1286,17 @@ Doctor分别检查：
 | Plugin Eval 的 ablation、grader、费用与 Delta 可比性 | [plugin-evaluation-harness.md](plugin-evaluation-harness.md) |
 | Daemon、PTY、worker、rendezvous 与 respawn 谁拥有状态 | [runtime-supervision-and-processes.md](runtime-supervision-and-processes.md) |
 | Enterprise Gateway 的身份、策略、provider、spend 与 OTLP | [enterprise-gateway-runtime.md](enterprise-gateway-runtime.md) |
+| Auth、账号、组织、订阅与 setup-token 怎样换代 | [auth-account-and-subscription-lifecycle.md](auth-account-and-subscription-lifecycle.md) |
+| 首次启动、workspace trust、safe/bare/print 谁加载项目能力 | [onboarding-workspace-trust-and-safe-startup.md](onboarding-workspace-trust-and-safe-startup.md) |
+| Thinking、Effort、Fast Mode 怎样进入请求并降级 | [thinking-effort-and-fast-mode.md](thinking-effort-and-fast-mode.md) |
+| Token、美元成本、额度、credits 和自动续跑怎样串联 | [usage-cost-credits-and-limits.md](usage-cost-credits-and-limits.md) |
+| Project purge、配置导入和会话归档为何会部分完成 | [project-purge-import-and-data-lifecycle.md](project-purge-import-and-data-lifecycle.md) |
+| Sandbox 安装成功为何不等于命令真的被隔离 | [sandbox-install-and-runtime-enforcement.md](sandbox-install-and-runtime-enforcement.md) |
+| Proxy、NO_PROXY、CA、mTLS 和 CCR relay 如何逐 transport 生效 | [network-proxy-ca-and-mtls.md](network-proxy-ca-and-mtls.md) |
+| `/goal` 怎样通过 Stop hook 阻止过早结束 | [active-goal-and-stop-loop.md](active-goal-and-stop-loop.md) |
+| Away recap、post-turn summary、suggestion、feedback 与 memory consolidation 有何区别 | [background-model-tasks-and-memory-consolidation.md](background-model-tasks-and-memory-consolidation.md) |
+| Advisor 是否真的启动第二个本地 Agent | [advisor-dual-model-runtime.md](advisor-dual-model-runtime.md) |
+| Ultrareview 在哪里审、在哪里修、什么时候才会发 GitHub 评论 | [ultrareview-cloud-review.md](ultrareview-cloud-review.md) |
 | TUI、IDE、Remote、cloud | [tui-ide-remote-cloud.md](tui-ide-remote-cloud.md) |
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
@@ -1361,7 +1373,7 @@ Auto Mode 不是 `bypassPermissions` 的别名，也不是让模型接管全部�
 
 规则只从 `userSettings`、`flagSettings` 和 `policySettings` 聚合；项目和 local settings 中的 `autoMode` 会告警后忽略，防止仓库内容自行放宽权限。`allow`、`soft_deny`、`hard_deny`、`environment` 使用有位置语义的 `$defaults`：第一次出现时把 shipped defaults 插入该位置，没有 `$defaults` 就完全替换默认段。`classifyAllShell=true` 只在 Auto Mode 活跃时暂停 shell allow fast path，不会删除原规则。
 
-默认 `twoStageClassifier="both"`。Stage 1 输出预算为 `64 + thinking overhead`，fast-only 时为 `256 + thinking overhead`，外层与 SDK timeout 都是 60 秒；Stage 1 allow 立即结束，block 倾向或无有效 verdict 进入 Stage 2。Stage 2 预算为 `8192 + thinking overhead`、外层 timeout 120 秒，可以推翻 Stage 1 的 block；但 API unavailable、XML parse failure、safeguard refusal 或最终无 verdict 时，普通工具 fail closed。此时的拒绝表示“没有可靠许可”，不等于模型已经证明动作危险。
+默认 `twoStageClassifier="both"`。Stage 1 输出预算为 `64 + thinking overhead`，fast-only 时为 `256 + thinking overhead`，外层与 SDK timeout 都是 60 秒；Stage 1 allow 立即结束，block 倾向或无有效 verdict 进入 Stage 2。Stage 2 预算为 `8192 + thinking overhead`、外层 timeout 120 秒，可以推翻 Stage 1 的 block；但 API unavailable、XML parse failure、safeguard refusal 或最终无 verdict 时，普通工具 fail closed。此时的拒绝表示“没有可靠许可”，不等于模型已经证明动作危险。2.1.235 还有一条缺陷候选：Stage 1 已产生 usage 但无 verdict，随后 Stage 2 request 抛异常时，返回对象没有 `failureMode`/`unavailable`，后续误计为普通 denial 并编码成 `automode-blocked`；该 outcome 不能当作真实危险分类结论。
 
 classifier denial 可触发 `PermissionDenied` Hook。`retry:true` 只向下一轮 Agent Loop 追加可重试提示，原始 tool call 没有执行；setup/apply 又使用 proposal、review 和内容 hash 绑定，防止交互确认后配置被换包。完整输入裁剪、repo visibility/git status 补充、Agent/AskUserQuestion/headless fallback、outcome kind、成本和隐私边界见 [Auto Mode 专题](auto-mode-classifier.md)。
 
@@ -1373,7 +1385,7 @@ classifier denial 可触发 `PermissionDenied` Hook。`retry:true` 只向下一�
 
 每个 run 使用新的 HOME、Claude config、Git workspace、trace 和 credential copy，以 `-p --output-format stream-json --permission-mode dontAsk` 启动同版 child。这里的 sandbox 是状态目录隔离，不是断网、容器或 OS syscall sandbox；获得 Bash、Write、WebFetch 或 MCP grant 后仍会产生真实副作用。费用 ceiling 在 run 开始前检查，所以最多可被一个已启动的 Agent run 越过；之后付费 grader 被跳过、suite 标记 `partial_reason=cost_ceiling`。
 
-六类 grader 分别是 regex、tool order、tool used、file exists、LLM 和 baseline。LLM/baseline 各发 3 次独立 judge，2/3 多数决定 PASS；grader 异常按失败计入，不从平均值消失。完整 suite 达阈值 exit 0，质量/case 错误 exit 1，cost/auth/interrupt partial 通常 exit 2；JSON、HTML 与可选私有 publish 保留每次 run、evidence、judge votes、费用和 Delta。完整合同见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
+六类 grader 分别是 regex、tool order、tool used、file exists、LLM 和 baseline。LLM/baseline 各发 3 次独立 judge，2/3 多数决定 PASS；grader 异常按失败计入，不从平均值消失。完整 suite 达阈值 exit 0，质量/case 错误 exit 1，cost ceiling 或 auth failure partial exit 2；SIGINT/SIGTERM 即使报告仍写 `partial=true, partialReason=interrupted`，最终 shell exit 也分别是 130/143。JSON、HTML 与可选私有 publish 保留每次 run、evidence、judge votes、费用和 Delta。完整合同见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
 
 ## 38. Runtime Supervision：后台存活、可连接与任务完成是三件事
 
@@ -1395,7 +1407,73 @@ PTY host 为新 attacher 回放最近 `256 KiB`，单客户端 writable queue �
 
 默认请求体上限 32 MiB、Postgres pool 5、upstream TTFB 120 秒；spend 在 75%/95% 提示并在 cap 处返回 `billing_error`。CRI JWKS fetch 10 秒、默认 10 分钟刷新、6 小时 hard age、unknown-kid 1 分钟 cooldown；webhook 默认 2 秒且 fail closed。OTLP 对客户端立即 200，再以 128 in-flight、连续 5 次失败开路 30 秒、destination timeout 10 秒后台 fanout，所以 Collector 故障不阻塞 CLI，但可能丢观测数据。完整 endpoint、YAML、Postgres schema、provider 错误映射、CRI hygiene、retention 和安全边界见 [Enterprise Gateway Runtime](enterprise-gateway-runtime.md)。
 
-## 40. 最终准确性边界
+## 40. Auth、账号、组织、订阅与 setup-token
+
+`claude auth login`、交互式 `/login` 和 SDK `claude_authenticate` 共享账号换代核心，但入口合同不同。成功路径不是“拿到 OAuth token 就结束”：客户端先裁决登录方式和组织约束，再取得 OAuth/token，隔离旧账号派生状态，保存凭据，按 subscription scope 获取派生 API key/角色信息，最后校验组织并刷新账号、feature、Remote Control 等运行时 cache。真正的提交点是新身份已持久化且当前进程的派生状态已换代。
+
+`setup-token` 生成的是长寿命凭据，不是普通网页登录的别名。Logout 则区分远端 refresh-token revoke、本地 credential wipe 和进程 cache 清理；远端撤销失败不会阻止本地退出，但也不能证明旧 token 在服务端已失效。认证材料的来源、文件权限、组织强制登录、订阅类型和 remote entitlement 必须分开诊断，详见 [Auth、账号与订阅生命周期](auth-account-and-subscription-lifecycle.md)。
+
+## 41. Onboarding、Workspace Trust 与安全启动
+
+首次 onboarding 解决账号和客户端准备，workspace trust 解决当前项目是否能把 settings、hooks、MCP、skills、commands、agents、目录扩展或 helper 带入运行时。信任扫描不只看 `.mcp.json`；它会归纳可执行命令、网络/凭据 helper、权限预授权、额外目录等风险。接受后必须重新发现项目定制，不能只把一个布尔值翻为 true；拒绝则保留基础 CLI，但不让项目内容在确认前进入执行面。
+
+`--safe-mode`、`--bare` 和 `--print` 缩小的是不同层：safe mode 保留认证、模型、内置工具、权限和 policy，却关闭多数项目定制；bare mode 跳过更多自动发现和后台设施，但仍可接受显式输入；noninteractive 没有 trust dialog，因此调用方承担更严格的预信任责任。准确装载矩阵、persisted/session trust 和撤销边界见 [Onboarding 与 Workspace Trust](onboarding-workspace-trust-and-safe-startup.md)。
+
+## 42. Thinking、Effort 与 Fast Mode
+
+Thinking、Effort 和 Fast Mode 是三条控制轴。Thinking 决定请求是否带扩展思考以及采用 adaptive/显式预算等形态；Effort 是模型工作强度，受模型能力、组织上限、launch pin、session setting 和兼容性 latch 共同决定；Fast Mode 请求高速度服务通道，可能伴随模型切换，但仍要通过账号、policy、provider 和 session opt-in。UI 显示开启只代表本地意图，request builder 会在每次请求前重新裁决。
+
+本版还会在特定 400 后对不兼容 effort 建立 session latch，在 Fast Mode 遭遇 429/529 后进入冷却并回退普通通道。`effort_cost_index` 是本地估算维度，不等于服务端真实账单。字段优先级、thinking 与 `tool_choice` 的约束、组织状态预取、成本和恢复路径见 [Thinking、Effort 与 Fast Mode](thinking-effort-and-fast-mode.md)。
+
+## 43. Usage、成本、Credits、Limits 与自动续跑
+
+每次响应的 input/output/cache token 先进入本地 `modelUsage` 和 session cost 账本；价格来自模型目录/动态价格并受 Fast Mode、Advisor 等路径影响。额度状态则来自响应 header 和 `/api/oauth/usage`，它描述 session/weekly 等 account limit，不是美元成本的另一种显示。客户端用 identity/generation 防止旧账号的异步 usage 结果污染新账号。
+
+接近限制时，客户端按多级阈值显示 warning，并在 grace window 插入 wrap-up/checkpoint 提示；被额度拒绝后，满足设置和状态 gate 才会 arm auto-resume。reset 到点时排入一条“继续但不要重复工作”的虚拟用户消息，而不是重放最后一个工具调用。用户输入、session 状态变化、过期时间和 rearm cap 都能取消或抑制它。credits 购买/分配属于独立账号流程，完整状态机见 [Usage、成本、Credits 与 Limits](usage-cost-credits-and-limits.md)。
+
+## 44. Project Purge、配置导入与会话归档
+
+`claude project purge`、`claude import` 和隐藏的 conversation import 没有共享一个事务引擎。Purge 先建立项目状态计划，按 transcript 归属、Storage/history 和 prompt history 分别删除或过滤重写；Config import 先扫描 Codex/Gemini 等输入，映射可支持项并用 digest 绑定 preview 与 apply；Conversation import 对 JSON/ZIP 做体积、条目、路径和 no-overwrite 约束，再写文件并在最后核对 manifest。
+
+共同风险是确认后的执行采用顺序副作用：中途失败不会自动撤销先前成功项，manifest mismatch 甚至发生在文件已落盘之后。Preview 能做到零写入，digest 能发现 TOCTOU，却不提供跨文件事务。输入护栏、文件模式、恢复动作和隐私边界见 [Project Purge、Import 与数据生命周期](project-purge-import-and-data-lifecycle.md)。
+
+## 45. Sandbox 安装态与运行态
+
+Windows `claude sandbox install/status` 回答宿主依赖和隔离用户等长期对象是否准备好；Agent Loop 的 sandbox wrapper 回答本 session、这一条 command 是否真的被约束。`installed:true` 只证明安装检查通过，不证明当前设置启用 sandbox，也不证明该工具路径经过 wrapper。运行时还要通过 platform、policy、setting、工具 eligibility 和 `dangerouslyDisableSandbox` 等 gate，并在 session 中懒初始化、合并并发初始化请求。
+
+同样，CLI 最终 exit 0 只说明它成功处理了工具结果，不能代替检查 Bash/tool result 和外部文件/网络状态。Session cleanup 会释放进程级资源，却不等于卸载长期依赖或回滚已产生副作用。两条状态机、UAC/退出码、ACL、fallback 和 exact-binary 负向 Probe 见 [Sandbox 安装与运行 Enforcement](sandbox-install-and-runtime-enforcement.md)。
+
+## 46. Proxy、NO_PROXY、CA 与 mTLS
+
+Claude Code 没有一个覆盖所有网络调用的万能代理开关。主请求/通用 fetch、Axios/undici、WebSocket、AWS SDK、MCP transport、OTLP exporter 和 CCR 子进程分别选择 adapter；`NO_PROXY` 也存在不同匹配器。主模型能联网只证明其 transport 已通过 proxy，不证明 MCP、云 SDK、后台 Agent 或遥测能走同一路径。
+
+TLS 又分服务端信任和客户端身份：CA store 组合 bundled/system/extra CA，并过滤过期系统证书；mTLS cert/key 要成对校验并在 stale connection 时重载。CCR agent proxy 是只接受 HTTPS CONNECT 的本地 policy relay，带有 allowlist、流控和兼容性边界，不等于任意直连。逐 transport 的优先级、407 helper refresh、证书轮换和排障顺序见 [Proxy、CA 与 mTLS](network-proxy-ca-and-mtls.md)。
+
+## 47. Active Goal 与 Stop-loop
+
+`/goal` 把目标注册为 session-scoped `Stop` prompt hook。正常工具执行期间不会每一步都另开一次目标检查；只有主 Agent 准备结束时，hook 才让模型判断目标已满足、未满足或不可能。未满足会把原因回灌消息图并开启下一轮，满足或不可能才清除目标，因此“模型说做完了”和“运行时允许结束”是两层状态。
+
+连续阻止有 cap，避免错误目标或评估让 Agent Loop 永久重入。后台任务运行、特殊终止、SDK/Remote projection 还会临时拆下或忽略 blocking 结果；这些分支不会撤销已经发生的文件、命令或远端副作用。完整 gate、状态字段和失败路径见 [Active Goal 与 Stop-loop](active-goal-and-stop-loop.md)。
+
+## 48. 后台模型任务与 Memory Consolidation
+
+Away Summary、Post-turn Summary、Prompt Suggestion、Feedback Draft 和 Auto Dream 不是一套“后台总结”。前三者主要生成短暂 UI/协议状态，Feedback Draft 只在本地排队并等待用户确认上传；只有 Auto Dream 会 fork 一个受限 Agent，读取历史 session 和 memory Markdown，并真实改写持久记忆。默认触发还受 24 小时、至少 5 个 session、10 分钟扫描等 gate 和跨进程 lock/CAS 保护。
+
+Prompt Suggestion 要求至少 2 个 assistant turn，上一轮 usage 超过 10000 时会以冷缓存成本为由抑制，结果还必须满足 2-12 words、少于 100 chars、单句、无 Markdown 等产品过滤。`skipTranscript`/`skipCacheWrite` 不等于没把上下文发给模型或没有 token 成本。五种机制的 owner、持久化、取消与隐私边界见 [后台模型任务与 Memory Consolidation](background-model-tasks-and-memory-consolidation.md)。
+
+## 49. Advisor 双模型运行时
+
+Advisor 不是客户端并行启动第二个本地 Agent Loop。每个 API attempt 会重新检查 feature/provider/model catalog，并选择等级不低于当前执行模型的 advisor；满足条件时，把 `advisor_20260301` 作为 server tool 加进同一个 Messages 请求。主模型按需调用，服务端执行咨询并在同一 stream 中返回 `advisor_tool_result`，客户端只负责协议组装、流解析、显示与持久化。
+
+因为 fallback 可能切换执行模型，advisor 组合必须按 attempt 重算。关闭 Advisor 或目标服务不支持时，wire view 会 strip 历史 server-tool blocks；特定 400 还能触发 `retry:advisor-strip`，但本地 transcript 原始事实不被删除。Advisor 会额外读取会话、消耗 token 和增加等待；其服务端 prompt、调度和计费细节保持 Boundary。详见 [Advisor 双模型运行时](advisor-dual-model-runtime.md)。
+
+## 50. Ultrareview 云端审查
+
+`/ultrareview --fix --post` 先经过账号、策略、Git identity、repo/scope、diff 规模、quota 和费用确认，再为 PR ref 或本地 branch bundle 创建有资源上限的 cloud session。Scope builder 拒绝错误 repo、缺失 merge-base，以及超过 500 files/8000 lines 的 diff；云端返回 findings 前不会直接改本地工作树。
+
+`--fix` 在 findings 回来后交回本地主 Agent Loop，因此仍经过工具、permission、hook 和 sandbox；`--post` 则启动受限 routine，只允许一次 `add_issue_comment`，发布的是 plain PR comment，不是 approve/request-changes/merge。独立 CLI 默认等待 30 分钟、每 3 秒 poll、最多容忍连续 5 个连接错误；Ctrl-C 只停止本地等待，远端任务继续。Post consent 不跨恢复保留，网络 timeout 后也不会盲目重发，以避免重复外部评论。详见 [Ultrareview 云端审查](ultrareview-cloud-review.md)。
+
+## 51. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

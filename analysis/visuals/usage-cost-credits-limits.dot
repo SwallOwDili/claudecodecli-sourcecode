@@ -1,0 +1,30 @@
+digraph usage_cost_credits_limits {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.30", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  request [label="Messages API 响应/错误\nusage + rate-limit headers", fillcolor="#fff3cd"];
+  ledger [label="本地 Cost Ledger\nper-model token/cache/search\nUSD + duration + lines", fillcolor="#c8e6c9"];
+  limits [label="额度状态机\nallowed / warning / rejected\nsubscription / overage", fillcolor="#b3e5fc"];
+  usageapi [label="/api/oauth/usage\nplan windows / extra_usage\nmodel-scoped limits", fillcolor="#e3f2fd"];
+  hints [label="接近限制\n95% checkpoint\ngrace wrap-up", fillcolor="#ffe0b2"];
+  credits [label="/usage-credits\n购买/调 cap/auto-reload\n或向管理员申请", fillcolor="#d1c4e9"];
+  rejected [label="429 rejected\n原因 + reset + 可选路径", fillcolor="#ffcdd2"];
+  arm [label="Auto-resume armed\nreset + 30-90s jitter\n24h horizon", fillcolor="#fff9c4"];
+  fire [label="排入 meta continuation\n正常 Agent Loop 续跑\n不要重复已完成工作", fillcolor="#a5d6a7"];
+  stale [label="睡眠/移交/退出\nstale 或 cancelled\n不自动执行", fillcolor="#ffcdd2"];
+  usagecmd [label="/usage /cost /stats\n成本 + plan limits\n本机 24h/7d 行为归因", fillcolor="#e8f5e9"];
+
+  request -> ledger [label="usage 记账"];
+  request -> limits [label="headers/error details"];
+  usageapi -> limits [label="live fetch / seeded cache"];
+  ledger -> usagecmd [label="session/model usage"];
+  usageapi -> usagecmd [label="plan usage"];
+  limits -> hints [label="warning/grace"];
+  limits -> rejected [label="status=rejected"];
+  rejected -> credits [label="需要 credits/admin"];
+  rejected -> arm [label="gate 满足"];
+  arm -> fire [label="reset 到点/提前恢复"];
+  arm -> stale [label="睡眠过久/移交/退出"];
+  fire -> ledger [label="新请求继续记账"];
+}

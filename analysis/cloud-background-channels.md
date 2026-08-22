@@ -2,7 +2,7 @@
 
 > 版本：`2.1.235`
 >
-> 证据：`Static` 为本版 readable JavaScript；`Release` 为官方 release note 与 `2.1.233` 源码对比；`Public` 为抓取时的当前官方文档；`Boundary` 为 bundle 无法独立证明的服务端行为。
+> 证据：`Static` 为本版 readable JavaScript；`Release` 为本版官方 release note；`Public` 为抓取时的当前官方文档；`Boundary` 为 bundle 无法独立证明的服务端行为。
 
 ## 60 秒心智模型
 
@@ -494,37 +494,13 @@ Anthropic Git proxy 路径只允许 capacity `1`，要求 Git `>=2.32` 才启用
 
 `Static`：`reverse/javascript/cli.readable.js:637403-637420`。
 
-## 六、2.1.235 的关键 release change：cloud event 不再每轮全量重扫
+## 六、2.1.235 的 cloud event 增量 owned state
 
-官方 release note 写的是：后台 cloud session（例如 `/ultrareview`、`/autofix-pr`）减少 memory/CPU，方法是避免每次更新都完整重扫 event stream 和触发 re-render。源码对比可以把这句话展开成精确的数据结构变化。
+官方 release note 写的是：后台 cloud session（例如 `/ultrareview`、`/autofix-pr`）减少 memory/CPU，方法是避免每次更新都完整重扫 event stream 和触发 re-render。本版源码可以直接解释当前数据结构、更新条件和仍然保留的边界。
 
-### 1. 2.1.233：task state 持有不断增长的完整 `log`
+### 1. 普通 remote task 只消费本轮新增事件
 
-旧版 remote task restore 会创建 `log:[]`。每次 poll：
-
-```text
-newEvents = poll(after lastEventId)
-log = [...log, ...newEvents]
-result = log.findLast(type == result)
-hasActivity = log.some(...)
-hasSessionStartHook = log.some(...)
-hasAssistant = log.some(...)
-todoList = Agf(log)
-taskRegistry.update(... log ...)
-```
-
-即使本轮只新增一个 event，多个状态判断和 todo 重建仍扫描从任务开始以来的全部 `log`，并把完整数组写回 task state。长任务的影响是：
-
-- retained event 数随任务长度线性增长；
-- 每次 poll 的扫描成本随历史长度增长；
-- 连续 N 个事件逐个到达时，累计扫描工作可趋近二次增长；
-- 新 `log` 数组和新 task object 增加 GC 与 UI re-render 压力。
-
-`Static 2.1.233`：`reverse/javascript/cli.readable.js:316641-316699`（从 `2.1.233` branch 读取）。
-
-### 2. 2.1.235：把历史扫描结果变成增量 owned state
-
-新版 restored/created remote task 不再在普通 task state 保存完整 `log`。poll closure 持有：
+restored/created remote task 不在普通 task state 保存完整 `log`。poll closure 持有：
 
 | 状态 | 含义 | 如何更新 |
 | --- | --- | --- |
@@ -540,9 +516,9 @@ taskRegistry.update(... log ...)
 
 “不保存完整 log”也不等于完全不留诊断轨迹。独立的 `remoteSessionLogs` 仍累计 `eventCount`、`toolCallCount`、`agentSpawnCount`、`lastToolUse`，并保留最近 `30` 个 events 的 rolling tail。它为观察和诊断保留有限上下文，但不会随普通长任务无限增长。
 
-`Static 2.1.235`：`reverse/javascript/cli.readable.js:205103-205146`、`205324-205403`。
+`Static`：`reverse/javascript/cli.readable.js:205103-205146`、`205324-205403`。
 
-### 3. 避免 re-render 的关键不是“数组更短”，而是保持对象 identity
+### 2. 避免 re-render 的关键不是“数组更短”，而是保持对象 identity
 
 task update callback 先计算当前 status、todos 和 review progress。若 task 仍为 `running/starting`、`todoList` 引用没有变化、且本轮没有新的 review progress，就直接返回原 task object：
 
@@ -552,31 +528,31 @@ if (stillRunning && todos === previous.todoList && noReviewProgress) {
 }
 ```
 
-React/store 观察层因此不会把“poll 了一次但 UI 有效状态没变”误认为新状态。旧版只要 `newEvents` 到达就常常构造新 `log` 和 task object；新版把 event ingestion 与 UI state mutation 分离。
+React/store 观察层因此不会把“poll 了一次但 UI 有效状态没变”误认为新状态。本版把 event ingestion 与 UI state mutation 分离：收到事件不自动等于可观察 UI 状态发生变化。
 
 此外，`skipMetadata` 会在上一轮有新 events 时让下一次 poll 省掉 metadata fetch；客户端已经知道会继续沿 event cursor消费时，不必每轮重复取不变 metadata。
 
-### 4. 哪些复杂度真的降低了
+### 3. 哪些复杂度真的降低了
 
-| 维度 | 2.1.233 | 2.1.235 | 准确结论 |
-| --- | --- | --- | --- |
-| 普通 remote task retained history | task `log` 保存全部 events | 保存计数/布尔/最新 result/Todo state | 客户端常驻内存显著减少 |
-| 诊断轨迹 | 完整 task log 同时承担状态来源 | 独立计数 + 最近 30 events rolling tail | 保留有限可观测性，不恢复无限历史 |
-| 每 poll 活动判断 | 多次扫描完整 log | 只扫描 `newEvents` | event consumption 从历史长度相关变为增量相关 |
-| Todo | `Agf(log)` 全量重算 | `ADp.observe(newEvent)` + cache | 长任务 CPU 降低 |
-| store update | 常写新 log/task object | 无实质变化返回旧对象 | re-render 降低 |
-| review/workflow | 完整 log | 仍保留专用 `c` | 不能声称所有 cloud 类型都完全 O(1) memory |
-| server worker | 未由本改动触及 | 未由本改动触及 | 不证明模型、容器或服务端执行更快 |
-| token/计费 | event consumer 变化 | event consumer 变化 | 不证明减少服务端推理 token 或任务费用 |
+| 维度 | 本版实现 | 准确结论 |
+| --- | --- | --- |
+| 普通 remote task retained history | 保存计数/布尔/最新 result/Todo state | 普通任务状态不随完整事件历史无限增长 |
+| 诊断轨迹 | 独立计数 + 最近 30 events rolling tail | 保留有限可观测性，不恢复无限历史 |
+| 每 poll 活动判断 | 只扫描 `newEvents` | event consumption 与本轮增量相关 |
+| Todo | `ADp.observe(newEvent)` + cache | 只在新事件改变 Todo 状态时失效缓存 |
+| store update | 无实质变化返回旧对象 | 避免无效 re-render |
+| review/workflow | 仍保留专用 `c` | 不能声称所有 cloud 类型都完全 O(1) memory |
+| server worker | 不在该客户端 consumer 分支内 | 不证明模型、容器或服务端执行更快 |
+| token/计费 | event consumer 不改模型请求 | 不证明减少服务端推理 token 或任务费用 |
 
-`Release`：`analysis/release-notes.md` 的 cloud session memory/CPU 条目；`Static`：上述两版源码。
+`Release`：`analysis/release-notes.md` 的 cloud session memory/CPU 条目；`Static`：上述本版源码。
 
-### 5. 一个量化思考例子
+### 4. 一个量化思考例子
 
 如果一个普通 remote task 已有 10,000 个 events，下一 poll 只来 5 个 events：
 
-- 旧版会把 5 个追加到 10,000 个历史里，并让 `findLast`、多个 `some`、Todo 重建面对约 10,005 项；
-- 新版普通路径只观察 5 个新项，长期状态是少量布尔/计数、最新 result 与 Todo Map；
+- 本版普通路径只观察 5 个新项，长期状态是少量布尔/计数、最新 result 与 Todo Map；
+- 诊断路径最多保留最近 30 个事件，review/workflow 专用路径仍可能持有业务所需历史；
 - 这个例子说明**算法输入规模**，不是对真实 CPU 百分比的 benchmark。实际收益还取决于 event 类型、poll 频率、Todo 数量、review 类型和 UI subscriber。
 
 ## 七、延迟、token、费用、隐私与安全
@@ -621,7 +597,7 @@ React/store 观察层因此不会把“poll 了一次但 UI 有效状态没变�
 - Remote bridge 的本地 reconnect/auth/transport 分支与允许的 flag keys；
 - `--cloud` create/attach/teleport 的客户端 branch；
 - self-hosted runner API、capacity、spawn 参数、env isolation、retry/drain/retire；
-- 2.1.233 到 2.1.235 cloud event consumer 的数据结构和复杂度变化。
+- 2.1.235 cloud event consumer 的增量状态、对象 identity 与 rolling tail。
 
 ### 必须保留为 Boundary
 
@@ -648,7 +624,7 @@ React/store 观察层因此不会把“poll 了一次但 UI 有效状态没变�
 | Channels | Static | `reverse/javascript/cli.readable.js:282618-282709`、`491881-491914`、`592604-592626`、`602813-602825` |
 | Remote Control / cloud / teleport | Static + Public | `reverse/javascript/cli.readable.js:302480-302493`、`304548-304666`、`72502-72525`、`630380-630440`、`276300-276313`；`analysis/public-source-excerpts.md` |
 | CCR / self-hosted runner | Static | `reverse/javascript/cli.readable.js:305651-305741`、`632920-632968`、`635733-635747`、`637361-637524` |
-| cloud event delta | Release + Static | `analysis/release-notes.md`；`2.1.233:316641-316699`；`2.1.235:205103-205146`、`205324-205403` |
+| cloud event 增量消费 | Release + Static | `analysis/release-notes.md`；`reverse/javascript/cli.readable.js:205103-205146`、`205324-205403` |
 
 ## 最后用四句话记住
 

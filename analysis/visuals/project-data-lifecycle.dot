@@ -1,0 +1,26 @@
+digraph ProjectDataLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.20", nodesep="0.48", ranksep="0.72", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.5, color="#475569", penwidth=1.2, arrowsize=0.75];
+
+  input [label="Input state\nproject / foreign config / export", fillcolor="#DBEAFE"];
+  scan [label="Deterministic scan\nplan, items, manifest", fillcolor="#EDE9FE"];
+  guard [label="Safety guards\npath, symlink, size, semantics", fillcolor="#FEF3C7"];
+  preview [label="Preview boundary\ndry-run / digest / confirmation", fillcolor="#E0F2FE"];
+  mutate [label="Sequential mutation\ndelete, append, copy, write", fillcolor="#FDE68A"];
+  durable [label="Durable local state\nconfig, files, transcripts", fillcolor="#DCFCE7"];
+  verify [label="Post-write accounting\ncounts and manifest diff", fillcolor="#CCFBF1"];
+  partial [label="Partial failure\ncompleted side effects remain", fillcolor="#FECACA", color="#B91C1C"];
+  nochange [label="Refused before write\ninput state unchanged", fillcolor="#F1F5F9"];
+
+  input -> scan [label="enumerates owned data"];
+  scan -> guard [label="normalizes candidates"];
+  guard -> preview [label="accepts safe candidates"];
+  guard -> nochange [label="rejects unsafe input"];
+  preview -> nochange [label="dry-run / digest mismatch"];
+  preview -> mutate [label="confirms exact plan"];
+  mutate -> durable [label="commits each item"];
+  mutate -> partial [label="fails mid-sequence"];
+  durable -> verify [label="reports actual result"];
+  verify -> partial [label="detects manifest mismatch"];
+}

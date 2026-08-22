@@ -1,0 +1,29 @@
+digraph AuthAccountLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.20", nodesep="0.48", ranksep="0.72", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.5, color="#475569", penwidth=1.2, arrowsize=0.75];
+
+  entry [label="Login entry\nCLI / TUI / SDK", fillcolor="#DBEAFE"];
+  policy [label="Method and org policy\nselects or refuses", fillcolor="#FEF3C7"];
+  oauth [label="OAuth or refresh-token flow\nreturns token + profile", fillcolor="#EDE9FE"];
+  persist [label="Credential store\npersists token and account", fillcolor="#DCFCE7"];
+  verify [label="Organization validation\nroles / API-key derivation", fillcolor="#E0F2FE"];
+  switch [label="Account switch boundary\ninvalidates caches and bridge", fillcolor="#CCFBF1"];
+  active [label="Active identity\nstatus + model requests", fillcolor="#DCFCE7"];
+  logout [label="Logout\nrevoke then local wipe", fillcolor="#FEE2E2"];
+  denied [label="Refused or cleanup\nold state retained or new state removed", fillcolor="#FECACA", color="#B91C1C"];
+
+  entry -> policy [label="requests login"];
+  policy -> oauth [label="authorizes method + org"];
+  policy -> denied [label="blocks conflict / policy"];
+  oauth -> persist [label="returns credential"];
+  oauth -> denied [label="fails or is cancelled"];
+  persist -> verify [label="loads profile and roles"];
+  persist -> denied [label="warns on save failure", style=dashed];
+  verify -> switch [label="accepts organization"];
+  verify -> denied [label="rejects org pin"];
+  switch -> active [label="publishes new auth generation"];
+  active -> logout [label="user signs out"];
+  logout -> denied [label="revoke may fail", style=dashed];
+  logout -> entry [label="clears local identity", constraint=false];
+}

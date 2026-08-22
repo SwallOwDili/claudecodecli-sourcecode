@@ -1,0 +1,27 @@
+digraph advisor_dual_model {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  config [label="/advisor 或 --advisor\n保存候选模型", fillcolor="#e3f2fd"];
+  gate [label="first-party + feature + catalog\n校验 advisor_rank", fillcolor="#fff3cd"];
+  attempt [label="当前 API attempt\nexecutor / fallback model", fillcolor="#e0f2f1"];
+  select [label="请求级选择\nadvisor rank 不低于 executor", fillcolor="#c8e6c9"];
+  request [label="Messages 请求\n追加 advisor_20260301 server tool", fillcolor="#d1c4e9"];
+  server [label="服务端咨询\n转发 conversation 给 advisor", fillcolor="#ffe0b2"];
+  result [label="同一响应流\nserver_tool_use + advisor_tool_result", fillcolor="#b2dfdb"];
+  fallback [label="模型 fallback\n为新 attempt 重新选择", fillcolor="#f3e5f5"];
+  strip [label="不兼容 400 / 功能关闭\n只剥离 wire view", fillcolor="#ffccbc"];
+
+  config -> gate [label="解析并验证候选"];
+  gate -> attempt [label="允许当前 session 使用"];
+  attempt -> select [label="按真实 attempt 模型重算"];
+  select -> request [label="附带兼容 advisor"];
+  request -> server [label="主模型按需调用"];
+  server -> result [label="返回咨询结果"];
+  result -> attempt [label="主模型吸收后继续"];
+  attempt -> fallback [label="请求失败时切换模型"];
+  fallback -> select [label="重新比较 canonical rank"];
+  request -> strip [label="服务端拒绝 advisor 内容"];
+  strip -> attempt [label="移除发送视图后重试"];
+}

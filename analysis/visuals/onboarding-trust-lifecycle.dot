@@ -1,0 +1,27 @@
+digraph OnboardingTrustLifecycle {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.20", nodesep="0.48", ranksep="0.72", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.5, color="#475569", penwidth=1.2, arrowsize=0.75];
+
+  mode [label="Startup mode\ninteractive / print / safe / bare", fillcolor="#DBEAFE"];
+  onboarding [label="Account onboarding\nnetwork, theme, auth, security", fillcolor="#EDE9FE"];
+  scan [label="Workspace risk scan\nMCP, hooks, rules, helpers", fillcolor="#FEF3C7"];
+  decision [label="Trust decision\naccept / reduced continue / exit", fillcolor="#FDE68A"];
+  persist [label="Trust state\nproject key or session latch", fillcolor="#DCFCE7"];
+  rediscover [label="Post-trust rediscovery\nplugins, skills, MCP, memory", fillcolor="#CCFBF1"];
+  session [label="Agent session\nmanaged policy still applies", fillcolor="#DCFCE7"];
+  reduced [label="Reduced startup\ncustomizations disabled or explicit-only", fillcolor="#E0F2FE"];
+  exit [label="Exit without trust\nno project grants", fillcolor="#FECACA", color="#B91C1C"];
+
+  mode -> onboarding [label="interactive first run"];
+  onboarding -> scan [label="completes account setup"];
+  scan -> decision [label="summarizes executable grants"];
+  decision -> persist [label="accepts workspace"];
+  persist -> rediscover [label="publishes trust"];
+  rediscover -> session [label="activates approved context"];
+  decision -> reduced [label="declines gated grants"];
+  reduced -> session [label="continues without them"];
+  decision -> exit [label="declines ordinary project"];
+  mode -> reduced [label="safe / bare contract"];
+  mode -> session [label="print transfers trust to caller", style=dashed];
+}

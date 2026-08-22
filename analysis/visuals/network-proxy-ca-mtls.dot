@@ -1,0 +1,90 @@
+digraph NetworkProxyCaMtls {
+  graph [
+    rankdir=LR,
+    bgcolor="#ffffff",
+    pad="0.25",
+    nodesep="0.34",
+    ranksep="0.58",
+    fontname="Arial",
+    fontsize=12,
+    labelloc="t",
+    label="Claude Code 2.1.235: proxy routing, CA trust, mTLS identity, and CCR policy relay"
+  ];
+  node [shape=box, style="filled", fontname="Arial", fontsize=10, margin="0.14,0.09", color="#52606d", fillcolor="#f5f7fa"];
+  edge [fontname="Arial", fontsize=9, color="#52606d", arrowsize=0.75];
+
+  config [label="Settings + environment", fillcolor="#e8f1fb", color="#3273a8"];
+  proxy [label="Proxy selector\nhttps_proxy > HTTPS_PROXY >\nhttp_proxy > HTTP_PROXY", fillcolor="#e8f1fb", color="#3273a8"];
+  valid [shape=diamond, label="Complete URL\nwith scheme + host?", fillcolor="#fff4d6", color="#b7791f"];
+  noproxy [shape=diamond, label="NO_PROXY match?\n* / exact / host:port / .suffix", fillcolor="#fff4d6", color="#b7791f"];
+  auth [label="Optional proxyAuthHelper\n5 min cache, 30 s timeout\n407 clears cache + supplies challenge", fillcolor="#f4ecfb", color="#805ad5"];
+
+  ca [label="CA aggregate\nbundled + system + extra\ndrop expired system certs", fillcolor="#e7f6ec", color="#2f855a"];
+  mtls [label="mTLS material\ncert + key + passphrase\n1 MiB cap, PEM + pair check", fillcolor="#e7f6ec", color="#2f855a"];
+  lastgood [label="Mid-rotation read failure/mismatch:\nretain last-good material", fillcolor="#fff4d6", color="#b7791f"];
+
+  transports [label="Transport adapters", fillcolor="#f5f7fa"];
+  fetch [label="Main fetch / mg()", fillcolor="#e8f1fb", color="#3273a8"];
+  axios [label="Axios + undici / Qde()", fillcolor="#e8f1fb", color="#3273a8"];
+  ws [label="WebSocket / FW() + MW()", fillcolor="#e8f1fb", color="#3273a8"];
+  aws [label="AWS SDK NodeHttpHandler", fillcolor="#e8f1fb", color="#3273a8"];
+  mcp [label="MCP HTTP/SSE/WS/stdio", fillcolor="#e8f1fb", color="#3273a8"];
+  target [label="API / MCP / provider endpoint", fillcolor="#e7f6ec", color="#2f855a"];
+
+  subgraph cluster_ccr {
+    label="Remote CCR agent proxy (separate policy relay)";
+    color="#b8c7d9";
+    style="rounded";
+
+    ccrgate [shape=diamond, label="Remote + gate +\nsession ID + token?", fillcolor="#fff4d6", color="#b7791f"];
+    secret [label="Read bootstrap URL/token\nthen unset env; unlink token file", fillcolor="#f4ecfb", color="#805ad5"];
+    relay [label="127.0.0.1 HTTP relay\nHTTPS CONNECT only\nstatus endpoint", fillcolor="#e8f1fb", color="#3273a8"];
+    limits [label="8 KiB headers, 32 MiB pending\npool 4, open 10 s x 3\n4 MiB / 1 MiB watermarks", fillcolor="#f5f7fa"];
+    tunnel [label="WebSocket tunnel to\nhosted policy egress proxy", fillcolor="#e7f6ec", color="#2f855a"];
+    trust [label="Best-effort tool trust\nenv + system + JVM + Bazel\nNSS + boto + Git/gh", fillcolor="#e7f6ec", color="#2f855a"];
+    unsupported [label="Not supported here:\ngRPC/HTTP2-only, WS upgrade,\nclient-mTLS, pinning, non-443, raw TCP", fillcolor="#fdecea", color="#c53030"];
+
+    ccrgate -> secret [label="yes"];
+    secret -> relay;
+    relay -> limits;
+    limits -> tunnel;
+    tunnel -> trust [label="CA distribution"];
+    relay -> unsupported [style=dashed, label="protocol boundary", color="#c53030"];
+  }
+
+  otlp [label="OTLP exporter\nindependent OTEL_* CA/cert/key\nproxy coverage requires probe", fillcolor="#fdecea", color="#c53030"];
+  child [label="Tool / stdio MCP child env\nCCR proxy/CA may be injected\nOTEL_* is scrubbed", fillcolor="#f4ecfb", color="#805ad5"];
+
+  config -> proxy;
+  proxy -> valid;
+  valid -> noproxy [label="valid"];
+  valid -> transports [label="none selected", color="#7b8794"];
+  valid -> config [label="invalid: config error", color="#c53030"];
+  noproxy -> transports [label="bypass"];
+  noproxy -> auth [label="use proxy"];
+  auth -> transports;
+
+  config -> ca;
+  config -> mtls;
+  mtls -> lastgood [style=dashed, label="reload failure"];
+  ca -> transports;
+  mtls -> transports;
+  lastgood -> transports [style=dashed, label="keep working pair"];
+
+  transports -> fetch;
+  transports -> axios;
+  transports -> ws;
+  transports -> aws;
+  transports -> mcp;
+  fetch -> target;
+  axios -> target;
+  ws -> target;
+  aws -> target;
+  mcp -> target;
+
+  config -> ccrgate [style=dashed, label="Remote only"];
+  trust -> child;
+  child -> relay [label="HTTPS_PROXY"];
+  tunnel -> target;
+  config -> otlp [style=dashed, label="separate exporter config"];
+}

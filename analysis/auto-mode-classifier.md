@@ -175,7 +175,8 @@ Stage 2 可以推翻 Stage 1 的 block 倾向而允许动作。反过来，如�
 | --- | --- |
 | Stage 2 parse failure | `shouldBlock=true`，带 `failureMode`，属于 no-verdict fail-closed |
 | Stage 1 已 block，Stage 2 safeguard refusal | 保留 Stage 1 block 理由，避免 refusal 把已有阻断变成 allow |
-| Stage 1 已完成、Stage 2 请求异常 | 以 Stage 1 assessment 阻断，并注明通常可重试 |
+| Stage 1 有有效 block、Stage 2 请求异常 | 以 Stage 1 assessment 阻断，并注明通常可重试 |
+| Stage 1 无有效 verdict 但已有 usage、Stage 2 请求异常 | 返回 `shouldBlock=true, unavailable=false`，却没有 `failureMode`；后续被当普通 block，属于实现缺陷候选 |
 | Stage 1 尚无结果、请求异常 | `unavailable=true`，普通工具 fail closed |
 | transcript/context too long | `transcriptTooLong=true`，交给专用 fallback，而不是伪造风险 verdict |
 
@@ -191,7 +192,11 @@ Stage 2 可以推翻 Stage 1 的 block 倾向而允许动作。反过来，如�
 | --- | --- | --- | --- |
 | 策略阻断 | 有明确 `shouldBlock` verdict，且非 unavailable/超长/refusal | classifier 判断动作命中策略 | 计入 |
 | unavailable | API、transport、abort 等导致没有 verdict | 为防误执行而拒绝，不是危险结论 | 不作为普通策略拒绝累计 |
-| no verdict | XML parse failure、safeguard refusal 等 | 输出无法可靠解释或被独立 safeguard 拦截 | `noVerdict=true`，不按普通拒绝处理 |
+| no verdict | 明确携带 `failureMode` 的 XML parse failure，或 safeguard refusal | 输出无法可靠解释或被独立 safeguard 拦截 | `noVerdict=true`，不按普通拒绝处理 |
+
+这里存在一条不能被上表抹平的边缘路径。默认 two-stage 模式中，Stage 1 可以已经产生 usage、但 XML 没形成有效 verdict；随后 Stage 2 transport/request 抛异常。catch 分支因为 `stage1Usage` 存在，会返回 `shouldBlock=true`、`unavailable=false`，却既没有 `failureMode`，也没有 `refusedBySafeguard` [326159-326184](../reverse/javascript/cli.readable.js#L326159)。权限入口于是把它计入 `consecutiveDenials/totalDenials`，并构造没有 `noVerdict` 的 classifier denial [395470-395497](../reverse/javascript/cli.readable.js#L395470)。tool outcome 最终编码为 `automode-blocked`，而不是 `automode-parsing-error` [315769-315777](../reverse/javascript/cli.readable.js#L315769)、[526399-526406](../reverse/javascript/cli.readable.js#L526399)。
+
+这条路径没有可靠危险动作 verdict，不能解释为“分类器认定危险”。它是 **2.1.235 的实现缺陷候选**：失败语义丢失后误入普通策略拒绝的计数与编码。分析遥测或用户连续 denial 时必须把它与真正 policy block 区分。
 
 失败回退按工具和运行模式细分：
 
@@ -206,10 +211,10 @@ tool-result 侧会把 denial kind 明确编码 [315769-315777](../reverse/javasc
 ```text
 明确策略拒绝       -> automode-blocked
 classifier 不可用  -> automode-unavailable
-无有效 verdict     -> automode-parsing-error
+明确标记 noVerdict -> automode-parsing-error
 ```
 
-这三个值随后进入 transcript，下一次 classifier 可以区分“之前被判危险”和“之前只是系统没得出结论”。
+这三个值随后进入 transcript，正常路径下下一次 classifier 可以区分“之前被判危险”和“之前只是系统没得出结论”。上文的 Stage 1 no-verdict + Stage 2 exception 边缘路径会错误落入 `automode-blocked`，所以 outcome code 不是绝对可靠的 ground truth。
 
 ## 6. PermissionDenied Hook 能做什么，不能做什么
 
@@ -303,6 +308,7 @@ apply 路径有以下写前约束 [329188-329237](../reverse/javascript/cli.read
 - 四段规则、可信来源、数组追加、`$defaults` 插入和 `classifyAllShell`；
 - transcript/action/meta 构造和 outcome 语义；
 - 两阶段请求预算、XML parser、timeout、retry、beta 降级和 fail-closed；
+- Stage 1 no-verdict + Stage 2 exception 被误编码为普通 block 的缺陷候选；
 - Agent/AskUserQuestion/headless/dontAsk 的不同 fallback；
 - PermissionDenied Hook 只追加重试提示；
 - `/auto-mode-setup` 的 proposal/review/hash-bound apply/settings 写入保护；

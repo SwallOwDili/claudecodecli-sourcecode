@@ -123,6 +123,40 @@ def downgrade_first_capability(original: bytes) -> bytes:
     raise RuntimeError("negative-test capability row is missing")
 
 
+def remove_capability_row(original: bytes, capability: int) -> bytes:
+    prefix = f"| {capability} |".encode()
+    lines = original.splitlines(keepends=True)
+    remaining = [line for line in lines if not line.startswith(prefix)]
+    if len(remaining) == len(lines):
+        raise RuntimeError(f"negative-test capability {capability} row is missing")
+    return b"".join(remaining)
+
+
+def truncate_mechanism_topic_claims(
+    original: bytes,
+    topic: str,
+    retain: int,
+) -> bytes:
+    lines = original.splitlines(keepends=True)
+    remaining: list[bytes] = []
+    topic_count = 0
+    removed_count = 0
+    for line in lines:
+        if line.strip():
+            record = json.loads(line)
+            if record.get("topic") == topic:
+                topic_count += 1
+                if topic_count > retain:
+                    removed_count += 1
+                    continue
+        remaining.append(line)
+    if topic_count <= retain or removed_count == 0:
+        raise RuntimeError(
+            f"negative-test mechanism topic {topic!r} has only {topic_count} claims"
+        )
+    return b"".join(remaining)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
@@ -301,6 +335,15 @@ def main() -> None:
             "human analysis document analysis/enterprise-gateway-runtime.md does not cover '`x-api-key` 一旦出现，就不再回退 bearer'",
         ),
         (
+            "analysis/auth-account-and-subscription-lifecycle.md",
+            lambda data: replace_once(
+                data,
+                b"preserveInProcessTokens",
+                b"preserveCurrentProcessTokens",
+            ),
+            "human analysis document analysis/auth-account-and-subscription-lifecycle.md does not cover 'preserveInProcessTokens'",
+        ),
+        (
             "analysis/builtin-tools-reference.md",
             lambda data: replace_once(
                 data,
@@ -405,6 +448,16 @@ def main() -> None:
             downgrade_first_capability,
             "completeness capability 1 is not closed: Documented",
         ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: remove_capability_row(data, 51),
+            "completeness capability coverage mismatch: expected=51, actual=50",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "auth-account", 2),
+            "mechanism topic 'auth-account' has 2 claims; minimum is 3",
+        ),
     ]
 
     full_regeneration_cases = {
@@ -429,8 +482,15 @@ def main() -> None:
         "missing human analysis document: analysis/feature-flags-remote-config.md",
     )
 
+    expect_missing_rejection(
+        repo,
+        validator,
+        "analysis/visuals/advisor-dual-model.svg",
+        "reader-first rendered visual is missing: analysis/visuals/advisor-dual-model.svg",
+    )
+
     print("validator negative tests: PASS")
-    print(f"cases checked: {len(cases) + 1}")
+    print(f"cases checked: {len(cases) + 2}")
     print("restoration: PASS")
 
 

@@ -90,8 +90,8 @@ HUMAN_ANALYSIS_DOCS = {
         "Evidence substrate",
     ),
     "analysis/completeness-audit.md": (
-        "40",
-        "39 个客户端能力面",
+        "51",
+        "50 个客户端能力面",
         "Deep",
         "Inventory only",
         "Boundary",
@@ -326,6 +326,96 @@ HUMAN_ANALYSIS_DOCS = {
         "`x-api-key` 一旦出现，就不再回退 bearer",
         "Boundary",
     ),
+    "analysis/auth-account-and-subscription-lifecycle.md": (
+        "forceLoginMethod",
+        "forceLoginOrgUUID",
+        "preserveInProcessTokens",
+        "CLAUDE_CODE_OAUTH_REFRESH_TOKEN",
+        "`setup-token`",
+        "performLogout",
+    ),
+    "analysis/onboarding-workspace-trust-and-safe-startup.md": (
+        "hasCompletedOnboarding",
+        "hasTrustDialogAccepted",
+        "gated_grants_backstop_declined",
+        "`--safe-mode`",
+        "`--bare`",
+        "post-trust",
+    ),
+    "analysis/thinking-effort-and-fast-mode.md": (
+        "set_max_thinking_tokens",
+        "effort_cost_index",
+        "adaptive",
+        "effortLevel",
+        "Fast Mode",
+        "429/529",
+    ),
+    "analysis/usage-cost-credits-and-limits.md": (
+        "modelUsage",
+        "get_usage",
+        "resetAt",
+        "Usage Credits",
+        "auto-resume",
+        "rearm",
+    ),
+    "analysis/project-purge-import-and-data-lifecycle.md": (
+        "Project purge",
+        "TOCTOU",
+        "prompt history",
+        "Preview digest",
+        "manifest mismatch",
+        "best-effort",
+    ),
+    "analysis/sandbox-install-and-runtime-enforcement.md": (
+        "dangerouslyDisableSandbox",
+        "single promise",
+        "`installed: true`",
+        "UAC",
+        "ACL",
+        "sandbox install",
+    ),
+    "analysis/network-proxy-ca-and-mtls.md": (
+        "NO_PROXY",
+        "proxyAuthHelper",
+        "NODE_EXTRA_CA_CERTS",
+        "HTTPS CONNECT",
+        "NodeHttpHandler",
+        "mTLS",
+    ),
+    "analysis/active-goal-and-stop-loop.md": (
+        "activeGoal",
+        "goal_status",
+        "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP",
+        "maxTurns",
+        "active_goal",
+        "Stop hook block discarded",
+    ),
+    "analysis/background-model-tasks-and-memory-consolidation.md": (
+        "Auto Dream",
+        "Away Summary",
+        "Post-turn Summary",
+        "Prompt Suggestion",
+        "Feedback Draft",
+        "skipTranscript",
+        "skipCacheWrite",
+        "consolidate-lock",
+    ),
+    "analysis/advisor-dual-model-runtime.md": (
+        "advisor_rank",
+        "advisor_20260301",
+        "server_tool_use",
+        "advisor_tool_result",
+        "retry:advisor-strip",
+        "advisorModel",
+    ),
+    "analysis/ultrareview-cloud-review.md": (
+        "allow_remote_sessions",
+        "remote_agent",
+        "preflight",
+        "add_issue_comment",
+        "poll_connection_lost",
+        "postReviewTo",
+    ),
     "analysis/inventory-field-guide.md": (
         "comparisonKey",
         "comparisonValue",
@@ -373,6 +463,17 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/plugin-evaluation-harness.md": (11000, 12),
     "analysis/runtime-supervision-and-processes.md": (11500, 12),
     "analysis/enterprise-gateway-runtime.md": (45000, 30),
+    "analysis/auth-account-and-subscription-lifecycle.md": (12000, 18),
+    "analysis/onboarding-workspace-trust-and-safe-startup.md": (10500, 17),
+    "analysis/thinking-effort-and-fast-mode.md": (14500, 22),
+    "analysis/usage-cost-credits-and-limits.md": (15500, 28),
+    "analysis/project-purge-import-and-data-lifecycle.md": (12500, 20),
+    "analysis/sandbox-install-and-runtime-enforcement.md": (14500, 20),
+    "analysis/network-proxy-ca-and-mtls.md": (16000, 28),
+    "analysis/active-goal-and-stop-loop.md": (8000, 11),
+    "analysis/background-model-tasks-and-memory-consolidation.md": (9000, 12),
+    "analysis/advisor-dual-model-runtime.md": (6500, 10),
+    "analysis/ultrareview-cloud-review.md": (9000, 12),
 }
 READER_FIRST_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
@@ -408,6 +509,17 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/plugin-evaluation-harness.md": "plugin-evaluation-lifecycle",
     "analysis/runtime-supervision-and-processes.md": "runtime-supervision-lifecycle",
     "analysis/enterprise-gateway-runtime.md": "enterprise-gateway-runtime",
+    "analysis/auth-account-and-subscription-lifecycle.md": "auth-account-lifecycle",
+    "analysis/onboarding-workspace-trust-and-safe-startup.md": "onboarding-trust-lifecycle",
+    "analysis/thinking-effort-and-fast-mode.md": "thinking-effort-fast-mode",
+    "analysis/usage-cost-credits-and-limits.md": "usage-cost-credits-limits",
+    "analysis/project-purge-import-and-data-lifecycle.md": "project-data-lifecycle",
+    "analysis/sandbox-install-and-runtime-enforcement.md": "sandbox-install-runtime",
+    "analysis/network-proxy-ca-and-mtls.md": "network-proxy-ca-mtls",
+    "analysis/active-goal-and-stop-loop.md": "active-goal-stop-loop",
+    "analysis/background-model-tasks-and-memory-consolidation.md": "background-model-tasks",
+    "analysis/advisor-dual-model-runtime.md": "advisor-dual-model",
+    "analysis/ultrareview-cloud-review.md": "ultrareview-cloud-review",
 }
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
 STATIC_EVIDENCE_KINDS = {
@@ -433,6 +545,21 @@ MECHANISM_TOPIC_MINIMUMS = {
     "native-bridge": 6,
     "telemetry": 8,
     "risk-controls": 1,
+    "auto-mode-classifier": 3,
+    "plugin-evaluation": 3,
+    "runtime-supervision": 3,
+    "enterprise-gateway": 3,
+    "auth-account": 3,
+    "onboarding-trust": 3,
+    "thinking-effort-fast": 3,
+    "usage-cost-limits": 3,
+    "project-data-lifecycle": 3,
+    "sandbox-runtime": 3,
+    "network-proxy-mtls": 3,
+    "active-goal": 3,
+    "background-model-tasks": 3,
+    "advisor": 3,
+    "ultrareview": 3,
 }
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
@@ -783,10 +910,10 @@ def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
         if len(cells) < 6:
             continue
         rows[int(cells[0])] = cells[4]
-    if sorted(rows) != list(range(1, 41)):
+    if sorted(rows) != list(range(1, 52)):
         failures.append(
             "completeness capability coverage mismatch: "
-            f"expected=40, actual={len(rows)}"
+            f"expected=51, actual={len(rows)}"
         )
         return
     for capability, state in sorted(rows.items()):

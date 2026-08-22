@@ -1,0 +1,30 @@
+digraph thinking_effort_fast_mode {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.30", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  input [label="用户/宿主输入\nThinking toggle / /effort / /fast", fillcolor="#fff3cd"];
+  thinking [label="Thinking 解析\nadaptive / fixed budget / disabled\ndisplay summarized / omitted", fillcolor="#d1c4e9"];
+  effort [label="Effort 解析\nCLI/session -> env -> launch pin\nmodel default -> org clamp", fillcolor="#c8e6c9"];
+  fastgate [label="Fast Mode gate\nfirst-party + model\norg/credits + no cooldown\nSDK path: explicit opt-in", fillcolor="#b3e5fc"];
+  builder [label="统一请求装配\nthinking\noutput_config.effort\nspeed: fast", fillcolor="#e3f2fd"];
+  compat [label="组合兼容性\nfixed budget clamp\nmechanical disabled -> effort high\ntool_choice tool -> auto", fillcolor="#ffe0b2"];
+  api [label="Messages API 请求", fillcolor="#c8e6c9"];
+  effort400 [label="effort 400\n按模型锁存 unsupported\n删 effort 重试", fillcolor="#ffcdd2"];
+  fastlimit [label="Fast 429/529\n<20s 等待\n否则 cooldown + 普通速度", fillcolor="#ffcdd2"];
+  success [label="成功响应\nusage 进入成本账本\n状态保留到下一轮", fillcolor="#a5d6a7"];
+
+  input -> thinking [label="thinking setting/control"];
+  input -> effort [label="effort command/config"];
+  input -> fastgate [label="fast opt-in"];
+  thinking -> builder [label="选定请求形态"];
+  effort -> builder [label="选定有效 level"];
+  fastgate -> builder [label="允许时 speed=fast"];
+  builder -> compat [label="最终字段校验"];
+  compat -> api [label="发送"];
+  api -> success [label="2xx"];
+  api -> effort400 [label="effort unsupported"];
+  effort400 -> builder [label="删除字段后重试"];
+  api -> fastlimit [label="fast rate/overload"];
+  fastlimit -> builder [label="清本次 fast 后重试"];
+}

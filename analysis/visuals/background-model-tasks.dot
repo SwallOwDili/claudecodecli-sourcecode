@@ -1,0 +1,25 @@
+digraph background_model_tasks {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9, fontcolor="#263238"];
+
+  events [label="Session 事件\nturn end / blur / 历史累计 / 模型判断", fillcolor="#e3f2fd"];
+  gates [label="各自调度 gate\n缓存、轮次、限流、锁、策略", fillcolor="#fff3cd"];
+  dream [label="Auto Dream fork\n受限工具整理历史", fillcolor="#d1c4e9"];
+  recap [label="Away / Post-turn\n生成 recap 与结构化状态", fillcolor="#e0f2f1"];
+  suggestion [label="Prompt Suggestion\n生成并过滤下一问", fillcolor="#ffe0b2"];
+  draft [label="SendFeedback\n排队本地草稿", fillcolor="#f3e5f5"];
+  memory [label="持久 memory Markdown\n被真实写入或删除", fillcolor="#c8e6c9"];
+  ephemeral [label="临时 session / UI / SDK 状态\n可取消或被下一 turn 替换", fillcolor="#b2dfdb"];
+  upload [label="用户审核后上传\n成功才删除草稿", fillcolor="#ffccbc"];
+
+  events -> gates [label="触发候选任务"];
+  gates -> dream [label="满足 24h、5 session 并取得锁"];
+  gates -> recap [label="满足离开、surface 与缓存条件"];
+  gates -> suggestion [label="满足轮次与质量条件"];
+  gates -> draft [label="允许主模型调用工具"];
+  dream -> memory [label="编辑受限 .md 文件"];
+  recap -> ephemeral [label="写入 recap / status"];
+  suggestion -> ephemeral [label="展示短建议"];
+  draft -> upload [label="仅在用户确认后发送"];
+}

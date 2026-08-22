@@ -206,6 +206,15 @@ def main() -> None:
             "hash differs from manifest",
         ),
         (
+            "analysis/release-notes.md",
+            lambda data: replace_once(
+                data,
+                b"whole-prompt-cache invalidation",
+                b"prompt-cache invalidation",
+            ),
+            "release notes upstream verbatim block mismatch",
+        ),
+        (
             "analysis/runtime-probe-index.md",
             lambda data: data.replace(
                 b"`probe.agent-loop-tool-feedback`",
@@ -233,6 +242,11 @@ def main() -> None:
             "source inventory line count mismatch",
         ),
         (
+            "analysis/source-inventory/claude-storage-namespaces.txt",
+            lambda data: replace_once(data, b"transcript\n", b""),
+            "source inventory line count mismatch",
+        ),
+        (
             "analysis/agent-loop.md",
             lambda data: replace_once(
                 data,
@@ -249,6 +263,42 @@ def main() -> None:
                 b"](visuals/native-bridge-lifecycle-missing.svg)",
             ),
             "reader-first human document is missing lifecycle image",
+        ),
+        (
+            "analysis/auto-mode-classifier.md",
+            lambda data: replace_once(
+                data,
+                b"twoStageClassifier",
+                b"stageClassifierMissing",
+            ),
+            "human analysis document analysis/auto-mode-classifier.md does not cover 'twoStageClassifier'",
+        ),
+        (
+            "analysis/plugin-evaluation-harness.md",
+            lambda data: replace_once(
+                data,
+                "六类 grader".encode(),
+                "五类 grader".encode(),
+            ),
+            "human analysis document analysis/plugin-evaluation-harness.md does not cover '六类 grader'",
+        ),
+        (
+            "analysis/runtime-supervision-and-processes.md",
+            lambda data: replace_once(
+                data,
+                "launcher exit 0 但 Claude 尚未 ready".encode(),
+                "launcher 已退出".encode(),
+            ),
+            "human analysis document analysis/runtime-supervision-and-processes.md does not cover 'launcher exit 0 但 Claude 尚未 ready'",
+        ),
+        (
+            "analysis/enterprise-gateway-runtime.md",
+            lambda data: replace_once(
+                data,
+                "`x-api-key` 一旦出现，就不再回退 bearer".encode(),
+                "`x-api-key` 校验失败后回退 bearer".encode(),
+            ),
+            "human analysis document analysis/enterprise-gateway-runtime.md does not cover '`x-api-key` 一旦出现，就不再回退 bearer'",
         ),
         (
             "analysis/builtin-tools-reference.md",
@@ -326,10 +376,20 @@ def main() -> None:
             "analysis/storage-v5-reference.md",
             lambda data: replace_once(
                 data,
-                b"<!-- storage-namespace:agentMemory -->",
-                b"<!-- storage-namespace:agentMemoryMissing -->",
+                b"<!-- storage-namespace:transcript -->",
+                b"<!-- storage-namespace:transcriptMissing -->",
             ),
             "human Claude storage namespace coverage mismatch",
+        ),
+        (
+            "analysis/storage-v5-reference.md",
+            lambda data: data.replace(b"tornTailBytes", b"tornTailMissing"),
+            "human analysis document analysis/storage-v5-reference.md does not cover 'tornTailBytes'",
+        ),
+        (
+            "analysis/sessions-checkpoints-memory.md",
+            lambda data: data.replace(b"SharedInode", b"SharedLinkGuardMissing"),
+            "human analysis document analysis/sessions-checkpoints-memory.md does not cover 'SharedInode'",
         ),
         (
             "analysis/product-surface-evidence-map.md",
@@ -350,6 +410,7 @@ def main() -> None:
     full_regeneration_cases = {
         "analysis/source-inventory/summary.json",
         "analysis/source-inventory/environment-schema.jsonl",
+        "analysis/source-inventory/claude-storage-namespaces.txt",
     }
     for relative, mutate, expected in cases:
         expect_rejection(

@@ -1,0 +1,40 @@
+digraph enterprise_gateway_runtime {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.32", nodesep="0.34", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.17,0.12", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.45, arrowsize=0.78, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  caller [label="Two caller identities\nDeveloper session bearer / Enterprise cri+jwt", fillcolor="#fff3cd"];
+
+  edge_guard [label="Edge guards\ntrusted proxy / CIDR / size / request id", fillcolor="#ffe0b2"];
+  auth_wall [label="Admission wall\nOIDC session or CRI JWT", fillcolor="#d1c4e9"];
+  governance [label="Governance\nmanaged policy / webhook / spend", fillcolor="#ffccbc"];
+  router [label="Model router\nallowlist / mapping / failover", fillcolor="#e3f2fd"];
+  upstream [label="Operator upstream\nAnthropic / AWS / Vertex / Foundry", fillcolor="#b2dfdb"];
+  response [label="Response path\nSSE / hygiene / metering / headers", fillcolor="#c8e6c9"];
+  result [label="Caller-visible result\nSession: policy + usage + inference\nCRI: sanitized inference only", fillcolor="#fff3cd"];
+
+  postgres [label="Postgres\ndevice grants / rate limits / spend / audit", shape=cylinder, fillcolor="#d7ccc8"];
+  idp [label="Corporate IdP\nOIDC discovery / code / refresh", fillcolor="#eeeeee"];
+  jwks [label="Anthropic CRI JWKS\nES256 key cache", fillcolor="#eeeeee"];
+  webhook [label="Policy webhook\nallow or block", fillcolor="#eeeeee"];
+  collectors [label="OTLP destinations\nmetrics / logs / traces", fillcolor="#eeeeee"];
+
+  caller -> edge_guard [label="calls fixed gateway paths"];
+  edge_guard -> auth_wall [label="derives client IP and validates envelope"];
+  auth_wall -> governance [label="admits a typed principal"];
+  governance -> router [label="allows the request"];
+  router -> upstream [label="maps model and applies operator credential"];
+  upstream -> response [label="streams or returns a result"];
+  response -> result [label="returns the identity-specific surface"];
+
+  { rank=same; idp; auth_wall; jwks; }
+  { rank=same; governance; postgres; }
+  { rank=same; router; webhook; }
+
+  idp -> auth_wall [label="authenticates developer identity", constraint=false];
+  jwks -> auth_wall [label="refreshes bounded ES256 keys", constraint=false];
+  auth_wall -> postgres [label="reads/writes grant and rate state", constraint=false];
+  governance -> postgres [label="checks caps and writes audit", constraint=false];
+  governance -> webhook [label="exchanges an allow/block decision", dir=both, constraint=false];
+  auth_wall -> collectors [label="fans out authenticated OTLP", constraint=false];
+}

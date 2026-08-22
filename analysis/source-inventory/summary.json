@@ -108,6 +108,7 @@
     "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
     "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
     "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+    "claudeStorageNamespaces": "locates the product key factory from the stable transcript/journal/history/log prefix through sessionAliases and extracts every namespace in that bounded factory, including stream namespaces declared before globalConfig",
     "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings"
   },
   "coverage": {
@@ -207,6 +208,14 @@
       "catalogEntries": 17,
       "pricingTiers": 6,
       "aliases": 4
+    },
+    "claudeStorage": {
+      "namespaceCount": 32,
+      "requiredStreamNamespaces": [
+        "history",
+        "log",
+        "transcript"
+      ]
     }
   },
   "completionAudit": {
@@ -217,6 +226,7 @@
     "modelCatalogParsed": true,
     "environmentSchemaParsed": true,
     "datadogSurfaceParsed": true,
+    "claudeStorageFactoryParsed": true,
     "semanticSymbolsDiscovered": true,
     "knownStaticExtractionGaps": [],
     "nonRecoverableBoundaries": [
@@ -263,7 +273,7 @@
     "output-protocol-event-identifiers": 44,
     "hook-events": 31,
     "storage-namespaces": 41,
-    "claude-storage-namespaces": 29,
+    "claude-storage-namespaces": 32,
     "user-config-directories": 13,
     "api-paths": 99,
     "http-route-identifiers": 19,
@@ -324,9 +334,9 @@
     },
     {
       "path": "analysis/source-inventory/claude-storage-namespaces.txt",
-      "lines": 29,
-      "size": 281,
-      "sha256": "a9fd5ceb3e71bcc512375cafbe539f93c3cbcd2c018597cbce5c0548b0862b2e"
+      "lines": 32,
+      "size": 304,
+      "sha256": "2cb8414048b8c13d110d1fbad5a05b1532f5c50dde19e275c4cdcbeb5cea7cb5"
     },
     {
       "path": "analysis/source-inventory/datadog-forwarded-events.txt",

@@ -22,6 +22,27 @@ SECRET_RE = re.compile(
     rb"(?:sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|"
     rb"AKIA[A-Z0-9]{16}|AIza[A-Za-z0-9_-]{30,})"
 )
+CLAUDE_STORAGE_NAMESPACE_RE = re.compile(
+    rb"\bnamespace\s*:\s*['\"]([A-Za-z][A-Za-z0-9_-]{0,80})['\"]"
+)
+CLAUDE_STORAGE_FACTORY_START_RE = re.compile(
+    rb"\btranscript\s*:\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,\s*"
+    rb"journal\s*:\s*.{0,500}?\bnamespace\s*:\s*['\"]transcript['\"]"
+    rb".{0,500}?\bhistory\s*:\s*.{0,200}?\bnamespace\s*:\s*['\"]history['\"]"
+    rb".{0,300}?\blog\s*:",
+    re.DOTALL,
+)
+CLAUDE_STORAGE_FACTORY_END_RE = re.compile(rb"\bsessionAliases\s*:")
+RELEASE_NOTES_COMMIT = "16440d0f6ee8c47f34169687044b89eafa8b0f8d"
+RELEASE_NOTES_FULL_SHA256 = (
+    "ca5698c578b3e3a97b8ff8388a08f4095a64c69696709dd07337605fe5f30fe3"
+)
+RELEASE_NOTES_SECTION_SHA256 = (
+    "04943db50acf834556450fc580d0e3617ae0de7a7b62a5aed9444013420c5d17"
+)
+RELEASE_NOTES_ITEMS_SHA256 = (
+    "4e63bcf44076b4482193e496be340699579bcb2360ded401b4f930d043255fff"
+)
 SOURCE_INVENTORY_MINIMUMS = {
     "environment-access-identifiers": 1,
     "first-party-events": 1,
@@ -69,7 +90,8 @@ HUMAN_ANALYSIS_DOCS = {
         "Evidence substrate",
     ),
     "analysis/completeness-audit.md": (
-        "36",
+        "40",
+        "39 个客户端能力面",
         "Deep",
         "Inventory only",
         "Boundary",
@@ -126,9 +148,13 @@ HUMAN_ANALYSIS_DOCS = {
     ),
     "analysis/storage-v5-reference.md": (
         "STORAGE_NAMESPACE_COVERAGE_BEGIN",
-        "29",
+        "32 个 namespace",
         "tryCreateV5Backend",
         "updateText",
+        "ifUnchangedThrough",
+        "tornTailBytes",
+        "SharedInode",
+        "并发尾追加",
         "Boundary",
     ),
     "analysis/workflow-artifact-design.md": (
@@ -200,6 +226,10 @@ HUMAN_ANALYSIS_DOCS = {
         "compact boundary",
         "file checkpoint",
         "MEMORY.md",
+        "ifUnchangedThrough",
+        "tornTailBytes",
+        "SharedInode",
+        "并发尾追加",
         "外部状态",
     ),
     "analysis/tools-permissions-hooks.md": (
@@ -261,6 +291,41 @@ HUMAN_ANALYSIS_DOCS = {
         "waitForUrlEvent",
         "Compatible",
     ),
+    "analysis/auto-mode-classifier.md": (
+        "twoStageClassifier",
+        "classifyAllShell",
+        "$defaults",
+        "PermissionDenied",
+        "fail closed",
+        "Boundary",
+    ),
+    "analysis/plugin-evaluation-harness.md": (
+        "with-without",
+        "六类 grader",
+        "3 次独立 judge",
+        "scaffold_script",
+        "partial_reason",
+        "Boundary",
+    ),
+    "analysis/runtime-supervision-and-processes.md": (
+        "processWrapper",
+        "Rendezvous",
+        "256 KiB",
+        "respawn",
+        "asyncRewake",
+        "launcher exit 0 但 Claude 尚未 ready",
+        "Boundary",
+    ),
+    "analysis/enterprise-gateway-runtime.md": (
+        "Gateway session",
+        "CRI",
+        "JWKS",
+        "Postgres",
+        "OTLP",
+        "failover",
+        "`x-api-key` 一旦出现，就不再回退 bearer",
+        "Boundary",
+    ),
     "analysis/inventory-field-guide.md": (
         "comparisonKey",
         "comparisonValue",
@@ -304,6 +369,10 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/install-update-doctor-lifecycle.md": (5000, 8),
     "analysis/native-bridge-runtime.md": (6000, 10),
     "analysis/runtime-probe-index.md": (9000, 10),
+    "analysis/auto-mode-classifier.md": (14000, 15),
+    "analysis/plugin-evaluation-harness.md": (11000, 12),
+    "analysis/runtime-supervision-and-processes.md": (11500, 12),
+    "analysis/enterprise-gateway-runtime.md": (45000, 30),
 }
 READER_FIRST_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
@@ -335,6 +404,10 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/telemetry.md": "telemetry-pipeline",
     "analysis/inventory-field-guide.md": "inventory-reading-lifecycle",
     "analysis/source-surface.md": "evidence-surface-lifecycle",
+    "analysis/auto-mode-classifier.md": "auto-mode-classifier",
+    "analysis/plugin-evaluation-harness.md": "plugin-evaluation-lifecycle",
+    "analysis/runtime-supervision-and-processes.md": "runtime-supervision-lifecycle",
+    "analysis/enterprise-gateway-runtime.md": "enterprise-gateway-runtime",
 }
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
 STATIC_EVIDENCE_KINDS = {
@@ -459,12 +532,25 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         "modelCatalogParsed",
         "environmentSchemaParsed",
         "datadogSurfaceParsed",
+        "claudeStorageFactoryParsed",
         "semanticSymbolsDiscovered",
     ):
         if completion.get(field) is not True:
             failures.append(f"source inventory completion audit failed: {field}")
     if completion.get("knownStaticExtractionGaps") != []:
         failures.append("source inventory reports known static extraction gaps")
+
+    storage_coverage = summary.get("coverage", {}).get("claudeStorage", {})
+    if storage_coverage.get("namespaceCount") != counts.get(
+        "claude-storage-namespaces"
+    ):
+        failures.append("Claude storage coverage count does not match inventory count")
+    if storage_coverage.get("requiredStreamNamespaces") != [
+        "history",
+        "log",
+        "transcript",
+    ]:
+        failures.append("Claude storage coverage is missing required stream namespaces")
 
     discovered = summary.get("discoveredSymbols", {})
     roles = discovered.get("roles", {}) if isinstance(discovered, dict) else {}
@@ -697,10 +783,10 @@ def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
         if len(cells) < 6:
             continue
         rows[int(cells[0])] = cells[4]
-    if sorted(rows) != list(range(1, 37)):
+    if sorted(rows) != list(range(1, 41)):
         failures.append(
             "completeness capability coverage mismatch: "
-            f"expected=36, actual={len(rows)}"
+            f"expected=40, actual={len(rows)}"
         )
         return
     for capability, state in sorted(rows.items()):
@@ -1887,6 +1973,64 @@ def text_between(content: str, start: str, end: str) -> str:
     return content[start_index:end_index]
 
 
+def validate_release_notes(repo: Path, failures: list[str]) -> None:
+    path = repo / "analysis/release-notes.md"
+    if not path.is_file():
+        failures.append("missing pinned upstream release notes")
+        return
+
+    content = path.read_text(encoding="utf-8")
+    required_metadata = (
+        f"Commit：`{RELEASE_NOTES_COMMIT}`",
+        "https://raw.githubusercontent.com/anthropics/claude-code/"
+        f"{RELEASE_NOTES_COMMIT}/CHANGELOG.md",
+        f"SHA-256 `{RELEASE_NOTES_FULL_SHA256}`",
+        f"SHA-256 `{RELEASE_NOTES_SECTION_SHA256}`",
+        "## 上游原文（19/19）",
+        "## 逐项机制回填",
+    )
+    for marker in required_metadata:
+        if marker not in content:
+            failures.append(f"release notes missing pinned metadata: {marker}")
+
+    try:
+        verbatim = text_between(
+            content,
+            "## 上游原文（19/19）",
+            "## 逐项机制回填",
+        )
+    except ValueError:
+        failures.append("release notes upstream verbatim block is missing")
+        return
+
+    item_lines = [line for line in verbatim.splitlines() if line.startswith("- ")]
+    if len(item_lines) != 19:
+        failures.append(
+            f"release notes upstream item count mismatch: {len(item_lines)} != 19"
+        )
+        return
+    item_bytes = ("\n".join(item_lines) + "\n").encode("utf-8")
+    if hashlib.sha256(item_bytes).hexdigest() != RELEASE_NOTES_ITEMS_SHA256:
+        failures.append("release notes upstream verbatim block mismatch")
+
+
+def canonical_claude_storage_namespaces(source: bytes) -> list[str]:
+    """Recover the product key-factory set independently of the inventory script."""
+    start_match = CLAUDE_STORAGE_FACTORY_START_RE.search(source)
+    if start_match is None:
+        return []
+    end_match = CLAUDE_STORAGE_FACTORY_END_RE.search(source, start_match.start())
+    if end_match is None or end_match.start() - start_match.start() > 20000:
+        return []
+    end = source.find(b"}", end_match.end())
+    if end < 0:
+        return []
+    factory = source[start_match.start() : end + 1]
+    return sorted(
+        {value.decode("utf-8") for value in CLAUDE_STORAGE_NAMESPACE_RE.findall(factory)}
+    )
+
+
 def report_exact_coverage(
     label: str,
     expected: list[str],
@@ -2075,6 +2219,24 @@ def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> Non
     expected_storage_namespaces = (
         inventory_dir / "claude-storage-namespaces.txt"
     ).read_text(encoding="utf-8").splitlines()
+    canonical_storage_namespaces = canonical_claude_storage_namespaces(
+        (repo / "extracted/cli.js").read_bytes()
+    )
+    if not canonical_storage_namespaces:
+        failures.append("canonical Claude storage key factory was not found")
+    elif expected_storage_namespaces != canonical_storage_namespaces:
+        failures.append(
+            "Claude storage namespace inventory does not match canonical key factory: "
+            f"expected={canonical_storage_namespaces}, actual={expected_storage_namespaces}"
+        )
+    missing_stream_namespaces = sorted(
+        {"transcript", "history", "log"} - set(canonical_storage_namespaces)
+    )
+    if missing_stream_namespaces:
+        failures.append(
+            "canonical Claude storage key factory is missing stream namespaces: "
+            + ", ".join(missing_stream_namespaces)
+        )
     storage_reference = (repo / "analysis/storage-v5-reference.md").read_text(
         encoding="utf-8"
     )
@@ -2130,6 +2292,7 @@ def main() -> int:
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
 
     validate_human_snapshot_identity(repo, version, metadata, failures)
+    validate_release_notes(repo, failures)
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
     readme_first_screen = readme.split("## 快照信息", 1)[0]

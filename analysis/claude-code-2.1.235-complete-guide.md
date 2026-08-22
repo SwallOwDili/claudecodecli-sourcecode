@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 36 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [29 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合，读 [Workflow/Artifact/Design](workflow-artifact-design.md)、[Feature Flags/Remote Config](feature-flags-remote-config.md)、[TUI/媒体/IDE/Chrome](tui-input-accessibility-media-ide-chrome.md) 与 [后台/Channels/Cloud](cloud-background-channels.md) 查产品状态机。这些专题补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 40 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [32 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合。Auto Mode、Plugin Eval、Runtime Supervision 和 Enterprise Gateway 分别有 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[后台监督专题](runtime-supervision-and-processes.md) 与 [企业网关专题](enterprise-gateway-runtime.md)；Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome 和后台/Channels/Cloud 也各有专属状态机。它们补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1277,10 +1277,14 @@ Doctor分别检查：
 | Feature evaluation、disk cache、refresh、exposure | [feature-flags-remote-config.md](feature-flags-remote-config.md) |
 | 103 个 slash command 的 host、gate 与状态 owner | [slash-command-reference.md](slash-command-reference.md) |
 | 31 个 Hook 事件的字段、阻塞与 timeout | [hooks-event-reference.md](hooks-event-reference.md) |
-| 29 个 Storage namespace 的 key、写入与 consumer | [storage-v5-reference.md](storage-v5-reference.md) |
+| 32 个 Storage namespace 的 key、写入、transcript 压实与 consumer | [storage-v5-reference.md](storage-v5-reference.md) |
 | Workflow、Artifact、Design 的数据与发布边界 | [workflow-artifact-design.md](workflow-artifact-design.md) |
 | TUI、输入、拼写、图片、语音、IDE、Chrome | [tui-input-accessibility-media-ide-chrome.md](tui-input-accessibility-media-ide-chrome.md) |
 | 后台 task、Cron、Channel、Remote、Cloud 与 runner | [cloud-background-channels.md](cloud-background-channels.md) |
+| Auto Mode 的权限前置层、两阶段 verdict 与 fail-closed | [auto-mode-classifier.md](auto-mode-classifier.md) |
+| Plugin Eval 的 ablation、grader、费用与 Delta 可比性 | [plugin-evaluation-harness.md](plugin-evaluation-harness.md) |
+| Daemon、PTY、worker、rendezvous 与 respawn 谁拥有状态 | [runtime-supervision-and-processes.md](runtime-supervision-and-processes.md) |
+| Enterprise Gateway 的身份、策略、provider、spend 与 OTLP | [enterprise-gateway-runtime.md](enterprise-gateway-runtime.md) |
 | TUI、IDE、Remote、cloud | [tui-ide-remote-cloud.md](tui-ide-remote-cloud.md) |
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
@@ -1317,7 +1321,7 @@ Doctor分别检查：
 
 ### 35.3 Storage v5：namespace 不是自动事务数据库
 
-29 个 Claude namespace 用 typed key 把 segment、scope 和允许形状固定下来；底层支持 atomic replace、in-place 和 append 等写入纪律，也有 expected stat/value/version 一类 precondition。它解决的是路径、key 与单次写入合同，不自动提供：
+32 个 Claude namespace 用 typed key 把 segment、scope 和允许形状固定下来；其中 `transcript`、`history`、`log` 是不能漏掉的流式入口。底层支持 atomic replace、in-place 和 append 等写入纪律，也有 expected stat/value/version 一类 precondition。它解决的是路径、key 与单次写入合同，不自动提供：
 
 - namespace-wide lock；
 - 跨 key transaction；
@@ -1351,7 +1355,47 @@ Feature manager 同时持有 fresh map、disk last-known-good、experiment metad
 
 这套结构解释了四个用户现象：同版本不同账号不同；退出登录后 rollout 改变；关闭非必要流量后在线求值关闭；旧 disk true 在刷新前继续生效。它也解释了准确性边界：客户端可以证明取值和消费顺序，不能恢复服务端 targeting rule、账号实时值、entitlement 或实验分配。
 
-## 36. 最终准确性边界
+## 36. Auto Mode：确定性规则之后的两阶段权限分类
+
+Auto Mode 不是 `bypassPermissions` 的别名，也不是让模型接管全部权限。单工具仍先经过 deny、工具自身 safety check、ask、交互要求、组织级 ask ceiling 和 safety floor；这些层已经要求拒绝或询问时，分类器不能覆盖。只有普通 permission ask 才可能进入 Auto Mode。命中 `acceptEdits` 模拟或本地 safe allowlist 的动作可以直接放行，未命中者才构造 classifier transcript。
+
+规则只从 `userSettings`、`flagSettings` 和 `policySettings` 聚合；项目和 local settings 中的 `autoMode` 会告警后忽略，防止仓库内容自行放宽权限。`allow`、`soft_deny`、`hard_deny`、`environment` 使用有位置语义的 `$defaults`：第一次出现时把 shipped defaults 插入该位置，没有 `$defaults` 就完全替换默认段。`classifyAllShell=true` 只在 Auto Mode 活跃时暂停 shell allow fast path，不会删除原规则。
+
+默认 `twoStageClassifier="both"`。Stage 1 输出预算为 `64 + thinking overhead`，fast-only 时为 `256 + thinking overhead`，外层与 SDK timeout 都是 60 秒；Stage 1 allow 立即结束，block 倾向或无有效 verdict 进入 Stage 2。Stage 2 预算为 `8192 + thinking overhead`、外层 timeout 120 秒，可以推翻 Stage 1 的 block；但 API unavailable、XML parse failure、safeguard refusal 或最终无 verdict 时，普通工具 fail closed。此时的拒绝表示“没有可靠许可”，不等于模型已经证明动作危险。
+
+classifier denial 可触发 `PermissionDenied` Hook。`retry:true` 只向下一轮 Agent Loop 追加可重试提示，原始 tool call 没有执行；setup/apply 又使用 proposal、review 和内容 hash 绑定，防止交互确认后配置被换包。完整输入裁剪、repo visibility/git status 补充、Agent/AskUserQuestion/headless fallback、outcome kind、成本和隐私边界见 [Auto Mode 专题](auto-mode-classifier.md)。
+
+## 37. Plugin Evaluation Harness：高分不等于插件有增益
+
+`claude plugin eval` 先把 `case.yaml` 或 `prompt.md + graders/*.md` 编译成严格 schema，再对 case 目录、grader、plugin tree 做 inode/device、symlink、hardlink、owner、mode 和 containment 检查。`runs` 默认 3、最大 50；`max_turns` 默认 10、最大 200；`timeout_seconds` 默认 300、最大 3600。输入身份检查只能证明父进程执行的是刚审查的内容，不能把第三方 case 或 `scaffold_script` 变成可信代码。
+
+有插件时默认执行 `with-without` ablation：with arm 保留 `pluginDirs`，without arm 只把它清空，其它 resolved case 合同保持一致。`with-only` grader 和默认的 `tool_used: Skill` 不进入两臂效果分母，避免把“基线没有插件工具”直接计成质量提升。没有真实 without arm、replay history 已带插件影响或两臂 grader 规则不同，就不能发布有效 Delta。
+
+每个 run 使用新的 HOME、Claude config、Git workspace、trace 和 credential copy，以 `-p --output-format stream-json --permission-mode dontAsk` 启动同版 child。这里的 sandbox 是状态目录隔离，不是断网、容器或 OS syscall sandbox；获得 Bash、Write、WebFetch 或 MCP grant 后仍会产生真实副作用。费用 ceiling 在 run 开始前检查，所以最多可被一个已启动的 Agent run 越过；之后付费 grader 被跳过、suite 标记 `partial_reason=cost_ceiling`。
+
+六类 grader 分别是 regex、tool order、tool used、file exists、LLM 和 baseline。LLM/baseline 各发 3 次独立 judge，2/3 多数决定 PASS；grader 异常按失败计入，不从平均值消失。完整 suite 达阈值 exit 0，质量/case 错误 exit 1，cost/auth/interrupt partial 通常 exit 2；JSON、HTML 与可选私有 publish 保留每次 run、evidence、judge votes、费用和 Delta。完整合同见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
+
+## 38. Runtime Supervision：后台存活、可连接与任务完成是三件事
+
+后台运行至少有六个 owner：Agent View 负责展示与控制，daemon supervisor 持有 worker roster/PID/phase/respawn，PTY host 持有 Bun.Terminal、socket 和输出 ring，Claude worker 持有 Agent Loop/tool/transcript，rendezvous 传 heartbeat/state/reply，Storage V5 job record 保存可恢复业务投影。`running` 只是派生状态；它既不保证模型正在生成 token，也不保证 PTY 可 attach。
+
+企业 `processWrapper` 来自环境或受信 settings，按 argv 解析而不经过 shell；launcher 必须是绝对路径、regular executable，并且必须 `exec` 进入 Claude。配置存在但失效时 self-spawn fail closed。worker 在 12 秒内出现“launcher exit 0 但 Claude 尚未 ready”会被判为 fork-and-exit 违规，避免 wrapper 自己退出后留下无法监督的后继。
+
+PTY host 为新 attacher 回放最近 `256 KiB`，单客户端 writable queue 超过 `1 MiB` 就断开；60 秒 ping 连续漏 3 次只回收该连接。Unix orphan watchdog 每 2 秒检查 parent/client，连续 30 次无 owner 后先 `SIGTERM` child，5 秒仍不退出再 `SIGKILL`。PTY auth 与 rendezvous auth 各使用 16 random bytes hex token，Unix 优先通过 mode `0600` 一次性文件交付。
+
+异常退出后 supervisor 先查 job 是否 settled、cwd 是否存在、transcript 能否 resume，再等待 10 秒 respawn，最多 20 attempts；3 次在 5 秒内 fast crash 会提前终止，稳定 5 分钟后 attempt budget 可重置。rendezvous 120 秒无 heartbeat 只记录 stalled 证据，不等同立即杀进程。空闲至少 30 分钟且主循环不忙的 local background Bash 可被 memory-pressure reap；`asyncRewake` command Hook 只有 exit 2 才以 Stop-hook feedback 唤醒下一轮。完整状态和故障定位见 [Runtime Supervision](runtime-supervision-and-processes.md)。
+
+## 39. Enterprise Gateway：身份、策略、上游凭据与计量的独立运行时
+
+`claude gateway --config` 只在 native Bun binary 中运行。启动先严格展开 YAML 的 `${ENV_NAME}` 与绝对路径 `${file:/...}`，拒绝未知 key 和旧 `dev:` 配置；随后连接 Postgres、获取 advisory lock 并迁移，再构造 admin/spend、session key ring、可选 CRI authenticator/JWKS、policy webhook、OIDC、provider clients、managed policies 和 TLS。除 CRI JWKS prime 可降级外，构造失败都阻止 listen。
+
+普通开发者先走 RFC 8628 device flow 和公司 OIDC，Gateway 校验 code/PKCE/nonce/browser binding 后签发自己的短期 HS256 session JWT，不把 IdP token 直接交给 CLI。默认 device grant 有效 10 分钟，Gateway session TTL 1 小时。CRI 则使用外部 Anthropic `cri+jwt`，固定验证 issuer、JWKS、audience、org、scope，只能进入 inference path，不能读取 managed settings、spend admin 或 Gateway OTLP。
+
+请求顺序是 IP deny、health/readiness、IP allow、URL/header/body limits、公开 OAuth、admin 特殊认证、session/CRI admission、endpoint dispatch、session spend precheck、JSON/CRI webhook、model allowlist/mapping、顺序 upstream failover、response hygiene 和成功 usage metering。admin 路径中 `x-api-key` 一旦出现就不再回退 bearer；用户 Gateway token 在身份墙被消费，上游看到的是 operator credential。Anthropic、Bedrock、Vertex、Foundry 等模型名因此可映射到不同 provider ID，但云 IAM、配额和内容审核仍属于外部系统。
+
+默认请求体上限 32 MiB、Postgres pool 5、upstream TTFB 120 秒；spend 在 75%/95% 提示并在 cap 处返回 `billing_error`。CRI JWKS fetch 10 秒、默认 10 分钟刷新、6 小时 hard age、unknown-kid 1 分钟 cooldown；webhook 默认 2 秒且 fail closed。OTLP 对客户端立即 200，再以 128 in-flight、连续 5 次失败开路 30 秒、destination timeout 10 秒后台 fanout，所以 Collector 故障不阻塞 CLI，但可能丢观测数据。完整 endpoint、YAML、Postgres schema、provider 错误映射、CRI hygiene、retention 和安全边界见 [Enterprise Gateway Runtime](enterprise-gateway-runtime.md)。
+
+## 40. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

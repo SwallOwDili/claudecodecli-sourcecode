@@ -1,0 +1,32 @@
+digraph plugin_evaluation_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.38", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  input [label="Case 输入\ncase.yaml 或 prompt.md + graders/*.md", fillcolor="#fff3cd"];
+  trust [label="读取与信任门\nidentity / owner / symlink / hardlink / containment", fillcolor="#ffe0b2"];
+  resolved [label="Resolved case\nprompt / plugins / runs / limits / six graders", fillcolor="#e3f2fd"];
+  ablation [label="Ablation planner\nwith: 保留 pluginDirs\nwithout: pluginDirs = []", fillcolor="#d1c4e9"];
+  temp [label="每个 run 新建临时状态\nHOME / config / cwd / trace / credential copy", fillcolor="#d7ccc8"];
+  child [label="启动同版 child Agent Loop\n-p + stream-json + dontAsk + tool grants", fillcolor="#c8e6c9"];
+  observe [label="观察结果\ntrace / last message / tools / file diff / cost", fillcolor="#b2dfdb"];
+  grade [label="Grader\nregex / order / used / file / llm / baseline\nLLM judge 3 票多数", fillcolor="#bbdefb"];
+  aggregate [label="聚合\nweighted run score / case mean / Delta", fillcolor="#c8e6c9"];
+  report [label="输出\nJSON schema v1 / HTML / optional private publish", fillcolor="#fff3cd"];
+  partial [label="明确 partial / 不可比较\nauth / cost / interrupt /异规则两臂", fillcolor="#ffcdd2"];
+  boundary [label="边界\n临时目录隔离 != OS/断网沙箱\nscaffold 与获准工具仍有真实副作用", fillcolor="#ffe0b2"];
+
+  input -> trust [label="逐文件/目录核验"];
+  trust -> resolved [label="schema + source resolve"];
+  resolved -> ablation [label="有插件时默认两臂"];
+  ablation -> temp [label="每臂 x runs"];
+  temp -> child [label="固定 argv/env"];
+  child -> observe [label="stream-json + filesystem"];
+  observe -> grade [label="每个 grader 独立判定"];
+  grade -> aggregate [label="with-only 不计分"];
+  aggregate -> report [label="完整且同规则"];
+  child -> partial [label="auth/timeout/cost/interruption", style=dashed];
+  grade -> partial [label="paid grader 被跳过", style=dashed];
+  partial -> report [label="保留已完成证据，隐藏无效 Delta"];
+  temp -> boundary [label="只隔离状态位置", style=dashed, constraint=false];
+}

@@ -1,4 +1,4 @@
-# Claude Code CLI 2.1.235 Storage v5：29 个 namespace、写入合同与真实边界
+# Claude Code CLI 2.1.235 Storage v5：32 个 namespace、写入合同与真实边界
 
 > 版本：`2.1.235` | 证据：目标版本 readable bundle 的 `Static` consumer 和 key/adapter 合同
 
@@ -6,13 +6,13 @@ Storage v5 不是一个“新数据库目录”的同义词。它首先是一套
 
 ## 60 秒理解这套存储层
 
-**读者问题：** 为什么源码里到处能看到 `storageV5` 和 29 个 namespace，本机文件却仍在原来的 `.claude` 路径；为什么有的写入叫 atomic，有的又是 in-place？
+**读者问题：** 为什么源码里到处能看到 `storageV5` 和 32 个 namespace，本机文件却仍在原来的 `.claude` 路径；为什么有的写入叫 atomic，有的又是 in-place？
 
 **一句话模型：** 业务 consumer 先把状态编码成受校验的逻辑 key，在收到外部注入的 adapter 时用前置条件和 publish discipline 更新值，否则按各 consumer 的既有磁盘路径回退；namespace 只定义寻址和边界，不自动提供统一锁、迁移或保留策略。
 
 ![Storage consumer 通过 typed key、校验、可选 adapter 和发布纪律写入逻辑值，并在 adapter 缺失时回退磁盘路径](visuals/storage-v5-lifecycle.svg)
 
-贯穿场景：Claude Code 更新全局配置。consumer 先读 `globalConfig`，在进程内写队列中合并变化；有 adapter 时用 `followAtomic` 写逻辑 key，并订阅外部变化，同时保留 backup/corrupted recovery copies 和裁剪旧副本；没有 adapter 时继续使用既有配置文件路径。这里的可靠性来自 globalConfig consumer 自己的队列、备份和恢复逻辑，不是所有 29 个 namespace 自动共享这些能力。
+贯穿场景：Claude Code 更新全局配置。consumer 先读 `globalConfig`，在进程内写队列中合并变化；有 adapter 时用 `followAtomic` 写逻辑 key，并订阅外部变化，同时保留 backup/corrupted recovery copies 和裁剪旧副本；没有 adapter 时继续使用既有配置文件路径。这里的可靠性来自 globalConfig consumer 自己的队列、备份和恢复逻辑，不是所有 32 个 namespace 自动共享这些能力。
 
 | 对象 | 操作前 | 转换 | 操作后 | 用户可见效果 |
 | --- | --- | --- | --- | --- |
@@ -92,6 +92,8 @@ adapter 接收结构化 key，再决定怎样映射物理存储。业务代码�
 | `pluginRegistry` | file 仅 installed/marketplaces/flagged/catalog/inUseSweep |
 | `marketplaceCache` | form 仅 manifest/catalog |
 | `fileHistory` | backup filename 必须符合引擎实际生成的 `hex@v version` 形状 |
+| `history` | 无附加 key segment；全局 prompt history 使用单一 stream |
+| `log` | channel 仅 `debug/telemetry/apiDump`；agentId/runId 只能缩到单个 stream，不能冒充 scope |
 | `sessionLog` | year/month/day 为 YYYY/MM/DD；log stem 有长度、slug 和设备名限制 |
 | `sidecar`/`transcript` | 禁止把 JSONL stream、recording `.cast` 或项目 sibling 文件伪装成普通 relPath |
 | `job` | `timeline.jsonl` 必须走 `jobTimeline`，不能从普通 job relPath 打开 |
@@ -149,7 +151,7 @@ publish discipline 由每次 write 传入，而不是 namespace 固定属性。�
 
 证据：key/scope 校验与 hardening 见 `cli.readable.js` 110185-110229、110250-110560；segment 基础规则见 38040-38090。
 
-## 五、29 个 namespace 逐项参考
+## 五、32 个 namespace 逐项参考
 
 “真实 consumer”列只写目标 bundle 中能定位到的 reader/writer。没有足够 active callsite 的条目标 `Boundary`，不按名字补故事。
 
@@ -161,10 +163,12 @@ publish discipline 由每次 write 传入，而不是 namespace 固定属性。�
 <!-- storage-namespace:feedbackDraft -->
 <!-- storage-namespace:fileHistory -->
 <!-- storage-namespace:globalConfig -->
+<!-- storage-namespace:history -->
 <!-- storage-namespace:identity -->
 <!-- storage-namespace:job -->
 <!-- storage-namespace:jobTimeline -->
 <!-- storage-namespace:jobsRoot -->
+<!-- storage-namespace:log -->
 <!-- storage-namespace:mailbox -->
 <!-- storage-namespace:marketplaceCache -->
 <!-- storage-namespace:memory -->
@@ -182,6 +186,7 @@ publish discipline 由每次 write 传入，而不是 namespace 固定属性。�
 <!-- storage-namespace:state -->
 <!-- storage-namespace:task -->
 <!-- storage-namespace:team -->
+<!-- storage-namespace:transcript -->
 <!-- storage-namespace:userConfigDir -->
 <!-- STORAGE_NAMESPACE_COVERAGE_END -->
 
@@ -194,10 +199,12 @@ publish discipline 由每次 write 传入，而不是 namespace 固定属性。�
 | `feedbackDraft` | draftId | feedback draft 的单条读写、分页列举和批量读取 | 列表/批读已见；无统一锁、迁移和保留期证据 | 高：用户未发送文本；`Static consumer` |
 | `fileHistory` | sessionId + backupFileName | file checkpoint/rewind 的备份对象；文件名必须是引擎生成的 hash/version 形状 | checkpoint consumer 负责 cap、裁剪与恢复；不是 namespace 自带 retention | 极高：源码历史；`Static consumer` |
 | `globalConfig` | 主 key；或 kind=backup/corrupted + stamp | `.claude.json` 等全局配置读取、写入、subscribe、恢复副本 | 明确有进程内写队列、`followAtomic`、update、backup/corrupted copy 和旧副本裁剪 | 极高：账户/项目索引/配置；`Static deep` |
+| `history` | 无附加 segment 的全局 stream | prompt 输入历史倒序分页读取、paste 内容回填、去重与追加写；V5 reader/writer 位于 156893、157045 | V5 用 stream append；legacy `history.jsonl` 用锁后追加，锁 stale 10 秒、最多 3 次获取重试；连续失败最多 6 次写尝试、间隔 500ms | 极高：用户原始 prompt 与 paste 引用；`Static deep` |
 | `identity` | 无字段 | key 与校验存在，但本 bundle 未找到 `An.identity()` active consumer | lock/migration/retention 均未证实 | 可能极高；`Boundary` |
 | `job` | jobId + relPath[] | daemon/background job 的 order、stateOrder、group、adopt、state/content 等 | 单文件可 atomic/inPlace；job owner、lease、sweep 在业务层；无跨文件事务 | 高：任务、命令、输出；`Static consumer` |
 | `jobTimeline` | jobId | append job timeline stream | append 有 stream 顺序合同；裁剪/保留期未证实 | 高：任务轨迹；`Static consumer` |
 | `jobsRoot` | `file:pins` 或 8-hex draftKey | job pins 用 updateText 原子维护；daemon/job draft create/read/delete | pins 有 cap/heal；draft 有 create/delete；没有全 namespace 迁移证据 | 中到高；`Static consumer` |
+| `log` | sessionId + channel(debug/telemetry/apiDump)；可选 agentId/runId | 一方 telemetry 失败队列、旧 flat batch 迁移与 `/debug` 日志读取；consumer 见 77567、77726、542224 | stream append/list/delete；telemetry 按 runId 隔离，默认最多 8 次发送尝试后删除旧失败批；debug/apiDump 没有共享 retention | 极高：诊断、请求与事件数据；`Static deep` |
 | `mailbox` | team + teammate | 多 Agent inbox，读取、投递、ack、协议帧清理 | `updateText` 原子读改写；校验并丢弃坏记录；redelivery/大小语义由 mailbox consumer 管理 | 极高：Agent 间消息；`Static deep` |
 | `marketplaceCache` | marketplace + form(manifest/catalog) | plugin marketplace manifest/catalog 缓存 | 更新/失效跟 marketplace loader；无统一 TTL/迁移证明 | 中：远端元数据；`Static consumer` |
 | `memory` | projectKey + relPath[] | 项目 memory、skills/rules 下的持久内容与 auto-memory 更新 | 部分写入用 updateText；目录结构和预算由 memory consumer 管理 | 极高：长期项目知识；`Static consumer` |
@@ -215,9 +222,70 @@ publish discipline 由每次 write 传入，而不是 namespace 固定属性。�
 | `state` | id | 已见 remote-settings、policy-limits、keybindings、loop-file、PR cache、computer-use lock、user-memory、daemon auth/config/status/lock、update lock/result、scheduled status、active-time ledger、stats cache、deep-link failure 等 | 只是 generic per-ID store；每个 ID 自己选择 atomic/inPlace、TTL、lock 和清理 | 混合但总体高；`Static deep surface` |
 | `task` | listId + taskId，或 meta/highWaterMark | task item、列表 meta、高水位读写/删除 | high-water 用 inPlace；item/meta 分离；没有跨三类 key 的统一事务证据 | 高：任务分配、状态、依赖；`Static consumer` |
 | `team` | team | team config/成员状态，供多 Agent 生命周期读取写入 | mailbox 与 team 是不同 key；成员/清理由 team consumer 负责 | 高：协作身份和配置；`Static consumer` |
+| `transcript` | projectKey + sessionId；可选 agentId/agentRelPath；run journal 用同 namespace 加 `journal:true` | 主会话、subagent transcript、run journal、feedback transcript 检查与 session import；consumer 见 268062、295765、401773、420118 | 逻辑上 append，物理层会 tombstone 删除与 compact 重写；V5 用 guarded `replaceRecords` 保留并发尾，legacy 用快照校验、临时文件和原子替换 | 极高：完整对话、工具结果、路径和附件；`Static deep` |
 | `userConfigDir` | allowlisted dir + relPath[] | commands、agents、output-styles、skills、workflows、routines、themes、rules、session-env、uploads、mcp-skill-archives、usage-data、mcp-discovery-cache | 每个目录/文件自定 write discipline 与清理；allowlist 防止变成任意 home 路径 API | 极高：代码、配置、上传和使用数据；`Static deep surface` |
 
 ## 六、几个需要单独下钻的 namespace
+
+### `transcript`：逻辑追加流，物理文件会被条件重写
+
+把 transcript 写成“append-only JSONL”只描述了正常写入接口，没有描述磁盘生命周期。`2.1.235` 的 writer 先按 entry 类型决定怎样追加，再在本地 GC 开启时执行 UUID 删除和 transcript compact；所以消息语义仍是事件流，物理 bytes 却会被截断、重组和原子替换。
+
+#### 两张策略表分别控制“追加什么”和“压实时留下什么”
+
+| 策略层 | 枚举 | 精确作用 |
+| --- | --- | --- |
+| entry append policy | `dedup-transcript` | user/assistant/attachment/system/progress 进入 transcript，但 writer 可按已有记录去重 |
+| entry append policy | `always` | summary、title、mode、permission、checkpoint metadata 等控制记录每次都追加 |
+| entry append policy | `route-by-agent` | content replacement、fork ref、observer ref 按主会话或 agent transcript 路由 |
+| compact reduction | `transcript` | user/assistant/system/attachment 保留为压实后的对话主干 |
+| compact reduction | `boundary-cleared` | progress、file-history delta、last-prompt 等遇到 compact boundary 后清掉旧值 |
+| compact reduction | `accumulate` | content replacement、fork/frame ref 等累计保留 |
+| compact reduction | `last-wins` | title、tag、mode、permission、worktree、bridge 等只保留最后有效值 |
+
+策略表证据在 `cli.readable.js` 404545-404547。它解释了为什么压实不能简单写成“删除旧行”：某些消息要去重，某些状态要跨 boundary 保留最后值，某些引用要累计，错误裁剪会破坏 resume、fork、checkpoint 或 UI 状态。
+
+#### 触发阈值和自适应 backstop
+
+- 实际文件小于 **5 MiB** 时不压实；这是 legacy `stat.size` 与 V5 `size + torn tail` 共用的最低门槛。
+- writer 统计当前 session 自上次 compact 后新增的 bytes；初始 backstop 是 **20 MiB**。
+- compact 若回收不到旧大小的 10%，backstop 翻倍，最高 **160 MiB**；回收达到 10% 则重置为 20 MiB，避免低收益频繁全文件扫描。
+- 写入 compact boundary 一类需要立即清理的记录时，writer 会把 backstop 重置到 20 MiB 并在同一串行写队列请求 compact；普通追加则在累计 bytes 达阈值后触发。
+- 慢速 UUID tombstone 清理只处理不超过 **50 MiB** 的 transcript；V5 慢路径按 **1 MiB** 分页。V5 fast path 用版本条件最多重试 **3 次**，随后放弃而不是覆盖并发 writer。
+
+这些值分别对应 `DEm=5 MiB`、`xfr=20 MiB`、`MEm=160 MiB`、`OEm=50 MiB`、`UlT=1 MiB`，见 401217-401328、404491。
+
+#### Legacy 文件路径：快照、保留完整尾行、fsync、原子换位
+
+legacy compactor 先记录 inode/size，并抽样读取头部、中部、尾部各 4 KiB。快照尾字节不是换行时，它以 `snapshot_mid_line` 放弃，避免把 torn tail 当完整 JSONL。随后它只读取最初 size 范围，按策略表写入权限 `0600` 的临时文件；发布前再次检查 inode、size 未缩小且三段抽样未变化。
+
+如果原文件在压实期间只发生尾部追加，compactor 会读取 snapshot 之后的增量，只把截止到最后一个换行的完整记录附到临时文件。这样可以保留**并发尾追加**，同时不发布半条 JSON。临时文件 fsync 后，它再次核对 inode 与抽样；任何中段修改、截断或文件替换都记为 source-changed（遥测值 `source_changed`）并删除临时文件。最后才通过原子 rename 替换目标，并重新追加 session metadata。这个协议保护的是同一文件的完整发布，不是跨文件事务。
+
+#### Storage v5 路径：witness + 条件原子 replace
+
+V5 先用 witness stat 取得 `size`、`version` 和 `tornTailBytes`。`tornTailBytes > 0` 直接按 `snapshot_mid_line` 放弃；否则按 **4 MiB** 页向前读取，只处理 snapshot size 之前的 records。生成新流后调用：
+
+```text
+replaceRecords(
+  key,
+  compactedRecords,
+  preserveFrom: snapshotSize,
+  precondition: ifUnchangedThrough(lastReadSeq, witnessVersion),
+  publishDiscipline: atomic,
+  mode: 0600,
+  parent: mustExist
+)
+```
+
+`preserveFrom` 要求 backend 把 snapshot 后的新 records 接到新主体后面；`ifUnchangedThrough` 则保证已读取区间没被别的 writer 改掉。前置条件失败映射为 `source_changed`，backend 检测同一 inode 有其他硬链接时映射为 `SharedInode`，非法 token/参数、publish rename fallback 和普通 I/O 也分别落到不同诊断。V5 compact 本身只做一次受保护 replace；“最多 3 次”属于 UUID tombstone 的 fast path，不应混写成 compact 自动重试三次。
+
+证据：legacy/V5 compact 主路径 401330-401498；阈值和策略常量 404491、404545-404547；串行写队列与 backstop 触发 401023-401100、401520-401548。
+
+### `history` 与 `log`：两个被旧提取窗口漏掉的活跃 stream
+
+`history` 是 prompt 输入历史，不是 session transcript。reader 从尾到头分页，合并当前进程尚未落盘的 pending entries，按 timestamp/session 去重，并按 paste hash 回填文本；writer 等待 paste 存储完成后才 append。V5 append 失败会保留 pending entries；失败计数从 0 到 5 都会执行写入，因此是初始尝试加最多 5 次重试、最多 6 次写尝试，每轮间隔 500ms。legacy 路径对 `history.jsonl` 取锁，锁 stale 10 秒，获取最多重试 3 次。证据见 156893-157085。
+
+`log` 是按 session/channel 寻址的诊断 stream。`channel` 只允许 `debug`、`telemetry`、`apiDump`；一方 telemetry 失败队列按 runId append，启动时 list 旧 run stream，迁移 legacy flat JSON batch，发送成功后删除，部分失败时重建剩余 records。默认发送参数是 batch 200、delay 100ms、base backoff 500ms、最大 30s、最多 8 次；达到上限会删除旧失败 batch。`/debug` 则把当前 session 的 debug key交给日志读取器。两类 channel 内容和 retention 不同，不能用“log namespace 会自动轮转”概括。证据见 77534-77755、542220-542244。
 
 ### `globalConfig`：真正有完整恢复链
 
@@ -332,7 +400,7 @@ task namespace 把三种逻辑值拆开：
 
 | 结论 | 目标版本证据 |
 | --- | --- |
-| 29 个 Claude namespace 权威集合 | [`source-inventory/claude-storage-namespaces.txt`](source-inventory/claude-storage-namespaces.txt)；key factory 38091 附近 |
+| 32 个 Claude namespace 权威集合 | [`source-inventory/claude-storage-namespaces.txt`](source-inventory/claude-storage-namespaces.txt)；完整 key factory 38080-38091，`journal` 复用 `transcript` namespace |
 | 通用 segment 与 set-aside 校验 | 38040-38090 |
 | key/scope 逐 namespace 校验 | 110250-110560 |
 | symlink、普通文件、hardlink、打开后换位防护 | 110185-110229 |

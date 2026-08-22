@@ -2,7 +2,7 @@
 
 本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
-本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [36 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)，再回到下面的 70 类索引定位原始证据。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
+本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [40 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)。Auto Mode、Plugin Eval、daemon/PTY/respawn 和 Enterprise Gateway 分别下钻到 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[Runtime Supervision](runtime-supervision-and-processes.md) 与 [网关专题](enterprise-gateway-runtime.md)。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
 
 ## 60 秒理解“能力地图”怎么用
 
@@ -115,7 +115,7 @@
 
 | 清单 | 数量 | 说明 |
 | --- | ---: | --- |
-| [claude-storage-namespaces](source-inventory/claude-storage-namespaces.txt) | 29 | Claude storage key factory namespace |
+| [claude-storage-namespaces](source-inventory/claude-storage-namespaces.txt) | 32 | Claude storage key factory namespace |
 | [storage-namespaces](source-inventory/storage-namespaces.txt) | 41 | 全 bundle namespace，含依赖 |
 | [error-message-literals](source-inventory/error-message-literals.txt) | 2,248 | Error/TypeError/RangeError 静态 literal |
 | [error-message-callsites](source-inventory/error-message-callsites.jsonl) | 4,831 | 全部 Error/TypeError/RangeError 调用及参数/scope |
@@ -170,7 +170,7 @@
 
 - session 支持 create/resume/continue/fork、显式 ID、alias/name、archive/delete、从 PR 或 remote/cloud 恢复。
 - transcript 使用 JSONL/stream storage，支持 v5 storage namespace、session alias、history、checkpoint、attachment、tool result、task state。
-- Claude 自有 29 个 storage namespace 覆盖 global config、project/local state、sessions、aliases、logs、telemetry、memory/cache 等；完整名单单独保存。
+- Claude 自有 32 个 storage namespace 覆盖 global config、project/local state、sessions、aliases、`transcript`、`history`、`log`、telemetry、memory/cache 等；完整名单单独保存，并在 Storage 专题下钻 legacy/V5 transcript 压实、torn tail、shared inode 和并发尾追加保护。
 - auto-memory、CLAUDE.md、skills、plugins、project memory、remote memory、scratchpad、memory sync 都有独立门控。
 - prompt cache 会区分稳定 system prefix 和 cwd/env/git/LSP 等机器动态内容；本版本修复 LSP reconnect 导致的 cache invalidation。
 - auto-compact、manual compact、context limit、cold compact、1M context、compaction OTEL span/event 均可追踪。
@@ -182,7 +182,7 @@
 - Task/TaskCreate/TaskGet/TaskList/TaskOutput/TaskUpdate、SendMessage、Enter/ExitWorktree 是静态工具面的一部分。
 - team name、parent session/agent、subagent span、teammate idle、task completed、跨会话 message 都有协议/hook/telemetry 字段。
 - Git worktree 可隔离 agent，支持 tmux/iTerm2 pane、cleanup 和 policy/sandbox path 注册。
-- background task、daemon、remote control worker、cloud workflow、ultrareview/autofix-pr 等拥有独立事件 family 和错误路径。
+- background task、daemon、PTY host、rendezvous、remote control worker、cloud workflow、ultrareview/autofix-pr 等拥有独立事件 family 和错误路径；进程 owner、attach、adopt/respawn 与 Storage 投影见 [Runtime Supervision](runtime-supervision-and-processes.md)。
 - 本版本对缺少 default agent、后台云事件流重复扫描、SendMessage 过大消息做了明确修复。
 
 ## 权限、沙箱、网络、凭据和本地风控
@@ -191,7 +191,7 @@
 
 - permission mode：default、acceptEdits、auto、dontAsk、plan、bypassPermissions；
 - tool rules：allow/ask/deny，CLI allowed/disallowed tools，managed-only rules；
-- Auto classifier：rule/mode/hook/sandbox/safety/classifier decision source，无法评估走 blocking path；
+- Auto classifier：rule/mode/hook/sandbox/safety/classifier decision source，无法评估走 blocking path；确定性前置层、可信规则、两阶段 XML verdict、fail-closed 和 setup/hash 见 [Auto Mode 专题](auto-mode-classifier.md)；
 - circuit breaker：dangerous removal、peer isolation 等类别可不受普通 bypass 影响；
 - Bash/Git：命令拆分、只读识别、cwd、`.git` 植入、symlink、bare repo、hook 风险和 fail-closed；
 - filesystem sandbox：allow/deny read/write、failIfUnavailable、unsandboxed command policy；
@@ -209,7 +209,7 @@
 - 31 个 hook event 覆盖 tool、permission、prompt、session、subagent、compact、notification、config、worktree、team/task 生命周期。
 - PreToolUse 可 allow/deny/ask/defer 或改写 input；改写后重新进入权限检查。
 - hook transport 包括 command、HTTP 和 SDK callback；HTTP header 只允许显式 env allowlist。
-- plugin 支持 directory、ZIP、URL、marketplace、install/update/enable/disable、eval、doctor；plugin/skill attribution 有 hash/redaction 路径。
+- plugin 支持 directory、ZIP、URL、marketplace、install/update/enable/disable、eval、doctor；plugin/skill attribution 有 hash/redaction 路径。`plugin eval` 的 case trust、with/without ablation、六类 grader、3 票多数、partial/Delta 和 scaffold 风险见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
 - skills 可来自 bundled、user、project、plugin、account/remote sync；safe/bare/policy/compliance 会分别关闭部分来源。
 - LSP 覆盖 server lifecycle、diagnostic、tool、推荐、plugin integration、disconnect/reconnect 和 prompt cache 交互。
 
@@ -224,6 +224,7 @@
 ## Cloud、remote、CCR、BYOC、workflow 和 artifacts
 
 - remote session、Remote Control、CCR、teleport、cloud session/self-hosted environment、daemon worker、session ingress token 都有 API/环境/schema 证据。
+- Enterprise Gateway 另有本地可达的 OIDC/device flow、Gateway session、managed settings、provider/model mapping、CRI/JWKS/webhook、spend/Postgres、OTLP 和 admin route；完整顺序及外部 IdP/provider 边界见 [Enterprise Gateway Runtime](enterprise-gateway-runtime.md)。
 - BYOC runner 注入 provider、OTEL、remote/session token、stage root、memory dir、activity FD、watchdog 和 update-disable 环境。
 - workflow、artifact、chart、Mermaid、syntax highlight、HTML payload、file upload/download、send file、design sync、projects tool 是独立能力面。
 - cloud/self-hosted 能力受组织 policy、compliance taint、nonessential traffic、provider 和 entitlement/feature gate 控制。

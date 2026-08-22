@@ -1,0 +1,38 @@
+digraph auto_mode_classifier {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.30", ranksep="0.52", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  request [label="模型提出 tool_use\n名称、输入、tool_use_id", fillcolor="#fff3cd"];
+  floors [label="确定性权限前置层\ndeny / ask / safety / org ceiling\n交互工具 / managed policy", fillcolor="#ffcdd2"];
+  fast [label="本地快速放行\nacceptEdits 模拟 / safe allowlist", fillcolor="#c8e6c9"];
+  transcript [label="构造 classifier 输入\n可信规则 + transcript + tool action\nrepo visibility / git status", fillcolor="#e3f2fd"];
+  stage1 [label="Stage 1 快速 XML 判定\n<block> 或 <severity>\n60 秒阶段预算", fillcolor="#d1c4e9"];
+  stage2 [label="Stage 2 深度 XML 判定\nreason / category / severity\n120 秒阶段预算", fillcolor="#b3e5fc"];
+  allow [label="允许执行\n进入 tool.call", fillcolor="#a5d6a7"];
+  policy [label="策略阻断\n真实 classifier verdict\n计入 denial tracking", fillcolor="#ffccbc"];
+  noverdict [label="无有效 verdict\nunavailable / parse / safeguard\n默认 fail closed", fillcolor="#ffe0b2"];
+  fallback [label="特定回退\nAgent 放行；AskUserQuestion 对话\n其余普通权限或 deny/abort", fillcolor="#fff9c4"];
+  hook [label="PermissionDenied Hook\n只能建议模型重新提议\n不能执行或改成 allow", fillcolor="#f8bbd0"];
+  result [label="错误 tool_result + outcome kind\nautomode-blocked / unavailable / parsing-error", fillcolor="#b2dfdb"];
+
+  request -> floors [label="权限请求"];
+  floors -> result [label="前置层拒绝", color="#c62828"];
+  floors -> fast [label="可交给 Auto Mode"];
+  fast -> allow [label="命中"];
+  fast -> transcript [label="未命中"];
+  transcript -> stage1 [label="querySource=auto_mode"];
+  stage1 -> allow [label="明确 allow"];
+  stage1 -> policy [label="fast-only 明确 block"];
+  stage1 -> stage2 [label="both：block 或无有效 verdict"];
+  stage2 -> allow [label="明确 allow"];
+  stage2 -> policy [label="明确 block"];
+  stage1 -> noverdict [label="请求异常", style=dashed];
+  stage2 -> noverdict [label="解析/请求异常", style=dashed];
+  noverdict -> fallback [label="按工具和运行模式"];
+  fallback -> allow [label="Agent 特例"];
+  fallback -> result [label="其余未放行"];
+  policy -> hook [label="已拒绝"];
+  noverdict -> hook [label="已拒绝；noVerdict"];
+  hook -> result [label="生成反馈；retry 仅追加提示"];
+}

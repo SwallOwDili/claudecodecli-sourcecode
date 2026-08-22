@@ -74,6 +74,8 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 这九层不是串行微服务。它们共享一个本地进程和若干显式状态对象：Agent Loop 在模型流未结束时已经能驱动工具；工具完成后可能触发 hook、消息队列和 MCP 刷新；compact 会重写下一轮发送给模型的消息视图，但 transcript 仍保留逻辑历史；fallback 可以丢弃失败模型产生的消息，却不能撤销已经发生的外部副作用。
 
+`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。它们仍复用上图的工具、状态、恢复和遥测原则，但各有专属失败边界。
+
 ## 三条必须同时理解的闭环
 
 ### 1. 推理执行闭环
@@ -198,7 +200,7 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
-| 当前 36 个能力面哪些已深入、哪些仍只是清单 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 当前 40 个能力面哪些已深入、哪些仍只是清单 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
 | 29 个内置工具分别改变什么状态、怎样失败和恢复 | [内置工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | 156 个根 settings 字段从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](settings-reference.md) | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) |
 | CLI/SDK 的 stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) | [Agent Loop](agent-loop.md) |
@@ -206,6 +208,10 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 | 为什么 Claude 会连续调用多个工具 | [Agent Loop](agent-loop.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | 为什么长会话越来越贵或突然 compact | [上下文治理与多层缓存](context-governance-and-caching.md) | [会话、检查点与 Memory](sessions-checkpoints-memory.md) |
 | permission、hook、sandbox 谁先决定 | [工具、权限与 Hooks](tools-permissions-hooks.md) | [风控能力面](risk-control-surface.txt) |
+| Auto Mode 为什么有时直接允许、有时询问、有时 unavailable 后拒绝 | [Auto Mode 分类器](auto-mode-classifier.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| Plugin Eval 的高分是否来自插件，Delta 何时不可比较 | [Plugin Evaluation Harness](plugin-evaluation-harness.md) | [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) |
+| 终端退出后后台 Agent 谁持有，attach 与 respawn 为什么分离 | [Runtime Supervision](runtime-supervision-and-processes.md) | [后台、Channels 与 Cloud](cloud-background-channels.md) |
+| Enterprise Gateway 怎样串联身份、策略、路由、花费和遥测 | [Enterprise Gateway Runtime](enterprise-gateway-runtime.md) | [模型、认证与请求装配](models-auth-providers-request.md) |
 | resume、fork、rewind 到底恢复什么 | [会话、检查点与 Memory](sessions-checkpoints-memory.md) | [韧性与恢复](resilience-and-recovery.md) |
 | MCP 工具为什么会动态出现或失效 | [MCP、Agents 与后台协作](mcp-agents-background.md) | [上下文治理与多层缓存](context-governance-and-caching.md) |
 | 子 Agent 是否只是另一个 prompt | [MCP、Agents 与后台协作](mcp-agents-background.md) | [Agent Loop](agent-loop.md) |
@@ -230,6 +236,10 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 - 子 Agent 默认与隔离配置：`reverse/javascript/cli.readable.js` 156505-156518、306930 附近。
 - team mailbox 与 task claim：`reverse/javascript/cli.readable.js` 279171-279317、202474-202511。
 - Stop hook 熔断与 maxTurns：`reverse/javascript/cli.readable.js` 272253-272261、272423-272424。
+- Auto Mode 权限入口与 classifier：`reverse/javascript/cli.readable.js` 395392-395501、326151-326177。
+- Plugin Eval case/run/grader/report：`reverse/javascript/cli.readable.js` 445210-448274。
+- Daemon、PTY、rendezvous 与 worker respawn：`reverse/javascript/cli.readable.js` 420733-422667。
+- Enterprise Gateway 启动与路由：`reverse/javascript/cli.readable.js` 625081-627750。
 
 函数名、行号和分支来自发布 bundle 的可读化布局，不是 Anthropic 原始 TypeScript 模块名。跨版本比较应优先比较状态语义、稳定字段、阈值和可达分支，不能把压缩符号改名本身当成功能变化。
 

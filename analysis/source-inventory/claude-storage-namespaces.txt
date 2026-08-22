@@ -5,10 +5,12 @@ daemon
 feedbackDraft
 fileHistory
 globalConfig
+history
 identity
 job
 jobTimeline
 jobsRoot
+log
 mailbox
 marketplaceCache
 memory
@@ -26,4 +28,5 @@ sidecar
 state
 task
 team
+transcript
 userConfigDir

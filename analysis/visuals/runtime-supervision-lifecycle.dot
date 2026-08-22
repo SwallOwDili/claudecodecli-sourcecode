@@ -1,0 +1,32 @@
+digraph runtime_supervision_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.40", ranksep="0.54", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.10", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  view [label="Agent View / attachers\n展示、dispatch、reply、resize、stop", fillcolor="#fff3cd"];
+  daemon [label="Daemon supervisor\nroster / phase / PID identity / respawn", fillcolor="#d1c4e9"];
+  storage [label="Storage V5 job record\nstate / tempo / needs / outcome / dispatch", fillcolor="#e3f2fd"];
+  pty [label="PTY host\nBun.Terminal / socket auth / 256 KiB ring", fillcolor="#d7ccc8"];
+  worker [label="Claude worker\nAgent Loop / tools / hooks / transcript", fillcolor="#c8e6c9"];
+  rv [label="Rendezvous\nheartbeat / state / done / reply / repaint", fillcolor="#b2dfdb"];
+  external [label="外部副作用\nfiles / git / processes / remote APIs", fillcolor="#ffe0b2"];
+  respawn [label="恢复判定\nsettled? cwd? transcript? crash budget?", fillcolor="#bbdefb"];
+  terminal [label="终态\ndone / failed / killed / crashed", fillcolor="#ffcdd2"];
+
+  view -> daemon [label="dispatch / attach / control"];
+  daemon -> pty [label="spawn / claim / adopt"];
+  pty -> worker [label="child PTY"];
+  pty -> view [label="ring + live terminal frames"];
+  worker -> rv [label="structured control"];
+  rv -> daemon [label="state / heartbeat / done"];
+  daemon -> rv [label="reply / caps / repaint / shutdown"];
+  worker -> storage [label="业务状态与 transcript"];
+  daemon -> storage [label="roster projection / settle checks"];
+  storage -> view [label="派生行状态"];
+  worker -> external [label="tool side effects"];
+  pty -> respawn [label="exit / signal / socket loss"];
+  storage -> respawn [label="settled / resume source"];
+  respawn -> pty [label="10s backoff + resume", style=dashed];
+  respawn -> terminal [label="不可恢复或 budget exhausted"];
+  external -> terminal [label="不会被 respawn 自动回滚", style=dashed, constraint=false];
+}

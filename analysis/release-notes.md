@@ -1,30 +1,38 @@
 # Claude Code 2.1.235 release notes
 
-Source: upstream `anthropics/claude-code` `CHANGELOG.md`, captured on 2026-08-20.
+固定上游来源：
+
+- Commit：`16440d0f6ee8c47f34169687044b89eafa8b0f8d`
+- URL：`https://raw.githubusercontent.com/anthropics/claude-code/16440d0f6ee8c47f34169687044b89eafa8b0f8d/CHANGELOG.md`
+- 抓取日期：`2026-08-22`
+- 完整响应：`36,864` bytes，SHA-256 `ca5698c578b3e3a97b8ff8388a08f4095a64c69696709dd07337605fe5f30fe3`
+- `## 2.1.235` 至下一版本标题前的原始段落：`2,707` bytes，SHA-256 `04943db50acf834556450fc580d0e3617ae0de7a7b62a5aed9444013420c5d17`
+
+下面 19 条逐字复制自这个固定 commit；大小写、标点、反引号、括号和措辞均不做润色。逐项机制解释另放在后表，避免再把解释性改写冒充上游原文。
 
 > 版本归属边界：以下 19 条是上游明确归入 `2.1.235` 的原文。`Release` 只证明版本声明；`Static` 表示本分支 bundle 中存在对应 consumer、状态或失败分支；`Probe` 表示固定 SHA-256 的精确二进制真实走过该路径；`Boundary` 表示还需要真实终端、编辑器、云任务或平台环境。不要把 release note 本身当成运行测试。
 
 ## 上游原文（19/19）
 
-- Added an optional `spellcheck` setting that underlines misspelled words in the prompt input as you type, using an installed `aspell`, `hunspell`, or `ispell`.
-- Fixed whole-prompt-cache invalidation when a language server disconnected or reconnected mid-session.
-- Fixed nested Markdown list item alignment at depth 3+ and added hanging indentation for wrapped list items in the terminal UI.
-- Fixed prompt input highlights shifting by one or more characters in some multi-line prompts.
-- Fixed Shift+Tab in the permission prompt comment field approving the edit and granting session-wide edit permission instead of closing the field.
-- Fixed the Agent tool advertising a general-purpose default in sessions where that agent is unavailable; omitted `subagent_type` now reports the available agents.
-- Fixed notebook cell delete/replace approval dialogs omitting the existing cell when it could not be read; the dialog now explains why.
-- Fixed slash commands run while Claude is responding showing HTML entities instead of actual characters.
-- Fixed the prompt footer not showing the `Update installed` restart notice after a background auto-update.
-- Fixed the expanded task list (`ctrl+t`) always starting collapsed after resuming or relaunching a session with open tasks.
-- Reduced memory and CPU use while cloud sessions such as `/ultrareview` and `/autofix-pr` run in the background by avoiding full event-stream rescans and re-renders on every update.
-- Improved permission dialogs so display text and `don't ask again` options match the scope of the actual grant; the persistent option is withheld when content cannot be fully displayed.
-- Improved embedded `grep` on native macOS/Linux builds: pathological patterns fail fast, and `-m N` with `-A`/`-C` prints correct context.
-- Improved the context-limit error when auto-compact is disabled and linked the user to `/config` to re-enable it.
-- Vim mode now preserves NORMAL mode and cursor position when toggling detailed transcript (`ctrl+o`) or closing a panel.
-- Dialogs now process fast arrow-key plus Enter sequences against the newly navigated option instead of the stale highlight.
-- `SendMessage` now rejects messages that exceed cross-session delivery limits instead of silently dropping them.
-- Remote Control alias `claude rc` now applies the same enterprise-gateway availability check as interactive startup.
-- VS Code: fixed focus jumping between Claude tabs when restoring or reloading a window containing several Claude panels.
+- Added an optional `spellcheck` setting that underlines misspelled words in the prompt input as you type, using your installed `aspell`, `hunspell`, or `ispell`
+- Fixed whole-prompt-cache invalidation when a language server disconnected or reconnected mid-session
+- Fixed nested markdown list items misaligning at depth 3+ and added a hanging indent to wrapped list items in the terminal UI
+- Fixed prompt input highlights (slash commands, keywords, mentions) appearing shifted by one or more characters in some multi-line prompts
+- Fixed Shift+Tab inside the permission prompt's comment field approving the edit and granting session-wide edit permission instead of closing the field
+- Fixed the Agent tool advertising a general-purpose default in sessions where that agent is unavailable: an omitted `subagent_type` there now gets a clear error listing the available agents
+- Fixed notebook cell delete/replace approval dialogs silently omitting the existing cell content when the notebook or cell could not be read; the dialog now says why
+- Fixed slash commands run while Claude is responding showing HTML entities instead of the actual characters
+- Fixed the prompt footer not showing the "Update installed" restart notice after a background auto-update
+- Fixed the expanded task list (`ctrl+t`) always starting collapsed when resuming or relaunching into a session that still has open tasks
+- Improved memory and CPU usage while cloud sessions such as `/ultrareview` or `/autofix-pr` run in the background — their event streams are no longer re-scanned and re-rendered on every update
+- Improved permission dialogs: display text and "don't ask again" options now always match what a grant would cover, and "don't ask again" is withheld when contents cannot be fully displayed
+- Improved the embedded `grep` in native macOS/Linux builds: pathological patterns now fail fast instead of exhausting memory, and `-m N` with `-A/-C` prints correct context
+- Improved the context-limit error to say when auto-compact is off and point to `/config` to re-enable it
+- Vim mode: NORMAL mode and cursor position are now preserved when toggling the detailed transcript (ctrl+o) or closing a panel
+- Dialogs: arrow keys and Enter pressed in quick succession now select the option you navigated to instead of the previously highlighted one
+- `SendMessage` now refuses messages too large for cross-session delivery up front instead of silently dropping them
+- Remote Control: `claude rc` now applies the same enterprise-gateway availability check as interactive startup
+- [VSCode] Fixed focus jumping between open Claude tabs on its own when a window with several Claude panels is restored or reloaded
 
 ## 逐项机制回填
 

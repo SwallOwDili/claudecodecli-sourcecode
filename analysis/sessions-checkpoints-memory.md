@@ -17,7 +17,7 @@
 | 对象 | 保存形式 | 能恢复什么 | 不能恢复什么 | 用户判断 |
 | --- | --- | --- | --- | --- |
 | Session/message graph | session ID、UUID、parent/logical parent | 对话分支与逻辑顺序 | 外部工具的真实事务 | “回到哪段对话” |
-| JSONL transcript | 追加式消息和 system events | 历史、tool pair、boundary 元数据 | 旧进程内对象 | “发生过什么” |
+| JSONL transcript | 逻辑追加事件流；达到门槛后会条件压实重写 | 历史、tool pair、boundary 元数据 | 旧进程内对象 | “发生过什么” |
 | File checkpoint | 受管文件的快照/差异 | 本地文件字节 | 数据库、远端 API、未覆盖路径 | “文件能否回退” |
 | Memory | 用户/项目长期文本 | 下一次上下文中的稳定说明 | 原会话逐条消息和精确运行状态 | “以后应继续记住什么” |
 
@@ -28,7 +28,7 @@
 | 对象 | 保存什么 | 主要用途 | 能恢复什么 | 不能恢复什么 |
 | --- | --- | --- | --- | --- |
 | message graph | message UUID、parent、type、content、logical parent | 表示分支、compact 后逻辑历史和当前 leaf | 下一轮应该看到的对话链 | 外部工具自身的事务状态 |
-| JSONL transcript | 按事件追加的 user/assistant/system/tool/progress/attachment | resume、审计、会话列表、fork | 可解析的会话消息和边界元数据 | 已退出进程中的 Promise、socket、子进程内存 |
+| JSONL transcript | 按事件逻辑追加；物理文件会删除 tombstone 并压实 superseded records | resume、审计、会话列表、fork | 可解析的会话消息和边界元数据 | 已退出进程中的 Promise、socket、子进程内存 |
 | file checkpoint | 被跟踪文件在消息节点前后的内容/元数据 | rewind 文件改动 | 本地、可跟踪、仍可写的文件状态 | Git push、数据库写、HTTP side effect |
 | memory | `CLAUDE.md`/规则/auto-memory 中的长期文本 | 未来轮次重新注入高价值知识 | 计划、约定、项目事实的文本表示 | 完整 transcript、模型隐藏状态、任意二进制状态 |
 
@@ -72,6 +72,37 @@ bundle 中的 resume 修复主路径位于 `reverse/javascript/cli.readable.js` 
 - tombstone、状态或其他用于恢复/展示的控制记录。
 
 不同事件不一定都重新发送给模型。UI progress、诊断状态和本地命令可以留在 transcript 供恢复或展示，但请求装配层会建立一个经过过滤、压缩和正规化的 message view。
+
+### 物理 transcript 不是永远只追加
+
+这里要分清两个名字相近、owner 完全不同的动作：
+
+| 动作 | 改变的对象 | 是否调用模型 | 主要结果 |
+| --- | --- | --- | --- |
+| `/compact` / auto-compact | 下一轮 API 使用的逻辑 message view，并写 summary + `compact_boundary` | 是，或消费已预计算 summary | 降低上下文 token，改变后续模型看到的历史表示 |
+| transcript physical compact | 本地 JSONL 或 Storage v5 record stream | 否 | 去掉重复/失效控制记录，保留可恢复主干，降低磁盘扫描成本 |
+
+正常记录通过串行 writer 逻辑追加，但 physical compact 会按两张 release-local 策略表重写：user/assistant/system/attachment 等属于 `dedup-transcript`；summary、title、checkpoint metadata 等属于 `always`；agent 引用走 `route-by-agent`。压实阶段又把记录分成 `transcript`、`boundary-cleared`、`accumulate`、`last-wins`：例如 progress 和旧 file-history delta 可在 boundary 后清理，title/mode/permission 只留最后值，content replacement 与 fork refs 则累计。策略表位于 404545-404547。
+
+#### 什么时候会压实
+
+writer 只有在 local GC 开启时才调度。文件不足 **5 MiB** 时直接跳过；每个 session 初始按新增 **20 MiB** 作为 backstop。若一次 compact 回收不到原大小的 10%，下一轮 backstop 翻倍，最高 **160 MiB**；回收达到 10% 时恢复 20 MiB。compact boundary 等高价值切面写入后会主动把 backstop 重置并排队 compact，普通追加则等累计 bytes 触发。
+
+UUID 删除也不是“追加一条删除标记就结束”。writer 先尝试在尾部定位并截除目标 record；V5 fast path 发生条件冲突时最多重读重写 **3 次**。目标不在尾部时才走全流慢路径，文件大于 **50 MiB** 就放弃，避免为了删一条记录无界读取；V5 慢路径按 **1 MiB** 分页，并用版本条件保护重写。
+
+#### Legacy 文件怎样避免覆盖并发写
+
+legacy compactor 先保存 inode/size，并抽样读取头、中、尾各 4 KiB；snapshot 尾部不是换行就报告 `snapshot_mid_line`，因为最后一条 JSON 可能尚未写完。它只压实初始 size 内的记录，写到权限 `0600` 的临时文件。发布前重新检查 inode、size 和三段抽样；中段变化、截断或文件被替换都会以 `source_changed` 放弃。
+
+如果原文件只在 snapshot 之后增长，compactor 会读取新增 bytes，但只把截至最后一个换行的完整 records 接到新文件，因此保留**并发尾追加**而不带入半条 JSON。临时文件 fsync 后再次核验 source，最后原子 rename；任何阶段失败都会清理未发布临时文件，原 transcript 继续作为权威值。
+
+#### Storage v5 怎样做条件原子替换
+
+V5 先用 witness stat 获取 size/version/`tornTailBytes`；存在 torn tail 时直接跳过。随后按 **4 MiB** 页读取 snapshot 区间，生成压实 records，并调用 `replaceRecords`：`preserveFrom` 指向原 snapshot size，precondition 使用 `ifUnchangedThrough` 校验最后读取 seq 和 witness version，publish discipline 为 `atomic`，mode 为 `0600`，parent 必须已存在。
+
+因此 backend 必须把 snapshot 后的新 records 接回去，同时拒绝已读取区间被改动的发布。前置条件失败记为 `source_changed`；检测到 shared inode 时错误码为 `SharedInode`；非法 token/参数、rename fallback 和 I/O 各有独立诊断。V5 compact 本身只尝试一次 guarded replace，不能把 tombstone fast path 的 3 次条件重试误写成 compact 重试。
+
+这套协议只保证本地 transcript 的一致发布。它不会撤销已经执行的工具、恢复已退出的进程，也不会把 context summary 中遗漏的细节重新创造出来。物理 compact 成功后还会重新追加 session metadata，使 resume 仍能找到当前 title、mode、permission、leaf 等最新状态。主实现见 401023-401100、401217-401498；阈值常量见 404491。
 
 ### 持久化开关与清理
 
@@ -249,6 +280,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 
 - session ID 语法、lookup 和不存在会话的错误语义；
 - JSONL event 类型、message UUID/parent 字段与 branch 选择规则；
+- physical transcript 的 append/reduction 策略、5/20/160 MiB 阈值、tombstone 重试与并发尾保留；
 - compact boundary 字段和 resume 修链算法；
 - transcript 默认清理周期与 no-persistence 行为；
 - file checkpoint 开关、数量上限、dry-run 字段和 link/error 处理；
@@ -262,6 +294,7 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 ## 证据位置
 
 - resume 与消息图修复：`reverse/javascript/cli.readable.js` 323188-323443。
+- physical transcript 串行写队列、tombstone 删除与 legacy/V5 compact：401023-401100、401217-401498；策略表和 5/20/160/50 MiB、1/4 MiB 常量：404491、404545-404547。
 - compact boundary 生成与读取：见 [上下文治理专题](context-governance-and-caching.md) 中对应 bundle 索引。
 - file checkpoint 上限：`reverse/javascript/cli.readable.js` 17194、194602-194619。
 - file edit tracking 与 rewind：`reverse/javascript/cli.readable.js` 194641-194804。

@@ -2,7 +2,7 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：**`2.1.235` 发布物中可归属于客户端产品的 35 个能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** Agent Loop、上下文、工具控制、会话恢复、遥测、native bridge，以及本轮新增的 Slash Commands、Hooks、Storage v5、Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome、后台/Channels/Cloud、Settings reload、CLI/SDK/control/output protocol 都有独立机制文章或对应深度章节。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
+当前结论：**`2.1.235` 发布物中可归属于产品的 39 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** Agent Loop、上下文、工具控制、会话恢复、遥测、native bridge，以及 Slash Commands、Hooks、Storage v5、Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome、后台/Channels/Cloud、Settings reload、CLI/SDK/control/output protocol、Auto Mode、Plugin Evaluation Harness、Runtime Supervision 和 Enterprise Gateway 都有独立机制文章或对应深度章节。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
 
 ## “全面”到底怎样判定
 
@@ -39,7 +39,7 @@
 1. `analysis/unpack-manifest.json` 的 15 个实际 packed 文件；
 2. `analysis/cli-surface.txt` 的公开顶层 help token，以及 `analysis/cli-command-inventory.json` 的 90 个 Commander/manual/fast-path 路径、8 个内部入口和 65 组精确二进制 help/失败 Probe；
 3. `analysis/source-inventory/summary.json` 注册的 70 类确定性清单；
-4. 一方集合：29 个 built-in tool、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、29 个 Claude storage namespace、17 个 baked model entry；
+4. 一方集合：29 个 built-in tool、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry；
 5. `analysis/release-notes.md` 的 `2.1.235` 19 条发布变化；
 6. `analysis/mechanism-evidence.jsonl` 与 exact-binary Probe 报告；
 7. 5 个 shipped `.node` 及其 7 个 Mach-O slice。
@@ -54,7 +54,7 @@
 | 2 | 请求装配、模型、provider、auth | 17 model entries、4 aliases、provider/auth branches | `models-auth-providers-request.md`、完整说明书 | Deep | 真实 Bedrock/Vertex/Foundry 凭据闭环保持未 Probe 边界 |
 | 3 | Agent Loop | loop state、stream parser、tool batch、terminal reason | `agent-loop.md`、完整说明书 | Deep | 保持并发、maxTurns、Stop hook、副作用边界回归 |
 | 4 | Context、Prompt Cache、Tool Search、compact | cache/compact constants、request fields、Probe | `context-governance-and-caching.md`、`compact-visual-guide.md` | Deep | 服务端 cache 命中和账单仍为 Boundary |
-| 5 | Session、transcript、fork、checkpoint、memory | message graph、29 storage namespaces 中相关对象 | `sessions-checkpoints-memory.md`、`storage-v5-reference.md` | Deep | 保持 transcript、storage backend 和外部副作用三层边界 |
+| 5 | Session、transcript、fork、checkpoint、memory | message graph、32 storage namespaces 中相关对象 | `sessions-checkpoints-memory.md`、`storage-v5-reference.md` | Deep | 保持 transcript、storage backend 和外部副作用三层边界 |
 | 6 | 工具统一控制管线 | lookup/schema/hook/permission/sandbox/call/result | `tools-permissions-hooks.md` | Deep | 与 29 个具体工具的专属状态/失败语义互链 |
 | 7 | 29 个内置工具逐项合同 | `builtin-tool-identifiers.txt` | `builtin-tools-reference.md`、`workflow-artifact-design.md` | Deep | 29/29 已覆盖入口、owner、控制顺序、成功、失败、恢复与不可逆副作用；Read/Bash/Skill/LSP/Task 等代表性闭环有 Probe，其余以 consumer Static 或明确 Boundary 收口 |
 | 8 | 31 类 Hooks | `hook-events.txt`、hook transport/runner | `tools-permissions-hooks.md`、`hooks-event-reference.md` | Deep | 31/31 事件字段、时机、matcher、阻塞、timeout、载体和副作用已覆盖；外部 Hook 程序行为仍是 Boundary |
@@ -81,11 +81,15 @@
 | 29 | Cron、loops、channels、主动通知 | Cron tools、scheduled event、commands/settings | `cloud-background-channels.md`、`builtin-tools-reference.md` | Deep | session/durable schedule、fixed/dynamic loop、Monitor、Push、Channel gate/queue/reconnect 已覆盖 |
 | 30 | Remote Control 与 cloud session | CLI/SDK/API/status/daemon | `cloud-background-channels.md`、`tui-ide-remote-cloud.md` | Deep | 本地/远端 owner、重连、附件、create/attach/teleport 已覆盖；登录账户正向服务 Probe 保持 Boundary |
 | 31 | CCR、BYOC、自托管 runner、cloud workflow | env/schema/API/tools | `cloud-background-channels.md` | Deep | bundle/runner/lease/watchdog/token/stage root/capacity/drain 与 Git proxy 边界已覆盖；实际服务调度为 Boundary |
-| 32 | Storage v5 与本地状态目录 | 29 Claude namespaces | `storage-v5-reference.md` | Deep | 29/29 key、scope、write discipline、consumer、敏感度和缺失 consumer 已覆盖；本版自建 backend 不可达 |
+| 32 | Storage v5 与本地状态目录 | 32 Claude namespaces | `storage-v5-reference.md` | Deep | 32/32 key、scope、write discipline、consumer、敏感度和缺失 consumer 已覆盖；另下钻 transcript legacy/V5 压实、torn tail、shared inode 与并发尾追加；本版自建 backend 不可达 |
 | 33 | Install、update、doctor、migration | CLI/install layout/update gates/diagnostics | `install-update-doctor-lifecycle.md` | Deep | 保持真实二进制 hash、升级和配置 schema 回退边界 |
 | 34 | `2.1.235` 19 条 release changes | release notes + matching source evidence | 完整说明书第 28 章及 LSP/cloud/TUI 专题 | Deep | 19 条均已回填专属生命周期；跨版本归因仍区分 2.1.234 与 2.1.235 |
 | 35 | 本地风控与企业治理 | risk surface、sandbox/policy/credentials/trust | 风控 README、工具/settings/遥测专题 | Deep | 服务端账号关联、abuse score、封禁模型保持 Boundary |
-| 36 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
+| 36 | Auto Mode 两阶段权限分类 | deterministic permission pipeline、trusted rule sources、classifier request/verdict、Hook | `auto-mode-classifier.md`、完整说明书第 36 章 | Deep | 权限前置层、fast path、`$defaults`、Stage 1/2、fail-closed、fallback、setup/hash 与用户影响已覆盖；模型内部 safeguard 和真实线上质量保持 Boundary |
+| 37 | Plugin Evaluation Harness | `plugin eval` command、case schema/trust、ablation、grader/report | `plugin-evaluation-harness.md`、完整说明书第 37 章 | Deep | with/without、六类 grader、3 票多数、费用 partial、scaffold、CI exit 和 Delta 可比性已覆盖；尚无绑定本版二进制的付费 eval 正向 Probe |
+| 38 | Runtime Supervision 与后台进程所有权 | daemon/PTY/worker/rendezvous/roster/job record | `runtime-supervision-and-processes.md`、完整说明书第 38 章 | Deep | cold start、processWrapper、socket auth、ring、adopt/respawn、stale heartbeat、pressure reap 与 `asyncRewake` 已覆盖；真实断电/service-manager 全组合保持 Boundary |
+| 39 | Enterprise Gateway Runtime | gateway command、OIDC/session、managed policy、providers、CRI、spend、OTLP | `enterprise-gateway-runtime.md`、完整说明书第 39 章 | Deep | 启动、route 顺序、身份/策略、credential replacement、failover、Postgres、JWKS/webhook、metering 和 telemetry 已覆盖；IdP/CRI issuer/provider 内部实现保持 Boundary |
+| 40 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
 
 ## 数量覆盖不能冒充机制覆盖
 
@@ -99,7 +103,7 @@
 | slash commands | 103 | 103 | 0 | `slash-command-reference.md` 已逐命令给出 type/twin、owner、gate 和失败边界；仍不等于所有账号/host 都正向 Probe |
 | SDK control subtype | 89 | 89 | 0 | 89 是混合集合；真实 request、notification、compatibility identifier 不能混称已 Probe |
 | output protocol event | 44 | 44 | 0 | 已有事件/字段表，大量 host 消费仍是 Boundary |
-| Claude storage namespace | 29 | 29 | 0 | `storage-v5-reference.md` 逐项区分真实 consumer 与 Boundary；名字仍不自动证明 backend active、retention 或事务 |
+| Claude storage namespace | 32 | 32 | 0 | `storage-v5-reference.md` 逐项区分真实 consumer 与 Boundary；名字仍不自动证明 backend active、retention 或事务 |
 | hook event | 31 | 31 | 0 | `hooks-event-reference.md` 逐事件解释时机、字段、matcher、阻塞和 timeout；外部 Hook 程序仍需各自验证 |
 
 这些数字用来定位入口缺口，不是最终质量 KPI。156/156 或 103/103 只能消灭“没提到”的问题；字段仍必须放回消费者和生命周期，不能通过复制 key 或 identifier 就把对应能力改成 `Deep`。
@@ -119,7 +123,7 @@
 
 ## 自动校验当前能证明什么
 
-本轮已经把新增专题纳入 validator：强制存在正文和对应可编辑 `.dot + .svg`，并从权威 inventory 精确核对 29 个 built-in tool、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 29 个 Claude storage namespace。覆盖缺项、重复项、多余项或顺序漂移会直接失败；负向测试覆盖工具、setting、SDK request、slash、hook、storage 与新增专题/图缺失。
+本轮已经把新增专题纳入 validator：强制 Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway 正文和对应可编辑 `.dot + .svg` 存在并保留关键生命周期术语；固定 Release Notes 上游 commit、完整响应 hash、版本段 hash 与 19 条逐字原文；从 canonical key factory 独立重建 Storage 集合，并从权威 inventory 精确核对 29 个 built-in tool、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。覆盖缺项、重复项、多余项或顺序漂移会直接失败；负向测试会实际篡改 Release Notes、Storage、新专题和既有精确集合，证明拒绝后逐字恢复。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
@@ -131,10 +135,10 @@
 
 ## 后续版本回归顺序
 
-1. 每个新版本先重生成 canonical inventory，精确比较 29 tools、156 settings、103 commands、31 hooks、29 storage namespaces、89 SDK subtype 和 44 protocol event。
+1. 每个新版本先重生成 canonical inventory，精确比较 29 tools、156 settings、103 commands、31 hooks、32 storage namespaces、89 SDK subtype 和 44 protocol event。
 2. 按状态机比较 Agent Loop/context/session/tool/recovery/model/settings/feature/UI/cloud/native，而不是只看 key 数量或 minified symbol。
 3. 将新增/删除 surface 回填专属文章、完整说明书、`ARTICLES.md`、README、机制证据和可编辑图。
 4. 对 changed branch 扩充 exact-binary Probe；未触发的 remote/third-party/cross-platform 行为保持 Boundary。
 5. 运行全量、负向、隐私、SVG、重建、Probe 与远端 fresh-checkout 验证后再推送。
 
-当前矩阵已达到 35 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。
+当前矩阵已达到 39 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。

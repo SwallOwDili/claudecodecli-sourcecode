@@ -45,6 +45,14 @@ SCHEMA_PROPERTY_RE = re.compile(
 STORAGE_NAMESPACE_RE = re.compile(
     rb"\bnamespace\s*:\s*['\"]([A-Za-z][A-Za-z0-9_-]{0,80})['\"]"
 )
+CLAUDE_STORAGE_FACTORY_START_RE = re.compile(
+    rb"\btranscript\s*:\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,\s*"
+    rb"journal\s*:\s*.{0,500}?\bnamespace\s*:\s*['\"]transcript['\"]"
+    rb".{0,500}?\bhistory\s*:\s*.{0,200}?\bnamespace\s*:\s*['\"]history['\"]"
+    rb".{0,300}?\blog\s*:",
+    re.DOTALL,
+)
+CLAUDE_STORAGE_FACTORY_END_RE = re.compile(rb"\bsessionAliases\s*:")
 BETA_IDENTIFIER_RE = re.compile(rb"\b[a-z][a-z0-9-]{2,}-\d{4}-\d{2}-\d{2}\b")
 PROTOCOL_EVENT_RE = re.compile(
     rb"\b(?:"
@@ -1712,14 +1720,16 @@ def otel_span_names(source: bytes, metric_names: set[str]) -> set[str]:
 
 
 def claude_storage_namespaces(source: bytes) -> set[str]:
-    start = source.find(b'globalConfig:()=>({namespace:"globalConfig"})')
-    if start < 0:
+    start_match = CLAUDE_STORAGE_FACTORY_START_RE.search(source)
+    if start_match is None:
         return set()
-    end = source.find(b'sessionAliases:', start)
+    end_match = CLAUDE_STORAGE_FACTORY_END_RE.search(source, start_match.start())
+    if end_match is None or end_match.start() - start_match.start() > 20000:
+        return set()
+    end = source.find(b"}", end_match.end())
     if end < 0:
         return set()
-    end = source.find(b"}", end)
-    return static_values(STORAGE_NAMESPACE_RE, source[start:end])
+    return static_values(STORAGE_NAMESPACE_RE, source[start_match.start() : end + 1])
 
 
 def template_values(source: bytes) -> set[str]:
@@ -2809,6 +2819,7 @@ def main() -> int:
         "Datadog allowlist": datadog_events,
         "Datadog tag fields": datadog_tag_fields,
         "Datadog redacted fields": datadog_redacted_fields,
+        "Claude storage key factory": first_party_storage_namespaces,
         "user config directories": config_directories,
         "schema property identifiers": schema_properties,
         "SDK control subtypes": control_subtypes,
@@ -2837,6 +2848,7 @@ def main() -> int:
             "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
             "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
             "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+            "claudeStorageNamespaces": "locates the product key factory from the stable transcript/journal/history/log prefix through sessionAliases and extracts every namespace in that bounded factory, including stream namespaces declared before globalConfig",
             "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings",
         },
         "coverage": {
@@ -2878,6 +2890,13 @@ def main() -> int:
                 "pricingTiers": len(model_pricing),
                 "aliases": len(model_aliases),
             },
+            "claudeStorage": {
+                "namespaceCount": len(first_party_storage_namespaces),
+                "requiredStreamNamespaces": sorted(
+                    {"transcript", "history", "log"}
+                    & first_party_storage_namespaces
+                ),
+            },
         },
         "completionAudit": {
             "allTargetCallsitesRecorded": all(
@@ -2905,6 +2924,11 @@ def main() -> int:
             "environmentSchemaParsed": bool(environment_schema),
             "datadogSurfaceParsed": bool(
                 datadog_events and datadog_tag_fields and datadog_redacted_fields
+            ),
+            "claudeStorageFactoryParsed": bool(
+                first_party_storage_namespaces
+                and {"transcript", "history", "log"}
+                <= first_party_storage_namespaces
             ),
             "semanticSymbolsDiscovered": len(discovered["roles"]) == 6,
             "knownStaticExtractionGaps": completion_gaps,

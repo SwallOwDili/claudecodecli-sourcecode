@@ -1851,6 +1851,186 @@ def resolved_argument_record(
     return result
 
 
+def resolve_static_string_expression(
+    source: bytes,
+    start: int,
+    end: int,
+    before: int,
+    scope_path: list[int],
+    resolver: AssignmentResolver,
+    seen: set[str] | None = None,
+) -> str | None:
+    start, end = trim_range(source, start, end)
+    direct = static_string_value(source, start, end)
+    if direct is not None:
+        return direct
+    if start < end and source[start] == 96:
+        shape = normalize_template(source, start, end)
+        if shape is not None and "${}" not in shape:
+            return shape
+        return None
+    if not IDENTIFIER_RE.fullmatch(source[start:end]):
+        return None
+    identifier = decode(source[start:end])
+    seen = set() if seen is None else set(seen)
+    if identifier in seen:
+        return None
+    assignment = resolver.resolve(identifier, before, scope_path)
+    if assignment is None:
+        return None
+    return resolve_static_string_expression(
+        source,
+        assignment["start"],
+        assignment["end"],
+        assignment["offset"],
+        assignment.get("scopePath", scope_path),
+        resolver,
+        seen | {identifier},
+    )
+
+
+def resolve_static_string_array(
+    source: bytes,
+    start: int,
+    end: int,
+    before: int,
+    scope_path: list[int],
+    resolver: AssignmentResolver,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    start, end = trim_range(source, start, end)
+    if IDENTIFIER_RE.fullmatch(source[start:end]):
+        assignment = resolver.resolve(decode(source[start:end]), before, scope_path)
+        if assignment is not None:
+            start, end = trim_range(source, assignment["start"], assignment["end"])
+            before = assignment["offset"]
+            scope_path = assignment.get("scopePath", scope_path)
+    if start >= end or source[start] != 91:
+        return [], [expression_record(source, start, end)]
+    closing = find_matching(source, start, 91, 93)
+    if closing < 0 or closing + 1 != end:
+        return [], [expression_record(source, start, end)]
+    values: list[str] = []
+    unresolved: list[dict[str, Any]] = []
+    for item_start, item_end in split_top_level_ranges(source, start + 1, closing):
+        value = resolve_static_string_expression(
+            source,
+            item_start,
+            item_end,
+            before,
+            scope_path,
+            resolver,
+        )
+        if value is None:
+            unresolved.append(expression_record(source, item_start, item_end))
+        else:
+            values.append(value)
+    return values, unresolved
+
+
+def tool_registration_rows(
+    source: bytes,
+    candidates: list[dict[str, Any]],
+    resolver: AssignmentResolver,
+) -> tuple[list[dict[str, Any]], str]:
+    analyzed: list[dict[str, Any]] = []
+    names_by_callee: dict[str, set[str]] = defaultdict(set)
+    for candidate in candidates:
+        name_start, name_end = candidate["nameExpression"]
+        scope_path = candidate.get("scopePath", [])
+        name = resolve_static_string_expression(
+            source,
+            name_start,
+            name_end,
+            candidate["offset"],
+            scope_path,
+            resolver,
+        )
+        item = {**candidate, "resolvedName": name}
+        analyzed.append(item)
+        if candidate.get("callee") and name is not None:
+            names_by_callee[candidate["callee"]].add(name)
+
+    stable_anchors = {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
+    factories = sorted(
+        callee
+        for callee, names in names_by_callee.items()
+        if stable_anchors <= names
+    )
+    if len(factories) != 1:
+        raise ValueError(
+            "unable to uniquely discover tool factory from stable core tools: "
+            f"{factories!r}"
+        )
+    factory = factories[0]
+
+    rows: list[dict[str, Any]] = []
+    comparison_occurrences: Counter[str] = Counter()
+    for candidate in analyzed:
+        if candidate.get("callee") != factory:
+            continue
+        name_start, name_end = candidate["nameExpression"]
+        name_record = expression_record(source, name_start, name_end)
+        name = candidate["resolvedName"]
+        aliases: list[str] = []
+        unresolved_aliases: list[dict[str, Any]] = []
+        if candidate.get("aliasesExpression") is not None:
+            aliases_start, aliases_end = candidate["aliasesExpression"]
+            aliases, unresolved_aliases = resolve_static_string_array(
+                source,
+                aliases_start,
+                aliases_end,
+                candidate["offset"],
+                candidate.get("scopePath", []),
+                resolver,
+            )
+        dynamic_name = compact_expression(name_record)
+        semantic_name = name if name is not None else json.dumps(
+            dynamic_name, sort_keys=True, separators=(",", ":")
+        )
+        comparison_occurrences[semantic_name] += 1
+        occurrence = comparison_occurrences[semantic_name]
+        properties = candidate["properties"]
+        row = {
+            "name": name,
+            "nameExpression": name_record,
+            "aliases": aliases,
+            "unresolvedAliases": unresolved_aliases,
+            "factorySymbol": factory,
+            "offset": candidate["offset"],
+            "line": candidate["line"],
+            "column": candidate["column"],
+            "function": candidate.get("function"),
+            "functionKind": candidate.get("functionKind", "top-level"),
+            "properties": properties,
+            "declares": {
+                key: key in properties
+                for key in (
+                    "briefStandalone",
+                    "checkPermissions",
+                    "isConcurrencySafe",
+                    "isEnabled",
+                    "isReadOnly",
+                    "requiresUserInteraction",
+                    "shouldDefer",
+                )
+            },
+            "comparisonKey": f"toolRegistration:{semantic_name}:{occurrence}",
+            "comparisonValue": json.dumps(
+                {
+                    "name": name if name is not None else dynamic_name,
+                    "aliases": aliases,
+                    "unresolvedAliasCount": len(unresolved_aliases),
+                    "properties": properties,
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ),
+        }
+        rows.append(row)
+    return rows, factory
+
+
 def callsite_rows(
     source: bytes,
     calls: list[dict[str, Any]],
@@ -2543,6 +2723,12 @@ def main() -> int:
     for assignment in javascript_surface["assignments"]:
         assignments[assignment["name"]].append(assignment)
     resolver = AssignmentResolver(source, assignments)
+    tool_registrations, tool_factory = tool_registration_rows(
+        source,
+        javascript_surface.get("toolObjectCalls", []),
+        resolver,
+    )
+    discovered["toolFactory"] = tool_factory
 
     roles = discovered["roles"]
     first_party_roles = {
@@ -2759,6 +2945,7 @@ def main() -> int:
         "model-pricing-tiers.jsonl": model_pricing,
         "model-aliases.jsonl": model_aliases,
         "model-catalog-metadata.jsonl": model_metadata,
+        "tool-registrations.jsonl": tool_registrations,
     }
     inventory_names = set(text_inventories) | set(jsonl_inventories)
     previous_summary = output / "summary.json"
@@ -2827,11 +3014,12 @@ def main() -> int:
         "OTEL event callsites": otel_callsites,
         "feature-value callsites": feature_callsites,
         "dynamic-config callsites": growthbook_callsites,
+        "tool registrations": tool_registrations,
     }.items():
         if not value:
             completion_gaps.append(f"detected subsystem produced no {label}")
     summary = {
-        "formatVersion": 4,
+        "formatVersion": 5,
         "version": (repo / "VERSION").read_text(encoding="utf-8").strip(),
         "canonicalSource": {
             "path": "extracted/cli.js",
@@ -2848,6 +3036,7 @@ def main() -> int:
             "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
             "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
             "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+            "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
             "claudeStorageNamespaces": "locates the product key factory from the stable transcript/journal/history/log prefix through sessionAliases and extracts every namespace in that bounded factory, including stream namespaces declared before globalConfig",
             "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings",
         },
@@ -2890,6 +3079,16 @@ def main() -> int:
                 "pricingTiers": len(model_pricing),
                 "aliases": len(model_aliases),
             },
+            "toolRegistrations": {
+                "factorySymbol": tool_factory,
+                "registrationCount": len(tool_registrations),
+                "staticNameCount": sum(
+                    1 for row in tool_registrations if row["name"] is not None
+                ),
+                "dynamicNameCount": sum(
+                    1 for row in tool_registrations if row["name"] is None
+                ),
+            },
             "claudeStorage": {
                 "namespaceCount": len(first_party_storage_namespaces),
                 "requiredStreamNamespaces": sorted(
@@ -2929,6 +3128,16 @@ def main() -> int:
                 first_party_storage_namespaces
                 and {"transcript", "history", "log"}
                 <= first_party_storage_namespaces
+            ),
+            "toolFactoryParsed": bool(
+                tool_factory
+                and tool_registrations
+                and {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
+                <= {
+                    row["name"]
+                    for row in tool_registrations
+                    if row["name"] is not None
+                }
             ),
             "semanticSymbolsDiscovered": len(discovered["roles"]) == 6,
             "knownStaticExtractionGaps": completion_gaps,

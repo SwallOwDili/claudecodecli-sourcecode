@@ -115,12 +115,32 @@ def corrupt_discovered_symbol(original: bytes) -> bytes:
 
 
 def downgrade_first_capability(original: bytes) -> bytes:
+    return downgrade_capability(original, 1)
+
+
+def downgrade_capability(original: bytes, capability: int) -> bytes:
     lines = original.splitlines(keepends=True)
     for index, line in enumerate(lines):
-        if line.startswith(b"| 1 |") and b"| Deep |" in line:
+        if line.startswith(f"| {capability} |".encode()) and b"| Deep |" in line:
             lines[index] = line.replace(b"| Deep |", b"| Documented |", 1)
             return b"".join(lines)
-    raise RuntimeError("negative-test capability row is missing")
+    raise RuntimeError(f"negative-test capability {capability} row is missing")
+
+
+def replace_capability_state(
+    original: bytes,
+    capability: int,
+    old: bytes,
+    new: bytes,
+) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith(f"| {capability} |".encode()) and old in line:
+            lines[index] = line.replace(old, new, 1)
+            return b"".join(lines)
+    raise RuntimeError(
+        f"negative-test capability {capability} state {old!r} is missing"
+    )
 
 
 def remove_capability_row(original: bytes, capability: int) -> bytes:
@@ -157,10 +177,124 @@ def truncate_mechanism_topic_claims(
     return b"".join(remaining)
 
 
+def encode_jsonl_record(record: dict) -> bytes:
+    return (
+        json.dumps(
+            record,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
+        + "\n"
+    ).encode()
+
+
+def remove_tool_registration(original: bytes, name: str) -> bytes:
+    lines = original.splitlines(keepends=True)
+    remaining: list[bytes] = []
+    removed = 0
+    for line in lines:
+        record = json.loads(line)
+        if record.get("name") == name:
+            removed += 1
+            continue
+        remaining.append(line)
+    if removed != 1:
+        raise RuntimeError(
+            f"negative-test tool registration {name!r} count is {removed}"
+        )
+    return b"".join(remaining)
+
+
+def set_first_dynamic_tool_name(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        record = json.loads(line)
+        if record.get("name") is None:
+            record["name"] = "NegativeDynamicTool"
+            lines[index] = encode_jsonl_record(record)
+            return b"".join(lines)
+    raise RuntimeError("negative-test dynamic tool registration is missing")
+
+
+def corrupt_first_tool_factory(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    if not lines:
+        raise RuntimeError("negative-test tool registration inventory is empty")
+    record = json.loads(lines[0])
+    record["factorySymbol"] = "Xi"
+    lines[0] = encode_jsonl_record(record)
+    return b"".join(lines)
+
+
+def decode_first_tool_comparison_value(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    if not lines:
+        raise RuntimeError("negative-test tool registration inventory is empty")
+    record = json.loads(lines[0])
+    comparison_value = record.get("comparisonValue")
+    if not isinstance(comparison_value, str):
+        raise RuntimeError("negative-test comparisonValue is not a string")
+    record["comparisonValue"] = json.loads(comparison_value)
+    lines[0] = encode_jsonl_record(record)
+    return b"".join(lines)
+
+
+def corrupt_brief_comparison_alias(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        record = json.loads(line)
+        if record.get("name") != "SendUserMessage":
+            continue
+        comparison_value = record.get("comparisonValue")
+        if not isinstance(comparison_value, str):
+            raise RuntimeError("negative-test Brief comparisonValue is not a string")
+        comparison = json.loads(comparison_value)
+        comparison["aliases"] = []
+        record["comparisonValue"] = json.dumps(
+            comparison,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
+        lines[index] = encode_jsonl_record(record)
+        return b"".join(lines)
+    raise RuntimeError("negative-test SendUserMessage registration is missing")
+
+
+def remove_brief_alias(original: bytes) -> bytes:
+    lines = original.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        record = json.loads(line)
+        if record.get("name") == "SendUserMessage":
+            aliases = record.get("aliases", [])
+            if "Brief" not in aliases:
+                raise RuntimeError("negative-test Brief alias is already missing")
+            record["aliases"] = [alias for alias in aliases if alias != "Brief"]
+            lines[index] = encode_jsonl_record(record)
+            return b"".join(lines)
+    raise RuntimeError("negative-test SendUserMessage registration is missing")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
+    parser.add_argument(
+        "--start-case",
+        type=int,
+        default=1,
+        help="resume at the 1-based negative-case number",
+    )
+    parser.add_argument(
+        "--skip-baseline",
+        action="store_true",
+        help="skip the positive baseline when resuming a previously verified run",
+    )
     args = parser.parse_args()
+    if args.start_case < 1:
+        parser.error("--start-case must be at least 1")
+    if args.skip_baseline and args.start_case == 1:
+        parser.error("--skip-baseline requires --start-case greater than 1")
     repo = Path(args.repo).resolve()
     validator = repo / "skill/claude-code-version-diff/scripts/validate_snapshot.py"
     snapshot_version = (repo / "VERSION").read_text(encoding="utf-8").strip().encode()
@@ -173,9 +307,10 @@ def main() -> None:
     feature_count = str(inventory_summary["counts"]["feature-flag-callsites"]).encode()
     feature_symbol = inventory_summary["discoveredSymbols"]["roles"]["featureValue"].encode()
 
-    baseline = run_validator(repo, validator)
-    if baseline.returncode != 0:
-        raise RuntimeError(f"baseline validator failed:\n{text_output(baseline)}")
+    if not args.skip_baseline:
+        baseline = run_validator(repo, validator)
+        if baseline.returncode != 0:
+            raise RuntimeError(f"baseline validator failed:\n{text_output(baseline)}")
 
     personal_path = ("/" + "Users" + "/validator-fixture/private.txt").encode()
     cases: list[tuple[str, Callable[[bytes], bytes], str]] = [
@@ -281,6 +416,36 @@ def main() -> None:
             "source inventory line count mismatch",
         ),
         (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            lambda data: remove_tool_registration(data, "StructuredOutput"),
+            "tool registration row count mismatch: expected=80, actual=79",
+        ),
+        (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            set_first_dynamic_tool_name,
+            "static tool registration count mismatch: expected=77, actual=78",
+        ),
+        (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            corrupt_first_tool_factory,
+            "tool registration rows use unexpected factory symbols",
+        ),
+        (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            decode_first_tool_comparison_value,
+            "tool registration comparisonValue must be a JSON string",
+        ),
+        (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            corrupt_brief_comparison_alias,
+            "tool registration comparison aliases mismatch",
+        ),
+        (
+            "analysis/source-inventory/tool-registrations.jsonl",
+            remove_brief_alias,
+            "tool registration SendUserMessage legacy alias mismatch",
+        ),
+        (
             "analysis/agent-loop.md",
             lambda data: replace_once(
                 data,
@@ -342,6 +507,38 @@ def main() -> None:
                 b"preserveCurrentProcessTokens",
             ),
             "human analysis document analysis/auth-account-and-subscription-lifecycle.md does not cover 'preserveInProcessTokens'",
+        ),
+        (
+            "analysis/tool-registration-and-host-surfaces.md",
+            lambda data: replace_once(data, b"77 + 3", b"77 and 3"),
+            "human analysis document analysis/tool-registration-and-host-surfaces.md does not cover '77 + 3'",
+        ),
+        (
+            "analysis/brief-mode-and-user-visible-output.md",
+            lambda data: replace_once(
+                data,
+                b"DISABLE_BRIEF_MODE_STOP_HOOK",
+                b"BRIEF_MODE_STOP_HOOK_DISABLED",
+            ),
+            "human analysis document analysis/brief-mode-and-user-visible-output.md does not cover 'DISABLE_BRIEF_MODE_STOP_HOOK'",
+        ),
+        (
+            "analysis/tool-registration-and-host-surfaces.md",
+            lambda data: replace_once(
+                data,
+                b"toolRegistration:SendUserMessage:1",
+                b"toolRegistration:SendUserMessageMissing:1",
+            ),
+            "human tool registration coverage mismatch",
+        ),
+        (
+            "analysis/tool-registration-and-host-surfaces.md",
+            lambda data: replace_once(
+                data,
+                b"| `toolRegistration:SendUserMessage:1` | `SendUserMessage`; alias `Brief` | `Conditional CLI` |",
+                b"| `toolRegistration:SendUserMessage:1` | `SendUserMessage`; alias `Brief` | `Core terminal` |",
+            ),
+            "human tool registration classification mismatch",
         ),
         (
             "analysis/builtin-tools-reference.md",
@@ -438,8 +635,8 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                b"[`anthropic-beta-identifiers.txt`]",
-                b"[`anthropic-beta-identifiers-missing.txt`]",
+                b"[`tool-registrations.jsonl`]",
+                b"[`tool-registrations-missing.jsonl`]",
             ),
             "product surface inventory coverage mismatch",
         ),
@@ -451,12 +648,36 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: remove_capability_row(data, 51),
-            "completeness capability coverage mismatch: expected=51, actual=50",
+            "completeness capability coverage mismatch: expected=52, actual=51",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: downgrade_capability(data, 51),
+            "completeness capability 51 is not closed: Documented",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_capability_state(
+                data, 52, b"| Boundary |", b"| Deep |"
+            ),
+            "completeness capability 52 must remain Boundary: Deep",
         ),
         (
             "analysis/mechanism-evidence.jsonl",
             lambda data: truncate_mechanism_topic_claims(data, "auth-account", 2),
             "mechanism topic 'auth-account' has 2 claims; minimum is 3",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(
+                data, "tool-registration-hosts", 5
+            ),
+            "mechanism topic 'tool-registration-hosts' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(data, "brief-output", 8),
+            "mechanism topic 'brief-output' has 8 claims; minimum is 9",
         ),
     ]
 
@@ -465,7 +686,13 @@ def main() -> None:
         "analysis/source-inventory/environment-schema.jsonl",
         "analysis/source-inventory/claude-storage-namespaces.txt",
     }
-    for relative, mutate, expected in cases:
+    for case_number, (relative, mutate, expected) in enumerate(cases, 1):
+        if case_number < args.start_case:
+            continue
+        print(
+            f"negative case {case_number}: {relative}",
+            flush=True,
+        )
         expect_rejection(
             repo,
             validator,
@@ -474,23 +701,55 @@ def main() -> None:
             expected,
             fast=relative not in full_regeneration_cases,
         )
+        print(f"negative case {case_number}: PASS", flush=True)
 
-    expect_missing_rejection(
-        repo,
-        validator,
-        "analysis/feature-flags-remote-config.md",
-        "missing human analysis document: analysis/feature-flags-remote-config.md",
-    )
-
-    expect_missing_rejection(
-        repo,
-        validator,
-        "analysis/visuals/advisor-dual-model.svg",
-        "reader-first rendered visual is missing: analysis/visuals/advisor-dual-model.svg",
-    )
+    missing_cases = [
+        (
+            "analysis/feature-flags-remote-config.md",
+            "missing human analysis document: analysis/feature-flags-remote-config.md",
+        ),
+        (
+            "analysis/visuals/advisor-dual-model.svg",
+            "reader-first rendered visual is missing: analysis/visuals/advisor-dual-model.svg",
+        ),
+        (
+            "analysis/tool-registration-and-host-surfaces.md",
+            "missing human analysis document: analysis/tool-registration-and-host-surfaces.md",
+        ),
+        (
+            "analysis/brief-mode-and-user-visible-output.md",
+            "missing human analysis document: analysis/brief-mode-and-user-visible-output.md",
+        ),
+        (
+            "analysis/visuals/tool-registration-host-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/tool-registration-host-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/brief-user-output-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/brief-user-output-lifecycle.svg",
+        ),
+    ]
+    total_cases = len(cases) + len(missing_cases)
+    if args.start_case > total_cases:
+        parser.error(
+            f"--start-case exceeds available cases ({total_cases})"
+        )
+    for case_number, (relative, expected) in enumerate(
+        missing_cases,
+        len(cases) + 1,
+    ):
+        if case_number < args.start_case:
+            continue
+        print(
+            f"negative case {case_number}: missing {relative}",
+            flush=True,
+        )
+        expect_missing_rejection(repo, validator, relative, expected)
+        print(f"negative case {case_number}: PASS", flush=True)
 
     print("validator negative tests: PASS")
-    print(f"cases checked: {len(cases) + 2}")
+    print(f"cases checked: {total_cases - args.start_case + 1}")
+    print(f"case range: {args.start_case}-{total_cases}")
     print("restoration: PASS")
 
 

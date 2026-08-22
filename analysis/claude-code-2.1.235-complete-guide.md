@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [70 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 51 个能力面的证据深度；读 [29 个内置工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [156 个 Settings 全字段参考](settings-reference.md) 查来源/merge/consumer，读 [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) 查 stdin/stdout、RPC 和 event，读 [103 个 Slash Command](slash-command-reference.md)、[31 个 Hook 事件](hooks-event-reference.md) 与 [32 个 Storage v5 namespace](storage-v5-reference.md) 查精确集合。Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway、Auth/Trust、Thinking/Effort/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 和 Ultrareview 都有独立专题；Workflow/Artifact/Design、Feature Flags、TUI/媒体/IDE/Chrome 和后台/Channels/Cloud 也各有专属状态机。它们补充本卷，不替代其中的 Agent Loop、上下文、权限、恢复、遥测和证据边界。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 52 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用，读 [Brief 用户可见输出](brief-mode-and-user-visible-output.md) 查主视图、附件和漏调修复。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -68,7 +68,7 @@ Claude Code CLI 同时承担六类责任：
 | `reverse/javascript/` | 固定工具生成的可读 JS | 调用链、分支、字段、常量 | 局部变量名和格式不是原值 |
 | `reverse/native/` | Mach-O headers、imports、exports、symbols、strings、反汇编 | 原生依赖、ABI 和底层框架 | 没有源码级 DWARF |
 | `reconstructed/` | 独立兼容实现 | 能否重新实现观察到的 N-API 合同 | 不等于 Anthropic 原始 Rust/Swift/C++ |
-| `source-inventory/` | 70 类确定性清单 | 跨版本稳定比较字段 | 广义字符串需要回 callsite |
+| `source-inventory/` | 71 类确定性清单 | 跨版本稳定比较字段 | 广义字符串需要回 callsite |
 | `analysis/*.md` | 人类机制解释 | 为什么、怎么运行、失败与影响 | 结论必须回到上述证据 |
 
 生产构建已经丢弃的注释、原始 TypeScript 文件名、模块边界、未压缩局部名、tree shaking 删除代码和原生优化前函数体没有留在发布物中。兼容重建通过测试，只说明外部合同在覆盖范围内一致。
@@ -180,7 +180,9 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 
 ### 6.5 工具 schema
 
-每个实际可用工具需要 name、description、input schema 和可选的 output contract。工具集合来自 built-in、MCP、plugins、skills/commands 辅助能力、Agent 模式和 provider capability。`2.1.235` 的机器清单恢复出 29 个 built-in identifier 和 188 个 known-tool catalog 项；catalog 是候选全集，当前请求还会经过 gate 和过滤。
+每个实际可用工具需要 name、description、input schema 和可选的 output contract。工具集合来自核心终端对象、条件 CLI 对象、hosted/product wrapper、内部/eval wrapper、动态 factory、MCP、plugins 和 Agent 模式。`2.1.235` 的 29 项核心终端清单来自提取器维护的 name allowlist 与 bundle 静态 assignment 交集；Acorn 另从 canonical bundle 的同一工具工厂恢复出 80 个 `Yi({...})` AST 调用点，其中 77 个 name 可直接解析、3 个保留动态 expression，并按 consumer/host 人工分类为 29 Core terminal、28 Conditional CLI、16 Hosted/product、4 Internal/eval、3 Dynamic factory。两个 `e.name` 工厂还能由本版调用参数展开成 `ListPlugins`、`ListSkills`、`SearchPlugins`、`SearchSkills`；只有 eval factory 的最终名称和数量依赖运行时。29、80、工厂展开实例和一次请求的实际工具数不是同一个口径。
+
+直接调用点或工厂模板之后还要经过工厂调用、宿主归属、账号/feature/platform/session gate、alias canonicalization、deny/policy、Tool Search/defer、MCP generation 和 request builder。`isEnabled`、`isReadOnly`、`isConcurrencySafe`、`shouldDefer` 等字段说明注册对象字面量声明的运行合同，不表示当前状态一定启用，也不表示没有网络、呈现、遥测或附件副作用。完整 80/80 调用点表和七道门见 [工具注册、条件工具与宿主表面](tool-registration-and-host-surfaces.md)。
 
 当工具太多时，Tool Search 可以只暴露延迟工具的名称和 `defer_loading` 合同，模型需要先发现再取得完整 schema。这减少常驻工具说明，但增加一次发现路径和动态刷新复杂度。
 
@@ -1220,14 +1222,14 @@ Doctor分别检查：
 ### 33.1 静态覆盖
 
 - 15个 packed文件和逐文件 hash；
-- 70类 source inventory；
+- 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 196条机制证据：131 Static、30 Probe、33 Public、2 Boundary；
-- 51个能力面：50项 Deep、1项 Boundary；
+- 211 条机制证据：146 Static、30 Probe、33 Public、2 Boundary；
+- 52个能力面：51项 Deep、1项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
-- 29个 built-in tool identifier、188个 known-tool catalog项；
+- 29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 静态 name、3 动态 expression）、188 个 known-tool catalog 项；
 - 31个 hook event；
 - 17个 model entry、6个 pricing tier、4个 alias family。
 
@@ -1266,7 +1268,9 @@ Doctor分别检查：
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |
-| 70 类机器清单怎样归属，哪些不能直接算产品功能 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| 71 类机器清单怎样归属，哪些不能直接算产品功能 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
+| Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
 | Agent为何循环、何时并发、为何停止 | [agent-loop.md](agent-loop.md) |
 | Context、cache、compact和成本 | [context-governance-and-caching.md](context-governance-and-caching.md) |
 | Session、fork、checkpoint、memory | [sessions-checkpoints-memory.md](sessions-checkpoints-memory.md) |
@@ -1473,7 +1477,15 @@ Advisor 不是客户端并行启动第二个本地 Agent Loop。每个 API attem
 
 `--fix` 在 findings 回来后交回本地主 Agent Loop，因此仍经过工具、permission、hook 和 sandbox；`--post` 则启动受限 routine，只允许一次 `add_issue_comment`，发布的是 plain PR comment，不是 approve/request-changes/merge。独立 CLI 默认等待 30 分钟、每 3 秒 poll、最多容忍连续 5 个连接错误；Ctrl-C 只停止本地等待，远端任务继续。Post consent 不跨恢复保留，网络 timeout 后也不会盲目重发，以避免重复外部评论。详见 [Ultrareview 云端审查](ultrareview-cloud-review.md)。
 
-## 51. 最终准确性边界
+## 51. Brief Mode：普通 assistant text 不等于用户已经收到
+
+Brief Mode 改变的是输出所有权，不是把回答自动缩短。`--brief`、`CLAUDE_CODE_BRIEF`、`defaultView=chat`、`/brief` 和 TUI toggle 最终汇入 `isBriefOnly`，但还要通过账号 entitlement、host/session 状态和工具装配，`SendUserMessage` 才会进入当前工具集合。普通 assistant text 仍会进入 transcript/detail；brief 主视图把 `SendUserMessage` 的 tool use/result 当作主要用户消息，因此“模型已经写了文字”和“用户主视图已经收到”是两种状态。
+
+`SendUserMessage` 输入包含 Markdown `message`、`normal/proactive` status，以及本地路径或预上传对象附件。本地路径会拒绝 URL、UNC、`/net`、非 regular file 和不可访问对象；客户端再按 REPL、Brief env、CCR、BYOC、hosted SDK 或 local-only 条件选择 lane。所有允许上传的 lane 共用 `uploadBriefAttachment -> /api/oauth/file_upload`，lane 主要控制跳过、本地 fallback 和遥测标签，不是已证明的不同 transport。多附件并行且允许部分成功：正文可能已经送达，但部分附件只在当前桌面可见，或因没有本地兜底而让 tool result 带 `is_error:true`。HTTP `201` 与 `file_uuid` 只证明客户端认定上传成功，不证明任意 remote viewer 已渲染；该 error 只描述附件交付不完整，不撤销已经显示的正文。
+
+如果主线程或 SDK 的 brief turn 完全没有调用 `SendUserMessage`，客户端会在 turn end 最多插入一次 `You ended the turn without calling SendUserMessage.` meta message，让 Agent Loop 再给模型一次补发机会；sentinel guard 防止同一漏调无限循环。切换 transcript 只是改变 view projection，不删除历史；已经发出的消息、上传的附件和通知也不能被 compact、resume、tombstone 或 rewind 撤销。完整入口、schema、renderer、上传结果和证据范围见 [Brief 与用户可见输出](brief-mode-and-user-visible-output.md)。
+
+## 52. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

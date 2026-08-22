@@ -1,0 +1,29 @@
+digraph brief_user_output_lifecycle {
+  graph [rankdir=LR, bgcolor="transparent", fontname="Arial", nodesep=0.4, ranksep=0.62, pad=0.2];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#2f3b45", fillcolor="#f6f8fa", margin="0.12,0.08"];
+  edge [fontname="Arial", fontsize=9, color="#52606d", fontcolor="#364152", arrowsize=0.75];
+
+  entry [label="Entry\n--brief / env / defaultView=chat\n/brief / keybinding", fillcolor="#e8f1f8"];
+  entitlement [label="Entitlement and host gates\nisBriefEntitled\nisBriefEnabled", fillcolor="#fff3cd"];
+  state [label="App state\nisBriefOnly=true\nbrief prompt + tool variant", fillcolor="#dcefe5"];
+  model [label="Agent iteration\nplain assistant text and/or\nSendUserMessage tool_use", fillcolor="#e8edf7"];
+  hidden [label="Detail / transcript\nplain text retained\nbut hidden from main chat", fillcolor="#f3f4f6"];
+  validate [label="Tool validation\nmessage + status\nURL/UNC/regular-file checks", fillcolor="#fff3cd"];
+  upload [label="Lane selector + shared upload\nactive labels -> /api/oauth/file_upload\nparallel, partial client result", fillcolor="#fde8d7"];
+  visible [label="Client output projection\nlocal desktop + file_uuid metadata\nremote viewer remains Boundary", fillcolor="#dcefe5"];
+  enforce [label="Turn-end enforcement\ninsert one meta sentinel\nif no SendUserMessage call", fillcolor="#fce8e6"];
+  boundary [label="Boundary\naccount entitlement, remote retention\nand real viewer compatibility", shape=note, fillcolor="#f3f4f6", color="#7a828a"];
+
+  entry -> entitlement [label="resolve source"];
+  entitlement -> state [label="allowed"];
+  entitlement -> boundary [label="live remote value", style=dashed];
+  state -> model [label="tools[] includes channel"];
+  model -> hidden [label="plain text"];
+  model -> validate [label="SendUserMessage"];
+  validate -> upload [label="attachments valid"];
+  validate -> visible [label="text only"];
+  upload -> visible [label="success or local-only split"];
+  model -> enforce [label="turn ends without tool"];
+  enforce -> model [label="one corrective iteration"];
+  enforce -> hidden [label="sentinel already present", style=dashed];
+}

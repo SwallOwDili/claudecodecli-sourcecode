@@ -1,8 +1,8 @@
 # Claude Code CLI 2.1.235 全量可提取能力面
 
-本文是发布 bundle 的能力地图。70 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
+本文是发布 bundle 的能力地图。71 类机器清单负责穷举稳定字面量、全部目标调用点、动态表达式和结构化 schema/catalog，本文负责解释它们属于哪一层系统、哪些结论可以直接成立、哪些只能作为线索。
 
-本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [51 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 个内置工具](builtin-tools-reference.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)。Auto Mode、Plugin Eval、daemon/PTY/respawn 和 Enterprise Gateway 分别下钻到 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[Runtime Supervision](runtime-supervision-and-processes.md) 与 [网关专题](enterprise-gateway-runtime.md)；Auth/Trust、Thinking/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 与 Ultrareview 的专用状态机从 [文章总入口](../ARTICLES.md) 进入。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
+本文仍然是“查证据用的地图”，不是第一次阅读入口。先看 [技术机制总图](technical-mechanism-atlas.md)，覆盖深度看 [52 项全面性审计](completeness-audit.md)，逐项产品表面分别看 [29 项人工维护的核心终端参考](builtin-tools-reference.md)、[80 个同工厂工具注册调用点](tool-registration-and-host-surfaces.md)、[156 个 Settings](settings-reference.md)、[CLI/SDK/输出协议](cli-sdk-output-protocol.md) 和 [Plugins/Skills/Commands/LSP](plugins-skills-commands-lsp.md)。模型与工具持续执行看 [Agent Loop 专题](agent-loop.md)，用户最终能看到什么看 [Brief Mode 与用户可见输出](brief-mode-and-user-visible-output.md)，上下文/cache/compact 看 [上下文治理专题](context-governance-and-caching.md)，session/checkpoint/memory 看 [持久化专题](sessions-checkpoints-memory.md)，动作控制看 [工具、权限与 Hooks](tools-permissions-hooks.md)，动态扩展看 [MCP、Agents 与后台协作](mcp-agents-background.md)。Auto Mode、Plugin Eval、daemon/PTY/respawn 和 Enterprise Gateway 分别下钻到 [分类器专题](auto-mode-classifier.md)、[评估专题](plugin-evaluation-harness.md)、[Runtime Supervision](runtime-supervision-and-processes.md) 与 [网关专题](enterprise-gateway-runtime.md)；Auth/Trust、Thinking/Fast、Usage/Limits、数据生命周期、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 与 Ultrareview 的专用状态机从 [文章总入口](../ARTICLES.md) 进入。字段“存在”不等于分支可达，当前官网“有此功能”也不等于 `2.1.235` 已实现；逐项边界见 [公开主张验证矩阵](public-claims-validation.md)。
 
 ## 60 秒理解“能力地图”怎么用
 
@@ -22,7 +22,7 @@
 | Exact-binary Probe | 固定命令、输入、literal result、exit status | 给定环境中精确版本实际发生的状态转移 | 外推到未触发平台、账户或服务端 |
 | Human analysis | 心智模型、场景、生命周期、影响和边界 | 读者能理解并复核的技术结论 | 删除底层证据只留故事 |
 
-下面的 70 类索引保留为“找证据的全量地图”。阅读时先选机制，再进入对应清单和调用点，不要从计数直接跳到产品结论。
+下面的 71 类索引保留为“找证据的全量地图”。阅读时先选机制，再进入对应清单和调用点，不要从计数直接跳到产品结论。
 
 ## 证据等级
 
@@ -96,7 +96,8 @@
 
 | 清单 | 数量 | 说明 |
 | --- | ---: | --- |
-| [builtin-tool-identifiers](source-inventory/builtin-tool-identifiers.txt) | 29 | 静态一方 built-in tool 赋值 |
+| [builtin-tool-identifiers](source-inventory/builtin-tool-identifiers.txt) | 29 | 提取器维护的 core name allowlist 与 bundle 静态 assignment 的交集；是人工参考集合，不是完整 `_Z()/j7()` 装配数组、bundle 全部注册调用点或 request-time 工具数 |
+| [tool-registrations](source-inventory/tool-registrations.jsonl) | 80 | canonical bundle 中同一 `Yi({...})` 工厂的 AST 注册调用点；77 个 name 可直接解析、3 个保留动态 expression。两个 `e.name` 工厂还能由本版调用参数静态展开为 4 个名称；实际请求仍受 host、feature、entitlement、session、Tool Search 和动态 registry 过滤 |
 | [known-tool-catalog](source-inventory/known-tool-catalog.txt) | 188 | 工具归一化 catalog，含 internal/hosted/静态 MCP |
 | [named-component-identifiers](source-inventory/named-component-identifiers.txt) | 182 | name+description 组件，含依赖组件 |
 | [slash-command-identifiers](source-inventory/slash-command-identifiers.txt) | 103 | local/local-jsx/prompt slash command |

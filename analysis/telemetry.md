@@ -281,7 +281,7 @@ python3 skill/claude-code-version-diff/scripts/extract_source_inventory.py .
 python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 ```
 
-跨版本比较器会遍历 `analysis/source-inventory/summary.json` 中登记的 70 个文件，输出 count delta、added 和 removed。JSONL 优先比较 `comparisonKey` / `comparisonValue`，忽略纯 offset/line 漂移。任何新增 exporter、endpoint、event、field、redaction、metric、span、环境变量、feature gate、默认值、settings 字段、模型或消息模板都应先出现在机器清单，再更新本文的架构解释。
+跨版本比较器会遍历 `analysis/source-inventory/summary.json` 中登记的 71 个文件，输出 count delta、added 和 removed。JSONL 优先比较 `comparisonKey` / `comparisonValue`，忽略纯 offset/line 漂移。任何新增 exporter、endpoint、event、field、redaction、metric、span、环境变量、feature gate、默认值、settings 字段、模型或消息模板都应先出现在机器清单，再更新本文的架构解释。
 
 `summary.json` 的 completion audit 要求所有目标调用点、全部词法字符串/模板、动态表达式、根 settings 结构和模型目录均完成记录，且 `knownStaticExtractionGaps` 必须为空。不可恢复边界只剩发布产物本身不存在的内容：运行时远程配置/API/用户文件/环境值、服务端处理与风控规则，以及构建前被 minification、tree shaking 或缺失 source map 删除的信息。
 

@@ -24,6 +24,7 @@ DOMAIN_META = {
         "question": "哪些是客户端真实注册/dispatch surface，哪些是内嵌 MCP 或兼容标识？",
         "docs": [
             "builtin-tools-reference.md",
+            "tool-registration-and-host-surfaces.md",
             "cli-sdk-output-protocol.md",
             "plugins-skills-commands-lsp.md",
             "slash-command-reference.md",
@@ -150,6 +151,7 @@ FILE_META = {
     "telemetry-endpoints.txt": ("telemetry-feature", "Product broad surface"),
     "template-literals.jsonl": ("lexical-evidence", "Evidence substrate"),
     "tengu-identifiers.txt": ("telemetry-feature", "Mixed heuristic"),
+    "tool-registrations.jsonl": ("tools-commands-protocol", "Product structured"),
     "third-party-otel-event-fields.tsv": ("telemetry-feature", "Dependency surface"),
     "third-party-otel-events.txt": ("telemetry-feature", "Dependency surface"),
     "url-templates.jsonl": ("request-model-network", "Mixed heuristic"),
@@ -167,6 +169,7 @@ def build(repo: Path) -> str:
     summary_path = repo / "analysis/source-inventory/summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     inventory_names = [Path(entry["path"]).name for entry in summary["files"]]
+    inventory_count = len(inventory_names)
     expected = set(inventory_names)
     classified = set(FILE_META)
     missing = sorted(expected - classified)
@@ -182,13 +185,13 @@ def build(repo: Path) -> str:
         counts[FILE_META[name][0]] += 1
 
     lines = [
-        f"# Claude Code CLI {version} 产品表面与 70 类证据归属地图",
+        f"# Claude Code CLI {version} 产品表面与 {inventory_count} 类证据归属地图",
         "",
-        "这篇不是把 70 个文件重新堆成目录，而是回答：每类机器清单为什么存在、能证明哪一层、应该回到哪篇人类专题，以及什么时候必须停止推断。",
+        f"这篇不是把 {inventory_count} 个文件重新堆成目录，而是回答：每类机器清单为什么存在、能证明哪一层、应该回到哪篇人类专题，以及什么时候必须停止推断。",
         "",
         "## 60 秒理解这张地图",
         "",
-        "**读者问题：** `summary.json` 已经注册 70 类清单，为什么仍可能不全面？",
+        f"**读者问题：** `summary.json` 已经注册 {inventory_count} 类清单，为什么仍可能不全面？",
         "",
         "**一句话模型：** 清单解决“候选证据有没有漏”，专题解决“消费者和状态机讲没讲清”，Probe 解决“发布二进制是否真的走过该分支”，Boundary 解决“发布物根本不携带什么”；四层缺一都不能用数量代替。",
         "",
@@ -227,7 +230,7 @@ def build(repo: Path) -> str:
         "| `Dependency surface` | 第三方依赖或 runtime contract | 只在一方 consumer 可达时进入产品机制 |",
         "| `Evidence substrate` | 完整词法/错误/模板证据底座 | 用于防漏和定位，不单独证明可达行为 |",
         "",
-        "## 70/70 精确归属",
+        f"## {inventory_count}/{inventory_count} 精确归属",
         "",
         "下面是机器核对附录。顺序和文件集合必须与 `analysis/source-inventory/summary.json` 完全一致；新增版本出现新类别时，生成器会拒绝继续，直到维护者明确归属和阅读路由。",
         "",
@@ -254,7 +257,7 @@ def build(repo: Path) -> str:
         "",
         "## 完整性结论",
         "",
-        f"本图覆盖 `summary.json` 的全部 {len(inventory_names)} 个注册文件，canonical source SHA-256 为 `{summary['canonicalSource']['sha256']}`。它证明所有确定性 inventory 类别都有产品归属、证据强度和人类阅读路由；它不把 70/70 自动解释为所有运行分支都经过 Probe。最终状态仍以 `completeness-audit.md` 的逐能力合同为准。",
+        f"本图覆盖 `summary.json` 的全部 {inventory_count} 个注册文件，canonical source SHA-256 为 `{summary['canonicalSource']['sha256']}`。它证明所有确定性 inventory 类别都有产品归属、证据强度和人类阅读路由；它不把 {inventory_count}/{inventory_count} 自动解释为所有运行分支都经过 Probe。最终状态仍以 `completeness-audit.md` 的逐能力合同为准。",
         "",
     ])
     return "\n".join(lines)

@@ -41,6 +41,7 @@ const assignments = [];
 const strings = [];
 const templates = [];
 const environmentAccesses = [];
+const toolObjectCalls = [];
 const declarations = {};
 let nextScopeId = 1;
 
@@ -57,6 +58,11 @@ function propertyName(node) {
   if (node.type === "Identifier") return node.name;
   if (node.type === "Literal" && typeof node.value === "string") return node.value;
   return null;
+}
+
+function objectPropertyName(property) {
+  if (!property || property.type !== "Property") return null;
+  return propertyName(property.key);
 }
 
 function inferredFunctionName(node, parent) {
@@ -185,6 +191,45 @@ while (stack.length > 0) {
         ...functionRecord(childContext),
       });
     }
+
+    if (
+      node.type === "CallExpression" &&
+      node.arguments[0]?.type === "ObjectExpression"
+    ) {
+      const object = node.arguments[0];
+      const properties = object.properties
+        .map((property) => ({ property, name: objectPropertyName(property) }))
+        .filter((item) => item.name !== null);
+      const propertyNames = new Set(properties.map((item) => item.name));
+      const nameProperty = properties.find((item) => item.name === "name")?.property;
+      const aliasesProperty = properties.find(
+        (item) => item.name === "aliases",
+      )?.property;
+      if (
+        nameProperty?.value &&
+        propertyNames.has("call") &&
+        propertyNames.has("inputSchema") &&
+        propertyNames.has("description") &&
+        propertyNames.has("prompt") &&
+        (propertyNames.has("mapToolResultToToolResultBlockParam") ||
+          propertyNames.has("userFacingName"))
+      ) {
+        toolObjectCalls.push({
+          ...location(node),
+          callee: identifierName(node.callee),
+          calleeStart: node.callee.start,
+          calleeEnd: node.callee.end,
+          start: node.start,
+          end: node.end,
+          nameExpression: [nameProperty.value.start, nameProperty.value.end],
+          aliasesExpression: aliasesProperty?.value
+            ? [aliasesProperty.value.start, aliasesProperty.value.end]
+            : null,
+          properties: [...propertyNames].sort(),
+          ...functionRecord(childContext),
+        });
+      }
+    }
   }
 
   if (node.type === "VariableDeclarator" && node.init && node.id.type === "Identifier") {
@@ -247,6 +292,7 @@ assignments.sort((left, right) => left.offset - right.offset);
 strings.sort((left, right) => left.offset - right.offset);
 templates.sort((left, right) => left.offset - right.offset);
 environmentAccesses.sort((left, right) => left.offset - right.offset);
+toolObjectCalls.sort((left, right) => left.offset - right.offset);
 
 process.stdout.write(
   JSON.stringify({
@@ -256,6 +302,7 @@ process.stdout.write(
     strings,
     templates,
     environmentAccesses,
+    toolObjectCalls,
     declarations,
     discoveredSymbols,
   }),

@@ -4,7 +4,7 @@
 
 ## 先读这四篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 51 章，从发布物、请求装配、Agent Loop、上下文、权限、多 Agent、恢复、遥测一直讲到 Auth、Thinking/Fast、Usage、Sandbox、Advisor、Ultrareview、原生桥和准确性边界。
+1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 52 章，从发布物、请求装配、Agent Loop、工具注册、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥和准确性边界。
 2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
 4. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
@@ -13,14 +13,16 @@
 
 ## 本轮新增的全量参考
 
-1. [70 类证据归属地图](analysis/product-surface-evidence-map.md)：70/70 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
-2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 51 个产品能力面区分 Deep 与 Boundary；50 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
-3. [29 个内置工具逐项参考](analysis/builtin-tools-reference.md)：29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
-4. [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md)：讲清进程级 store、五层/admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新、remote managed settings 与 policy helper 恢复。
-5. [156 个 Settings 全字段参考](analysis/settings-reference.md)：156/156 direct key 逐项解释类型、来源、merge、consumer、生命周期和影响，另解释 4 个 spread。
-6. [完整 CLI 命令树](analysis/cli-command-reference.md)：恢复 90 个普通/隐藏/条件/fast-path/manual-parser 路径及 8 个内部入口，逐层解释 alias、arguments/options、gate、handler、副作用和失败，说明为什么顶层 `--help` 不是全貌。
-7. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
-8. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
+1. [71 类证据归属地图](analysis/product-surface-evidence-map.md)：71/71 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
+2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 52 个产品能力面区分 Deep 与 Boundary；51 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
+3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
+4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
+5. [29 项核心终端参考工具逐项说明](analysis/builtin-tools-reference.md)：维护集合 29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
+6. [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md)：讲清进程级 store、五层/admin tier、四类 merge、ConfigChange、程序写入、consumer 刷新、remote managed settings 与 policy helper 恢复。
+7. [156 个 Settings 全字段参考](analysis/settings-reference.md)：156/156 direct key 逐项解释类型、来源、merge、consumer、生命周期和影响，另解释 4 个 spread。
+8. [完整 CLI 命令树](analysis/cli-command-reference.md)：恢复 90 个普通/隐藏/条件/fast-path/manual-parser 路径及 8 个内部入口，逐层解释 alias、arguments/options、gate、handler、副作用和失败，说明为什么顶层 `--help` 不是全貌。
+9. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
+10. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
 
 ## 本轮完成的产品表面深挖
 
@@ -57,10 +59,12 @@
 
 | 你想弄清楚什么 | 对应文章 |
 | --- | --- |
-| 70 类机器清单分别属于产品、依赖、heuristic 还是证据底座 | [产品表面与证据归属地图](analysis/product-surface-evidence-map.md) |
+| 71 类机器清单分别属于产品、依赖、heuristic 还是证据底座 | [产品表面与证据归属地图](analysis/product-surface-evidence-map.md) |
 | 一次请求从输入到工具执行、持久化和遥测经历什么 | [技术机制总图](analysis/technical-mechanism-atlas.md) |
 | 当前分析到底覆盖了什么、还有哪些能力面不能称为全面 | [全面性审计与收口合同](analysis/completeness-audit.md) |
-| 29 个内置工具分别改变什么状态、哪些副作用不能 rewind | [内置工具逐项参考](analysis/builtin-tools-reference.md) |
+| 为什么核心参考是 29 项，bundle 却有 80 个 `Yi({...})` 注册调用点 | [工具注册、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md) |
+| 29 项核心终端参考工具分别改变什么状态、哪些副作用不能 rewind | [核心终端工具逐项参考](analysis/builtin-tools-reference.md) |
+| Brief 模式为什么普通文字存在但主视图仍可能看不到，附件为什么桌面与手机结果不同 | [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md) |
 | Settings 为什么写入后不一定立刻被所有子系统采用，policy helper 失败后怎样恢复 | [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md) |
 | 156 个 settings 字段各自从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](analysis/settings-reference.md) |
 | 为什么 `claude --help` 看不到 daemon/runner/hidden 命令，alias 和 gate 到底怎样分流 | [完整 CLI 命令树](analysis/cli-command-reference.md) |

@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 的 29 个内置工具：每个工具到底改变了什么
 
-这篇只解释 `2.1.235` 从一方 tool assignment 确认的 29 个 built-in tool。`known-tool-catalog.txt` 里的 hosted、internal、静态 MCP 和 106 个 `mcp__github__*` 不混进来。
+这篇只解释 `2.1.235` 提取器维护的 core name allowlist 与一方静态 tool assignment 取交集后得到的 29 项参考工具。它是为了稳定逐工具深读和跨版本比较的人工合同，不是从 `_Z()/j7()` 完整主装配数组自动恢复出的全部工具；`known-tool-catalog.txt` 里的 hosted、internal、静态 MCP 和 106 个 `mcp__github__*` 也不混进来。
 
 ## 60 秒理解内置工具
 

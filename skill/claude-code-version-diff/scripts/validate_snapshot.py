@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 
@@ -22,6 +23,19 @@ SECRET_RE = re.compile(
     rb"(?:sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|"
     rb"AKIA[A-Z0-9]{16}|AIza[A-Za-z0-9_-]{30,})"
 )
+EXPECTED_SOURCE_INVENTORY_COUNT = 71
+EXPECTED_TOOL_REGISTRATION_COUNT = 80
+EXPECTED_STATIC_TOOL_REGISTRATION_COUNT = 77
+EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT = 3
+EXPECTED_TOOL_FACTORY = "Yi"
+TOOL_FACTORY_ANCHORS = {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
+EXPECTED_TOOL_REGISTRATION_CLASSES = {
+    "Core terminal": 29,
+    "Conditional CLI": 28,
+    "Hosted/product": 16,
+    "Internal/eval": 4,
+    "Dynamic factory": 3,
+}
 CLAUDE_STORAGE_NAMESPACE_RE = re.compile(
     rb"\bnamespace\s*:\s*['\"]([A-Za-z][A-Za-z0-9_-]{0,80})['\"]"
 )
@@ -80,18 +94,19 @@ SOURCE_INVENTORY_MINIMUMS = {
     "model-catalog": 1,
     "model-pricing-tiers": 1,
     "model-aliases": 1,
+    "tool-registrations": 80,
 }
 HUMAN_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": (
         "SOURCE_INVENTORY_COVERAGE_BEGIN",
-        "70/70",
+        "71/71",
         "Product structured",
         "Mixed heuristic",
         "Evidence substrate",
     ),
     "analysis/completeness-audit.md": (
-        "51",
-        "50 个客户端能力面",
+        "52",
+        "51 个客户端能力面",
         "Deep",
         "Inventory only",
         "Boundary",
@@ -102,6 +117,29 @@ HUMAN_ANALYSIS_DOCS = {
         "Artifact",
         "CronCreate",
         "LSP",
+    ),
+    "analysis/tool-registration-and-host-surfaces.md": (
+        "TOOL_REGISTRATION_COVERAGE_BEGIN",
+        "80/80",
+        "77 + 3",
+        "AST 注册调用点",
+        "人工维护",
+        "ListPlugins",
+        "SearchPlugins",
+        "SendUserMessage",
+        "Dynamic factory",
+        "Boundary",
+    ),
+    "analysis/brief-mode-and-user-visible-output.md": (
+        "Brief Mode",
+        "SendUserMessage",
+        "DISABLE_BRIEF_MODE_STOP_HOOK",
+        "rendered_locally",
+        "/api/oauth/file_upload",
+        "file_uuid",
+        "uploadBriefAttachment",
+        "proactive",
+        "Boundary",
     ),
     "analysis/settings-reference.md": (
         "SETTINGS_DIRECT_KEYS_START",
@@ -436,6 +474,8 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/product-surface-evidence-map.md": (18000, 6),
     "analysis/completeness-audit.md": (5000, 6),
     "analysis/builtin-tools-reference.md": (9000, 10),
+    "analysis/tool-registration-and-host-surfaces.md": (20000, 10),
+    "analysis/brief-mode-and-user-visible-output.md": (14000, 12),
     "analysis/settings-reference.md": (18000, 10),
     "analysis/cli-sdk-output-protocol.md": (12000, 12),
     "analysis/cli-command-reference.md": (15000, 18),
@@ -478,6 +518,8 @@ HUMAN_ANALYSIS_MINIMUMS = {
 READER_FIRST_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
+    "analysis/tool-registration-and-host-surfaces.md": "tool-registration-host-lifecycle",
+    "analysis/brief-mode-and-user-visible-output.md": "brief-user-output-lifecycle",
     "analysis/settings-reference.md": "settings-resolution-lifecycle",
     "analysis/cli-sdk-output-protocol.md": "cli-sdk-protocol-lifecycle",
     "analysis/cli-command-reference.md": "cli-command-routing",
@@ -560,6 +602,8 @@ MECHANISM_TOPIC_MINIMUMS = {
     "background-model-tasks": 3,
     "advisor": 3,
     "ultrareview": 3,
+    "tool-registration-hosts": 6,
+    "brief-output": 9,
 }
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
@@ -602,6 +646,205 @@ def find_private_capture_data(repo: Path) -> list[str]:
     return failures
 
 
+def validate_tool_registration_inventory(
+    repo: Path,
+    summary: dict,
+    failures: list[str],
+) -> None:
+    counts = summary.get("counts", {})
+    if counts.get("tool-registrations") != EXPECTED_TOOL_REGISTRATION_COUNT:
+        failures.append(
+            "tool registration inventory count mismatch: "
+            f"expected={EXPECTED_TOOL_REGISTRATION_COUNT}, "
+            f"actual={counts.get('tool-registrations')}"
+        )
+
+    coverage = summary.get("coverage", {}).get("toolRegistrations", {})
+    expected_coverage = {
+        "factorySymbol": EXPECTED_TOOL_FACTORY,
+        "registrationCount": EXPECTED_TOOL_REGISTRATION_COUNT,
+        "staticNameCount": EXPECTED_STATIC_TOOL_REGISTRATION_COUNT,
+        "dynamicNameCount": EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT,
+    }
+    for field, expected in expected_coverage.items():
+        if coverage.get(field) != expected:
+            failures.append(
+                f"tool registration coverage {field} mismatch: "
+                f"expected={expected!r}, actual={coverage.get(field)!r}"
+            )
+
+    discovered = summary.get("discoveredSymbols", {})
+    if discovered.get("toolFactory") != EXPECTED_TOOL_FACTORY:
+        failures.append(
+            "tool registration factory discovery mismatch: "
+            f"expected={EXPECTED_TOOL_FACTORY!r}, "
+            f"actual={discovered.get('toolFactory')!r}"
+        )
+    if summary.get("completionAudit", {}).get("toolFactoryParsed") is not True:
+        failures.append("source inventory completion audit failed: toolFactoryParsed")
+
+    path = repo / "analysis/source-inventory/tool-registrations.jsonl"
+    if not path.is_file():
+        failures.append(
+            "missing tool registration inventory: "
+            "analysis/source-inventory/tool-registrations.jsonl"
+        )
+        return
+
+    rows: list[dict] = []
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, 1):
+                if not line.strip():
+                    failures.append(
+                        f"blank tool registration record: {path.relative_to(repo)}:{line_number}"
+                    )
+                    continue
+                record = json.loads(line)
+                if not isinstance(record, dict):
+                    failures.append(
+                        f"non-object tool registration record: "
+                        f"{path.relative_to(repo)}:{line_number}"
+                    )
+                    continue
+                rows.append(record)
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        failures.append(f"invalid tool registration inventory: {error}")
+        return
+
+    if len(rows) != EXPECTED_TOOL_REGISTRATION_COUNT:
+        failures.append(
+            "tool registration row count mismatch: "
+            f"expected={EXPECTED_TOOL_REGISTRATION_COUNT}, actual={len(rows)}"
+        )
+
+    comparison_keys = [row.get("comparisonKey") for row in rows]
+    if any(not isinstance(key, str) or not key for key in comparison_keys):
+        failures.append("tool registration inventory has missing comparisonKey values")
+    elif len(set(comparison_keys)) != len(comparison_keys):
+        failures.append("tool registration inventory has duplicate comparisonKey values")
+
+    parsed_comparisons: dict[str, dict] = {}
+    for line_number, row in enumerate(rows, 1):
+        comparison_value = row.get("comparisonValue")
+        if not isinstance(comparison_value, str):
+            failures.append(
+                "tool registration comparisonValue must be a JSON string: "
+                f"{line_number}"
+            )
+            continue
+        try:
+            parsed_comparison = json.loads(comparison_value)
+        except json.JSONDecodeError as error:
+            failures.append(
+                f"tool registration comparisonValue is invalid JSON: "
+                f"{line_number}: {error}"
+            )
+            continue
+        if not isinstance(parsed_comparison, dict):
+            failures.append(
+                "tool registration comparisonValue must decode to an object: "
+                f"{line_number}"
+            )
+            continue
+        normalized_comparison = json.dumps(
+            parsed_comparison,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
+        if comparison_value != normalized_comparison:
+            failures.append(
+                "tool registration comparisonValue is not normalized: "
+                f"{line_number}"
+            )
+        if parsed_comparison.get("aliases") != row.get("aliases"):
+            failures.append(
+                "tool registration comparison aliases mismatch: "
+                f"{line_number}"
+            )
+        if isinstance(row.get("name"), str):
+            if parsed_comparison.get("name") != row["name"]:
+                failures.append(
+                    "tool registration comparison name mismatch: "
+                    f"{line_number}"
+                )
+        elif not isinstance(parsed_comparison.get("name"), dict):
+            failures.append(
+                "dynamic tool registration comparison name is not structured: "
+                f"{line_number}"
+            )
+        comparison_key = row.get("comparisonKey")
+        if isinstance(comparison_key, str):
+            parsed_comparisons[comparison_key] = parsed_comparison
+
+    factory_symbols = {row.get("factorySymbol") for row in rows}
+    if factory_symbols != {EXPECTED_TOOL_FACTORY}:
+        failures.append(
+            "tool registration rows use unexpected factory symbols: "
+            f"{sorted(repr(symbol) for symbol in factory_symbols)}"
+        )
+
+    static_rows = [row for row in rows if isinstance(row.get("name"), str)]
+    dynamic_rows = [row for row in rows if row.get("name") is None]
+    if len(static_rows) != EXPECTED_STATIC_TOOL_REGISTRATION_COUNT:
+        failures.append(
+            "static tool registration count mismatch: "
+            f"expected={EXPECTED_STATIC_TOOL_REGISTRATION_COUNT}, "
+            f"actual={len(static_rows)}"
+        )
+    if len(dynamic_rows) != EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT:
+        failures.append(
+            "dynamic tool registration count mismatch: "
+            f"expected={EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT}, "
+            f"actual={len(dynamic_rows)}"
+        )
+
+    static_names = [row["name"] for row in static_rows]
+    missing_anchors = sorted(TOOL_FACTORY_ANCHORS - set(static_names))
+    duplicate_anchors = sorted(
+        name for name in TOOL_FACTORY_ANCHORS if static_names.count(name) > 1
+    )
+    if missing_anchors or duplicate_anchors:
+        failures.append(
+            "tool registration core anchor mismatch: "
+            f"missing={missing_anchors}, non_unique={duplicate_anchors}"
+        )
+
+    brief_rows = [row for row in rows if row.get("name") == "SendUserMessage"]
+    if len(brief_rows) != 1:
+        failures.append(
+            "tool registration SendUserMessage row count mismatch: "
+            f"expected=1, actual={len(brief_rows)}"
+        )
+        return
+    brief = brief_rows[0]
+    if brief.get("aliases") != ["Brief"]:
+        failures.append("tool registration SendUserMessage legacy alias mismatch")
+    brief_comparison = parsed_comparisons.get(brief.get("comparisonKey", ""))
+    if not isinstance(brief_comparison, dict) or (
+        brief_comparison.get("name") != "SendUserMessage"
+        or brief_comparison.get("aliases") != ["Brief"]
+    ):
+        failures.append("tool registration SendUserMessage comparison contract mismatch")
+    if brief.get("declares", {}).get("briefStandalone") is not True:
+        failures.append("tool registration SendUserMessage lost briefStandalone")
+    required_properties = {
+        "call",
+        "description",
+        "inputSchema",
+        "isEnabled",
+        "mapToolResultToToolResultBlockParam",
+        "prompt",
+    }
+    properties = set(brief.get("properties", []))
+    if not required_properties <= properties:
+        failures.append(
+            "tool registration SendUserMessage contract is incomplete: "
+            f"missing={sorted(required_properties - properties)}"
+        )
+
+
 def validate_source_inventory(repo: Path, failures: list[str]) -> int:
     inventory = repo / "analysis/source-inventory"
     summary_path = inventory / "summary.json"
@@ -628,8 +871,8 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         failures.append(f"invalid source inventory summary: {error}")
         return 0
 
-    if summary.get("formatVersion", 0) < 4:
-        failures.append("source inventory formatVersion must be at least 4")
+    if summary.get("formatVersion", 0) < 5:
+        failures.append("source inventory formatVersion must be at least 5")
     parser = summary.get("javascriptParser", {})
     if parser.get("name") != "acorn" or parser.get("version") != "8.15.0":
         failures.append("source inventory must use vendored Acorn 8.15.0")
@@ -649,6 +892,7 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
             failures.append(
                 f"source inventory {name!r} count is missing or below {minimum}"
             )
+    validate_tool_registration_inventory(repo, summary, failures)
 
     completion = summary.get("completionAudit", {})
     for field in (
@@ -773,9 +1017,9 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
                                 f"non-object JSONL record: {relative}:{line_number}"
                             )
                             continue
-                        if not isinstance(record.get("comparisonKey"), str) or not isinstance(
-                            record.get("comparisonValue"), str
-                        ):
+                        if not isinstance(
+                            record.get("comparisonKey"), str
+                        ) or not isinstance(record.get("comparisonValue"), str):
                             failures.append(
                                 f"missing comparison fields: {relative}:{line_number}"
                             )
@@ -838,6 +1082,20 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     )
     expected = [Path(entry["path"]).name for entry in summary.get("files", [])]
     content = path.read_text(encoding="utf-8")
+    if len(expected) != EXPECTED_SOURCE_INVENTORY_COUNT:
+        failures.append(
+            "product surface source inventory count mismatch: "
+            f"expected={EXPECTED_SOURCE_INVENTORY_COUNT}, actual={len(expected)}"
+        )
+    if "tool-registrations.jsonl" not in expected:
+        failures.append("product surface source inventory is missing tool-registrations.jsonl")
+    expected_marker = (
+        f"{EXPECTED_SOURCE_INVENTORY_COUNT}/{EXPECTED_SOURCE_INVENTORY_COUNT}"
+    )
+    if expected_marker not in content:
+        failures.append(
+            f"product surface evidence map is missing {expected_marker} coverage marker"
+        )
     block = text_between(
         content,
         "<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->",
@@ -902,25 +1160,52 @@ def validate_completeness_closure(repo: Path, failures: list[str]) -> None:
     path = repo / "analysis/completeness-audit.md"
     if not path.is_file():
         return
-    rows: dict[int, str] = {}
+    rows: dict[int, list[str]] = {}
+    row_order: list[int] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not re.match(r"^\| \d+ \|", line):
             continue
         cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
         if len(cells) < 6:
             continue
-        rows[int(cells[0])] = cells[4]
-    if sorted(rows) != list(range(1, 52)):
+        capability = int(cells[0])
+        row_order.append(capability)
+        rows[capability] = cells
+    expected_order = list(range(1, 53))
+    if row_order != expected_order:
         failures.append(
             "completeness capability coverage mismatch: "
-            f"expected=51, actual={len(rows)}"
+            f"expected=52, actual={len(row_order)}, ordered={row_order == expected_order}"
         )
         return
-    for capability, state in sorted(rows.items()):
-        if state not in {"Deep", "Boundary"}:
+
+    for capability in range(1, 52):
+        state = rows[capability][4]
+        if state != "Deep":
             failures.append(
                 f"completeness capability {capability} is not closed: {state}"
             )
+    if rows[52][4] != "Boundary":
+        failures.append(
+            f"completeness capability 52 must remain Boundary: {rows[52][4]}"
+        )
+
+    tool_documents = rows[7][3]
+    if "tool-registration-and-host-surfaces.md" not in tool_documents:
+        failures.append(
+            "completeness capability 7 does not bind the tool registration guide"
+        )
+
+    brief_capability = rows[51]
+    if (
+        "Brief" not in brief_capability[1]
+        and "SendUserMessage" not in brief_capability[1]
+    ):
+        failures.append("completeness capability 51 is not the Brief capability")
+    if "brief-mode-and-user-visible-output.md" not in brief_capability[3]:
+        failures.append(
+            "completeness capability 51 does not bind the Brief output guide"
+        )
 
 
 def nested_value(document: object, dotted_path: str) -> object:
@@ -2201,6 +2486,56 @@ def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> Non
         "built-in tool", expected_tools, actual_tools, failures, require_order=True
     )
 
+    tool_registration_path = inventory_dir / "tool-registrations.jsonl"
+    tool_registration_doc_path = (
+        repo / "analysis/tool-registration-and-host-surfaces.md"
+    )
+    if tool_registration_path.is_file() and tool_registration_doc_path.is_file():
+        try:
+            expected_tool_registrations = [
+                json.loads(line)["comparisonKey"]
+                for line in tool_registration_path.read_text(
+                    encoding="utf-8"
+                ).splitlines()
+                if line.strip()
+            ]
+            tool_registration_block = text_between(
+                tool_registration_doc_path.read_text(encoding="utf-8"),
+                "<!-- TOOL_REGISTRATION_COVERAGE_BEGIN -->",
+                "<!-- TOOL_REGISTRATION_COVERAGE_END -->",
+            )
+        except (json.JSONDecodeError, KeyError, ValueError) as error:
+            failures.append(f"tool registration human coverage is invalid: {error}")
+        else:
+            actual_tool_registrations: list[str] = []
+            actual_tool_registration_classes: list[str] = []
+            for line in tool_registration_block.splitlines():
+                if not line.startswith("| `"):
+                    continue
+                cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+                if len(cells) < 5:
+                    continue
+                key_match = re.fullmatch(r"`([^`]+)`", cells[0])
+                class_match = re.fullmatch(r"`([^`]+)`", cells[2])
+                if key_match is None or class_match is None:
+                    continue
+                actual_tool_registrations.append(key_match.group(1))
+                actual_tool_registration_classes.append(class_match.group(1))
+            report_exact_coverage(
+                "tool registration",
+                expected_tool_registrations,
+                actual_tool_registrations,
+                failures,
+                require_order=True,
+            )
+            actual_class_counts = Counter(actual_tool_registration_classes)
+            if actual_class_counts != Counter(EXPECTED_TOOL_REGISTRATION_CLASSES):
+                failures.append(
+                    "human tool registration classification mismatch: "
+                    f"expected={EXPECTED_TOOL_REGISTRATION_CLASSES}, "
+                    f"actual={dict(actual_class_counts)}"
+                )
+
     expected_settings: list[str] = []
     for line in (inventory_dir / "root-settings-schema.jsonl").read_text(
         encoding="utf-8"
@@ -2481,6 +2816,7 @@ def main() -> int:
             )
         )
         inventory_files = len(inventory_summary.get("files", []))
+        validate_tool_registration_inventory(repo, inventory_summary, failures)
     else:
         inventory_files = validate_source_inventory(repo, failures)
     validate_product_surface_map(repo, failures)

@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 技术架构导读
 
-这是一份面向人的入口。它先解释 Claude Code CLI 作为一个本地 Agent harness 如何运行，再把读者带到完整机器证据。不要从 70 个 inventory 文件开始读，也不要把一个 313 MB 可执行文件误解成“只有一段聊天 CLI”。
+这是一份面向人的入口。它先解释 Claude Code CLI 作为一个本地 Agent harness 如何运行，再把读者带到完整机器证据。不要从 71 个 inventory 文件开始读，也不要把一个 313 MB 可执行文件误解成“只有一段聊天 CLI”。
 
 第一次阅读先看 [技术机制总图](technical-mechanism-atlas.md)：它按九个子系统和三条闭环解释一次请求。本文负责组件与发布物分层；Agent Loop、会话/checkpoint、工具权限、MCP/Agents 和恢复语义分别由专题展开。官方公开原理与 `2.1.235` 实现的版本边界见 [验证矩阵](public-claims-validation.md)。
 
@@ -205,7 +205,7 @@ catalog 是客户端离线基线。代码也存在动态 model config fetch，�
 
 ### 内置工具
 
-机器清单恢复出 29 个 built-in identifier 和 188 个 known-tool catalog 项。不同 catalog 项可能属于内嵌依赖/文档或条件能力，实际本轮工具集合还受模式、provider、权限和 feature gate 过滤。
+机器清单中的 29 个 built-in identifier 来自提取器维护的 core name allowlist 与 bundle 静态 assignment 交集，是跨版本核心参考，不是从 `_Z()/j7()` 完整装配数组自动推导。另有 188 个 known-tool catalog 项，其中可能混入内嵌依赖/文档或条件能力；实际本轮工具集合还受模式、provider、权限和 feature gate 过滤。
 
 ### MCP
 
@@ -337,7 +337,7 @@ TUI 处理：
 
 ## 机器清单如何覆盖全产品面
 
-70 类 inventory 可归为 12 组：
+71 类 inventory 可归为 12 组：
 
 | 组 | 主要文件 | 用途 |
 | --- | --- | --- |
@@ -347,7 +347,7 @@ TUI 处理：
 | OTEL/Datadog | events/metrics/spans/allowlist/redaction | 外部观测出口 |
 | Feature/experiment | feature/GrowthBook callsites | 客户端门控候选 |
 | 模型 | catalog/pricing/aliases/identifiers | provider、窗口、能力、价格 |
-| 工具/命令 | builtins/catalog/components/slash | Agent 执行表面 |
+| 工具/命令 | registrations/builtins/catalog/components/slash | Agent 执行表面与宿主候选对象 |
 | 协议/hooks | SDK subtypes/output events/hook events | SDK/MCP/扩展生命周期 |
 | 存储 | namespaces/config dirs | transcript/memory/task/telemetry 候选 |
 | API/runtime | paths/routes/requires | 网络和依赖边界 |

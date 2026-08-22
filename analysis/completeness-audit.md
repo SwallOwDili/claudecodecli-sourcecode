@@ -2,7 +2,7 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：**`2.1.235` 发布物中可归属于产品的 50 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 除 Agent Loop、上下文、工具控制、会话恢复、遥测、native bridge 和既有产品表面外，本轮又把 Auth/account/subscription、onboarding/workspace trust、Thinking/Effort/Fast Mode、usage/cost/credits/limits、project purge/import、sandbox 安装与运行、proxy/CA/mTLS、Active Goal、后台模型任务、Advisor 和 Ultrareview 拆成独立状态机。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
+当前结论：**`2.1.235` 发布物中可归属于产品的 51 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 本轮修正了三个旧口径：29 项是仓库人工维护的核心参考集合，不是完整装配数组的自动恢复结果；80 项是 `Yi({...})` AST 注册调用点，不是 80 个运行时实例；Brief Mode 的普通 transcript text 与主用户可见输出也不是同一个状态。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
 
 ## “全面”到底怎样判定
 
@@ -38,8 +38,8 @@
 
 1. `analysis/unpack-manifest.json` 的 15 个实际 packed 文件；
 2. `analysis/cli-surface.txt` 的公开顶层 help token，以及 `analysis/cli-command-inventory.json` 的 90 个 Commander/manual/fast-path 路径、8 个内部入口和 65 组精确二进制 help/失败 Probe；
-3. `analysis/source-inventory/summary.json` 注册的 70 类确定性清单；
-4. 一方集合：29 个 built-in tool、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry；
+3. `analysis/source-inventory/summary.json` 注册的 71 类确定性清单；
+4. 一方集合：29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 个静态 name、3 个动态 name expression）、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry；
 5. `analysis/release-notes.md` 的 `2.1.235` 19 条发布变化；
 6. `analysis/mechanism-evidence.jsonl` 与 exact-binary Probe 报告；
 7. 5 个 shipped `.node` 及其 7 个 Mach-O slice。
@@ -56,7 +56,7 @@
 | 4 | Context、Prompt Cache、Tool Search、compact | cache/compact constants、request fields、Probe | `context-governance-and-caching.md`、`compact-visual-guide.md` | Deep | 服务端 cache 命中和账单仍为 Boundary |
 | 5 | Session、transcript、fork、checkpoint、memory | message graph、32 storage namespaces 中相关对象 | `sessions-checkpoints-memory.md`、`storage-v5-reference.md` | Deep | 保持 transcript、storage backend 和外部副作用三层边界 |
 | 6 | 工具统一控制管线 | lookup/schema/hook/permission/sandbox/call/result | `tools-permissions-hooks.md` | Deep | 与 29 个具体工具的专属状态/失败语义互链 |
-| 7 | 29 个内置工具逐项合同 | `builtin-tool-identifiers.txt` | `builtin-tools-reference.md`、`workflow-artifact-design.md` | Deep | 29/29 已覆盖入口、owner、控制顺序、成功、失败、恢复与不可逆副作用；Read/Bash/Skill/LSP/Task 等代表性闭环有 Probe，其余以 consumer Static 或明确 Boundary 收口 |
+| 7 | 核心终端参考、条件工具与宿主注册表面 | `builtin-tool-identifiers.txt`、`tool-registrations.jsonl` | `builtin-tools-reference.md`、`tool-registration-and-host-surfaces.md`、`workflow-artifact-design.md` | Deep | 29/29 人工维护核心参考与 80/80 同工厂 AST 调用点均精确覆盖；调用点按 29 Core、28 Conditional CLI、16 Hosted/product、4 Internal/eval、3 Dynamic factory 做证据驱动的人工归属，并明确直接调用点、工厂模板、静态调用展开、runtime enabled 与 request advertised 的区别 |
 | 8 | 31 类 Hooks | `hook-events.txt`、hook transport/runner | `tools-permissions-hooks.md`、`hooks-event-reference.md` | Deep | 31/31 事件字段、时机、matcher、阻塞、timeout、载体和副作用已覆盖；外部 Hook 程序行为仍是 Boundary |
 | 9 | MCP、Tool Search 与动态刷新 | transports、generation、registry、OAuth | `mcp-agents-background.md` | Deep | 插件注入 MCP 与 LSP plugin integration 回填扩展专题 |
 | 10 | Custom Agent、subagent、team、task、mailbox | Task/SendMessage/worktree、protocol/telemetry | `mcp-agents-background.md` | Deep | Task panel、跨 session channel、durable owner 继续下钻 |
@@ -100,7 +100,8 @@
 | 48 | 后台模型任务与 Memory consolidation | background model queue、dedupe/cache、memory merge/flush lifecycle | `background-model-tasks-and-memory-consolidation.md`、会话/后台专题 | Deep | 服务端模型质量和跨设备最终一致性保持 Boundary |
 | 49 | Advisor 双模型运行时 | primary/advisor ownership、snapshot request、feedback injection、cost gate | `advisor-dual-model-runtime.md`、模型/Agent Loop 专题 | Deep | Advisor 质量增益和服务端 capacity 保持 Boundary |
 | 50 | Ultrareview 云端审查 | command gate、snapshot/upload、cloud task/event、review result integration | `ultrareview-cloud-review.md`、Cloud/后台专题 | Deep | 云端 worker、仓库权限、retention、计费和最终审查质量保持 Boundary |
-| 51 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
+| 51 | Brief Mode 与用户可见输出 | `SendUserMessage`/`Brief` tool、`--brief`、`/brief`、default view、renderer、attachment lanes、turn-end sentinel | `brief-mode-and-user-visible-output.md`、完整说明书第 51 章 | Deep | 已覆盖 entitlement/enable/tool assembly、普通 text 与主视图投影、附件校验/部分交付、单次漏调补发、成本隐私与不可逆发送边界；账号实时 entitlement 和远端 viewer 服务保持 Boundary |
+| 52 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
 
 ## 数量覆盖不能冒充机制覆盖
 
@@ -109,7 +110,8 @@
 | 集合 | 总数 | 审计时在人类文档中出现 | 未出现 | 正确解释 |
 | --- | ---: | ---: | ---: | --- |
 | direct root settings | 156 | 156 | 0 | `settings-reference.md` 提供全量入口，但大量条目仍是 declaration/surface |
-| built-in tools | 29 | 29 | 0 | `builtin-tools-reference.md` 已逐项覆盖，但深度仍按专属状态机分别判断 |
+| curated core terminal references | 29 | 29 | 0 | `builtin-tools-reference.md` 已逐项覆盖；29 来自维护 name set 与静态 assignment 的交集，不是完整装配数组或一次请求的实际 `tools[]` 数量 |
+| tool registration callsites | 80 | 80 | 0 | `tool-registration-and-host-surfaces.md` 精确覆盖 `Yi({...})` AST 调用点与五类人工归属；调用点存在不等于 factory instance、enabled 或 request advertised |
 | CLI command paths | 90 | 90 | 0 | `cli-command-reference.md` + structured inventory 区分 Commander、fast path、manual parser 和内部入口；help/registration 不冒充 action 成功 |
 | slash commands | 103 | 103 | 0 | `slash-command-reference.md` 已逐命令给出 type/twin、owner、gate 和失败边界；仍不等于所有账号/host 都正向 Probe |
 | SDK control subtype | 89 | 89 | 0 | 89 是混合集合；真实 request、notification、compatibility identifier 不能混称已 Probe |
@@ -134,7 +136,7 @@
 
 ## 自动校验当前能证明什么
 
-本轮已经把 15 个专用专题纳入 validator：强制 Auto Mode、Plugin Eval、Runtime Supervision、Enterprise Gateway，以及 Auth、Onboarding/Trust、Thinking/Effort/Fast、Usage/Limits、Project/Data、Sandbox、Proxy/CA/mTLS、Active Goal、后台模型任务、Advisor、Ultrareview 的正文和对应可编辑 `.dot + .svg` 存在并保留关键生命周期术语；固定 Release Notes 上游 commit、完整响应 hash、版本段 hash 与 19 条逐字原文；从 canonical key factory 独立重建 Storage 集合，并从权威 inventory 精确核对 29 个 built-in tool、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。覆盖缺项、重复项、多余项、51 行能力矩阵或证据 topic 漂移都会直接失败；负向测试会实际篡改 Release Notes、Storage、新专题、图示、topic claim 和既有精确集合，证明拒绝后逐字恢复。
+validator 现在还强制工具注册与 Brief 两篇正文、对应可编辑 `.dot + .svg`、71/71 inventory、80/80 registration key、29/28/16/4/3 人工分类、77/3 静态 name/动态 expression、52 行能力矩阵和两个新增 mechanism topic。它继续精确核对 Release Notes、Storage、29 项人工维护的核心终端 reference、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。负向测试会实际删除注册行、能力行、topic claim、专题或图示，确认拒绝后逐字恢复。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
@@ -146,10 +148,10 @@
 
 ## 后续版本回归顺序
 
-1. 每个新版本先重生成 canonical inventory，精确比较 29 tools、156 settings、103 commands、31 hooks、32 storage namespaces、89 SDK subtype 和 44 protocol event。
+1. 每个新版本先重生成 canonical inventory，精确比较核心 tool 集合、同工厂注册对象、分类/gate/alias、156 settings、103 commands、31 hooks、32 storage namespaces、89 SDK subtype 和 44 protocol event。
 2. 按状态机比较 Agent Loop/context/session/tool/recovery/model/settings/feature/UI/cloud/native，而不是只看 key 数量或 minified symbol。
 3. 将新增/删除 surface 回填专属文章、完整说明书、`ARTICLES.md`、README、机制证据和可编辑图。
 4. 对 changed branch 扩充 exact-binary Probe；未触发的 remote/third-party/cross-platform 行为保持 Boundary。
 5. 运行全量、负向、隐私、SVG、重建、Probe 与远端 fresh-checkout 验证后再推送。
 
-当前矩阵已达到 50 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。
+当前矩阵已达到 51 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。

@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 机器清单字段阅读指南
 
-`analysis/source-inventory/` 的目标是让每个版本都能确定性重跑和语义 diff，不是让读者直接吞 70 个文件。本指南把 JSONL、TSV 和 TXT 中的重要字段翻译成人话，并说明一条记录能证明什么、不能证明什么。
+`analysis/source-inventory/` 的目标是让每个版本都能确定性重跑和语义 diff，不是让读者直接吞 71 个文件。本指南把 JSONL、TSV 和 TXT 中的重要字段翻译成人话，并说明一条记录能证明什么、不能证明什么。
 
 ## 60 秒学会从字段走到结论
 
@@ -296,6 +296,27 @@ rt().gt(0).lte(1).optional()
 ### `model-aliases.jsonl`
 
 解释 `opus`、`sonnet`、`haiku`、`fable` 在默认及各 provider 下解析成哪个 canonical model。provider-specific alias 不一致是有意兼容，不应只比较默认值。
+
+## Tool registration inventory
+
+`tool-registrations.jsonl` 回答的是“canonical bundle 中有多少个合格对象字面量被传给同一个工具工厂调用点、这些调用点声明了哪些生命周期属性”，不是“运行时构造了多少实例”，更不是“当前终端请求一定发送多少个工具”。`2.1.235` 的工厂由 Bash、Read、Write、Edit、Glob、Grep 六个稳定锚点唯一定位为本版压缩符号 `Yi`；共记录 80 个 AST 调用点，其中 77 个 name 可在调用点直接静态恢复、3 个 name 保留为动态表达式。后续人类分析还要追工厂调用图：本版两个 `e.name` 模板可展开为 `ListPlugins`、`ListSkills`、`SearchPlugins`、`SearchSkills`，只有 ``eval_registered__${name}`` 的最终名称和数量依赖运行时 registry。
+
+29 个 built-in identifier 也不是从 `_Z()/j7()` 完整装配数组自动恢复：提取器维护一个 core name allowlist，再与 bundle 静态 assignment 字符串取交集。它是稳定的人工参考合同，80 是跨 host 的 AST 注册调用点合同；二者和 request-time `tools[]` 是三个不同口径。
+
+| 字段 | 人类含义 | 不能直接推出什么 |
+| --- | --- | --- |
+| `name` | 在该 factory callsite 可直接静态恢复的工具名；`null` 表示本层保留动态表达式 | `null` 不是漏提取，也不表示最终名称只能运行时求值；必须继续追调用者与常量参数 |
+| `nameExpression` | 原始名字表达式的分类、文本或 hash | 表达式最终运行值 |
+| `aliases` | 能静态解析的别名数组 | alias 一定在当前 host 暴露 |
+| `unresolvedAliases` | 仍依赖运行时的 alias 表达式 | 实际 alias 为空 |
+| `factorySymbol` | 本发布物中工具对象工厂的压缩符号；本版为 `Yi` | Anthropic 原始源码函数名，或跨版本稳定 API |
+| `function` / `functionKind` | 注册调用所在的最近词法函数和函数形态 | 该函数一定执行过 |
+| `properties` | 工厂参数对象声明的完整 property 名集合 | property 的默认值、最终求值或 gate 已满足 |
+| `declares` | 对 `briefStandalone`、权限、并发、启用、只读、交互、defer 等关键 property 的存在性布尔表 | 对应布尔值一定为 true |
+| `comparisonKey` | 以静态名或规范化动态名字表达式加同名序号构造的跨版本配对键 | 位置或压缩符号不变 |
+| `comparisonValue` | 名字、alias、未解析 alias 数和 property 集合的去位置语义 | 当前请求的最终 `tools[]` |
+
+实际工具集合还要经过工厂调用、host 选择、feature flag、entitlement、session 状态、`isEnabled`、Tool Search defer/loading 和动态 registry generation。读某条记录时，先用本清单确认“该 `Yi({...})` 调用点确实随 bundle 发货”，再到 [工具注册与宿主表面专题](tool-registration-and-host-surfaces.md) 查工厂展开、七道 gate、状态 owner 和请求装配；需要理解核心终端参考工具的输入、输出、副作用与恢复边界，再到 [29 项核心终端工具参考](builtin-tools-reference.md)。
 
 ## Telemetry 字段字典
 

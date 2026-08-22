@@ -1,0 +1,25 @@
+digraph tool_registration_host_lifecycle {
+  graph [rankdir=LR, bgcolor="transparent", fontname="Arial", nodesep=0.42, ranksep=0.62, pad=0.2];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#2f3b45", fillcolor="#f6f8fa", margin="0.12,0.08"];
+  edge [fontname="Arial", fontsize=9, color="#52606d", fontcolor="#364152", arrowsize=0.75];
+
+  bytes [label="Canonical bundle\n27 MB JavaScript", fillcolor="#e8f1f8"];
+  factory [label="Tool factory discovery\n80 Yi AST callsites\n77 static names + 3 expressions", fillcolor="#dcefe5"];
+  classify [label="Evidence-based editorial taxonomy\ncurated core 29\nConditional / Hosted / Internal / Dynamic", fillcolor="#fff3cd"];
+  gates [label="Runtime gates\nhost + account + feature\nplatform + session + policy", fillcolor="#fde8d7"];
+  assembly [label="Assembly and aliases\nTask -> Agent\nBrief -> SendUserMessage\nMCP generation / Tool Search", fillcolor="#e8edf7"];
+  request [label="Actual request tools[]\nresident schema or deferred reference", fillcolor="#dcefe5"];
+  control [label="Tool control pipeline\nschema -> hook -> permission\nclassifier -> sandbox -> call", fillcolor="#fff3cd"];
+  result [label="tool_result + transcript\nUI / file / notification / remote side effect", fillcolor="#e8f1f8"];
+  boundary [label="Boundary\nremote entitlement and registry values\nthird-party host behavior", shape=note, fillcolor="#f3f4f6", color="#7a828a"];
+
+  bytes -> factory [label="Acorn parses factory callsites"];
+  factory -> classify [label="trace consumers and factory invocations"];
+  classify -> gates [label="candidate for current host"];
+  gates -> assembly [label="isEnabled and policy pass"];
+  assembly -> request [label="canonicalize + defer/inject"];
+  request -> control [label="model emits tool_use"];
+  control -> result [label="paired by tool_use_id"];
+  gates -> boundary [label="live value absent from bundle", style=dashed];
+  boundary -> request [label="only a Probe proves this state", style=dashed];
+}

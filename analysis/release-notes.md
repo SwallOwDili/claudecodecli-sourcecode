@@ -60,7 +60,7 @@
 
 ## 这 19 条合起来说明了什么
 
-它们不是一次 Agent Loop 重写。`2.1.235` 的主循环、29 个 built-in tool、103 个 slash command、31 个 Hook event 和 provider 顶层集合没有因这些 release note 整体换代。变化集中在四类边界：
+它们不是一次 Agent Loop 重写。`2.1.235` 的主循环、人工维护的 29 项核心终端 built-in reference、103 个 slash command、31 个 Hook event 和 provider 顶层集合没有因这些 release note 整体换代。变化集中在四类边界：
 
 1. **输入与授权状态一致性**：第 3、4、5、7、8、12、15、16、19 条都在修复“屏幕状态”和“实际提交/授权状态”分叉，其中第 5、12 条直接属于风控正确性。
 2. **长会话的增量与持久状态**：第 2、9、10、11 条避免动态状态污染稳定 cache，或避免重渲染/重启后丢失现场。

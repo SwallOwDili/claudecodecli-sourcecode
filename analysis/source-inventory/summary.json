@@ -1,5 +1,5 @@
 {
-  "formatVersion": 4,
+  "formatVersion": 5,
   "version": "2.1.235",
   "canonicalSource": {
     "path": "extracted/cli.js",
@@ -98,7 +98,8 @@
       "z0y",
       "zAs",
       "zZc"
-    ]
+    ],
+    "toolFactory": "Yi"
   },
   "methods": {
     "symbolDiscovery": "stable export names, function-body literals, schema constructor shapes, catalog notes, and subsystem-specific field anchors discover release-local minified symbols before AST extraction",
@@ -108,6 +109,7 @@
     "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
     "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
     "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
+    "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
     "claudeStorageNamespaces": "locates the product key factory from the stable transcript/journal/history/log prefix through sessionAliases and extracts every namespace in that bounded factory, including stream namespaces declared before globalConfig",
     "broadHeuristics": "environment-shaped identifiers, schema properties, URLs, namespaces, and named components can include bundled dependencies or embedded documentation and are not all user-supported Claude Code settings"
   },
@@ -209,6 +211,12 @@
       "pricingTiers": 6,
       "aliases": 4
     },
+    "toolRegistrations": {
+      "factorySymbol": "Yi",
+      "registrationCount": 80,
+      "staticNameCount": 77,
+      "dynamicNameCount": 3
+    },
     "claudeStorage": {
       "namespaceCount": 32,
       "requiredStreamNamespaces": [
@@ -227,6 +235,7 @@
     "environmentSchemaParsed": true,
     "datadogSurfaceParsed": true,
     "claudeStorageFactoryParsed": true,
+    "toolFactoryParsed": true,
     "semanticSymbolsDiscovered": true,
     "knownStaticExtractionGaps": [],
     "nonRecoverableBoundaries": [
@@ -305,7 +314,8 @@
     "model-catalog": 17,
     "model-pricing-tiers": 6,
     "model-aliases": 4,
-    "model-catalog-metadata": 1
+    "model-catalog-metadata": 1,
+    "tool-registrations": 80
   },
   "files": [
     {
@@ -709,6 +719,12 @@
       "lines": 26,
       "size": 399,
       "sha256": "71438bb641b55fc399bf4850cd5da0caabbf7771c91ab430bc6465fdfb9e2065"
+    },
+    {
+      "path": "analysis/source-inventory/tool-registrations.jsonl",
+      "lines": 80,
+      "size": 102281,
+      "sha256": "f0611afd87133c3d1005ef67b6764649fcf6a0a8bcbefdb0a5bb3a54467d4197"
     },
     {
       "path": "analysis/source-inventory/url-templates.jsonl",

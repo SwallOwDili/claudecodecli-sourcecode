@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 技术机制总图
 
-Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview 又会按条件启动专用状态机。只看某个字段表或某个函数，无法解释它为什么能连续工作，也无法解释卡住、变贵、越权提示、resume 丢链或工具重复执行时到底是哪一层出了问题。
+Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；工具对象还要经过宿主与运行时 gate 才能进入请求，Brief Mode 又把普通 assistant text 与主用户可见输出拆成不同通道。登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview也会按条件启动专用状态机。
 
 本页是阅读路由，不替代各专题。它把公开设计原则、`2.1.235` bundle 静态证据和精确版本运行探针放在同一张生命周期图里。
 
@@ -74,7 +74,7 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 这九层不是串行微服务。它们共享一个本地进程和若干显式状态对象：Agent Loop 在模型流未结束时已经能驱动工具；工具完成后可能触发 hook、消息队列和 MCP 刷新；compact 会重写下一轮发送给模型的消息视图，但 transcript 仍保留逻辑历史；fallback 可以丢弃失败模型产生的消息，却不能撤销已经发生的外部副作用。
 
-`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。它们仍复用上图的工具、状态、恢复和遥测原则，但各有专属失败边界。
+`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。另有两条经常被清单掩盖的横向合同：29 项人工维护的核心终端参考不等于 bundle 的 80 个同工厂 AST 注册调用点，更不等于一次请求的实际工具集合；普通 assistant text 存在也不等于 Brief 主视图已经收到用户可见消息。它们分别见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 和 [Brief 用户可见输出](brief-mode-and-user-visible-output.md)。
 
 ## 三条必须同时理解的闭环
 
@@ -136,12 +136,13 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 | 韧性与恢复 | attempt、fallback、abort、tombstone | retry、switch model、reactive compact、terminal | 副作用已发生却再次执行 | 出错后是否继续、是否需要人工确认 |
 | 遥测与诊断 | query/turn/tool correlation、timing、event | queue、sample、batch、export、persist | 看见“慢”但分不清慢在哪 | 能否定位模型、权限、工具或 compact |
 
-### 十一个按条件启动的专用运行时
+### 十二个按条件启动的专用运行时
 
 九条主链解释每次请求的共同骨架，下面这些机制只有在对应命令、设置、账号能力或环境出现时启动，但它们拥有独立状态、失败和副作用，不能被压扁成一个 feature flag：
 
 | 专用机制 | 触发入口 | 真正拥有的状态 | 最容易误判的地方 |
 | --- | --- | --- | --- |
+| Brief/user-visible output | `--brief`、`CLAUDE_CODE_BRIEF`、`defaultView=chat`、`/brief` | `isBriefOnly`、`SendUserMessage` tool result、附件 lane、renderer projection、单次 sentinel | 普通文字进 transcript 不等于主视图已交付；附件 error 不一定表示消息正文失败 |
 | Auth/account/subscription | `auth login/status/logout`、`/login`、setup-token | credential、account/org/subscription、派生 cache generation | 拿到 token 不等于账号换代完成；本地 logout 不证明远端 revoke 成功 |
 | Onboarding/workspace trust | 首次启动、项目扫描、safe/bare/print | onboarding state、persisted/session trust、项目能力 registry | 扫到配置不等于已执行；接受 trust 后还必须重新发现 |
 | Thinking/Effort/Fast | settings、slash command、request attempt | thinking shape、effort、service tier、cooldown latch | UI opt-in 不等于最终请求一定携带该字段或服务端一定采用 |
@@ -218,8 +219,10 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
-| 当前 51 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
-| 29 个内置工具分别改变什么状态、怎样失败和恢复 | [内置工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| 当前 52 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 为什么核心参考只有 29 项，bundle 却定义了 80 个 `Yi({...})` 注册调用点 | [工具注册与宿主表面](tool-registration-and-host-surfaces.md) | [核心终端工具逐项参考](builtin-tools-reference.md) |
+| 29 项核心终端参考工具分别改变什么状态、怎样失败和恢复 | [核心终端工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
+| Brief 模式为什么普通文字存在但主视图仍空，附件为何只在桌面可见 | [Brief 用户可见输出](brief-mode-and-user-visible-output.md) | [Agent Loop](agent-loop.md) |
 | 156 个根 settings 字段从哪里来、怎样 merge、由谁消费 | [Settings 全字段参考](settings-reference.md) | [Settings、Flags 与 Policy](settings-feature-flags-policy.md) |
 | CLI/SDK 的 stream-json、control RPC、event 和终态怎样配对 | [CLI、SDK 与输出协议](cli-sdk-output-protocol.md) | [Agent Loop](agent-loop.md) |
 | Plugin、Skill、slash command 和 LSP 为什么安装后仍可能不可见 | [Plugins、Skills、Commands 与 LSP](plugins-skills-commands-lsp.md) | [MCP、Agents 与后台协作](mcp-agents-background.md) |

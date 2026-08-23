@@ -14,6 +14,8 @@
 
 图的结论：两条链都进入普通 tool pipeline，并最终形成与 `tool_use_id` 配对的 `tool_result`；但它们不共享操作目录、授权 token、缓存或持久对象。Design grant 不能授权 Projects，Projects 的 project scopes 也不能替代 Design consent。
 
+第一张图只回答“两条能力怎样分流、在哪里重新汇入 Agent Loop”。ClaudeDesign 的动态 MCP 与授权恢复、Projects 的固定 dispatcher 与文件安全检查分别在下文用独立生命周期图展开。
+
 ### 场景的前后状态
 
 | 对象 | Before | Transformation | After | 用户可见效果 |
@@ -55,6 +57,10 @@
 ## 完整调用顺序
 
 ### A. ClaudeDesign：动态 MCP 与三层写授权
+
+![ClaudeDesign 从发布 gate、MCP 握手、动态目录、三层授权到有界结果与单次恢复的生命周期](visuals/claude-design-dynamic-mcp-lifecycle.svg)
+
+图的结论：客户端先通过 `initialize -> tools/list` 获得服务端当前操作目录，再叠加本地写安全下限与 consent、path token、durable grant；401 或 404 只恢复认证或会话控制状态，已经成功的远端写仍然保留。
 
 #### 1. 装配 gate 决定工具是否进入本轮 schema
 
@@ -212,6 +218,10 @@ ClaudeDesign 的返回不是“服务器给多少就全部塞进下一轮”：
 [result mapping：301149-301169](../reverse/javascript/cli.readable.js#L301149) [工具 cap 与映射：301327-301568](../reverse/javascript/cli.readable.js#L301327)
 
 ### B. Projects：单 Project dispatcher 与知识预算
+
+![Projects 从 attached project、OAuth scope、固定五方法 dispatcher 到安全读写和持久结果的生命周期](visuals/projects-attached-knowledge-lifecycle.svg)
+
+图的结论：`Projects` 不发现或切换 Project，而是把五种方法固定分派到当前 attached project；读路径可以在 RAG 403 后退回目录，写路径必须先通过 namespace、知识预算、路径与 TOCTOU 检查，成功写入后成为服务端持久状态。
 
 #### 10. 工具只绑定一个 Project，不提供 discovery 或 project id 参数
 

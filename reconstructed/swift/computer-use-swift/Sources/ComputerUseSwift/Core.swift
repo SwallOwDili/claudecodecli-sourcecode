@@ -49,15 +49,14 @@ struct PrepareDisplayResult: Codable {
 
 enum ComputerUseCore {
     private static let systemChromeBundleIds: Set<String> = [
-        "com.apple.controlcenter",
         "com.apple.dock",
-        "com.apple.loginwindow",
-        "com.apple.NotificationCenter",
-        "com.apple.screencaptureui",
+        "com.apple.wallpaper.agent",
+        "com.apple.controlcenter",
         "com.apple.SystemUIServer",
         "com.apple.TextInputSwitcher",
-        "com.apple.wallpaper.agent",
         "com.apple.wifi.WiFiAgent",
+        "com.apple.AccessibilityUIServer",
+        "com.apple.loginwindow",
     ]
 
     static func listDisplays() -> [DisplayInfo] {
@@ -96,8 +95,8 @@ enum ComputerUseCore {
 
     static func displayInfo(id: UInt32?) -> DisplayInfo? {
         let displays = listDisplays()
-        if let id {
-            return displays.first { $0.displayId == id }
+        if let id, let selected = displays.first(where: { $0.displayId == id }) {
+            return selected
         }
         return displays.first { $0.isPrimary } ?? displays.first
     }
@@ -201,8 +200,10 @@ enum ComputerUseCore {
     }
 
     static func previewHideSet(exemptBundleIds: [String], displayId: UInt32?) -> [HideCandidate] {
-        _ = displayId
-        return hideCandidates(exemptBundleIds: Set(exemptBundleIds), display: nil)
+        hideCandidates(
+            exemptBundleIds: Set(exemptBundleIds),
+            display: displayInfo(id: displayId)
+        )
             .compactMap { app in
                 guard let bundleId = app.bundleIdentifier, let name = app.localizedName else { return nil }
                 return HideCandidate(bundleId: bundleId, displayName: name)
@@ -216,6 +217,7 @@ enum ComputerUseCore {
     ) -> PrepareDisplayResult {
         var exempt = Set(allowedBundleIds)
         exempt.insert(hostBundleId)
+        exempt.insert("com.apple.finder")
         let display = displayInfo(id: displayId)
         var hidden: [String] = []
         for app in hideCandidates(exemptBundleIds: exempt, display: display) {
@@ -319,7 +321,8 @@ enum ComputerUseCore {
             outputWidth: targetWidth,
             outputHeight: targetHeight,
             allowedBundleIds: allowedBundleIds,
-            jpegQuality: jpegQuality
+            jpegQuality: jpegQuality,
+            failureMessage: "Screenshot capture returned nil (permission missing or SCContentFilter failure)"
         )
         return [
             "base64": image.base64,
@@ -359,7 +362,8 @@ enum ComputerUseCore {
             outputWidth: max(1, outputWidth),
             outputHeight: max(1, outputHeight),
             allowedBundleIds: allowedBundleIds,
-            jpegQuality: jpegQuality
+            jpegQuality: jpegQuality,
+            failureMessage: "Region capture returned nil (permission missing or SCContentFilter failure)"
         )
         return ["base64": image.base64, "width": image.width, "height": image.height]
     }
@@ -460,15 +464,36 @@ enum ComputerUseCore {
         exemptBundleIds: Set<String>,
         display: DisplayInfo?
     ) -> [NSRunningApplication] {
-        NSWorkspace.shared.runningApplications.filter { app in
+        let effectiveExemptBundleIds = exemptBundleIds.union(["com.apple.finder"])
+        return NSWorkspace.shared.runningApplications.filter { app in
             guard !app.isHidden,
                   let bundleId = app.bundleIdentifier,
-                  !exemptBundleIds.contains(bundleId),
-                  !systemChromeBundleIds.contains(bundleId)
+                  !effectiveExemptBundleIds.contains(bundleId)
             else {
                 return false
             }
-            return appHasWindow(app, on: display)
+            return appHasHideCandidateWindow(app, on: display)
+        }
+    }
+
+    private static func appHasHideCandidateWindow(
+        _ app: NSRunningApplication,
+        on display: DisplayInfo?
+    ) -> Bool {
+        let frame = display.map {
+            CGRect(x: $0.originX, y: $0.originY, width: $0.width, height: $0.height)
+        }
+        return windowInfo().contains { window in
+            guard let pid = window[kCGWindowOwnerPID as String] as? Int32,
+                  pid == app.processIdentifier,
+                  (window[kCGWindowLayer as String] as? Int) == 0,
+                  let alpha = window[kCGWindowAlpha as String] as? Double,
+                  alpha > 0.1,
+                  let bounds = windowBounds(window)
+            else {
+                return false
+            }
+            return frame.map { bounds.intersects($0) } ?? true
         }
     }
 
@@ -511,45 +536,53 @@ enum ComputerUseCore {
         outputWidth: Int,
         outputHeight: Int,
         allowedBundleIds: [String],
-        jpegQuality: CGFloat
+        jpegQuality: CGFloat,
+        failureMessage: String
     ) throws -> (base64: String, width: Int, height: Int) {
-        try waitForAsync {
-            let content = try await SCShareableContent.excludingDesktopWindows(
-                false,
-                onScreenWindowsOnly: true
-            )
-            guard let scDisplay = content.displays.first(where: { $0.displayID == display.displayId }) else {
-                throw CoreError.message("Display not found for the given ID")
+        guard CGPreflightScreenCaptureAccess() else {
+            throw CoreError.message(failureMessage)
+        }
+        do {
+            return try waitForAsync {
+                let content = try await SCShareableContent.excludingDesktopWindows(
+                    false,
+                    onScreenWindowsOnly: true
+                )
+                guard let scDisplay = content.displays.first(where: { $0.displayID == display.displayId }) else {
+                    throw CoreError.message("Display not found for the given ID")
+                }
+                let allowed = Set(allowedBundleIds).union(systemChromeBundleIds)
+                let excluded = content.applications.filter { application in
+                    !allowed.contains(application.bundleIdentifier)
+                }
+                let filter = SCContentFilter(
+                    display: scDisplay,
+                    excludingApplications: excluded,
+                    exceptingWindows: []
+                )
+                let configuration = SCStreamConfiguration()
+                configuration.width = outputWidth
+                configuration.height = outputHeight
+                configuration.showsCursor = true
+                configuration.capturesAudio = false
+                if let sourceRect {
+                    configuration.sourceRect = sourceRect
+                }
+                let cgImage = try await SCScreenshotManager.captureImage(
+                    contentFilter: filter,
+                    configuration: configuration
+                )
+                let bitmap = NSBitmapImageRep(cgImage: cgImage)
+                guard let data = bitmap.representation(
+                    using: .jpeg,
+                    properties: [.compressionFactor: max(0, min(1, jpegQuality))]
+                ) else {
+                    throw CoreError.message(failureMessage)
+                }
+                return (data.base64EncodedString(), cgImage.width, cgImage.height)
             }
-            let allowed = Set(allowedBundleIds).union(systemChromeBundleIds)
-            let excluded = content.applications.filter { application in
-                !allowed.contains(application.bundleIdentifier)
-            }
-            let filter = SCContentFilter(
-                display: scDisplay,
-                excludingApplications: excluded,
-                exceptingWindows: []
-            )
-            let configuration = SCStreamConfiguration()
-            configuration.width = outputWidth
-            configuration.height = outputHeight
-            configuration.showsCursor = true
-            configuration.capturesAudio = false
-            if let sourceRect {
-                configuration.sourceRect = sourceRect
-            }
-            let cgImage = try await SCScreenshotManager.captureImage(
-                contentFilter: filter,
-                configuration: configuration
-            )
-            let bitmap = NSBitmapImageRep(cgImage: cgImage)
-            guard let data = bitmap.representation(
-                using: .jpeg,
-                properties: [.compressionFactor: max(0, min(1, jpegQuality))]
-            ) else {
-                throw CoreError.message("Screenshot capture returned no image")
-            }
-            return (data.base64EncodedString(), cgImage.width, cgImage.height)
+        } catch {
+            throw CoreError.message(failureMessage)
         }
     }
 

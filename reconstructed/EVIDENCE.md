@@ -67,12 +67,17 @@
 - 图标函数反汇编显示 `64x64`、RGBA、device RGB、NSGraphicsContext、`.copy`、PNG。
 - 原版应用列表保留 Spotlight 顺序和重复 bundle ID；发布二进制还保留 `NSMetadataQuery failed to start (Spotlight may be indexing or disabled)`。本次隔离运行中 Spotlight 无法启动，原版和重建版都以同一 rejected Promise 合同结束。
 - `appUnderPoint` 返回 Dock 等覆盖窗口，不过滤系统 UI，并且结果没有 `pid`。
-- TCC、optional integer、运行应用及 Spotlight 失败合同已实测；显示器尺寸、命中应用、图标和截图在本次无显示器/无 Accessibility 环境中标为 `environment-boundary`，没有包装成已执行结果。
+- `computeHideCandidates` 在调用方豁免集合上固定 union `com.apple.finder`，并从 `CGWindowListCopyWindowInfo` 结果中只接受 layer 0、alpha 严格大于 `0.1`、与目标显示器相交且可解析 PID 的窗口。该路径没有 `width/height > 1` 条件；源码里的尺寸门属于窗口显示器归属和普通激活候选逻辑。Swift 大字符串对象使用 cstring 前 `0x20` 字节的编码基址：arm64 静态项 `0x8000000000025220` 对应实际 cstring `0x25240 = com.apple.finder`，不能直接误读成从 `0x25220` 开始的 loginwindow。
+- `previewHideSet` 把调用参数转成 Set，并把可选 display ID 解析成指定显示器；缺失或无效 ID 回退主显示器 frame。`prepareDisplay` 在调用公共 helper 前又额外把 host bundle ID 与 Finder 加入豁免集合，原版保留了这层冗余。
+- [`validate_computer_use_semantics.mjs`](scripts/validate_computer_use_semantics.mjs) 把上述易误读点固化成发布门：同时检查 arm64/x86_64 原版常量、Finder 字符串对象编码、关键反汇编指令和兼容 Swift 源码结构。截图合同不是脚本内硬编码自证：发布门会从两个原版 slice 的静态数组对象逐项解码 8 个 Swift String，并核对数组初始化、元素数、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度；兼容源码还按函数绑定对应错误文本、`captureScreen` 对 `systemChromeBundleIds` 的 union 和 `failureMessage` catch。脚本会在内存中分别删掉 union、替换 catch，证明两种漂移都会被拒绝。这样可避免仅凭一次桌面 Probe 掩盖静态语义漂移。
+- 截图使用另一组精确的 8 项系统界面 bundle ID：Dock、Wallpaper Agent、Control Center、SystemUIServer、TextInputSwitcher、WiFiAgent、AccessibilityUIServer、loginwindow；不含 Finder、Notification Center 或 screencaptureui。
+- full/region 截图底层返回 nil 时分别拒绝为 `Screenshot capture returned nil (permission missing or SCContentFilter failure)` 和 `Region capture returned nil (permission missing or SCContentFilter failure)`。
+- TCC、optional integer、运行应用、显示器尺寸、命中应用、图标、Spotlight 失败合同及 full/region screenshot 结构已实测；动态 hide 候选按 bundle ID 归序后深比较完整成员和字段。截图比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，要求格式为 JPEG 且宽高等于截图返回值；不比较实时像素字节。只有双方返回同一条已知环境错误才记 `environment-boundary`。比较前旧报告会失效，PASS/FAIL 都原子写入，失败运行不会保留旧 PASS。
 
 ### Derived / Compatible
 
 - N-API Promise/async work、Foundation JSON 转换和 main-run-loop pump 是根据导出行为独立重建。
-- 屏幕像素会随桌面实时变化，因此截图验证比较字段、尺寸和 JPEG magic，不比较连续两帧的完整字节。
+- 屏幕像素会随桌面实时变化，因此截图验证比较字段、尺寸、显示器元数据、JPEG SOI/EOI 及真实解码后的格式/宽高，不比较连续两帧的完整字节。
 - 窗口/隐藏集合按原版探针恢复为 layer 0 可见窗口语义；同优先级窗口的内部枚举顺序不作为稳定接口。
 - ESC event tap 已实现，但自动验证不注入真实 Escape 事件。
 

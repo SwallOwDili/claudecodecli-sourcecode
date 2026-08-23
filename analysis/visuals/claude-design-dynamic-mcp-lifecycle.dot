@@ -1,0 +1,26 @@
+digraph ClaudeDesignDynamicMcpLifecycle {
+  graph [rankdir=TB, bgcolor="transparent", pad="0.20", nodesep="0.46", ranksep="0.62", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10.5, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.2, color="#475569", penwidth=1.2, arrowsize=0.72];
+
+  gate [label="Eligibility gate\npolicy + first-party + feature", fillcolor="#CCFBF1"];
+  handshake [label="MCP session\ninitialize + Mcp-Session-Id", fillcolor="#DBEAFE"];
+  catalog [label="Dynamic operation catalog\ntools/list + local safety floor", fillcolor="#DCFCE7"];
+  permission [label="Permission decision\nconsent + path token + durable grant", fillcolor="#FEF3C7"];
+  call [label="tools/call\nJSON request with 60s timeout", fillcolor="#FFEDD5"];
+  service [label="Design service state\ncompleted remote writes persist", fillcolor="#F3E8FF"];
+  result [label="Bounded tool_result\ntext, image and aggregate caps", fillcolor="#DCFCE7"];
+  retry [label="Control-state recovery\nrefresh token or reset MCP session", fillcolor="#E2E8F0"];
+  blocked [label="Fail closed\nunknown write, reserved path or no approval", fillcolor="#FECACA", color="#B91C1C"];
+
+  gate -> handshake [label="admits eligible tool"];
+  handshake -> catalog [label="initializes and discovers"];
+  catalog -> permission [label="classifies current operation"];
+  permission -> call [label="allows read or approved write"];
+  permission -> blocked [label="blocks unsafe or unapproved write", color="#B91C1C", fontcolor="#B91C1C"];
+  call -> service [label="reads or mutates remote state"];
+  service -> result [label="returns bounded response"];
+  call -> retry [label="detects 401 or stale session", color="#B45309", fontcolor="#B45309"];
+  retry -> call [label="retries once after token refresh", style=dashed];
+  retry -> handshake [label="re-handshakes once after 404", style=dashed];
+}

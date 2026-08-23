@@ -27,6 +27,7 @@ reconstructed/
 |   |-- build_and_validate.sh
 |   |-- compare_behaviors.mjs
 |   |-- probe_swift.mjs
+|   |-- validate_computer_use_semantics.mjs
 |   `-- validate_contracts.mjs
 `-- EVIDENCE.md
 ```
@@ -59,7 +60,7 @@ Rust 依赖版本尽量对齐发布二进制保留的构建路径和字符串，
 
 ## 构建与双跑验证
 
-一条命令会格式检查、构建 4 个 Rust 动态库和 1 个 Swift 动态库，然后创建全新的测试目录，将产物复制为原模块名，再分别验证原版和重建版：
+一条命令会先由 [`validate_computer_use_semantics.mjs`](scripts/validate_computer_use_semantics.mjs) 校验原版 arm64/x86_64 Mach-O 中的 Finder Swift String 编码、`0.1` alpha 常量和关键调用指令；同一发布门还会逐项解码原版静态数组中的 8 个截图系统界面 Swift String，并核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度。兼容源码的两个截图函数分别绑定各自错误合同，`captureScreen` 还必须实际 union `systemChromeBundleIds` 并在 catch 中使用 caller-specific `failureMessage`；内置负向注入会证明删掉任一消费点都被拒绝。之后才格式检查、构建 4 个 Rust 动态库和 1 个 Swift 动态库。脚本随后创建全新的测试目录，将产物复制为原模块名，并分别验证原版和重建版：
 
 ```bash
 reconstructed/scripts/build_and_validate.sh extracted /tmp
@@ -87,6 +88,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 当前 arm64 macOS 实测输出：
 
 ```text
+computer-use static semantics: PASS
 native contract validation: PASS
 modules checked: 5
 native behavior comparison: PASS
@@ -94,7 +96,7 @@ checks passed: 23
 reconstructed native validation: PASS
 ```
 
-逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL、环境边界和架构覆盖。本次 23 项由 17 项真实原版/重建对照、5 项明确的 `environment-boundary` 和 1 项最低覆盖审计组成；边界项没有冒充截图或桌面读取已经执行。validator 同时要求 x86_64 静态边界保持显式。
+逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL、环境边界和架构覆盖。本次 23 项由 22 项真实原版/重建对照和 1 项最低覆盖审计组成；22 项真实对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。hide 候选归序后深比较完整成员和字段；公共 helper 固定豁免 Finder，窗口必须满足 layer 0、alpha 严格大于 `0.1` 和 display intersection，但不受 `width/height > 1` 限制，源码中的尺寸判断服务于另外两个窗口流程。`prepareDisplay` 调用方又冗余加入 host 与 Finder，preview 的无效 display ID 回退主屏。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，格式和宽高必须与截图返回值一致；只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界。构建先运行双架构静态语义校验；报告开始前会使旧文件失效，PASS/FAIL 均原子落盘。validator 同时要求 x86_64 静态边界保持显式。
 
 ## 重建边界
 

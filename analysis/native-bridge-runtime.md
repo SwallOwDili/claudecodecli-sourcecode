@@ -111,7 +111,7 @@ input Buffer/Data URL
 
 ### 截图不是简单 `CGDisplayCreateImage`
 
-调用链需要处理 display、window/application exclusion、目标尺寸、JPEG quality、权限和异步 capture。结果字段包含 base64、width、height；base64 是裸 JPEG，不带 Data URL prefix。连续桌面帧不稳定，因此 probe 验证字段、尺寸、JPEG magic 和语义，不比较两次真实截图的完整 SHA-256。
+调用链需要处理 display、window/application exclusion、目标尺寸、JPEG quality、权限和异步 capture。结果字段包含 base64、width、height；base64 是裸 JPEG，不带 Data URL prefix。连续桌面帧不稳定，因此 probe 验证字段、尺寸、JPEG magic，并用对应原版/重建版 `image-processor.node` 实际解码格式与宽高，不比较两次真实截图的完整 SHA-256。
 
 ### App discovery 的微小语义
 
@@ -194,6 +194,7 @@ JS wrapper 在 `reverse/javascript/cli.readable.js` 604122-604133 lazy load modu
 
 [module-exports.json](../reconstructed/contracts/module-exports.json) 固化 5 个模块的 function/object/prototype contract。[build_and_validate.sh](../reconstructed/scripts/build_and_validate.sh) 会：
 
+- 先运行 [validate_computer_use_semantics.mjs](../reconstructed/scripts/validate_computer_use_semantics.mjs)，核对原版两个架构的 Finder 静态对象、`0.1` alpha 常量和关键指令；它还会从两个原版 slice 的静态数组对象解码精确 8 项截图白名单，核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址与 79/75 字节长度，再按函数绑定兼容 Swift 源码中的对应错误合同、`systemChromeBundleIds` union 和 `failureMessage` catch，并内置两项消费链故障注入；
 - 格式/编译 4 个 Rust crate 和 1 个 Swift package；
 - 把产物复制到全新临时目录并改成原 `.node` 文件名；
 - 分别加载 original 与 reconstructed；
@@ -204,6 +205,7 @@ JS wrapper 在 `reverse/javascript/cli.readable.js` 604122-604133 lazy load modu
 当前 arm64 结果：
 
 ```text
+computer-use static semantics: PASS
 native contract validation: PASS
 modules checked: 5
 native behavior comparison: PASS
@@ -213,7 +215,7 @@ reconstructed native validation: PASS
 
 通过说明重建实现满足当前检查过的外部合同，不说明内部算法等同原始源码。
 
-机器报告把 23 项拆为：22 项真实原版/重建对照和 1 个最低覆盖审计。22 项对照中有 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本轮 `environment-boundary` 为 0。`exact` 用于稳定状态、错误和固定图像字节；`normalized-semantic` 用于应用/显示器/icon 等先归一化再比较的结果；`schema-and-invariants` 用于实时截图和机器状态。报告 schema 仍保留 `environment-boundary`，以便后续在没有显示器、Accessibility 或 Spotlight 能力时明确记录未触发项。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
+机器报告把 23 项拆为：22 项真实原版/重建对照和 1 个最低覆盖审计。22 项对照中有 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本轮 `environment-boundary` 为 0。`exact` 用于稳定状态、错误和归序后的完整 hide 候选；`normalized-semantic` 用于应用、显示器和 icon 等先归一化再比较的结果；`schema-and-invariants` 用于输入模块和实时截图结构。hide 候选保留全部字段与成员：公共 helper 固定豁免 Finder，并筛掉非 layer 0、alpha 不大于 `0.1` 或不与目标显示器相交的窗口；它不检查窗口宽高，源码中 `width/height > 1` 只用于窗口所属显示器和普通激活候选两个独立流程。`prepareDisplay` 调用方又额外豁免 host 与 Finder，preview 调用方不另加 Finder，但仍经过公共 helper，并把可选 display ID 解析为指定或主显示器 frame。screenshot 则单独使用 8 项系统界面 bundle ID 白名单，loginwindow 只属于该集合。截图比较字段、尺寸、显示器元数据、规范 Base64 和 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，要求格式为 JPEG 且解码宽高等于返回值；不比较实时像素字节。只有双方返回完全相同的已知 TCC/ScreenCaptureKit 失败合同才改记 `environment-boundary`，其他成功/失败组合或错误文本漂移都会失败。构建前置静态校验同时绑定 arm64/x86_64 的 Finder 编码、`0.1` 常量和关键指令。比较器先使旧报告失效，再把 PASS 或 FAIL 通过临时文件、`fsync` 和 rename 原子写入；因此失败运行不会把旧 PASS 留给后续 validator。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
 
 ## 架构与平台边界
 

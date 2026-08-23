@@ -1017,7 +1017,7 @@ Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。
 
 ### 26.7 架构覆盖
 
-ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 22 个真实原版/兼容对照和 1 个最低覆盖审计组成；22 个对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次没有 `environment-boundary`。不能把覆盖审计也称为行为双跑。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
+ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 22 个真实原版/兼容对照和 1 个最低覆盖审计组成；22 个对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。动态 hide 候选按 bundle ID 归序后深比较完整成员和字段。原版 `computeHideCandidates` 固定豁免 Finder，并要求窗口为 layer 0、alpha 严格大于 `0.1`、与目标显示器相交；该路径没有 `width/height > 1` 门槛，源码里的尺寸判断属于窗口显示器归属和普通激活候选。`prepareDisplay` 调用方又额外 union host 与 Finder。`previewHideSet` 调用方只传用户给定的豁免集合，但仍经过固定 Finder helper；它会把可选 display ID 解析成指定显示器，缺失或无效时回退主显示器。screenshot 路径单独使用 8 项系统界面 bundle ID 白名单，其中 loginwindow 与 Finder 的 hide 规则不是同一集合。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG 首尾标记，并由对应原版/兼容版图像模块实际解码，格式必须为 JPEG，解码宽高必须等于截图返回值；不比较实时帧字节。只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界，一边成功、一边失败或错误漂移直接失败。构建门从原版 arm64/x86_64 Mach-O 静态数组对象逐项解码 8 个 Swift String，并核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度；兼容源码也按函数绑定两条错误文本、`captureScreen` 的白名单 union 与 caller-specific catch，内置负向注入证明删掉任一消费点都会失败。同一门还校验 Finder 编码、`0.1` 常量和 preview display 指令。报告在比较前使旧文件失效，随后无论 PASS/FAIL 都通过临时文件、`fsync` 和 rename 原子落盘。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
 
 ## 27. 安装、更新与 Doctor
 

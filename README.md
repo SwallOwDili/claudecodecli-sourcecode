@@ -2,7 +2,9 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [Plan Mode](analysis/plan-mode-and-human-approval.md) · [Structured Output](analysis/structured-output-and-schema-contract.md) · [`/compact`](analysis/compact-visual-guide.md) · [REPL](analysis/repl-programmatic-tool-runtime.md) · [风控与结束会话](analysis/end-conversation-risk-control.md) · [全面性审计](analysis/completeness-audit.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact`](analysis/compact-visual-guide.md) · [全面性审计](analysis/completeness-audit.md)
+>
+> **七个新增深度专题：** [Plan Mode](analysis/plan-mode-and-human-approval.md) · [Structured Output](analysis/structured-output-and-schema-contract.md) · [REPL](analysis/repl-programmatic-tool-runtime.md) · [EndConversation 风控](analysis/end-conversation-risk-control.md) · [Remote/Runner/Notifications](analysis/remote-routines-runner-and-notifications.md) · [Connectors/Catalog/MCP](analysis/connectors-catalog-and-mcp-operators.md) · [ClaudeDesign/Projects](analysis/claude-design-and-projects.md)
 
 `extracted/` 永远保存未格式化、未改名的原始打包字节；`reverse/` 保存从这些字节生成的分析视图。两者不能互相替代。
 
@@ -112,7 +114,7 @@
 
 11 份运行报告覆盖：Agent Loop 工具闭环、resume、manual compact、fork、Bearer/API-key request shape、prompt-cache disable、PreToolUse deny、Stop hook 重入、`maxTurns=1`、MCP generation refresh、Plugin Skill listing/正文注入、Plugin LSP stdio/坐标/结果闭环、子 Agent 隔离与两阶段回传、settings 层级、529/400 retry 分类、模型 fallback、OTLP prompt 脱敏、filesystem/network sandbox、checkpoint rewind、doctor/update gate、自定义 endpoint 下的 Remote Control 边界，以及本版内部 feature override 不可达；其中 10 份绑定精确 CLI 二进制，1 份是原生模块原版/兼容对照。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
-原生重建验证也输出同目录下的 `native-reconstruction.json`：本次 23 个检查项由 22 项真实原版/兼容对照和 1 项最低覆盖审计组成；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次环境没有留下 `environment-boundary`。original arm64 为运行+静态证据，compatible arm64 为构建+运行证据。原版 x86_64 只有两个 Computer Use 静态 slice，compatible x86_64 明确标记为未构建、未运行。
+原生重建验证也输出同目录下的 `native-reconstruction.json`：本次 23 个检查项由 22 项真实原版/兼容对照和 1 项最低覆盖审计组成；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次报告的 `environment-boundary` 为 0。动态 hide 候选会先按 bundle ID 排序，再对成员和全部字段做深比较。原版公共候选 helper 固定豁免 Finder，只接受 layer 0、alpha 严格大于 `0.1` 且与目标显示器相交的窗口；这里没有 `width/height > 1` 门槛，源码中另外两处尺寸判断分别服务于窗口所属显示器和普通激活候选，不参与 hide candidate 判定。`prepareDisplay` 调用方又把 host 与 Finder 加入豁免集合，形成原版保留的冗余双保险。`previewHideSet` 的调用方不另加 Finder，但同样经过公共 helper，并把可选 display ID 解析成指定显示器；ID 缺失或无效时回退主显示器。screenshot 另用精确的 8 项系统界面 bundle ID 白名单，其中包含 loginwindow，但不包含 Finder。full/region screenshot 比较字段、请求尺寸、显示器元数据、规范 Base64 和 JPEG 首尾标记，并分别交给原版/重建版 `image-processor.node` 实际解码；格式必须为 JPEG，解码宽高必须等于截图返回值，但不比较实时桌面的连续帧字节。只有双方返回同一条已知 TCC/ScreenCaptureKit 边界时才记 `environment-boundary`，一边成功、一边失败或错误文本漂移都会失败。构建门会从 arm64/x86_64 原版 Mach-O 的静态数组对象逐项解码 8 个 Swift String，并核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度；兼容源码还按函数分别绑定 full/region 文本、`captureScreen` 对 `systemChromeBundleIds` 的实际 union 和 `failureMessage` catch，内部故障注入会证明删掉消费链或 catch 都被拒绝。同一门同时校验 Finder 编码、`0.1` 阈值和 preview display 调用链。比较开始前旧报告会失效，PASS/FAIL 都原子写入，失败不能留下可被 validator 误用的旧 PASS。original arm64 为运行+静态证据，compatible arm64 为构建+运行证据。两个 Computer Use 原版模块含 x86_64 slice，compatible x86_64 明确标记为未构建、未运行。
 
 ## 快照信息
 
@@ -323,7 +325,7 @@
 reconstructed/scripts/build_and_validate.sh extracted /tmp
 ```
 
-当前 arm64 macOS 实测为 5 个模块契约通过；23 个报告项中有 22 项真实原版/兼容对照和 1 项最低覆盖审计，本次环境边界为 0。详细源码边界和逐模块证据见 [`reconstructed/EVIDENCE.md`](reconstructed/EVIDENCE.md)。
+当前 arm64 macOS 实测为 5 个模块契约通过；23 个报告项中有 22 项真实原版/兼容对照和 1 项最低覆盖审计，本次环境边界为 0。比较器仍保留 screenshot 的 TCC/ScreenCaptureKit 环境边界分支。详细源码边界和逐模块证据见 [`reconstructed/EVIDENCE.md`](reconstructed/EVIDENCE.md)。
 
 ## 2.1.235 的版本变化
 

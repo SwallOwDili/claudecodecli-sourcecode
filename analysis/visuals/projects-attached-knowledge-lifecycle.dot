@@ -1,0 +1,27 @@
+digraph ProjectsAttachedKnowledgeLifecycle {
+  graph [rankdir=TB, bgcolor="transparent", pad="0.20", nodesep="0.46", ranksep="0.62", fontname="Helvetica"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10.5, margin="0.14,0.10", color="#334155", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=9.2, color="#475569", penwidth=1.2, arrowsize=0.72];
+
+  gate [label="Attached-project gate\npolicy + CLAUDE_PROJECT_UUID", fillcolor="#EDE9FE"];
+  auth [label="OAuth readiness\nexpand project read/write scopes", fillcolor="#DBEAFE"];
+  dispatch [label="Fixed five-method dispatcher\ninfo + read + search + write + delete", fillcolor="#DCFCE7"];
+  read [label="Read path\ninline, local file or RAG search", fillcolor="#E0F2FE"];
+  write [label="Write path\nnamespace + budget + path + TOCTOU", fillcolor="#FEF3C7"];
+  fallback [label="RAG 403 fallback\nreturns document names, not fake hits", fillcolor="#E2E8F0"];
+  project [label="claude.ai Project state\nshared documents and uploads persist", fillcolor="#FFEDD5"];
+  result [label="Bounded tool_result\nreturns to the Agent Loop", fillcolor="#DCFCE7"];
+  blocked [label="Fail closed\nmissing scope, replaced path or quota", fillcolor="#FECACA", color="#B91C1C"];
+
+  gate -> auth [label="binds one attached project"];
+  auth -> dispatch [label="expands scopes and admits call"];
+  auth -> blocked [label="blocks unavailable credentials", color="#B91C1C", fontcolor="#B91C1C"];
+  dispatch -> read [label="routes info, read or search"];
+  dispatch -> write [label="routes write or delete"];
+  read -> fallback [label="falls back only on RAG 403", style=dashed];
+  fallback -> project [label="returns project document directory"];
+  read -> project [label="reads bounded snapshot"];
+  write -> project [label="persists checked mutation"];
+  write -> blocked [label="blocks path, race or budget failure", color="#B91C1C", fontcolor="#B91C1C"];
+  project -> result [label="maps bounded result"];
+}

@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "capturedAt": "2026-08-21T21:12:57.921Z",
+  "schemaVersion": 2,
+  "capturedAt": "2026-08-23T13:25:46.838Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -12,7 +12,10 @@
   },
   "commands": {
     "redacted": "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_REDACTED_PROMPT_MARKER --tools ''",
-    "included": "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''"
+    "included": "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''",
+    "rawDefault": "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_DEFAULT_REQUEST_MARKER --tools ''",
+    "rawInline": "OTEL_LOG_RAW_API_BODIES=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_INLINE_REQUEST_MARKER --tools ''",
+    "rawFile": "OTEL_LOG_RAW_API_BODIES=file:$RAW_BODY_DIR CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_FILE_REQUEST_MARKER --tools ''"
   },
   "input": {
     "redacted": {
@@ -22,6 +25,18 @@
     "included": {
       "prompt": "TELEMETRY_INCLUDED_PROMPT_MARKER",
       "logUserPrompts": true
+    },
+    "rawDefault": {
+      "prompt": "RAW_API_DEFAULT_REQUEST_MARKER",
+      "rawApiBodies": "disabled"
+    },
+    "rawInline": {
+      "prompt": "RAW_API_INLINE_REQUEST_MARKER",
+      "rawApiBodies": "inline"
+    },
+    "rawFile": {
+      "prompt": "RAW_API_FILE_REQUEST_MARKER",
+      "rawApiBodies": "file:$RAW_BODY_DIR"
     }
   },
   "literalOutput": {
@@ -52,13 +67,57 @@
           "url": "/v1/logs",
           "contentType": "application/json"
         }
+      ],
+      "rawDefault": [
+        {
+          "method": "POST",
+          "url": "/v1/logs",
+          "contentType": "application/json"
+        }
+      ],
+      "rawInline": [
+        {
+          "method": "POST",
+          "url": "/v1/logs",
+          "contentType": "application/json"
+        }
+      ],
+      "rawFile": [
+        {
+          "method": "POST",
+          "url": "/v1/logs",
+          "contentType": "application/json"
+        }
       ]
-    }
+    },
+    "rawBodyFiles": [
+      {
+        "kind": "request",
+        "bytes": 4286,
+        "requestMarkerPresent": true,
+        "responseMarkerPresent": false
+      },
+      {
+        "kind": "request",
+        "bytes": 28691,
+        "requestMarkerPresent": true,
+        "responseMarkerPresent": false
+      },
+      {
+        "kind": "response",
+        "bytes": 616,
+        "requestMarkerPresent": false,
+        "responseMarkerPresent": true
+      }
+    ]
   },
   "exitStatus": {
     "version": 0,
     "redacted": 0,
-    "included": 0
+    "included": 0,
+    "rawDefault": 0,
+    "rawInline": 0,
+    "rawFile": 0
   },
   "observed": {
     "redacted": {
@@ -71,6 +130,45 @@
       "exportCount": 1,
       "userPromptEvent": true,
       "originalPromptPresent": true
+    },
+    "rawDefault": {
+      "exportCount": 1,
+      "requestBodyEvent": false,
+      "responseBodyEvent": false
+    },
+    "rawInline": {
+      "exportCount": 1,
+      "requestBodyEvent": true,
+      "responseBodyEvent": true,
+      "requestMarkerPresent": true,
+      "responseMarkerPresent": true
+    },
+    "rawFile": {
+      "exportCount": 1,
+      "requestBodyEvent": true,
+      "responseBodyEvent": true,
+      "collectorUsesBodyRef": true,
+      "collectorContainsBodyMarker": false,
+      "files": [
+        {
+          "kind": "request",
+          "bytes": 4286,
+          "requestMarkerPresent": true,
+          "responseMarkerPresent": false
+        },
+        {
+          "kind": "request",
+          "bytes": 28691,
+          "requestMarkerPresent": true,
+          "responseMarkerPresent": false
+        },
+        {
+          "kind": "response",
+          "bytes": 616,
+          "requestMarkerPresent": false,
+          "responseMarkerPresent": true
+        }
+      ]
     }
   },
   "checks": {
@@ -85,6 +183,22 @@
     "redactedPayloadOmitsPrompt": true,
     "includedPayloadHasUserPromptEvent": true,
     "includedPayloadContainsPrompt": true,
+    "rawDefaultRunSucceeds": true,
+    "rawInlineRunSucceeds": true,
+    "rawFileRunSucceeds": true,
+    "rawDefaultExportObserved": true,
+    "rawInlineExportObserved": true,
+    "rawFileExportObserved": true,
+    "rawDefaultOmitsBodyEvents": true,
+    "rawDefaultOmitsBodyMarkers": true,
+    "rawInlineHasRequestBodyEvent": true,
+    "rawInlineHasResponseBodyEvent": true,
+    "rawInlineContainsRequestMarker": true,
+    "rawInlineContainsResponseMarker": true,
+    "rawFileCollectorUsesReferences": true,
+    "rawFileCollectorOmitsBodyMarkers": true,
+    "rawFileWritesRequestAndResponse": true,
+    "rawFileBodiesContainMarkers": true,
     "exportsUseJsonContentType": true
   },
   "pass": true

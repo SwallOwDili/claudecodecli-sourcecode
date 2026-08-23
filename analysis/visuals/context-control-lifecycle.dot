@@ -6,14 +6,17 @@ digraph context_control_lifecycle {
   sources [label="上下文来源\n历史、system、memory、tools", fillcolor="#fff3cd"];
   assemble [label="请求装配\n规范化与分段", fillcolor="#e3f2fd"];
   reuse [label="复用与延迟\nprompt cache / Tool Search", fillcolor="#c8e6c9"];
-  trim [label="局部治理\ncontext hint / microcompact", fillcolor="#ffe0b2"];
+  hint [label="服务端协作\ncontext hint 协议", fillcolor="#fff3cd"];
+  trim [label="本地局部治理\nmicrocompaction", fillcolor="#ffe0b2"];
   compact [label="全局治理\nsummary + path-dependent preserved suffix", fillcolor="#d1c4e9"];
   boundary [label="恢复关系\ncompact boundary / transcript", fillcolor="#d7ccc8"];
   next [label="下一次请求\n更短且因果合法", fillcolor="#b2dfdb"];
 
   sources -> assemble [label="汇入"];
   assemble -> reuse [label="标记稳定前缀"];
-  reuse -> trim [label="窗口继续增长"];
+  reuse -> hint [label="达到节省阈值时请求协作"];
+  hint -> trim [label="422/424 或流式失败时本地回退"];
+  hint -> compact [label="协作后仍接近有效上限"];
   trim -> compact [label="仍接近有效上限"];
   compact -> boundary [label="持久化替代关系"];
   boundary -> next [label="重建有效消息视图"];

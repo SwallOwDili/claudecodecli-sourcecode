@@ -1,31 +1,37 @@
-# Claude Code CLI 2.1.235 产品运行时：模型提议，本地裁决，状态可续
+# Claude Code CLI 2.1.235：一台把模型限制在“提案权”里的本地执行系统
 
 > 版本：`2.1.235` | 核心客户端路径：`Static` + `Probe` | C/Q/E/S/O：`Derived` 阅读模型 | 服务端内部：`Boundary`
 
-**结论：** Claude Code `2.1.235` 不是把模型输出直接接到 Shell 的聊天壳。它更像一个本地编排内核：客户端按当前配置和会话状态装配每次请求，远端模型提出下一步；本地 runtime 只 dispatch 完整的 client `tool_use`，并在真正调用前执行适用于该工具的 schema、Hook、permission、policy 与 sandbox 控制，再把结果按协议写回消息图。已经落到文件系统、子进程或远端服务的副作用，不会因为重试、`/compact`、resume 或 rewind 自动消失。
+**核心判断：** Claude Code `2.1.235` 最值得研究的不是“内置了多少工具”，而是它刻意不让模型成为系统里的最终权威。模型只能提出下一步；客户端决定这一轮究竟暴露哪些能力、哪些提议可以执行、结果怎样进入因果链；文件系统、子进程和远端服务则拥有已经发生的真实副作用。它因此获得了 Agent 的自主性，却仍把权限、状态和失败责任留在可检查的本地边界内。
 
-**一句话模型：** 模型负责提议，客户端负责裁决与记账；上下文可以重建，外部世界不能假装回滚。
+**一句话模型：** 模型负责提议，客户端负责裁决与记账；历史表示可以重建，外部世界不能假装回滚。
 
-下文的 C/Q/E/S/O 是本文从 `2.1.235` 调用链归纳出的 **Derived 阅读模型**，不是源码中的五个原生模块，也不是 Anthropic 官方架构名称。它的用途只有一个：追清每个决定由谁拥有、改变了什么状态、失败后谁接管。
+![模型只提出动作，本地管线裁决并记录因果，真实副作用由外部 owner 持有](visuals/runtime-authority-lifecycle.svg)
 
-先记住最短图例：`C` 约束能力，`Q` 组装本次请求，`E` 裁决并执行 client tool，`S` 保存可恢复状态，`O` 观察和诊断；真实文件、进程和远端对象仍由外部 owner 持有。
+这张图给出整篇文章唯一需要先记住的架构关系。系统同时维护三个不等价的世界：模型世界保存可重新生成的提案，客户端世界保存权限决定和可恢复的因果账本，外部世界保存已经落地的文件、进程、网络和服务端状态。多数容易讲错的技术点，都来自把这三个世界混成一个：把 `tool_use` 当作动作已经执行，把 `/compact` 当作历史已经删除，把 resume 当作进程快照恢复，或者把 telemetry 当作事实账本。
+
+下文用一个任务和六个工程矛盾拆开这三个世界。最后才给出 C/Q/E/S/O；它是本文从 `2.1.235` 调用链归纳的 **Derived 阅读模型**，不是源码中的五个原生模块，也不是 Anthropic 官方架构名称。
 
 ## 60 秒看懂一次真实任务
 
-**读者问题：** 用户只说“把端口改掉并跑测试”，为什么 CLI 内部会出现多轮模型请求、并发屏障、权限询问、状态落盘和恢复分支？
+**读者问题：** 用户只说“把端口改掉并跑测试”，一句话为什么会变成多轮模型请求、并发屏障、权限询问、状态落盘和恢复分支？
 
-**贯穿场景：** Claude 先读配置，再编辑端口，执行 Bash 测试；测试失败后读取错误继续修复，最后用户执行 `/compact` 再接着工作。
+**贯穿场景：** Claude 先读配置，再编辑端口并执行 Bash 测试；测试失败后，它读取错误继续修复。对话变长时，用户执行 `/compact`，退出后又用 resume 接着工作。
 
-| 阶段 | 真正作决定的组件 | 输入怎样变成输出 | 技术后果 |
+客户端不会把 bundle 中所有工具一股脑交给模型。它先根据 settings、env、managed policy、workspace trust、host、账号与 feature 状态，在请求发出前临时组装这一轮的 `tools[]`。模型看到的是一张当下可达能力图，不是安装包能力总表。
+
+模型开始流式返回后，一个完整的 client `tool_use` block 一闭合，本地 executor 就可以入队执行，不必等待整条 assistant message 结束。只读调用可以重叠，Edit 之类的不安全调用形成屏障；权限拒绝、测试失败或 schema 错误则按同一个 `tool_use_id` 变成 `tool_result`，进入下一次模型决策。错误不是异常地“跳出 Agent”，而是 Agent 继续推理所需的新观察。
+
+当 `/compact` 发生时，客户端没有撤销 Edit，也没有删除已经发生的测试进程。它只用 summary、保留片段、附件和 boundary 替换下一次送模的历史表示。resume 同样不是恢复旧进程，而是从 transcript、UUID/parent、compact boundary 和 checkpoint 中重新构造一条因果合法的工作视图。
+
+| 对象 | 任务开始前 | 任务推进后 | `/compact` / resume 后 |
 | --- | --- | --- | --- |
-| 启动 | 控制面 | 合并 settings、env、managed policy、workspace trust 与 feature evaluation | 配置只确定上限，不等于所有能力已经进入本次请求 |
-| 第一次送模 | 请求与上下文面 | 选择 provider/model/auth，构造 system、messages、beta/cache 与本次 `tools[]` | 一个用户 turn 可以包含多次 API attempt 和多轮模型调用 |
-| 模型返回 | 流式 parser | 区分文本、client `tool_use`、`server_tool_use`、thinking 与 stop state | 并非所有“工具块”都交给本地执行器 |
-| Read/Edit/Bash | 本地 Agent Loop | client `tool_use` 入队，经过 schema、Hook、permission、policy、sandbox，再进入 `tool.call` | 模型提出动作不等于动作已经发生 |
-| 测试失败 | 消息图与下一轮请求 | error `tool_result` 按原 `tool_use_id` 回灌，模型把失败当成新观察 | 工具失败通常推进 Agent Loop，不会自动回滚整个 turn |
-| `/compact` | compact controller + 本地状态 | 命中预计算就直接交换表示；未命中才生成 summary；随后写 boundary 并重建送模视图 | 历史表示缩短，但文件修改和远端副作用保留 |
-| 退出与 resume | session loader + 状态面 | 读取 JSONL、UUID/parent、compact boundary 与 checkpoint，选择有效 leaf 并修复逻辑链 | 对话和受管文件可按各自合同恢复；旧进程与远端动作不会复活或撤销 |
-| 诊断 | 各 owner + 观测 sink | retry/fallback/compact/supervisor 各自控制恢复；analytics、Datadog、OTEL、debug 只记录 | 观测缺失不能反推动作未发生，telemetry 也不是恢复控制器 |
+| 模型可见上下文 | 用户输入和当前有效历史 | 追加 tool proposal 与配对 result | 被重建为 summary + 合法保留段 + 新输入 |
+| 客户端因果账本 | session、配置和能力候选 | 追加消息 UUID、permission 决定、tool pair、checkpoint/reference | 保留 boundary，按 leaf 和 parent 重放有效链 |
+| 外部世界 | 原项目文件和进程状态 | 文件已修改、测试已启动、远端动作可能已提交 | 不因 compact/resume 自动回滚或复活 |
+| 观测记录 | 可能尚无事件 | 各通道按自己的 gate、sampling 和 queue 记录 | 缺失不证明动作未发生，出现也不证明服务端已落库 |
+
+这就是 2.1.235 的技术主线：它不是让一个模型拥有世界，而是在模型提案、客户端因果状态和真实副作用之间持续做协调。后面所有“微小特性”都应该说明自己改变了哪一个对象，而不是只报一个字段名。
 
 ## 关键不是流程很长，而是四个嵌套生命周期单位各算各的账
 
@@ -40,36 +46,26 @@ Agent 系统最容易被讲错的地方，是把一次用户任务、一次模�
 | API attempt | 一次具体 provider/model/stream 请求尝试 | transport retry、流转非流、model/refusal fallback | retry 可以重发请求，但不一定增加 `turnCount` |
 | Tool batch | 同一 assistant 响应中完成的 client `tool_use` 集合 | block 完整后入队，按并发安全性执行并 drain | 一轮可以执行多个工具；完成顺序不决定结果配对 |
 
-工具执行也不是等整个 assistant message 完全结束后才开始。流式 parser 在 `content_block_stop` 把一个完成的 block 产出为 assistant fragment（[L409843-L409906](../reverse/javascript/cli.readable.js#L409843)）；Agent Loop 看到其中的 client `tool_use` 就立刻 `addTool(...)`，随后 `Waf(...)` 在模型流事件和 executor 的 drain tick 之间竞速，因此工具 progress/result 可以和后续 assistant blocks 交错上送（[L267292-L267310](../reverse/javascript/cli.readable.js#L267292)、[L272032-L272045](../reverse/javascript/cli.readable.js#L272032)）。流结束后，executor 还会 drain 未完成结果，再由 queue、`endsTurn`、Stop Hook、`maxTurns` 和 terminal reason 决定是继续 model iteration 还是结束。这里的性能收益来自流式重叠，正确性则依赖 block 完整边界、并发屏障和最终 drain，不能简化成一次 `Promise.all`。
+工具执行也不是等整个 assistant message 完全结束后才开始。流式 parser 在 `content_block_stop` 把一个完成的 block 产出为 assistant fragment（[L409843-L409906](../reverse/javascript/cli.readable.js#L409843)）；Agent Loop 看到其中的 client `tool_use` 就立刻 `addTool(...)`，随后 `Waf(...)` 在模型流事件和 executor 的 drain tick 之间竞速（[L267292-L267310](../reverse/javascript/cli.readable.js#L267292)、[L272032-L272045](../reverse/javascript/cli.readable.js#L272032)）。这里重叠的是**模型继续流式输出**与**本地工具执行/UI 或 SDK progress**；`tool_result` 不会塞回仍在进行的同一次模型请求。客户端必须等当前 stream 和 executor drain 收尾，才在下一次 model iteration 中把结果送回模型。性能收益来自重叠等待，正确性则依赖完整 block 边界、并发屏障、同 ID 配对和最终 drain，不能简化成一次 `Promise.all`。
 
 把 `maxTurns=1` 代入贯穿场景就能看清边界：第一轮模型仍可返回 Read、Edit、Bash，三个工具仍按队列规则执行并产生副作用；客户端只是禁止工具结果后的第二轮模型决策，最终给出 `error_max_turns`。精确二进制 Probe 已观察到“工具执行完成、PostToolUse 已发生、服务端只收到一个 Messages 请求”。所以 `maxTurns` 不是工具配额，更不是副作用回滚器；这也是排查“为什么请求次数变多”或“为什么工具做了但没有最终总结”时必须先分清四种计数的原因。完整 Probe 见 [运行证据索引](runtime-probe-index.md) 与 [Agent Loop 专题](agent-loop.md)。
 
-## 这个版本最鲜明的七个技术特征
+## 矛盾一：让模型自主，但不把执行权交给模型
 
-| 技术特征 | 代码层面的机制 | 为什么这样设计 | 用户或调试者真正会感受到什么 |
-| --- | --- | --- | --- |
-| **生命周期计数分离** | user turn、model iteration、API attempt 与 tool batch 分别拥有推进条件、预算和终止状态 | 网络恢复、模型决策和工具并发不能共享一个粗糙计数器 | `maxTurns=1` 仍可能执行多个工具；API retry 也不必消耗新的模型轮次 |
-| **权力分离** | 模型生成意图，本地 client tool pipeline 决定能否执行；`server_tool_use` 走服务端生命周期 | 工作区、凭据和 OS 副作用必须留在本地信任边界内 | 看到工具名、schema 或流式 block 都不能直接等同于本地动作 |
-| **请求时晚绑定** | provider、model、beta、cache、system、messages 和 `tools[]` 每次 attempt 重新装配 | host、账号、feature、permission mode 与 Tool Search 会随会话变化 | “源码里有工具”与“这轮模型拿到工具”是两件事 |
-| **事件事实与送模视图分离** | transcript/message graph 保存事实；compact、resume、fork、tombstone 构造不同的有效视图 | 上下文窗口有限，但恢复与审计又不能只靠一份有损 summary | `/compact` 改的是下一次请求看到什么，不是把真实副作用擦掉 |
-| **按对象恢复** | message graph、transcript、compact boundary、file checkpoint 与 remote reference 分别恢复不同对象 | 对话、文件、进程和远端服务不共享一个快照或事务 owner | resume 可以重建历史，rewind 可以恢复部分文件，但二者都不会自动撤销远端动作 |
-| **先调度、后改写输入** | queue 在最初 schema 成功后计算并发安全；Hook/permission 后续仍可改写 input | 调度器需要在工具真正执行前建立顺序和屏障 | 2.1.235 的 input 改写不会触发重新并发分类，这是扩展作者必须理解的版本合同 |
-| **局部恢复、非全局事务** | request retry、stream fallback、compact、supervisor、Artifact conflict 各自处理自己的失败 | 文件、进程、网络与服务端对象不存在统一事务管理器 | 重试前必须判断副作用是否已经发生；“恢复成功”不等于“回到原世界” |
-
-## 先分清两种工具：client `tool_use` 与 `server_tool_use`
-
-这是理解 2.1.235 Agent Loop 的第一道分界。可读源码在 [L272032-L272038](../reverse/javascript/cli.readable.js#L272032) 只把 assistant content 中的 `tool_use` 收集进本地 `streamingToolExecutor`；流式 parser 也认识 `server_tool_use`，例如 Advisor，但它只组装该 block 和对应 server result（[L409843-L409877](../reverse/javascript/cli.readable.js#L409843)）。
+这是理解 2.1.235 Agent Loop 的第一道权力边界。模型能生成动作意图，却不能靠生成一个名字就取得本机执行权。可读源码在 [L272032-L272038](../reverse/javascript/cli.readable.js#L272032) 只把 assistant content 中的 `tool_use` 收集进本地 `streamingToolExecutor`；流式 parser 也认识 `server_tool_use`，例如 Advisor，但它只组装该 block 和对应 server result（[L409843-L409877](../reverse/javascript/cli.readable.js#L409843)）。
 
 | 对象 | dispatch / 裁决 owner | 真实 effect owner | 是否进入本地 registry / permission / 适用的 policy-sandbox / `tool.call` | 结果怎样回来 |
 | --- | --- | --- | --- | --- |
 | client `tool_use` | Claude Code 本地 runtime | 内置工具可直接落到 OS；MCP/Plugin/浏览器/远端 API 仍由各自 host 或服务拥有真实副作用 | **是** | 客户端生成同 `tool_use_id` 的 user `tool_result`，再发起后续模型轮次 |
 | `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **否** | server result block 留在 assistant stream；客户端可以显示、记录和规范化，但不会本地 dispatch |
 
-因此，“Agent Loop 会执行所有 tool block”是错误模型。更准确的说法是：本地 Agent Loop 只接管 client `tool_use`；`server_tool_use` 是客户端可观察、但不拥有执行权的服务端分支。
+因此，本地 Agent Loop 只接管 client `tool_use`；`server_tool_use` 是客户端可观察、但不拥有执行权的服务端分支。这种不对称不是协议细枝末节，而是产品的信任架构：云端模型可以决定“想做什么”，工作区一侧的 runtime 才决定“这里允许发生什么”。
 
-## 案例一：Bash 的“可调用”不是一个布尔值
+### Bash 的“可调用”为什么不是一个布尔值
 
-[`known-tool-catalog.txt`](source-inventory/known-tool-catalog.txt) 中出现 `Bash`，最多证明 bundle 里有候选名字。[`tool-registrations.jsonl` 第 80 行](source-inventory/tool-registrations.jsonl#L80)恢复出 `toolRegistration:Bash:1`，并定位到真实工厂对象、schema、permission 和 result mapper。可读源码中的对象位于 [L393203](../reverse/javascript/cli.readable.js#L393203)。这些证据仍不能证明本轮请求把 Bash 发给了模型。
+这里要分开三个常被压成“工具存在”的状态：**发现状态**回答 bundle 里有没有候选，**请求可见状态**回答模型本轮能否获得名称或完整 schema，**执行授权状态**回答某组具体参数能否真的产生副作用。三者之间任何一层都可以拒绝、延迟或改写。
+
+[`known-tool-catalog.txt`](source-inventory/known-tool-catalog.txt) 中出现 `Bash`，只证明 bundle 里有候选名字。[`tool-registrations.jsonl` 第 80 行](source-inventory/tool-registrations.jsonl#L80)恢复出 `toolRegistration:Bash:1`，并定位到真实工厂对象、schema、permission 和 result mapper；可读源码中的对象位于 [L393203](../reverse/javascript/cli.readable.js#L393203)。真正进入请求前，它还要经过 host、feature、session、alias、dynamic registry 和 Tool Search/deferred-loading 选择。即使 HTTP 请求携带 deferred tool declaration，也不能直接等同于模型此刻已经获得完整 schema；更不能等同于一组具体 Bash 参数已经获准执行。
 
 ```text
 candidate name
@@ -83,9 +79,9 @@ candidate name
   -> paired tool_result with the same tool_use_id
 ```
 
-### 真正有技术含量的是调度时序
+### 流式调度用“并发纯度合同”换取延迟
 
-`addTool()` 先用最初 parsed input 调用 `isConcurrencySafe(input)`，把结果固化在队列项上，再由 `processQueue()` 根据安全项并行、非安全项阻塞后续队列（[L267124-L267149](../reverse/javascript/cli.readable.js#L267124)）。PreToolUse Hook 和 permission handler 后续可以改写 input（[L316220-L316330](../reverse/javascript/cli.readable.js#L316220)），但调度器不会回头重算。
+`addTool()` 先用最初 parsed input 调用 `isConcurrencySafe(input)`，把结果固化在队列项上，再由 `processQueue()` 允许 safe 项重叠、让 unsafe 项等待前序 drain 并阻塞后序启动（[L267124-L267149](../reverse/javascript/cli.readable.js#L267124)）。这不是普通 `Promise.all`，而是工具向调度器声明“这组输入是否会与共享状态冲突”的纯度合同。PreToolUse Hook 和 permission handler 后续可以改写 input（[L316220-L316330](../reverse/javascript/cli.readable.js#L316220)），但调度器不会回头重算。
 
 **版本级细节：** Bash 的 `isConcurrencySafe(original input)` 在 Hook/permission 改写前计算；改写后不会重新计算 `isConcurrencySafe`。这不等于改写后的 input 完全不校验：schema 与 permission 仍会复验；它只说明并发分类沿用最初输入的判断。
 
@@ -96,30 +92,54 @@ candidate name
 | 同 ID 配对 | 完成顺序变化时仍能把结果交回正确调用 | 不代表错误结果会终止整个 Agent Loop |
 | Hook/permission 可改写 input | 扩展可以在执行前收紧或替换参数 | 不会触发重新并发分类，也不会自动重跑工具自定义 `validateInput` |
 
+这一时序暴露了 2.1.235 很具体的性能取舍：它愿意根据早期输入尽快建立并发顺序，换取工具与模型流的重叠；代价是扩展不应在 Hook 里把一个原本安全的调用改成具有全新共享副作用的调用，并期待调度器自动重新分类。当前证据是目标 bundle 的可达静态合同，还没有覆盖所有多工具竞态组合的精确二进制 Probe。
+
+### “允许”也不是一个状态
+
+一个工具从提案走到副作用，还要依次穿过 registry/schema/custom validation、PreToolUse、permission/rule/managed policy、适用工具内部 sandbox、`tool.call`、PostToolUse 与 output validation。前置层可以阻止动作；后置层只能影响结果展示和下一步控制流，不能撤销已经发生的写入。`bypassPermissions` 绕过普通交互审批，也不会自动关闭适用工具自己的 sandbox。
+
+精确二进制 TUI Probe 又验证了一个容易被 UI 文案掩盖的状态差异：Shift+Tab 退出 comment input 不会批准 Edit；随后显式 Enter 只批准第一次 Edit，第二次仍会询问。只有用户用 Down+Enter 选中 session-wide `acceptEdits`，第二次 Edit 才不再弹框。也就是说，“关闭输入框”“批准这一次”“本会话批准同类 Edit”是三个独立状态，不应被归纳成一个 permission 布尔值。见 [TUI 权限 Probe](runtime-probes/tui-regressions.json) 与 [工具控制管线](tools-permissions-hooks.md)。
+
 Bash 一旦启动子进程，文件、进程和网络副作用就归 OS 或远端 owner。后续 tombstone、compact、resume 只能修复消息表示和本地记录，不能自动撤销已经执行的命令。完整机制见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md)、[Agent Loop](agent-loop.md) 和 [工具控制管线](tools-permissions-hooks.md)。
 
-## 案例二：上下文治理不是一个 `/compact` 按钮
+## 矛盾二：既要忘掉大部分历史，又要让任务继续成立
 
 ![上下文先复用稳定前缀、延迟工具 schema、局部清理旧结果，最后才全局总结并写恢复边界](visuals/context-control-lifecycle.svg)
 
-同一个长任务会依次遇到四类不同问题：重复前缀太贵、工具 schema 常驻太大、旧 tool result 挤占窗口、完整历史终于接近有效上限。Claude Code 用不同机制处理它们，不能全部叫成“缓存”或“自动总结”。
+同一个长任务会依次遇到五类不同问题：重复前缀太贵、工具 schema 常驻太大、旧 tool result 挤占窗口、服务端希望提示局部清理、完整历史终于接近有效上限。Claude Code 没有用一个万能“缓存层”解决它们，而是分别改变成本、schema 可见性、active message view、协作协议和逻辑历史。
 
 | 机制 | 它真正改变什么 | 它明确不改变什么 |
 | --- | --- | --- |
 | Prompt cache | 给稳定 system/message 前缀加 breakpoint 与 5m/1h TTL，命中后降低重复输入成本和 prefill 延迟 | 不缩短逻辑消息，也不负责 resume |
-| Tool Search / deferred schema | 让未使用工具只保留轻量发现入口，需要时才把完整 schema 放进本次 `tools[]` | 不是工具结果缓存，也不证明某个候选工具本轮可用 |
-| Context hint / microcompaction | 在 active message view 中清理旧的大型 tool result，默认保留最近 5 个相关结果，且总节省不足 20k token 时不执行 | 不删除 tool call 因果关系，也不能证明 physical transcript 已删除旧事件 |
+| Tool Search / deferred schema | 请求把候选标为 `defer_loading:true`；模型先得到轻量发现入口，被发现后完整 schema 才进入后续上下文 | 不是把工具缓存到 HTTP body 之外，也不等于未发现工具零 token |
+| Context hint | 服务端协作协议提示客户端清理特定工具族旧结果，并对 400/409/422/424/529 与流式错误走不同回退 | 协议启用不等于本地已经清理成功 |
+| Local microcompaction | 改写 active message view 中旧的大型 tool result；默认保留最近 5 个相关结果，总节省不足 20k token 时不执行 | 不删除 tool call/ID 因果，也不证明 physical transcript 删除旧事件 |
 | Precomputed compact | 在 sidecar/Storage 中提前准备 summary，等真正到 compact line 再校验并交换 | pending/过期/分支不匹配的 summary 不会硬塞进主历史 |
 | Full compact | 用 summary、路径相关的 preserved suffix、attachments 与 Hook 结果重写下一次有效 messages | 不撤销文件、进程、Git 或远端 API 副作用 |
 | Transcript + boundary | 保存表示替换关系、UUID 和 logical parent，让 resume 能修复消息链 | 不等于 API prompt cache，也不保存旧进程内存 |
 
-本地 microcompaction 的 release-local 主路径见 [L263484-L263519](../reverse/javascript/cli.readable.js#L263484)。预计算 sidecar 是 schema version 2，单文件上限 8,000,000 bytes；复用会拒绝超过 7 天、从预计算点又增长超过 150,000 token、缩减过半或关键 UUID 缺失的结果，连续 3 次可计数失败后停止 re-arm。它减少的是临界点上的总结延迟和重复成本，不是把 summary 变成永久真相；校验与 swap 主链见 [L262324-L262680](../reverse/javascript/cli.readable.js#L262324)。完整 5m/1h 成本算例、窗口线与 provider 差异见 [上下文治理专题](context-governance-and-caching.md)。
+先看最普通的 manual miss。`PreCompact` Hook 放行且没有可复用预计算结果时，客户端在旧对话末尾插入专用虚拟用户消息，以 `CRITICAL` 要求模型停止业务工作、禁止调用工具，并先输出 `<analysis>` 做时序梳理，再输出固定九段 `<summary>` 作为工程交接。客户端随后丢弃前者，只把后者改写成 Summary。这里的 `<analysis>` 是应用层提示词格式，不是模型 API 的原生 thinking；模板和提取路径见 [L261931-L262207](../reverse/javascript/cli.readable.js#L261931)。
 
-### `/compact` 仍然有一条容易漏掉的 hit/miss 分支
+只保存有损 Summary 仍不足以继续编码，所以重建结果由四种互补通道组成：
+
+| 重建通道 | 保存什么 | 为什么不能由 Summary 单独替代 |
+| --- | --- | --- |
+| Summary | 远期目标、决定、错误、用户反馈、待办 | 压缩率高，但会丢逐字符材料 |
+| Preserved message groups | 最近的完整 tool_use/tool_result 因果组 | 不能机械保留末尾 N 条，否则可能拆断协议配对 |
+| Attachments / hooks | 最近相关文件、Plan、Skill/MCP/Agent 状态与 hook 结果 | 用受限的精确重读补偿摘要失真 |
+| compact boundary | summary、preserved UUID 与 logical parent 的表示切换关系 | 让 resume/fork 知道哪条逻辑链仍然有效 |
+
+因此 `/compact` 的本质不是“把 87 条消息缩成 4 条”之类的数组技巧，而是一次**有损语义通道 + 有界精确信息通道 + 因果恢复边界**的表示替换。它用冗余换连续性：Summary 和附件可能重复，但两者分别防范语义遗忘和逐字符失真。
+
+本地 microcompaction 的 release-local 主路径见 [L263484-L263519](../reverse/javascript/cli.readable.js#L263484)。预计算 sidecar 是 schema version 2，单文件上限 8,000,000 bytes；复用会拒绝超过 7 天、从预计算点又增长超过 150,000 token、缩减过半或关键 UUID 缺失的结果，连续 3 次可计数失败后停止 re-arm。它减少的是临界点上的总结延迟和重复成本，不是把 summary 变成永久真相；校验与 swap 主链见 [L262324-L262680](../reverse/javascript/cli.readable.js#L262324)。完整 5m/1h 成本算例、四条窗口线、Context Hint 回退与 provider 差异见 [上下文治理专题](context-governance-and-caching.md)。
+
+自动治理也不是“达到一个百分比就总结”。代码先从有效 window 扣除最多 20k 输出预算得到 input budget，再分别计算 precompute、warning、compact 与 blocked 四条线：前 3 条跟随可配置的 auto-compact window，blocked 则来自模型输入 ceiling 再减 3k。以 200k context、20k 输出预留为例，默认算例依次约为 144k 预计算、147k 警告、167k compact、177k 阻塞。把 auto-compact window 调小会让总结更早，不会把底层模型硬阻塞线一起等比例下移。阈值主路径见 [L216096](../reverse/javascript/cli.readable.js#L216096)。
+
+### 预计算不是另一种总结格式，而是把等待提前
 
 ![compact 先检查预计算结果，命中直接重建，未命中才请求 summary](visuals/compact-lifecycle.svg)
 
-`/compact` 同时连接命令 gate、PreCompact Hook、预计算 sidecar、group-based compactor、summary request、message graph 和 transcript boundary。把它写成一条固定流水线，会漏掉 2.1.235 最关键的 hit/miss 分支。
+理解普通 miss 后，再看 2.1.235 的性能优化才不会迷路。`/compact` 同时连接命令 gate、PreCompact Hook、预计算 sidecar、group-based compactor、summary request、message graph 和 transcript boundary；hit 与 miss 的差别不是输出格式，而是 summary 工作何时发生、当前任务变化后旧结果还能否被信任。
 
 ```text
 /compact
@@ -147,11 +167,11 @@ Bash 一旦启动子进程，文件、进程和网络副作用就归 OS 或远�
 
 精确二进制 Probe 在一个主动执行 `/compact` 的小样本里观察到 `system:compact_boundary`，`trigger=manual`、`preTokens=104`；`104` 只是该受控输入的 compact 前计数，**不是自动 compact 阈值**。随后 fork 的请求保留 summary 和当前 prompt，不再发送 compact 前 prompt、旧 tool-use ID 与旧 assistant result。这证明的是**下一次送模视图改变**，不是旧 transcript、磁盘文件、Memory 或远端副作用被删除。完整阈值和 manual/reactive/precomputed/cold 差异见 [上下文治理](context-governance-and-caching.md)。
 
-## 案例三：遥测不是一个总开关，而是并行的观测产品
+## 矛盾三：既要看见系统，又不能把观测误当成事实
 
 ![同一运行时信号经过关联与内容控制后，分别进入一方事件、Datadog、OTEL 和本地诊断通道](visuals/telemetry-pipeline.svg)
 
-“Claude Code 有没有遥测”是一个过于粗糙的问题。2.1.235 至少要分开 Anthropic 一方事件、Datadog forwarding、用户或管理员配置的 OTEL，以及本地 debug/profile/doctor。它们会观察同一次 query、tool、permission、compact 或 error，但拥有不同 gate、字段、队列、目的地和失败语义。关闭其中一条，不代表其他通道同时关闭。
+“Claude Code 有没有遥测”是一个过于粗糙的问题。2.1.235 至少要分开 Anthropic 一方事件、Datadog forwarding、用户或管理员配置的 OTEL，以及本地 debug/profile/doctor。它们会观察同一次 query、tool、permission、compact 或 error，但拥有不同 gate、字段、队列、目的地和失败语义。关闭其中一条，不代表其他通道同时关闭。架构上更重要的判断是：运行时先发生状态变化，再把不同投影 best-effort 地送往不同 sink；遥测从来不是那份状态本身。
 
 先看字段怎样把贯穿场景串起来。`session_id` 标识可恢复会话；`queryChainId/query_chain_id` 把同一次执行链关联起来，`queryDepth/query_depth` 随 model iteration 增加而在同一 iteration 的 API retry 中保持；`request_id` 绑定具体 API 响应尝试；`tool_use_id` 把工具提议和结果配对；`turn_count` 只在需要表达 Agent Loop 轮次的事件中出现。循环状态从 `turnCount=1` 和新的 chain/depth 开始（[L271553-L271643](../reverse/javascript/cli.readable.js#L271553)），终止事件再写 `terminal_reason`，并仅在 max-turns 场景附带 `turn_count`（[L270840-L270845](../reverse/javascript/cli.readable.js#L270840)）。
 
@@ -172,11 +192,13 @@ Bash 一旦启动子进程，文件、进程和网络副作用就归 OS 或远�
 | 第三方 OTEL | `CLAUDE_CODE_ENABLE_TELEMETRY` + signal-specific exporter/protocol | metrics、logs、traces 分别初始化；prompt、assistant、tool、raw API body 各有内容 gate | 关闭一方事件不自动关闭管理员配置的 OTEL；打开 OTEL 也不等于默认上传 prompt 正文 |
 | 本地诊断 | debug/profile/doctor/Perfetto 各自入口 | 写 stderr、本地文件或进程内 profile，生命周期和格式彼此独立 | 本地日志缺失不能证明远端出口未发送，反之亦然 |
 
-OTEL 本身也不是一个布尔开关。bootstrap 先读取 `CLAUDE_CODE_ENABLE_TELEMETRY`，再分别构造 metrics、logs、traces exporter（[L361612-L361670](../reverse/javascript/cli.readable.js#L361612)）；`OTEL_LOG_USER_PROMPTS` 未开启时，prompt 字段被替换为 `<REDACTED>`（[L93779-L93806](../reverse/javascript/cli.readable.js#L93779)）。精确二进制 Probe 进一步验证了默认 OTLP payload 含 user-prompt event 但正文为 `<REDACTED>`，显式开启后原 marker 才进入 collector。由此可见，出口启用、事件启用和内容启用是三个独立问题。完整 queue、sampling、字段、Probe 与隐私边界见 [遥测专题](telemetry.md) 和 [遥测事件场景索引](telemetry-event-catalog.md)。
+OTEL 本身也不是一个布尔开关。bootstrap 先读取 `CLAUDE_CODE_ENABLE_TELEMETRY`，再分别构造 metrics、logs、traces exporter（[L361612-L361670](../reverse/javascript/cli.readable.js#L361612)）；`OTEL_LOG_USER_PROMPTS` 未开启时，prompt 字段被替换为 `<REDACTED>`（[L93779-L93806](../reverse/javascript/cli.readable.js#L93779)）。精确二进制 Probe 进一步验证了默认 OTLP payload 含 user-prompt event 但正文为 `<REDACTED>`，显式开启后原 marker 才进入 collector。由此可见，出口启用、事件启用和内容启用是三个独立问题。
+
+更敏感的 raw API body 还有一套独立内容门。`OTEL_LOG_RAW_API_BODIES` 未设置时，collector 收不到 request/response body event；设置为 `1` 后，即使 `OTEL_LOG_USER_PROMPTS` 没开，完整受控 request/response marker 也会进入 collector；设置为 `file:<dir>` 后，正文写成本地 JSON，OTEL event 只带 `body_ref`，collector 不再含正文 marker。file 模式降低了 collector 的正文暴露，却把风险迁移为本地明文文件；它不是“更隐私”的无条件结论。三种模式均由同版精确二进制 Probe 验证，见 [raw-body 报告](runtime-probes/telemetry-otlp.json)。完整 queue、sampling、字段、Probe 与隐私边界见 [遥测专题](telemetry.md) 和 [遥测事件场景索引](telemetry-event-catalog.md)。
 
 最关键的架构判断是：观测面是有损、分叉、best-effort 的 sink，不是系统事实的唯一账本，更不是 retry/compact/supervisor 的控制器。事件缺失不能证明动作没发生；事件出现也不能证明远端 collector 已确认写入。排障时必须回到真正拥有状态的 request、tool、session 或 recovery controller。
 
-## 案例四：状态可续，是按对象恢复，不是整机快照
+## 矛盾四：想恢复任务，但系统没有一台时间机器
 
 ![消息图和文件检查点分别支持 resume、fork 或 rewind，外部状态留在统一回滚边界之外](visuals/session-recovery-lifecycle.svg)
 
@@ -189,13 +211,15 @@ OTEL 本身也不是一个布尔开关。bootstrap 先读取 `CLAUDE_CODE_ENABLE
 | Message graph | session ID、message UUID、parent/logical parent、branch leaf | resume/fork 得到一条因果合法的有效消息链 | 不会重新执行历史工具，也不恢复旧 socket/Promise |
 | Compact boundary | summary、preserved UUID、logical parent 与相关元数据 | compact 前后表示能在同一逻辑会话中接续 | summary 没写到的细节不能凭空恢复；prompt cache 命中也不保证延续 |
 | File checkpoint | file history owner 保存受管文件快照/差异；本版最多保留 100 个 checkpoint | dry-run 可先算 diff，rewind 再恢复被跟踪文件字节 | Bash 改的未跟踪路径、symlink 例外、数据库和远端对象不在合同内 |
-| Remote reference / result | session 保存 slug、version、task ID、URL 或错误结果 | 后续可以查询、取消、重试或执行补偿动作 | reference 不是分布式事务句柄，不能自动撤销已提交远端效果 |
+| Remote reference / result | 各子系统保存自己的 slug/version、task ID、URL 或错误结果 | 保住远端对象身份；Artifact、CCR、background task 分别定义可查询、取消、重试或补偿能力 | 不存在统一 remote-reference API；reference 也不是分布式事务句柄 |
 
 精确二进制 Probe 把这两个恢复面分开证明：fork 生成新的 session ID，只带 compact 后的逻辑状态；file rewind 在不发送任何 Messages 请求的情况下，把受管临时文件从修改值恢复为原始字节。它说明 rewind 是本地 checkpoint 驱动的补偿操作，不需要模型生成反向 Edit，也不涵盖 Git push、Artifact 部署、数据库写或已发送消息。完整恢复矩阵见 [Session/Checkpoint/Memory](sessions-checkpoints-memory.md)。
 
-所以“状态可续”是一个有类型的承诺：消息图续消息，checkpoint 续文件，remote reference 续补偿线索。任何恢复成功报告都必须同时说明恢复了哪个对象，以及哪些外部副作用仍然存在。
+所以“状态可续”是一个有类型的承诺：消息图续消息，checkpoint 续文件，各子系统的 remote reference 只续自己明确支持的补偿线索。它的优势是无需保存整个 Bun 进程和远端世界的快照；代价是任何“恢复成功”报告都必须同时说明恢复了哪个对象，以及哪些外部副作用仍然存在。
 
-## 案例五：Artifact 发布暴露了“结果未知”与补偿式恢复
+## 压力测试五：Artifact 超时后，客户端为什么可能不知道结果
+
+贯穿场景现在多一步：修改和测试完成后，Claude 发布一份 HTML 报告。Artifact 的完整发布协议还包含本地文件身份、staged upload、commit/version 和 stale guard；这里故意只拿其中的 direct-publish route 做压力测试，因为一次超时足以暴露本地 Agent 无法拥有远端事务真相。
 
 [`api-paths.txt` 第 17 行](source-inventory/api-paths.txt#L17)出现 `/api/frame/deploy/direct`，只说明发布物里有这个 path。把它绑定到 POST consumer、60 秒 timeout、body 上限、auth/header、兼容重试、响应 schema 和本地已知版本更新后，才出现真正的产品语义。
 
@@ -212,9 +236,13 @@ POST /api/frame/deploy/direct
 
 这里必须把四种合同分开。`RBa().safeParse` 校验响应里的 slug/version 形状；客户端只对目标 slug 做 equality check；服务端返回的 version 被直接采用并写入本地 known version，不做 local-version equality；timeout、relay error、malformed response 或 slug mismatch 后的“check the artifact list”只是错误合同里的 **advisory**，不是客户端自动强制执行 list/read gate。证据见 [L260784-L260808](../reverse/javascript/cli.readable.js#L260784) 与 [L261085-L261090](../reverse/javascript/cli.readable.js#L261085)。
 
-这个案例体现了 Agent runtime 最现实的一面：网络请求失败时，本地可能不知道远端是否已经提交。CLI 能做的是限制重试、暴露 conflict、保留 slug/version/reference 和给出补偿建议，而不是假装拥有跨客户端与远端服务的原子事务。完整 owner 表见 [API/Beta 路由所有权](api-beta-route-ownership.md) 与 [Workflow/Artifact/Design](workflow-artifact-design.md)。
+超时最麻烦的地方，不是错误文字，而是它发生在请求发送之后：客户端知道自己没有拿到可信响应，却不能仅凭这一事实断言服务端没有提交。如果贸然重试，可能重复写；如果完全不重试，又可能把一次可恢复的传输失败变成用户可见失败。2.1.235 因而按 400/409/429/503 分类采取有界策略，而没有一个笼统的“网络错误重试”开关。
 
-## 案例六：`audio-capture.node` 要按证据等级拆开讲
+这揭示了 Agent runtime 的另一条不变量：**恢复是局部控制器和补偿动作的集合，不是全局事务。** CLI 能做的是限制重试、暴露 conflict、在可信响应后更新本地 known version、保留 slug/version/reference，并在结果未知时给出 readback 建议；它不能凭本地 transcript 宣布远端已提交或已回滚。当前结论主要来自 Static 可达路径，没有一条真实远端 Artifact 成功 Probe，因此远端持久化仍是 Boundary。完整 owner 表见 [API/Beta 路由所有权](api-beta-route-ownership.md) 与 [Workflow/Artifact/Design](workflow-artifact-design.md)。
+
+## 矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码
+
+Claude Code 把截图、输入注入、原生文件操作和音频采集装进同进程 `.node` bridge，而不是统一放到外部 helper。这样能降低 IPC、直接复用 N-API 和系统 framework；代价是 ABI mismatch、线程回调、panic/finalizer 或系统权限错误都更靠近 CLI 主进程，且真实键鼠、录音和屏幕副作用不受 transcript 回滚控制。
 
 [`runtime-requires.txt` 第 1 行](source-inventory/runtime-requires.txt#L1)记录 `/$bunfs/root/audio-capture.node`，可读 JavaScript 也保留 embedded require（[L54](../reverse/javascript/cli.readable.js#L54)）。这只能证明发布物包含装载入口，不能直接推出当前机器加载成功、麦克风已授权、设备可用或 native 内部采用了某种精确重采样算法。
 
@@ -227,13 +255,31 @@ POST /api/frame/deploy/direct
 | 原版 native 内部 16 kHz/mono/s16 重采样细节 | **Boundary / 未恢复** | JS 只透传 bytes；当前静态证据不能确认原函数体怎样转换 |
 | 重建版 native 的 16 kHz 转换与 buffer policy | **Derived / Compatible** | 为匹配 wire/SoX 消费合同独立实现，测试通过也不升级成原始源码事实 |
 
-Voice 的完整产品链仍然可以确认：native 或 SoX 产生音频 bytes，客户端在 WebSocket ready 前缓存，之后发送到远端 STT；interim/final transcript 写入 composer，用户提交后才进入普通 Agent Loop。隐私边界也很明确：原始音频离开本地进入 STT，bundle 能证明上传和本地清理路径，不能证明服务端留存、训练或删除策略。详见 [Native Bridge](native-bridge-runtime.md) 与 [TUI/媒体/Voice](tui-input-accessibility-media-ide-chrome.md)。
+静态证据可以把客户端候选链连起来：native 或 SoX 产生 audio bytes，客户端在 WebSocket ready 前排队，之后发送到远端 STT；interim/final transcript 写入 composer，用户真正提交文本后才进入普通 Agent Loop。但这不是同版真实麦克风和 Voice service 的端到端 Probe，原版 native 内部重采样也仍是 Boundary。原始音频离开本地这一上传路径可由 bundle 证明，服务端留存、训练或删除策略则不能。
 
-## 从六个案例归纳出的五个阅读面
+重建层也必须守住同样的边界：当前 5 个 native 模块的兼容实现以导出名、参数、返回/throw/null、生命周期和受控 Probe 对齐 JS consumer 合同；23 项报告里 22 项是 original/compatible 比较，1 项是覆盖审计。compatible runtime 目前只完成 arm64 build/run，x86_64 尚未实跑；“兼容”描述的是已覆盖输入下的外部合同，不是找回 Anthropic 的 C/C++/Rust/Swift 原函数体。详见 [Native Bridge](native-bridge-runtime.md) 与 [TUI/媒体/Voice](tui-input-accessibility-media-ide-chrome.md)。
 
-再次强调：这是 Derived 分析框架，不是源码目录图。它按最终决定权分面，同一功能可以同时跨多个面。恢复也不是统一的第六层：request retry、stream fallback、compact、tool tombstone 与 process supervisor 分别归各自 controller；观测面只接收事件，不反向控制请求。
+## 六个压力测试共同暴露出的技术性格
 
-![Derived 阅读模型：控制约束请求，本地 Agent Loop 执行 client tool_use，server_tool_use 留在服务端，恢复控制器与观测诊断分离](visuals/product-surface-runtime-planes.svg)
+把 Bash、compact、telemetry、resume、Artifact 和 Voice 放在一起看，2.1.235 的技术特征不再是六份互不相干的功能说明，而是五条反复出现的设计选择。
+
+**第一，能力晚绑定。** bundle 只给出候选能力；host、账号、feature、permission mode、Tool Search 和 session 状态共同决定一次请求的可达图。它让同一个二进制服务 TUI、SDK、remote、first-party 与不同 provider，却也要求排障时把“存在”“广告”“授权”“执行”分开。
+
+**第二，权力不对称。** 模型拥有生成提案的自由，本地 runtime 拥有 client tool 的裁决权，server tool 留在服务端，外部 owner 拥有最终副作用。系统的自主性来自模型可以反复选择下一步，安全边界则来自模型不能通过文本自行越过客户端控制。
+
+**第三，事实与表示分离。** transcript/message graph、有效送模历史和外部世界是三份不同状态。prompt cache 改成本，microcompaction 改 active view，full compact 改逻辑表示，boundary 记恢复关系；它们都不重写已经发生的外部事实。
+
+**第四，恢复按对象负责。** request retry、stream fallback、compact、tool tombstone、file rewind、process supervisor 和 Artifact conflict 各自拥有局部状态与预算。没有统一 recovery manager 可以同时倒回 transcript、文件、进程和远端对象；所谓可靠性主要来自幂等前置、有限重试、状态钉住和补偿线索。
+
+**第五，可观测性有意保持从属。** analytics、Datadog、OTEL 和 debug 读取运行时投影，但不反向拥有 Agent Loop。sampling、redaction、queue 和发送失败会让观测天然有损，这防止业务流程被遥测绑死，也意味着排障不能把事件库当作唯一真相。
+
+这五条选择共同形成一个很鲜明的工程取舍：Claude Code 愿意接受更多局部状态机和边界条件，来换取低延迟、可扩展能力、跨进程连续性与不同信任域的隔离。复杂度没有消失，只是被分配给真正拥有状态的组件，而不是压进一个无所不能的 Agent Loop。
+
+## 最后再用 C/Q/E/S/O 作为阅读路由
+
+C/Q/E/S/O 是本文的 Derived 分析框架，不是源码目录图，也不是 Anthropic 官方架构或命名。它按最终决定权分面，同一功能可以跨多个面；恢复也不是统一的第六层，request retry、stream fallback、compact、tool tombstone 与 process supervisor 都留在各自 owner 的局部回路中。观测面只接收事件，不反向控制请求。
+
+![Derived 阅读模型：控制约束请求，本地 Agent Loop 执行 client tool_use，server_tool_use 留在服务端，各 owner 在局部回路恢复，观测只接收投影](visuals/product-surface-runtime-planes.svg)
 
 | ID | Derived 阅读面 | owner 与技术特征 | 关键阅读入口 |
 | --- | --- | --- | --- |
@@ -244,6 +290,19 @@ Voice 的完整产品链仍然可以确认：native 或 SoX 产生音频 bytes�
 | `O` | **观测与诊断面** | first-party analytics、Datadog、OTEL 等事件 sink，以及 debug/profile/doctor 等本地诊断 reader/probe。解释运行状态但不拥有 retry/fallback/compact/supervisor 的控制决定；关闭一个 exporter 也不等于关闭全部诊断 | [error-diagnostic-atlas.md](error-diagnostic-atlas.md)、[telemetry.md](telemetry.md)、[telemetry-event-catalog.md](telemetry-event-catalog.md)、[install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 
 外部副作用不属于本地状态面。执行器把动作交给文件系统、子进程、浏览器、MCP、GitHub、Artifact 或其他远端 owner 后，本地最多保存结果、remote ID/reference、checkpoint 与补偿线索。这里不存在一个能同时撤销 transcript、文件和远端对象的全局事务。
+
+## 按问题继续阅读
+
+- 模型为什么会继续调用工具、并发为什么有屏障：读 [Agent Loop](agent-loop.md) 与 [工具控制管线](tools-permissions-hooks.md)。
+- `/compact` 为什么只改变送模历史、不撤销文件：读 [上下文治理](context-governance-and-caching.md)、[图文专题](compact-visual-guide.md) 与 [Session/Checkpoint/Memory](sessions-checkpoints-memory.md)。
+- 一个开关为什么写了却不生效：读 [Settings/Policy](settings-feature-flags-policy.md)、[环境变量逐项参考](environment-variable-reference.md) 和 [Feature key 逐项参考](feature-flag-reference.md)。
+- 一次权限批准怎样穿过 Hook、policy、sandbox 和 TUI scope：读 [工具控制管线](tools-permissions-hooks.md) 与 [TUI/媒体/IDE](tui-input-accessibility-media-ide-chrome.md)。
+- 一个 path/event/error 到底归谁：读 [API/Beta owner](api-beta-route-ownership.md)、[Telemetry 场景索引](telemetry-event-catalog.md) 与 [错误恢复图谱](error-diagnostic-atlas.md)。
+- `.node`、Voice 与原生重建到底证明到哪：读 [Native Bridge](native-bridge-runtime.md) 与 [原生重建报告](../reconstructed/README.md)。
+- 整个版本还有哪些语义未追完：读 [全面性审计](completeness-audit.md)，不要用机器覆盖代替机制完成度。
+
+<details>
+<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论</strong></summary>
 
 ## 读代码时最容易犯的十个归因错误
 
@@ -316,11 +375,15 @@ server/runtime value、第三方内部、其他平台状态或构建前已删除
 
 `environment-access-callsites.jsonl` 是最典型的纠错：它确实是 AST callsite，但扫描的是整个 bundle，包含 `@grpc/grpc-js` 等依赖读取，所以所有权必须是 `Mixed`，不能因为“调用点是真的”就写成“一方 Product callsites”。`otel-environment-variables.txt` 同样来自 broad environment union 的前缀筛选，混有 OTEL SDK 自身变量，也不能统一归到产品。
 
+</details>
+
 ## 当前到底全面到哪里
 
 机器防漏层已经覆盖 `summary.json` 注册的全部 71 类 inventory；这证明文件集合、提取规则和附录顺序没有漏，不证明每个 identifier 都完成 consumer tracing。正文只对已经串起 caller、gate、state delta、failure/recovery 和 Boundary 的机制给出强结论。仍停在 schema、candidate 或 callsite 的条目继续标为 `Untraced/Inventory only`，不能为了显得完整而改写成 Boundary。
 
-机器覆盖与语义完成度是两张验收表。前者防止文件和候选消失；后者回答机制是否真的讲清楚。逐能力的完成状态、仍待追 consumer 和 topic-depth 合同见 [全面性审计](completeness-audit.md)。
+结构化机制注册表当前有 329 条 claim，覆盖 48 个 topic：243 Static、38 Probe、33 Public、15 Boundary。这个数字证明结论有可定位证据，不证明所有能力达到同样深度。当前明确欠账仍包括：654 个静态环境名称和 211 个 Feature key 的人工语义收口、85 个仍含运行参数的动态环境表达式、911 个 `tengu_other` 事件的逐 caller/owner 分类，以及 error/diagnostic、网络、后台 supervisor、Plugin Evaluation 和 x86_64 native 的正向 Probe。
+
+机器覆盖、机制证据和语义完成度是三张验收表：第一张防止候选消失，第二张约束强结论必须有证据，第三张才回答每个机制是否真的讲清楚。逐能力状态、未追 consumer 和 topic-depth 合同见 [全面性审计](completeness-audit.md)。
 
 ## 机器附录：71 类机器清单的证据分类与阅读路由
 
@@ -406,15 +469,6 @@ server/runtime value、第三方内部、其他平台状态或构建前已删除
 <!-- SOURCE_INVENTORY_COVERAGE_END -->
 
 </details>
-
-## 按问题继续阅读
-
-- 模型为什么会继续调用工具、并发为什么有屏障：读 [Agent Loop](agent-loop.md) 与 [工具控制管线](tools-permissions-hooks.md)。
-- `/compact` 为什么只改变送模历史、不撤销文件：读 [上下文治理](context-governance-and-caching.md) 与 [Session/Checkpoint/Memory](sessions-checkpoints-memory.md)。
-- 一个开关为什么写了却不生效：读 [Settings/Policy](settings-feature-flags-policy.md)、[环境变量逐项参考](environment-variable-reference.md) 和 [Feature key 逐项参考](feature-flag-reference.md)。
-- 一个 path/event/error 到底归谁：读 [API/Beta owner](api-beta-route-ownership.md)、[Telemetry 场景索引](telemetry-event-catalog.md) 与 [错误恢复图谱](error-diagnostic-atlas.md)。
-- `.node` 文件、Voice、TUI 与系统权限怎样接起来：读 [Native Bridge](native-bridge-runtime.md) 与 [TUI/媒体/IDE](tui-input-accessibility-media-ide-chrome.md)。
-- 整个版本还有哪些语义未追完：读 [全面性审计](completeness-audit.md)，不要用本附录的机器覆盖代替机制完成度。
 
 ## 这张地图能证明到哪里
 

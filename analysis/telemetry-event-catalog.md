@@ -22387,7 +22387,7 @@ OTEL 是管理员/用户配置的 exporter 通道，不是 `H` / `Fv` 一方 tra
 | Input | lines | bytes | SHA-256 |
 | --- | ---: | ---: | --- |
 | `analysis/source-inventory/first-party-events.txt` | 1441 | 44180 | `5c719a95ac6d47b20c76ab37531876494a7d2366e08f0292d0799cb8080c505f` |
-| `analysis/source-inventory/first-party-event-callsites.jsonl` | 2194 | 3842560 | `9027c349308c11d2dfbd3a577405049c49f645adce759370a2056bbd4f8e17a9` |
+| `analysis/source-inventory/first-party-event-callsites.jsonl` | 2194 | 4237095 | `a4dcb28eb8d71fe8442479914ca44a938c177fce8a0e4bb4fd19244130dcd909` |
 | `analysis/source-inventory/first-party-event-families.tsv` | 40 | 622 | `7f44abd8a5ecbf611150956d9ed387d33525302091daee5ae13d6cbcc896e181` |
 | `analysis/source-inventory/first-party-event-fields.tsv` | 1441 | 103458 | `38de27d6333811509a5ed73befb58ad2704ca6413206e5b49a853dd7d232bc60` |
 | `analysis/source-inventory/datadog-forwarded-events.txt` | 181 | 5224 | `10f343ff1ce2cbed8202c61ca7515d204239f58e8c6ad0791c2b7169b449005b` |
@@ -22395,10 +22395,10 @@ OTEL 是管理员/用户配置的 exporter 通道，不是 `H` / `Fv` 一方 tra
 | `analysis/source-inventory/datadog-tag-fields.txt` | 34 | 357 | `b7f3f93def016e17391e2927aa8224079010e65dbd97ce964980f28e36a88fb4` |
 | `analysis/source-inventory/third-party-otel-events.txt` | 26 | 399 | `71438bb641b55fc399bf4850cd5da0caabbf7771c91ab430bc6465fdfb9e2065` |
 | `analysis/source-inventory/third-party-otel-event-fields.tsv` | 26 | 2042 | `bf8856fa89655feeec3909a3f5b3f2d1af5313b2b44bab6916cc1cd4f7f4d6b9` |
-| `analysis/source-inventory/otel-event-callsites.jsonl` | 52 | 127467 | `0f992b3bd02c60493e5a556e6d6724e61494916085ff24c044084dba783cc2e2` |
+| `analysis/source-inventory/otel-event-callsites.jsonl` | 52 | 136850 | `c2fab223485d6914720d447eeff64c1f3411483bb73460134e26594c8b331c13` |
 | `analysis/source-inventory/otel-metrics.tsv` | 8 | 695 | `f8e160bef5efee3a1c61cb9414b03e7858411014479a76b20ba9c2ead1e82a49` |
 | `analysis/source-inventory/otel-spans.txt` | 10 | 240 | `42205c73feb8444187ea9c13a459bb2514585648d0767e6577c756466d5e669c` |
-| `analysis/source-inventory/summary.json` | 748 | 25433 | `ec711393f77b676829169668cbaf79a5eaf36d2adb42031a57d82e21be6a3647` |
+| `analysis/source-inventory/summary.json` | 757 | 26084 | `9a9ac28872b35eb9cae55b2cb53d958d03112ed0e671c74cd74fcd61f7cd6b0c` |
 
 复现命令：
 

@@ -77,6 +77,34 @@
 
 这证明 permission decision 与 sandbox enforcement 是两层控制。前者决定是否询问/放行工具，后者限制已经启动的子进程能触及的文件和网络对象。
 
+### Permission TUI 的按键结果必须落到授权范围，而不只是截图
+
+`probe.tui-shift-tab-comment-scope` 在 `40x120` 的 `xterm-256color` PTY 中启动精确 `2.1.235` 二进制，使用隔离 HOME、配置目录、工作区和本地 Messages stub。模型侧按真实前置条件依次请求 `Read(first) -> Edit(first) -> Read(second) -> Edit(second)`；两个文件都只位于临时工作区。
+
+第一次 Edit 对话框先按 `Tab` 进入 Yes comment，写入 `COMMENT_MARKER`，再发送终端字节 `ESC [ Z`（Shift+Tab）。此前和此后的主请求数都为 `2`，两个文件仍分别为 `FIRST_ORIGINAL`、`SECOND_ORIGINAL`：快捷键没有 settle 当前权限请求，也没有执行 Edit。随后显式按 `Enter` 才把第一个文件改为 `FIRST_CHANGED`；第二次 Edit 仍出现权限对话框且可用 `Escape` 拒绝，第二个文件保持 `SECOND_ORIGINAL`。这同时证明 Shift+Tab 没有误批准当前 Edit，也没有留下 session-wide edit grant。
+
+`probe.tui-quick-arrow-enter-selection` 重新启动全隔离会话，在第一个权限框把 `Down` 和 `Enter` 放进同一次 PTY write。初始焦点是“仅本次允许”，Down 后的新焦点是 session `acceptEdits`；结果两个文件都变成 `*_CHANGED`，第二次 Edit 没有再次弹框，五次主请求链完整结束。若 Enter 仍读取旧 render snapshot，它只会批准第一次，第二次 Edit 必然停在权限框。因此这里验证的是 selection state 的实时读取和该 permission dialog primitive 的实际授权后果，而不是根据屏幕箭头猜测选中项。
+
+报告有意不把另外两个 release fix 升级为 Probe：多行 highlight 需要终端模拟器重建最终 screen 和 ANSI style 坐标，原始 PTY 字节流不是规范化画面；Vim panel 恢复需要跨组件卸载/重挂载观察 mode 与 cursor 的无歧义快照。两者已有 Static 状态所有权和转换证据，但在这些观测器补齐前仍保持 Boundary。
+
+### Embedded Grep：regex 编译、context printer 与 Agent Loop 是三个观察点
+
+`embedded-grep.json` 先把目标锁定到 `2.1.235` 和发布 SHA-256，再证明 native executable 通过 `argv0=rg` 暴露 `ripgrep 14.1.1 (rev fdb5e06cce)`。这不是 PATH 里的系统 `rg`，也不是从 release note 推测出的版本字符串。
+
+`probe.embedded-grep-pathological-fast-fail` 给 embedded engine 输入 `a{1,1000000000}` 和单行 fixture，外部 deadline 为 3 秒。观测结果是空 stdout、exit 2、没有 timeout，stderr 逐字为：
+
+```text
+rg: compiled regex exceeds size limit of 104857600
+```
+
+报告同时保存 elapsed milliseconds、maximum resident set size 与 peak memory footprint。本次最大 RSS 约 229 MiB，低于 512 MiB 验收线；该值包含大体积 native executable 的映射与运行时页，所以它是“进程有界完成”的证据，不是 regex heap allocation 的精确归因。
+
+`probe.embedded-grep-max-count-context` 对同一 engine 和同一 7 行 fixture 分别执行 `-m 1 -A 2`、`-m 1 -C 2`。前者返回命中行 2 加行 3-4，后者再带行 1；第二个 match 位于行 5，没有越过 match cap。这里验证的是 searcher/context printer 的原始 stdout 和 exit status。
+
+`probe.grep-tool-error-feedback` 再启动本地 Messages stub。首个 request 真实广告 `Grep` schema；模型先搜索 1,217-byte 长行，下一 request 收到同 tool ID 的 `long.txt:1:[Omitted long matching line]`，再执行病态 pattern，第三个 request 收到同 ID 的 `is_error` 与 compiled-size 错误，最后仍以 `EMBEDDED_GREP_TOOL_OK`、exit 0 结束。这把 engine failure 和 Claude Code 的 tool-result/Agent-Loop 行为接了起来。
+
+有意保留的可达性边界：首个 request 的 `Grep.input_schema.properties` 没有 `-m` 或 `max_count`，因此不能让 mock 模型伪造该字段。`-m/-A/-C` 由相同精确二进制的 embedded engine 入口验证；这证明发布说明描述的 engine 能力，不证明模型通过当前 `Grep` schema 可直接设置 match cap。
+
 ## Retry 与模型 fallback
 
 ### 529 和 400 不属于同一重试类别
@@ -133,7 +161,15 @@ task-notification:completed
 
 ## 遥测与隐私
 
-`probe.telemetry-otlp-redaction` 启动本地 `/v1/logs` HTTP/JSON collector。默认运行收到 user-prompt event，但 `user_prompt` 为 `<REDACTED>`，原 marker 不存在；设置 `OTEL_LOG_USER_PROMPTS=1` 后，第二次导出包含原 prompt marker。两次命令与 collector 均成功。
+`probe.telemetry-otlp-redaction` 启动本地 `/v1/logs` HTTP/JSON collector。默认运行收到 user-prompt event，但 `user_prompt` 为 `<REDACTED>`，原 marker 不存在；设置 `OTEL_LOG_USER_PROMPTS=1` 后，第二次导出包含原 prompt marker。
+
+`probe.telemetry-raw-api-default`、`probe.telemetry-raw-api-inline` 和 `probe.telemetry-raw-api-file` 继续复用同一个 collector 和受控 Messages stub：
+
+- 不设 `OTEL_LOG_RAW_API_BODIES` 时，普通 OTLP logs 仍导出，但没有 `api_request_body` / `api_response_body` event，request/response marker 均未进入 collector；
+- 设为 `1` 时，collector 同时收到 request/response body event，两个 marker 都在 inline `body` 中；
+- 设为 `file:$RAW_BODY_DIR` 时，本地写出 2 个 request JSON 和 1 个 response JSON，collector 只收到 `body_ref` 与长度，不含正文 marker。
+
+五次 CLI 和五次 collector export 都返回 exit 0，目标二进制 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 这证明了四件事：OTLP logs exporter 可达、实际使用 HTTP/JSON、prompt event 会发送、正文默认隐藏且可显式开启。它不代表一方 analytics、Datadog、error reporting 共享同一字段或同一脱敏策略；各 transport 必须分别分析。
 
@@ -168,7 +204,7 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
-## 30 条 Probe 结论索引
+## 38 条 Probe 结论索引
 
 | Claim ID | 报告 | 核心状态变化 |
 | --- | --- | --- |
@@ -190,8 +226,13 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.http-retry-classification` | `settings-resilience.json` | 529 重试，400 不重试 |
 | `probe.model-fallback-sequence` | `settings-resilience.json` | 主模型三次 529 后切备用模型 |
 | `probe.telemetry-otlp-redaction` | `telemetry-otlp.json` | OTLP prompt 默认脱敏，显式开关后包含正文 |
+| `probe.telemetry-raw-api-default` | `telemetry-otlp.json` | raw-body gate 默认不产生 request/response body event |
+| `probe.telemetry-raw-api-inline` | `telemetry-otlp.json` | inline 模式将受控 request/response 正文送入 collector |
+| `probe.telemetry-raw-api-file` | `telemetry-otlp.json` | file 模式本地落正文，collector 只收 `body_ref` |
 | `probe.sandbox-filesystem-enforcement` | `sandbox-enforcement.json` | workspace 写入成功，denyWrite 不落盘 |
 | `probe.sandbox-network-enforcement` | `sandbox-enforcement.json` | 空 allowlist 下目标 server 零命中 |
+| `probe.tui-shift-tab-comment-scope` | `tui-regressions.json` | Shift+Tab 退出备注但不执行 Edit，也不留下 session grant |
+| `probe.tui-quick-arrow-enter-selection` | `tui-regressions.json` | 同批 Down+Enter 选择实时焦点，并使第二个 Edit 继承 session grant |
 | `probe.manual-compaction-boundary` | `agent-loop-tool-result-resume.json` | 手工 compact 产生 boundary 并替换旧结构历史 |
 | `probe.session-fork-identity` | `agent-loop-tool-result-resume.json` | fork 使用新 session ID 并继承 summary |
 | `probe.checkpoint-rewind-positive` | `checkpoint-rewind.json` | Edit 后 file rewind 恢复原字节且零模型请求 |
@@ -202,6 +243,9 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.feature-override-unreachable` | `lifecycle-doctor.json` | 内部环境 override 未在 disabled gate 前把 rollout 变成 true |
 | `probe.plugin-skill-load` | `plugin-skill-lsp.json` | Plugin Skill listing、dispatch acknowledgement 与正文注入分离 |
 | `probe.plugin-lsp-roundtrip` | `plugin-skill-lsp.json` | deferred LSP 经 stdio 完成 1-based/0-based 坐标与结果闭环 |
+| `probe.embedded-grep-pathological-fast-fail` | `embedded-grep.json` | 病态 regex 在 deadline 内以固定 compiled-size limit 和 exit 2 结束，RSS 有界 |
+| `probe.embedded-grep-max-count-context` | `embedded-grep.json` | `-m 1` 停止新 match 后仍逐字完成 `-A 2` / `-C 2` context |
+| `probe.grep-tool-error-feedback` | `embedded-grep.json` | 长行被明确省略，病态 regex 以配对 `is_error` 回灌后循环继续 |
 
 ## 仍然保留的边界
 

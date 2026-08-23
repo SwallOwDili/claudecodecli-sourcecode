@@ -1,5 +1,5 @@
 {
-  "formatVersion": 5,
+  "formatVersion": 6,
   "version": "2.1.235",
   "canonicalSource": {
     "path": "extracted/cli.js",
@@ -103,10 +103,10 @@
   },
   "methods": {
     "symbolDiscovery": "stable export names, function-body literals, schema constructor shapes, catalog notes, and subsystem-specific field anchors discover release-local minified symbols before AST extraction",
-    "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
+    "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, immediate parent consumer roles/ranges/targets/operators, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
     "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
     "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-    "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
+    "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates, nearest same-or-ancestor lexical assignments, static collection callbacks, or complete finite caller argument sets, while the original expression remains authoritative",
     "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
     "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
     "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
@@ -198,6 +198,15 @@
     "environment": {
       "accessCallsites": 2548,
       "dynamicProcessEnvCallsites": 143,
+      "dynamicBracketCallsites": 145,
+      "resolvedDynamicBracketCallsites": 60,
+      "unresolvedDynamicBracketCallsites": 85,
+      "unresolvedDynamicExpressionKinds": {
+        "call": 2,
+        "expression": 3,
+        "identifier": 55,
+        "member-or-call": 25
+      },
       "typedSchemaEntries": 842,
       "observabilitySchemaEntries": 71,
       "observabilityDefaults": 23
@@ -369,8 +378,8 @@
     {
       "path": "analysis/source-inventory/diagnostic-message-callsites.jsonl",
       "lines": 5403,
-      "size": 7252476,
-      "sha256": "4312b172eb1361779b1c720c9819286406bad9d162bb3771e87330a171640762"
+      "size": 8218613,
+      "sha256": "1cef982ab45ace333aaed9fa1d7488f2f153bb3828c48804d046c1c68f437bd6"
     },
     {
       "path": "analysis/source-inventory/diagnostic-message-literals.txt",
@@ -381,8 +390,8 @@
     {
       "path": "analysis/source-inventory/diagnostic-message-templates.jsonl",
       "lines": 4438,
-      "size": 6295633,
-      "sha256": "dd4877bb043e38d7569a9db74d2be9591c07ed60761a9ce9a053acc35a804cc5"
+      "size": 7088993,
+      "sha256": "284087853acd2f9896499c09216860bbaef83060b1412796d9dd064422905e97"
     },
     {
       "path": "analysis/source-inventory/direct-process-environment-accesses.txt",
@@ -393,8 +402,8 @@
     {
       "path": "analysis/source-inventory/dynamic-process-environment-callsites.jsonl",
       "lines": 143,
-      "size": 65228,
-      "sha256": "99667f58ac59dae8cd1e38029d3e39e8f917a876404d179d34708b4ae7fb827c"
+      "size": 198452,
+      "sha256": "2f4db07f9934652ae6fc53853296ffa9bb064fb3c255892f33fa3c0f66ec1018"
     },
     {
       "path": "analysis/source-inventory/endpoint-hosts.txt",
@@ -405,8 +414,8 @@
     {
       "path": "analysis/source-inventory/environment-access-callsites.jsonl",
       "lines": 2548,
-      "size": 823280,
-      "sha256": "f48d6325407407fc2f0f875c73e2c52b9e6e0abf8e09af06a45aafac74ef936b"
+      "size": 1615267,
+      "sha256": "3c6f068ceed8916aa02807fd71cdb1ddb96f8e94bafbfaa14ee7f30b6b448f6e"
     },
     {
       "path": "analysis/source-inventory/environment-access-identifiers.txt",
@@ -435,8 +444,8 @@
     {
       "path": "analysis/source-inventory/error-message-callsites.jsonl",
       "lines": 4831,
-      "size": 4735887,
-      "sha256": "a7fccb601a510f4930f8063f13b84193890ee44a5578cab72c42ba867c83a650"
+      "size": 5639025,
+      "sha256": "1eeaaae9fd4f90ede1539c435b544315c39989d4f8747c48085b3a1c9043d205"
     },
     {
       "path": "analysis/source-inventory/error-message-literals.txt",
@@ -447,14 +456,14 @@
     {
       "path": "analysis/source-inventory/error-message-templates.jsonl",
       "lines": 1526,
-      "size": 1969974,
-      "sha256": "cab5cc043c70b8ebbca536490a68bb26308e390e9e2b8adbff2c1f9352e8beb1"
+      "size": 2258042,
+      "sha256": "c5118d95ca93534b18d3e0bbe2cd2f8bb0c0663f7097972803e28b351efb5d0c"
     },
     {
       "path": "analysis/source-inventory/feature-flag-callsites.jsonl",
       "lines": 498,
-      "size": 429581,
-      "sha256": "5e866300d8b1717463df469a2bfbd31719fb7d0ff4d2a6810803de02feb6b10a"
+      "size": 529822,
+      "sha256": "24bd72fa54ec0fa2389b45c52e85d776a668e732a764700c630be911b262bf8c"
     },
     {
       "path": "analysis/source-inventory/feature-flags.txt",
@@ -471,8 +480,8 @@
     {
       "path": "analysis/source-inventory/first-party-event-callsites.jsonl",
       "lines": 2194,
-      "size": 3842560,
-      "sha256": "9027c349308c11d2dfbd3a577405049c49f645adce759370a2056bbd4f8e17a9"
+      "size": 4237095,
+      "sha256": "a4dcb28eb8d71fe8442479914ca44a938c177fce8a0e4bb4fd19244130dcd909"
     },
     {
       "path": "analysis/source-inventory/first-party-event-families.tsv",
@@ -507,8 +516,8 @@
     {
       "path": "analysis/source-inventory/growthbook-callsites.jsonl",
       "lines": 12,
-      "size": 9947,
-      "sha256": "f872067a99ec5713d77256a2fdde7205b08a98a829183676fd5e4271a8836e97"
+      "size": 12334,
+      "sha256": "b39aeafde38327d39f099dc4f2776aaa85cb1677943f3a7f89ff6dc74a36f91c"
     },
     {
       "path": "analysis/source-inventory/growthbook-event-fields.txt",
@@ -579,8 +588,8 @@
     {
       "path": "analysis/source-inventory/observability-environment-defaults.jsonl",
       "lines": 23,
-      "size": 13332,
-      "sha256": "f4412427c70a609583b2a0b6ff84281ba0d41dec5d27e74b60b7addafb4ecedc"
+      "size": 19398,
+      "sha256": "5517b2d2150f95e78b11e6fea40b5951410ffc222e5f0398956f2fe7195b08e1"
     },
     {
       "path": "analysis/source-inventory/observability-environment-schema.jsonl",
@@ -609,8 +618,8 @@
     {
       "path": "analysis/source-inventory/otel-event-callsites.jsonl",
       "lines": 52,
-      "size": 127467,
-      "sha256": "0f992b3bd02c60493e5a556e6d6724e61494916085ff24c044084dba783cc2e2"
+      "size": 136850,
+      "sha256": "c2fab223485d6914720d447eeff64c1f3411483bb73460134e26594c8b331c13"
     },
     {
       "path": "analysis/source-inventory/otel-metrics.tsv",

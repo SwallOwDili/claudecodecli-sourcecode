@@ -3,7 +3,7 @@
 import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import { createServer } from "node:http";
-import { mkdir, mkdtemp, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -12,7 +12,19 @@ import { resolveProbeTarget } from "./probe_target.mjs";
 const MARKERS = {
   redacted: "TELEMETRY_REDACTED_PROMPT_MARKER",
   included: "TELEMETRY_INCLUDED_PROMPT_MARKER",
+  rawDefaultRequest: "RAW_API_DEFAULT_REQUEST_MARKER",
+  rawDefaultResponse: "RAW_API_DEFAULT_RESPONSE_MARKER",
+  rawInlineRequest: "RAW_API_INLINE_REQUEST_MARKER",
+  rawInlineResponse: "RAW_API_INLINE_RESPONSE_MARKER",
+  rawFileRequest: "RAW_API_FILE_REQUEST_MARKER",
+  rawFileResponse: "RAW_API_FILE_RESPONSE_MARKER",
 };
+
+const RAW_RESPONSE_BY_REQUEST = new Map([
+  [MARKERS.rawDefaultRequest, MARKERS.rawDefaultResponse],
+  [MARKERS.rawInlineRequest, MARKERS.rawInlineResponse],
+  [MARKERS.rawFileRequest, MARKERS.rawFileResponse],
+]);
 
 function writeSse(response, model, text) {
   const id = `msg_${text.toLowerCase()}`;
@@ -105,16 +117,34 @@ function payloadText(records) {
   return records.map((record) => record.body).join("\n");
 }
 
+async function waitForRawBodyFiles(directory, minimum = 2) {
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    const names = await readdir(directory).catch(() => []);
+    const jsonNames = names.filter((name) => name.endsWith(".json")).sort();
+    if (jsonNames.length >= minimum) {
+      return Promise.all(jsonNames.map(async (name) => ({
+        name,
+        body: await readFile(path.join(directory, name), "utf8"),
+      })));
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return [];
+}
+
 async function main() {
   const { binary, expectedVersion, expectedSha256 } = resolveProbeTarget(import.meta.url);
   const temporary = await mkdtemp(path.join(os.tmpdir(), "claude-telemetry-probe-"));
   const home = path.join(temporary, "home");
   const configDir = path.join(temporary, "config");
   const workspace = path.join(temporary, "workspace");
+  const rawBodyDir = path.join(temporary, "raw-api-bodies");
   await Promise.all([
     mkdir(home, { recursive: true }),
     mkdir(configDir, { recursive: true }),
     mkdir(workspace, { recursive: true }),
+    mkdir(rawBodyDir, { recursive: true }),
   ]);
 
   const messageRequests = [];
@@ -129,10 +159,12 @@ async function main() {
     const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     messageRequests.push(body);
     const bodyText = JSON.stringify(body);
-    const marker = bodyText.includes(MARKERS.redacted) ? "REDACTED"
-      : bodyText.includes(MARKERS.included) ? "INCLUDED"
-        : "AUXILIARY";
-    writeSse(response, body.model ?? "claude-probe", `${marker}_OK`);
+    const rawResponse = [...RAW_RESPONSE_BY_REQUEST]
+      .find(([requestMarker]) => bodyText.includes(requestMarker))?.[1];
+    const text = rawResponse ?? (bodyText.includes(MARKERS.redacted) ? "REDACTED_OK"
+      : bodyText.includes(MARKERS.included) ? "INCLUDED_OK"
+        : "AUXILIARY_OK");
+    writeSse(response, body.model ?? "claude-probe", text);
   });
 
   const telemetryRequests = [];
@@ -181,7 +213,13 @@ async function main() {
     DISABLE_ERROR_REPORTING: "1",
     DISABLE_GROWTHBOOK: "1",
   };
-  for (const key of ["DISABLE_TELEMETRY", "DO_NOT_TRACK", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"]) {
+  for (const key of [
+    "DISABLE_TELEMETRY",
+    "DO_NOT_TRACK",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+    "OTEL_LOG_USER_PROMPTS",
+    "OTEL_LOG_RAW_API_BODIES",
+  ]) {
     delete baseEnv[key];
   }
   const commonArgs = [
@@ -205,6 +243,13 @@ async function main() {
   let includedRun;
   let redactedTelemetry;
   let includedTelemetry;
+  let rawDefaultRun;
+  let rawInlineRun;
+  let rawFileRun;
+  let rawDefaultTelemetry;
+  let rawInlineTelemetry;
+  let rawFileTelemetry;
+  let rawBodyFiles = [];
   try {
     let start = telemetryRequests.length;
     redactedRun = await run(MARKERS.redacted, baseEnv);
@@ -216,6 +261,25 @@ async function main() {
       OTEL_LOG_USER_PROMPTS: "1",
     });
     includedTelemetry = telemetryRequests.slice(start);
+
+    start = telemetryRequests.length;
+    rawDefaultRun = await run(MARKERS.rawDefaultRequest, baseEnv);
+    rawDefaultTelemetry = telemetryRequests.slice(start);
+
+    start = telemetryRequests.length;
+    rawInlineRun = await run(MARKERS.rawInlineRequest, {
+      ...baseEnv,
+      OTEL_LOG_RAW_API_BODIES: "1",
+    });
+    rawInlineTelemetry = telemetryRequests.slice(start);
+
+    start = telemetryRequests.length;
+    rawFileRun = await run(MARKERS.rawFileRequest, {
+      ...baseEnv,
+      OTEL_LOG_RAW_API_BODIES: `file:${rawBodyDir}`,
+    });
+    rawFileTelemetry = telemetryRequests.slice(start);
+    rawBodyFiles = await waitForRawBodyFiles(rawBodyDir);
   } finally {
     await Promise.all([
       new Promise((resolve) => messageServer.close(resolve)),
@@ -230,6 +294,17 @@ async function main() {
   });
   const redactedText = payloadText(redactedTelemetry);
   const includedText = payloadText(includedTelemetry);
+  const rawDefaultText = payloadText(rawDefaultTelemetry);
+  const rawInlineText = payloadText(rawInlineTelemetry);
+  const rawFileText = payloadText(rawFileTelemetry);
+  const rawBodyFileText = rawBodyFiles.map(({ body }) => body).join("\n");
+  const allTelemetry = [
+    ...redactedTelemetry,
+    ...includedTelemetry,
+    ...rawDefaultTelemetry,
+    ...rawInlineTelemetry,
+    ...rawFileTelemetry,
+  ];
   const checks = {
     exactVersion: versionRun.stdout.trim() === `${expectedVersion} (Claude Code)`,
     exactBinarySha256: await sha256(binary) === expectedSha256,
@@ -242,12 +317,38 @@ async function main() {
     redactedPayloadOmitsPrompt: !redactedText.includes(MARKERS.redacted),
     includedPayloadHasUserPromptEvent: includedText.includes("claude_code.user_prompt"),
     includedPayloadContainsPrompt: includedText.includes(MARKERS.included),
-    exportsUseJsonContentType: [...redactedTelemetry, ...includedTelemetry]
+    rawDefaultRunSucceeds: rawDefaultRun.exitStatus === 0
+      && resultEvent(rawDefaultRun)?.result === MARKERS.rawDefaultResponse,
+    rawInlineRunSucceeds: rawInlineRun.exitStatus === 0
+      && resultEvent(rawInlineRun)?.result === MARKERS.rawInlineResponse,
+    rawFileRunSucceeds: rawFileRun.exitStatus === 0
+      && resultEvent(rawFileRun)?.result === MARKERS.rawFileResponse,
+    rawDefaultExportObserved: rawDefaultTelemetry.some((record) => record.method === "POST" && record.url === "/v1/logs"),
+    rawInlineExportObserved: rawInlineTelemetry.some((record) => record.method === "POST" && record.url === "/v1/logs"),
+    rawFileExportObserved: rawFileTelemetry.some((record) => record.method === "POST" && record.url === "/v1/logs"),
+    rawDefaultOmitsBodyEvents: !rawDefaultText.includes("claude_code.api_request_body")
+      && !rawDefaultText.includes("claude_code.api_response_body"),
+    rawDefaultOmitsBodyMarkers: !rawDefaultText.includes(MARKERS.rawDefaultRequest)
+      && !rawDefaultText.includes(MARKERS.rawDefaultResponse),
+    rawInlineHasRequestBodyEvent: rawInlineText.includes("claude_code.api_request_body"),
+    rawInlineHasResponseBodyEvent: rawInlineText.includes("claude_code.api_response_body"),
+    rawInlineContainsRequestMarker: rawInlineText.includes(MARKERS.rawInlineRequest),
+    rawInlineContainsResponseMarker: rawInlineText.includes(MARKERS.rawInlineResponse),
+    rawFileCollectorUsesReferences: rawFileText.includes("claude_code.api_request_body")
+      && rawFileText.includes("claude_code.api_response_body")
+      && rawFileText.includes("body_ref"),
+    rawFileCollectorOmitsBodyMarkers: !rawFileText.includes(MARKERS.rawFileRequest)
+      && !rawFileText.includes(MARKERS.rawFileResponse),
+    rawFileWritesRequestAndResponse: rawBodyFiles.some(({ name }) => name.endsWith(".request.json"))
+      && rawBodyFiles.some(({ name }) => name.endsWith(".response.json")),
+    rawFileBodiesContainMarkers: rawBodyFileText.includes(MARKERS.rawFileRequest)
+      && rawBodyFileText.includes(MARKERS.rawFileResponse),
+    exportsUseJsonContentType: allTelemetry
       .every((record) => String(record.contentType).startsWith("application/json")),
   };
 
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     capturedAt: new Date().toISOString(),
     environment: {
       platform: process.platform,
@@ -261,10 +362,16 @@ async function main() {
     commands: {
       redacted: "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_REDACTED_PROMPT_MARKER --tools ''",
       included: "OTEL_LOG_USER_PROMPTS=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print TELEMETRY_INCLUDED_PROMPT_MARKER --tools ''",
+      rawDefault: "CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_DEFAULT_REQUEST_MARKER --tools ''",
+      rawInline: "OTEL_LOG_RAW_API_BODIES=1 CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_INLINE_REQUEST_MARKER --tools ''",
+      rawFile: "OTEL_LOG_RAW_API_BODIES=file:$RAW_BODY_DIR CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print RAW_API_FILE_REQUEST_MARKER --tools ''",
     },
     input: {
       redacted: { prompt: MARKERS.redacted, logUserPrompts: false },
       included: { prompt: MARKERS.included, logUserPrompts: true },
+      rawDefault: { prompt: MARKERS.rawDefaultRequest, rawApiBodies: "disabled" },
+      rawInline: { prompt: MARKERS.rawInlineRequest, rawApiBodies: "inline" },
+      rawFile: { prompt: MARKERS.rawFileRequest, rawApiBodies: "file:$RAW_BODY_DIR" },
     },
     literalOutput: {
       version: versionRun.stdout.trim(),
@@ -273,12 +380,24 @@ async function main() {
       collector: {
         redacted: redactedTelemetry.map(({ method, url, contentType }) => ({ method, url, contentType })),
         included: includedTelemetry.map(({ method, url, contentType }) => ({ method, url, contentType })),
+        rawDefault: rawDefaultTelemetry.map(({ method, url, contentType }) => ({ method, url, contentType })),
+        rawInline: rawInlineTelemetry.map(({ method, url, contentType }) => ({ method, url, contentType })),
+        rawFile: rawFileTelemetry.map(({ method, url, contentType }) => ({ method, url, contentType })),
       },
+      rawBodyFiles: rawBodyFiles.map(({ name, body }) => ({
+        kind: name.endsWith(".request.json") ? "request" : "response",
+        bytes: Buffer.byteLength(body),
+        requestMarkerPresent: body.includes(MARKERS.rawFileRequest),
+        responseMarkerPresent: body.includes(MARKERS.rawFileResponse),
+      })),
     },
     exitStatus: {
       version: versionRun.exitStatus,
       redacted: redactedRun.exitStatus,
       included: includedRun.exitStatus,
+      rawDefault: rawDefaultRun.exitStatus,
+      rawInline: rawInlineRun.exitStatus,
+      rawFile: rawFileRun.exitStatus,
     },
     observed: {
       redacted: {
@@ -292,6 +411,32 @@ async function main() {
         userPromptEvent: includedText.includes("claude_code.user_prompt"),
         originalPromptPresent: includedText.includes(MARKERS.included),
       },
+      rawDefault: {
+        exportCount: rawDefaultTelemetry.length,
+        requestBodyEvent: rawDefaultText.includes("claude_code.api_request_body"),
+        responseBodyEvent: rawDefaultText.includes("claude_code.api_response_body"),
+      },
+      rawInline: {
+        exportCount: rawInlineTelemetry.length,
+        requestBodyEvent: rawInlineText.includes("claude_code.api_request_body"),
+        responseBodyEvent: rawInlineText.includes("claude_code.api_response_body"),
+        requestMarkerPresent: rawInlineText.includes(MARKERS.rawInlineRequest),
+        responseMarkerPresent: rawInlineText.includes(MARKERS.rawInlineResponse),
+      },
+      rawFile: {
+        exportCount: rawFileTelemetry.length,
+        requestBodyEvent: rawFileText.includes("claude_code.api_request_body"),
+        responseBodyEvent: rawFileText.includes("claude_code.api_response_body"),
+        collectorUsesBodyRef: rawFileText.includes("body_ref"),
+        collectorContainsBodyMarker: rawFileText.includes(MARKERS.rawFileRequest)
+          || rawFileText.includes(MARKERS.rawFileResponse),
+        files: rawBodyFiles.map(({ name, body }) => ({
+          kind: name.endsWith(".request.json") ? "request" : "response",
+          bytes: Buffer.byteLength(body),
+          requestMarkerPresent: body.includes(MARKERS.rawFileRequest),
+          responseMarkerPresent: body.includes(MARKERS.rawFileResponse),
+        })),
+      },
     },
     checks,
     pass: Object.values(checks).every(Boolean),
@@ -300,6 +445,9 @@ async function main() {
   if (!report.pass) {
     process.stderr.write(redactedRun.stderr);
     process.stderr.write(includedRun.stderr);
+    process.stderr.write(rawDefaultRun.stderr);
+    process.stderr.write(rawInlineRun.stderr);
+    process.stderr.write(rawFileRun.stderr);
     process.exitCode = 1;
   }
 }

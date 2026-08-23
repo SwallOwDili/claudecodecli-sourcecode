@@ -76,7 +76,42 @@
 
 `Glob` object 在 196563 附近，负责按 wildcard 找路径；`Grep` 在 196748 附近，明确使用 ripgrep，并支持 `content`、`files_with_matches`、`count` 三种结果模式。`Grep` 的工具结果预算是 20,000 chars，结构化结果还记录 file/match/line 总量、limit 和 offset，因此“没有看到某行”可能是筛选或截断，不一定是文件中不存在。
 
-本版 release note 提到 embedded grep 病态 pattern 修复。正确的机制解释是：pattern 先进入参数/regex 和 worker 路径，超大或病态组合必须被限制或失败返回，不能让一次检索阻塞整个 Agent Loop；这不等于所有第三方 `rg` 行为都由 Claude Code 改写。
+这里其实有三层 owner，不能把它们都叫“Grep”：
+
+| 层 | 持有什么状态 | `2.1.235` 的可观察行为 |
+| --- | --- | --- |
+| `Grep` tool object | schema、permission path、20,000-char 结果预算、结构化 result mapper | 接收 `pattern/path/glob/type/output_mode/-A/-B/-C/context/head_limit/offset/multiline`，但**没有** `-m/max_count` 字段 |
+| CLI ripgrep runner | cwd、ignore glob、20 秒默认 deadline、20,000,000-byte stdout/stderr buffer、abort signal | macOS/Linux native build 把当前 Claude executable 作为子进程启动，并把 `argv0` 改成 `rg`；输入错误 exit 2 可映射为可诊断 tool error |
+| embedded ripgrep engine | regex 编译、逐文件 match cap、context printer、实际搜索进程内存 | 本二进制报告 `ripgrep 14.1.1 (rev fdb5e06cce)`；病态 regex 受 compiled-size limit，`-m` 停止后仍完成已承诺的 after-context |
+
+这三层解释了 release note 为何同时谈“内存”和“上下文”：前者发生在 regex 编译阶段，后者发生在 searcher 已找到第 N 个 match 后的输出阶段；两者都在工具结果映射之前。达到 `-m N` 不是立刻杀进程，而是停止接收新的 match，同时让 context printer 输出已经承诺的 `-A/-C` 行。否则用户会看到命中行，却缺少解释它的后续代码。
+
+精确二进制 Probe 使用 7 行 fixture，结果逐字为：
+
+```text
+# -m 1 -A 2
+2:MATCH first
+3-after one
+4-after two
+
+# -m 1 -C 2
+1-zero
+2:MATCH first
+3-after one
+4-after two
+```
+
+病态输入 `a{1,1000000000}` 没有进入漫长搜索，而是在约几十毫秒内 exit 2：
+
+```text
+rg: compiled regex exceeds size limit of 104857600
+```
+
+Probe 为它设置 3 秒外部 deadline，并记录最大 RSS 低于 512 MiB；报告中的约 229 MiB RSS 包含 313 MB native executable 的映射与运行时页面，不能直接解读成“regex 分配了 229 MiB heap”。更重要的是，Messages stub 真实要求 `Grep` 执行同一病态 pattern，下一请求收到配对的 `is_error` tool result，随后模型仍能返回成功终态。错误因此从进程边界穿过 result mapper 回到 Agent Loop，而不是只写进 stderr 后丢失。
+
+同一闭环还用 1,217-byte 单行验证了工具层的 `--max-columns 500`：返回 `long.txt:1:[Omitted long matching line]`，没有把整条超长内容塞进上下文。这是输出预算的第一道保护；之后仍有 20,000-char tool result budget。完整命令、输入、逐字结果、exit status、耗时和 RSS 见 [`embedded-grep.json`](runtime-probes/embedded-grep.json)。
+
+证据边界也要写清：模型可调用的 `Grep` schema 没有 `-m`，所以 `-m/-A/-C` 组合由**同一个 SHA-256 的 native binary**通过其 embedded `argv0=rg` 分支直接验证，不能伪造一个 schema 不接受的 `-m` tool input。Probe 证明当前 macOS arm64 artifact 的这些输入；它不证明所有第三方系统 `rg`、Linux artifact 或任意未覆盖 regex 都具有同样资源曲线。
 
 ### `LSP`
 

@@ -159,6 +159,8 @@ Enter     -> getFocusedValue() -> 校验 disabled/type -> onChange(current)
 
 证据：[实时读取 focused value](../reverse/javascript/cli.readable.js#L429483)、[本版 release note](release-notes.md)。
 
+精确二进制 Probe 不是只抓一张高亮截图，而是在同一个 PTY write 中发送 `Down+Enter`，再观察权限后果。初始焦点“仅本次允许”被 Down 移到 session `acceptEdits`；第一次 Edit 执行后，第二次 Edit 没再弹框并自动执行，两个临时文件都从 `*_ORIGINAL` 变为 `*_CHANGED`。如果 Enter 读的是旧 render snapshot，第二次 Edit 会再次停在权限框。这个结果把“屏幕选中了谁”和“实际授予什么”闭合起来，但只覆盖使用该共享 select/permission primitive 的路径。
+
 ### 4. Permission comment 是独立 input mode
 
 权限对话并非只有 `Yes/No` 两个枚举。Yes 和 No 都可以切换成 comment 输入项：
@@ -175,7 +177,9 @@ Shift+Tab 的处理顺序在本版被明确为：
 
 这解释了 release note 中的修复：旧行为把“退出 comment 字段”的快捷键误解释为“批准并授予 session-wide edit permission”。修复的本质是 input mode 优先级高于 permission scope 切换。
 
-证据：[permission options](../reverse/javascript/cli.readable.js#L531443)、[Shift+Tab 优先级](../reverse/javascript/cli.readable.js#L531724)、[本版 release note](release-notes.md)。
+精确二进制 Probe 使用 `Read(first) -> Edit(first) -> Read(second) -> Edit(second)` 双修改链。进入 Yes comment、输入 marker 再按 Shift+Tab 后，主请求数仍为 `2`，两个文件都未变化；随后显式 Enter 才执行第一次 Edit，第二次 Edit 仍弹出审批并可拒绝。这不仅证明当前 prompt 没有被快捷键 settle，也证明它没有留下 session-wide grant。
+
+证据：[permission options](../reverse/javascript/cli.readable.js#L531443)、[Shift+Tab 优先级](../reverse/javascript/cli.readable.js#L531724)、[本版 release note](release-notes.md)、[精确 PTY Probe](runtime-probes/tui-regressions.json)。
 
 ## 三、Spellcheck 是受限本地子进程，不是模型纠错
 
@@ -632,9 +636,9 @@ CLI bundle 能证明客户端发送的 permission mode、allowed domains、错�
 | 新增 optional spellcheck | setting、来源限制、backend、subprocess、timeout/cache/highlight 完整可达 | 不证明用户机器安装了 dictionary |
 | 深层列表与 hanging indent | marker 显示宽度和嵌套 indent 的实现 | 不证明所有终端字体宽度都一致 |
 | 多行 highlight 偏移修复 | raw/rendered offset 映射与逐行 segment | 不证明任意第三方 terminal renderer |
-| Shift+Tab permission comment 修复 | comment input mode 优先退出，再处理 session grant | 不代表所有 permission UI 都已 runtime Probe |
+| Shift+Tab permission comment 修复 | Static 分支 + 双 Edit PTY Probe：按键后零请求/零文件变化，显式 Enter 后第二次 Edit 仍需批准 | 只覆盖本版 file Edit permission dialog，不代表所有自定义 tool UI |
 | Vim NORMAL/cursor 恢复 | 外部 store、unmount 保存、mount 恢复 | 不代表新进程可恢复未提交输入 |
-| 快速方向键 + Enter | handler 即时读取 `getFocusedValue()` | 不代表任意自定义 dialog 都使用相同组件 |
+| 快速方向键 + Enter | Static 分支 + 同批 Down+Enter PTY Probe：session option 生效，第二次 Edit 自动执行 | 不代表任意自定义 dialog 都使用相同组件 |
 | VS Code 多 panel focus | release note + CLI 的 IDE/focus/session 接口 | 不能重建 extension 内部修复算法 |
 
 ## 十二、证据索引与边界
@@ -651,6 +655,7 @@ CLI bundle 能证明客户端发送的 permission mode、allowed domains、错�
 - Selection realtime state：[429483-429620](../reverse/javascript/cli.readable.js#L429483)
 - Composer/Vim store：[269426-269454](../reverse/javascript/cli.readable.js#L269426)、[519247-519263](../reverse/javascript/cli.readable.js#L519247)、[521363-521380](../reverse/javascript/cli.readable.js#L521363)
 - Permission comment/Shift+Tab：[531443-531454](../reverse/javascript/cli.readable.js#L531443)、[531724-531759](../reverse/javascript/cli.readable.js#L531724)
+- Permission/selection PTY Probe：[tui-regressions.json](runtime-probes/tui-regressions.json)
 
 ### Spellcheck、voice 与 image
 

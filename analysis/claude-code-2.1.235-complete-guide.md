@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [Derived 五面阅读模型与三轴证据地图](product-surface-evidence-map.md)。它先用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四个嵌套生命周期单位建立任务总线，再用 Bash 调度、上下文治理与 `/compact`、多通道遥测、按对象恢复、Artifact 结果未知和 native Voice 六条真实机制链解释控制、请求、执行、状态与观测 owner；C/Q/E/S/O 只是分析者归纳的阅读模型，不是源码原生模块或 Anthropic 官方架构。再到折叠附录判断 71 类 inventory 的提取来源、所有权和证明层级；附录只证明分类完整与顺序稳定，不代表所有 identifier 已完成 consumer tracing。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四种时钟贯穿 Bash、`/compact`、遥测、resume、Artifact 与 native Voice 六个压力测试；最后才归纳能力晚绑定、权力不对称、事实/表示分离、按对象恢复和从属观测。C/Q/E/S/O 只是分析者归纳的阅读路由，不是源码原生模块或 Anthropic 官方架构。证据方法与 71 类 inventory 分别放在折叠附录，当前语义欠账在机器清单前明示。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1229,7 +1229,7 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 299 条机制证据：228 Static、30 Probe、33 Public、8 Boundary；Static 细分为 190 runtime、16 consumer、12 constant、4 surface、6 declaration，299 个 claim ID 均唯一；validator 逐条核对 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 329 条机制证据：243 Static、38 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，329 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
 - 58 个能力面：57 项 Deep、1 项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
@@ -1272,7 +1272,7 @@ Doctor分别检查：
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |
-| Agent Loop 四种生命周期单位怎样构成任务总线，Bash、上下文治理/`compact`、遥测、按对象恢复、Artifact route 与 native Voice 六个案例怎样跨越 Derived 五面阅读模型；71 类机器清单能证明到哪 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| 为什么模型只有提案权、本地 runtime 怎样裁决并记因果；Bash、`compact`、遥测、resume、Artifact 与 native Voice 六个压力测试怎样共同暴露版本技术性格 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
 | 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
 | Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
 | Plan Mode 怎样阻止实施、保存计划并把批准/拒绝回灌 Agent Loop | [plan-mode-and-human-approval.md](plan-mode-and-human-approval.md) |

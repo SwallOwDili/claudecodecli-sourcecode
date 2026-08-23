@@ -12,12 +12,11 @@ digraph product_surface_runtime_planes {
   server_tools [label="服务端工具 Boundary\nAdvisor 等 server_tool_use\n不进入本地 registry / permission / sandbox", fillcolor="#f3e5f5", style="rounded,filled,dashed"];
   effects [label="外部 owner 与真实副作用\n文件系统 / 子进程 / MCP / Artifact\nGitHub / browser / runner", fillcolor="#ffcdd2"];
   state [label="S 本地状态面\nmessage graph / transcript / boundary\ncheckpoint / storage / remote references", fillcolor="#c8e6c9"];
-  recovery [label="分布式恢复控制器\nrequest retry / fallback / compact\nstream tombstone / process supervisor", fillcolor="#fff9c4"];
   observe [label="O 观测与诊断\nevent sinks: first-party / Datadog / OTEL\nlocal readers/probes: debug / profile / doctor", fillcolor="#b2dfdb"];
 
   { rank=same; input; control; }
   { rank=same; loop; execute; server_tools; }
-  { rank=same; state; recovery; observe; }
+  { rank=same; state; observe; }
 
   input -> control [label="加载入口与当前环境"];
   control -> request [label="约束能力与请求参数"];
@@ -33,11 +32,9 @@ digraph product_surface_runtime_planes {
   loop -> state [label="追加 assistant / stop events"];
   execute -> state [label="追加 tool result / checkpoint / reference"];
 
-  request -> recovery [label="request / context failure", color="#8d6e00", fontcolor="#8d6e00"];
-  loop -> recovery [label="stream / turn failure", color="#8d6e00", fontcolor="#8d6e00"];
-  effects -> recovery [label="partial / unknown outcome", color="#8d6e00", fontcolor="#8d6e00"];
-  recovery -> request [label="retry / fallback / rebuilt attempt", color="#8d6e00", fontcolor="#8d6e00", penwidth=1.65];
-  recovery -> state [label="写 tombstone / boundary / status", color="#8d6e00", fontcolor="#8d6e00"];
+  request -> request [label="transport retry / model fallback\n请求 owner 的局部回路", color="#8d6e00", fontcolor="#8d6e00"];
+  loop -> request [label="stream fallback / tombstone\nloop owner 重建 attempt", color="#8d6e00", fontcolor="#8d6e00", penwidth=1.65];
+  effects -> state [label="partial / unknown outcome\n各子系统写 reference / status", color="#8d6e00", fontcolor="#8d6e00"];
 
   control -> observe [label="gate / config events", style=dotted];
   request -> observe [label="attempt / usage / cache events", style=dotted];

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-23T13:40:09.822Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commands": {
+    "embeddedVersion": "$CLAUDE_TARGET (argv0=rg) --version",
+    "maxCountAfterContext": "(cwd=$FIXTURE) $CLAUDE_TARGET (argv0=rg) --no-config -n -m 1 -A 2 MATCH context.txt",
+    "maxCountBothContext": "(cwd=$FIXTURE) $CLAUDE_TARGET (argv0=rg) --no-config -n -m 1 -C 2 MATCH context.txt",
+    "pathological": "(cwd=$FIXTURE) $CLAUDE_TARGET (argv0=rg) --no-config 'a{1,1000000000}' pathological.txt",
+    "grepTool": "$CLAUDE_TARGET --print EMBEDDED_GREP_TOOL_PROBE --output-format stream-json --verbose --model claude-sonnet-4-5 --tools Grep --permission-mode bypassPermissions --dangerously-skip-permissions --no-session-persistence"
+  },
+  "input": {
+    "contextFixture": [
+      "zero",
+      "MATCH first",
+      "after one",
+      "after two",
+      "MATCH second",
+      "after second",
+      "tail"
+    ],
+    "pathological": {
+      "pattern": "a{1,1000000000}",
+      "fixture": "aaaa\\n",
+      "deadlineMs": 3000,
+      "maximumResidentSetBoundBytes": 536870912
+    },
+    "longLine": {
+      "utf8Bytes": 1217,
+      "shape": "600 x L + LONG_MATCH_MARKER + 600 x R"
+    },
+    "modelToolUses": [
+      {
+        "id": "toolu_embedded_grep_long_line",
+        "name": "Grep",
+        "input": {
+          "pattern": "LONG_MATCH_MARKER",
+          "path": ".",
+          "output_mode": "content"
+        }
+      },
+      {
+        "id": "toolu_embedded_grep_pathological",
+        "name": "Grep",
+        "input": {
+          "pattern": "a{1,1000000000}",
+          "path": ".",
+          "output_mode": "content"
+        }
+      }
+    ],
+    "schemaReachability": {
+      "grepInputProperties": [
+        "-A",
+        "-B",
+        "-C",
+        "-i",
+        "-n",
+        "-o",
+        "context",
+        "glob",
+        "head_limit",
+        "multiline",
+        "offset",
+        "output_mode",
+        "path",
+        "pattern",
+        "type"
+      ],
+      "maxCountExposed": false,
+      "boundary": "The 2.1.235 Grep tool schema has no -m/max_count field, so -m context semantics are reached through the same embedded argv0=rg engine rather than fabricated as a model tool input."
+    }
+  },
+  "literalOutput": {
+    "embeddedVersion": "ripgrep 14.1.1 (rev fdb5e06cce)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+    "maxCountAfterContext": "2:MATCH first\n3-after one\n4-after two\n",
+    "maxCountBothContext": "1-zero\n2:MATCH first\n3-after one\n4-after two\n",
+    "pathological": {
+      "stdout": "",
+      "stderr": "rg: compiled regex exceeds size limit of 104857600\n",
+      "signal": null,
+      "timedOut": false,
+      "elapsedMs": 80.77,
+      "maximumResidentSetBytes": 240205824,
+      "peakMemoryFootprintBytes": 237602368
+    },
+    "grepTool": {
+      "result": "EMBEDDED_GREP_TOOL_OK",
+      "subtype": "success",
+      "longLineToolResult": {
+        "tool_use_id": "toolu_embedded_grep_long_line",
+        "type": "tool_result",
+        "content": "long.txt:1:[Omitted long matching line]\n\n<system-reminder>\n<total_tokens>14999880 tokens left</total_tokens>\n</system-reminder>",
+        "cache_control": {
+          "type": "ephemeral"
+        }
+      },
+      "pathologicalToolResult": {
+        "type": "tool_result",
+        "content": "Search failed — ripgrep rejected the pattern, glob, or file type without searching:\nrg: compiled regex exceeds size limit of 104857600\n\n<system-reminder>\n<total_tokens>14999880 tokens left</total_tokens>\n</system-reminder>",
+        "is_error": true,
+        "tool_use_id": "toolu_embedded_grep_pathological",
+        "cache_control": {
+          "type": "ephemeral"
+        }
+      }
+    }
+  },
+  "exitStatus": {
+    "embeddedVersion": 0,
+    "maxCountAfterContext": 0,
+    "maxCountBothContext": 0,
+    "pathological": 2,
+    "grepTool": 0
+  },
+  "observedRequestCount": 3,
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "embeddedVersionExitZero": true,
+    "embeddedVersionIsRipgrep1411PatchedRevision": true,
+    "maxCountAfterExitZero": true,
+    "maxCountAfterLiteralOutput": true,
+    "maxCountAfterDidNotTimeout": true,
+    "maxCountBothExitZero": true,
+    "maxCountBothLiteralOutput": true,
+    "maxCountBothDidNotTimeout": true,
+    "pathologicalExitTwo": true,
+    "pathologicalFastFailLiteral": true,
+    "pathologicalDidNotTimeout": true,
+    "pathologicalCompletedWithinDeadline": true,
+    "pathologicalPeakRssMeasured": true,
+    "pathologicalPeakRssBounded": true,
+    "grepToolExitZero": true,
+    "grepToolDidNotTimeout": true,
+    "firstRequestAdvertisesGrep": true,
+    "grepSchemaDoesNotExposeMaxCount": true,
+    "longLineToolResultPaired": true,
+    "longLineUsesOmissionMarker": true,
+    "longLineDoesNotLeakFullInput": true,
+    "pathologicalToolResultPaired": true,
+    "pathologicalToolResultIsError": true,
+    "pathologicalToolResultContainsFastFail": true,
+    "finalResultSuccess": true,
+    "reportHasNoAbsoluteProbePath": true,
+    "reportHasNoSessionIdentifier": true
+  },
+  "pass": true
+}

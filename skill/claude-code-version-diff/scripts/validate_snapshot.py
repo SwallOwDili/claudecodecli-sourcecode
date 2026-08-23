@@ -92,12 +92,10 @@ RELEASE_NOTES_ROW_SEMANTIC_MARKERS = {
         ("mechanism", "fast-fail", ("fast-fail", "fail fast")),
         ("mechanism", "match-cap", ("-m n",)),
         ("mechanism", "context-flags", ("-a/-c",)),
-        (
-            "evidence",
-            "binary-corpus-boundary",
-            ("binary regression corpus", "二进制回归语料"),
-        ),
-        ("evidence", "boundary", ("boundary",)),
+        ("evidence", "exact-binary-probe", ("exact-binary probe",)),
+        ("evidence", "runtime-report", ("embedded-grep.json",)),
+        ("evidence", "resource-measurement", ("rss",)),
+        ("evidence", "schema-boundary", ("schema", "-m")),
     ),
     19: (
         ("mechanism", "vscode", ("vs code", "vscode")),
@@ -156,17 +154,19 @@ HUMAN_ANALYSIS_DOCS = {
         "SOURCE_INVENTORY_COVERAGE_BEGIN",
         "机器附录：71 类机器清单的证据分类与阅读路由",
         "Derived 阅读模型",
-        "案例一：Bash",
-        "案例二：上下文治理不是一个 `/compact` 按钮",
-        "案例三：遥测不是一个总开关",
-        "案例四：状态可续，是按对象恢复",
-        "案例五：Artifact 发布",
-        "案例六：`audio-capture.node`",
+        "矛盾一：让模型自主，但不把执行权交给模型",
+        "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
+        "矛盾三：既要看见系统，又不能把观测误当成事实",
+        "矛盾四：想恢复任务，但系统没有一台时间机器",
+        "压力测试五：Artifact 超时后",
+        "矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
+        "六个压力测试共同暴露出的技术性格",
         "关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
         "Untraced/Inventory only 不是 Boundary",
         "三轴证据坐标",
         "Whole-bundle AST",
         "Prefix-filtered environment union",
+        "runtime-authority-lifecycle.svg",
         "product-surface-runtime-planes.svg",
         "evidence-surface-lifecycle.svg",
     ),
@@ -183,6 +183,9 @@ HUMAN_ANALYSIS_DOCS = {
         "Artifact",
         "CronCreate",
         "LSP",
+        "embedded-grep.json",
+        "104857600",
+        "argv0=rg",
     ),
     "analysis/tool-registration-and-host-surfaces.md": (
         "TOOL_REGISTRATION_COVERAGE_BEGIN",
@@ -318,9 +321,11 @@ HUMAN_ANALYSIS_DOCS = {
     "analysis/environment-variable-reference.md": (
         "842/842",
         "2161",
-        "80 个 declaration-only",
+        "74 个无静态 consumer",
+        "6 个仅通过动态下标",
         "137/137",
-        "145 个动态环境名称调用点",
+        "145 个动态下标调用点",
+        "60 个名称可证明",
         "triBool",
         "Opaque/Boundary",
     ),
@@ -393,7 +398,8 @@ HUMAN_ANALYSIS_DOCS = {
         "assignment-resolved",
         "43 个 truly dynamic unresolved",
         "6 个静态 key / 12 个调用点",
-        "Opaque/Boundary",
+        "Opaque name / Static immediate consumer",
+        "Static callsite context / key Boundary",
     ),
     "analysis/tui-input-accessibility-media-ide-chrome.md": (
         "Screen reader",
@@ -1555,6 +1561,13 @@ MECHANISM_TOPIC_MINIMUMS = {
     "end-conversation": 6,
     "remote-ops": 6,
     "connector-catalog-mcp": 6,
+    "artifact-watch": 3,
+    "insights-pipeline": 3,
+    "cli-startup-assets": 3,
+    "complex-slash-commands": 3,
+    "telemetry-event-catalog": 3,
+    "api-beta-route-ownership": 3,
+    "error-diagnostic-atlas": 3,
 }
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
@@ -1829,8 +1842,8 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
         failures.append(f"invalid source inventory summary: {error}")
         return 0
 
-    if summary.get("formatVersion", 0) < 5:
-        failures.append("source inventory formatVersion must be at least 5")
+    if summary.get("formatVersion", 0) < 6:
+        failures.append("source inventory formatVersion must be at least 6")
     parser = summary.get("javascriptParser", {})
     if parser.get("name") != "acorn" or parser.get("version") != "8.15.0":
         failures.append("source inventory must use vendored Acorn 8.15.0")
@@ -2237,13 +2250,15 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     appendix_start = content.find("<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->")
     narrative_markers = (
         "## 关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
-        "## 案例一：Bash",
-        "## 案例二：上下文治理不是一个 `/compact` 按钮",
-        "## 案例三：遥测不是一个总开关",
-        "## 案例四：状态可续，是按对象恢复",
-        "## 案例五：Artifact 发布",
-        "## 案例六：`audio-capture.node`",
-        "## 从六个案例归纳出的五个阅读面",
+        "## 矛盾一：让模型自主，但不把执行权交给模型",
+        "## 矛盾二：既要忘掉大部分历史，又要让任务继续成立",
+        "## 矛盾三：既要看见系统，又不能把观测误当成事实",
+        "## 矛盾四：想恢复任务，但系统没有一台时间机器",
+        "## 压力测试五：Artifact 超时后",
+        "## 矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
+        "## 六个压力测试共同暴露出的技术性格",
+        "## 最后再用 C/Q/E/S/O 作为阅读路由",
+        "<summary><strong>证据方法附录",
         "## 判断一条清单能否支持技术结论",
         "## 三轴证据坐标",
     )
@@ -2253,8 +2268,10 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             failures.append(
                 f"product surface reader-first narrative must place {marker!r} before appendix"
             )
-    if content.find("<details>") < 0 or not (
-        content.find("<details>") < appendix_start < content.find("</details>")
+    inventory_details_open = content.rfind("<details>", 0, appendix_start)
+    inventory_details_close = content.find("</details>", appendix_start)
+    if not (
+        0 <= inventory_details_open < appendix_start < inventory_details_close
     ):
         failures.append("product surface inventory appendix must be collapsed with details")
 
@@ -2273,6 +2290,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "cli.readable.js#L316220",
         "cli.readable.js#L331309",
         "cli.readable.js#L262996",
+        "cli.readable.js#L261931",
+        "cli.readable.js#L216096",
         "cli.readable.js#L260784",
         "cli.readable.js#L261085",
         "cli.readable.js#L362451",
@@ -2297,6 +2316,54 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             failures.append(f"product surface runtime plane {lane} is missing")
 
     narrative = content[:appendix_start] if appendix_start >= 0 else content
+    if not all(
+        marker in content[:5000]
+        for marker in (
+            "模型负责提议，客户端负责裁决与记账",
+            "三个不等价的世界",
+            "模型世界",
+            "客户端世界",
+            "外部世界",
+            "历史表示可以重建，外部世界不能假装回滚",
+        )
+    ):
+        failures.append(
+            "product surface opening must teach proposal authority, client causal state, "
+            "and irreversible external effects before introducing inventories"
+        )
+    if "## 这个版本最鲜明的七个技术特征" in narrative:
+        failures.append(
+            "product surface must derive technical characteristics after the mechanism "
+            "pressure tests instead of front-loading a repetitive feature table"
+        )
+    evidence_details = content.find(
+        "<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论"
+    )
+    evidence_method = content.find("## 读代码时最容易犯的十个归因错误")
+    evidence_close = content.find("</details>", evidence_method)
+    completeness_heading = content.find("## 当前到底全面到哪里")
+    if not (
+        0 <= evidence_details < evidence_method < evidence_close < completeness_heading < appendix_start
+    ):
+        failures.append(
+            "product surface evidence methodology must be collapsed after the reader "
+            "navigation and before the explicit completeness debt"
+        )
+    authority_visual = re.search(
+        r"!\[([^\]]+)\]\(visuals/runtime-authority-lifecycle\.svg\)",
+        content[:3000],
+    )
+    if not (
+        authority_visual
+        and all(
+            marker in authority_visual.group(1)
+            for marker in ("模型", "本地管线", "因果", "真实副作用", "外部 owner")
+        )
+    ):
+        failures.append(
+            "product surface first screen must visualize model proposals, local authority, "
+            "the causal ledger, and external effects"
+        )
     agent_loop_visual = re.search(
         r"!\[([^\]]+)\]\(visuals/agent-loop-lifecycle\.svg\)",
         content[:8000],
@@ -2319,7 +2386,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "API attempt, tool batch, and result-feedback semantics"
         )
     five_plane_section = markdown_h2_section(
-        content, r"从六个案例归纳出的五个阅读面"
+        content, r"最后再用 C/Q/E/S/O 作为阅读路由"
     ) or ""
     if not (
         "Derived 阅读模型" in content[:2000]
@@ -2365,7 +2432,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     tool_kind_section = markdown_h2_section(
-        content, r"先分清两种工具：client `tool_use` 与 `server_tool_use`"
+        content, r"矛盾一：让模型自主，但不把执行权交给模型"
     ) or ""
     client_tool_row = next(
         (
@@ -2415,14 +2482,16 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 "error_max_turns",
             )
         )
-        and "API retry 也不必消耗新的模型轮次" in content[:8000]
+        and "retry 可以重发请求，但不一定增加 `turnCount`" in loop_units_section
     ):
         failures.append(
             "product surface Agent Loop accounting must distinguish user turn, model "
             "iteration, API attempt, and tool batch"
         )
 
-    bash_section = markdown_h2_section(content, r"案例一：Bash") or ""
+    bash_section = markdown_h2_section(
+        content, r"矛盾一：让模型自主，但不把执行权交给模型"
+    ) or ""
     bash_classification = re.search(
         r"isConcurrencySafe.{0,260}(?:最初|原始|original).{0,40}input",
         bash_section,
@@ -2449,9 +2518,28 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface Bash semantics must classify concurrency on the original input "
             "before Hook/permission rewrites and must not recompute it"
         )
+    if not all(
+        marker in bash_section
+        for marker in (
+            "发现状态",
+            "请求可见状态",
+            "执行授权状态",
+            "bypassPermissions",
+            "Shift+Tab",
+            "Down+Enter",
+            "acceptEdits",
+            "关闭输入框",
+            "批准这一次",
+            "本会话批准同类 Edit",
+        )
+    ):
+        failures.append(
+            "product surface tool authority must separate discovery, request visibility, "
+            "execution authorization, sandbox enforcement, and TUI permission scope"
+        )
 
     compact_section = markdown_h2_section(
-        content, r"案例二：上下文治理不是一个 `/compact` 按钮"
+        content, r"矛盾二：既要忘掉大部分历史，又要让任务继续成立"
     ) or ""
     compact_hit = compact_section.lower().find("+-- hit")
     compact_miss = compact_section.lower().find("+-- miss")
@@ -2491,8 +2579,40 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface compact semantics must separate precomputed hit/finalize without "
             "a summary request from miss/grouping/summary request"
         )
+    compact_teaching_markers = (
+        "CRITICAL",
+        "禁止调用工具",
+        "<analysis>",
+        "<summary>",
+        "固定九段",
+        "客户端随后丢弃前者",
+        "| Summary |",
+        "| Preserved message groups |",
+        "| Attachments / hooks |",
+        "| compact boundary |",
+        "defer_loading:true",
+        "| Context hint |",
+        "| Local microcompaction |",
+        "144k 预计算",
+        "147k 警告",
+        "167k compact",
+        "177k 阻塞",
+    )
+    if not all(marker in compact_section for marker in compact_teaching_markers):
+        failures.append(
+            "product surface compact explanation must teach the ordinary miss prompt, "
+            "four rebuilt-context channels, Tool Search visibility, separate context-hint "
+            "and microcompaction paths, and the four window lines"
+        )
+    if "Context hint / microcompaction" in compact_section:
+        failures.append(
+            "product surface must not collapse the server context-hint protocol and local "
+            "microcompaction action into one mechanism"
+        )
 
-    artifact_section = markdown_h2_section(content, r"案例五：Artifact 发布") or ""
+    artifact_section = markdown_h2_section(
+        content, r"压力测试五：Artifact 超时后"
+    ) or ""
     artifact_schema = re.search(
         r"(?:response|响应)\s*schema", artifact_section, re.IGNORECASE
     )
@@ -2540,7 +2660,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     voice_section = markdown_h2_section(
-        content, r"案例六：`audio-capture\.node`"
+        content, r"矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码"
     ) or ""
     voice_wrapper = re.search(
         r"(?:JavaScript|JS)(?:\s+native)?\s*wrapper.{0,180}"
@@ -2577,9 +2697,23 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface Voice semantics must separate Observed wrapper/SoX evidence, "
             "Derived behavior, and Compatible native reconstruction"
         )
+    if not all(
+        marker in voice_section
+        for marker in (
+            "真实麦克风和 Voice service 的端到端 Probe",
+            "5 个 native 模块",
+            "23 项报告",
+            "x86_64 尚未实跑",
+            "不是找回 Anthropic 的 C/C++/Rust/Swift 原函数体",
+        )
+    ):
+        failures.append(
+            "product surface native explanation must state the end-to-end Voice, architecture, "
+            "and original-source reconstruction boundaries"
+        )
 
     telemetry_section = markdown_h2_section(
-        content, r"案例三：遥测不是一个总开关"
+        content, r"矛盾三：既要看见系统，又不能把观测误当成事实"
     ) or ""
     if not (
         all(
@@ -2612,9 +2746,24 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface telemetry semantics must distinguish first-party, Datadog, "
             "OTEL, and local diagnostic pipelines from recovery control"
         )
+    if not all(
+        marker in telemetry_section
+        for marker in (
+            "OTEL_LOG_RAW_API_BODIES",
+            "设置为 `1`",
+            "file:<dir>",
+            "body_ref",
+            "本地明文文件",
+            "即使 `OTEL_LOG_USER_PROMPTS` 没开",
+        )
+    ):
+        failures.append(
+            "product surface telemetry privacy explanation must cover disabled, inline, and "
+            "file raw-body modes independently from prompt redaction"
+        )
 
     recovery_section = markdown_h2_section(
-        content, r"案例四：状态可续，是按对象恢复"
+        content, r"矛盾四：想恢复任务，但系统没有一台时间机器"
     ) or ""
     if not (
         all(
@@ -2626,10 +2775,11 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 "| Remote reference / result |",
                 "不会重新执行历史工具",
                 "不恢复旧 socket/Promise",
-                "reference 不是分布式事务句柄",
+                "reference 也不是分布式事务句柄",
                 "消息图续消息",
                 "checkpoint 续文件",
-                "remote reference 续补偿线索",
+                "各子系统的 remote reference",
+                "补偿线索",
             )
         )
     ):
@@ -2638,6 +2788,58 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "boundary, file checkpoint, and remote-reference recovery objects"
         )
 
+    synthesis_section = markdown_h2_section(
+        content, r"六个压力测试共同暴露出的技术性格"
+    ) or ""
+    if not all(
+        marker in synthesis_section
+        for marker in (
+            "第一，能力晚绑定",
+            "第二，权力不对称",
+            "第三，事实与表示分离",
+            "第四，恢复按对象负责",
+            "第五，可观测性有意保持从属",
+            "复杂度没有消失",
+            "真正拥有状态的组件",
+        )
+    ):
+        failures.append(
+            "product surface must derive the version's technical character from the six "
+            "mechanism pressure tests instead of ending with disconnected case summaries"
+        )
+
+    evidence_records = [
+        json.loads(line)
+        for line in (repo / "analysis/mechanism-evidence.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip()
+    ]
+    evidence_counts = Counter(
+        record.get("evidenceClass") for record in evidence_records
+    )
+    expected_evidence_summary = (
+        f"结构化机制注册表当前有 {len(evidence_records)} 条 claim，覆盖 "
+        f"{len({record['topic'] for record in evidence_records})} 个 topic："
+        f"{evidence_counts['Static']} Static、{evidence_counts['Probe']} Probe、"
+        f"{evidence_counts['Public']} Public、{evidence_counts['Boundary']} Boundary"
+    )
+    if expected_evidence_summary not in content:
+        failures.append(
+            "product surface completeness statement does not match the mechanism evidence registry"
+        )
+    for debt in (
+        "654 个静态环境名称",
+        "211 个 Feature key",
+        "85 个仍含运行参数的动态环境表达式",
+        "911 个 `tengu_other`",
+        "x86_64 native",
+    ):
+        if debt not in content:
+            failures.append(
+                f"product surface completeness debt is missing {debt!r}"
+            )
+
     if (
         "71/71 精确归属" in content
         or "机器附录：71 类机器清单的证据分类与阅读路由" not in content
@@ -2645,6 +2847,44 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         failures.append(
             "product surface inventory appendix must say 71 classes are classified, "
             "not claim 71/71 exact ownership"
+        )
+
+    authority_dot = repo / "analysis/visuals/runtime-authority-lifecycle.dot"
+    authority_svg = repo / "analysis/visuals/runtime-authority-lifecycle.svg"
+    if not authority_dot.is_file() or not authority_svg.is_file():
+        failures.append("product surface runtime-authority DOT/SVG is missing")
+    else:
+        dot_text = authority_dot.read_text(encoding="utf-8")
+        for source, target, label_terms in (
+            ("request", "assemble", ("user turn",)),
+            ("assemble", "model", ("API attempt",)),
+            ("model", "gate", ("client tool_use",)),
+            ("gate", "effects", ("批准后", "真实动作")),
+            ("effects", "ledger", ("不可逆事实",)),
+            ("ledger", "assemble", ("下一轮", "有效视图")),
+        ):
+            require_dot_edge(
+                dot_text,
+                source=source,
+                target=target,
+                label_terms=label_terms,
+                visual_name="product surface runtime-authority visual",
+                failures=failures,
+            )
+        outbound_observe = [
+            (source, target, label)
+            for source, target, label in dot_edges(dot_text)
+            if source == "observe"
+        ]
+        if outbound_observe:
+            failures.append(
+                "product surface runtime-authority visual must keep observability inbound-only"
+            )
+        validate_dot_svg_regeneration(
+            authority_dot,
+            authority_svg,
+            "product surface runtime-authority visual",
+            failures,
         )
 
     evidence_dot = repo / "analysis/visuals/evidence-surface-lifecycle.dot"
@@ -2694,7 +2934,9 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "resume / fork / compact feedback",
             "外部 owner 与真实副作用",
             "服务端工具 Boundary",
-            "分布式恢复控制器",
+            "请求 owner 的局部回路",
+            "loop owner 重建 attempt",
+            "各子系统写 reference / status",
             "O 观测与诊断",
         ):
             if required not in dot_text:
@@ -2712,7 +2954,9 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             ("execute", "loop", ("paired tool_result", "tool_use_id")),
             ("execute", "effects", ("实际动作",)),
             ("state", "request", ("resume / fork / compact feedback",)),
-            ("recovery", "request", ("retry", "fallback", "rebuilt attempt")),
+            ("request", "request", ("transport retry", "model fallback", "局部回路")),
+            ("loop", "request", ("stream fallback", "tombstone", "重建 attempt")),
+            ("effects", "state", ("partial", "unknown outcome", "reference", "status")),
         ):
             require_dot_edge(
                 dot_text,
@@ -2721,6 +2965,10 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 label_terms=label_terms,
                 visual_name="product surface runtime-plane visual",
                 failures=failures,
+            )
+        if re.search(r"^\s*recovery\s*\[", dot_text, re.MULTILINE):
+            failures.append(
+                "product surface runtime-plane visual must not invent a centralized recovery node"
             )
         outbound_observe = [
             (source, target, label)
@@ -2809,7 +3057,162 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "environment/feature reference generation check failed: "
             + process.stdout.strip()
         )
-        return
+
+    consumer_roles = {
+        "if",
+        "test",
+        "return",
+        "variable",
+        "assignment",
+        "assignment-target",
+        "call-argument",
+        "binary",
+        "logical",
+        "conditional",
+        "object-property",
+        "member",
+        "delete",
+        "unary",
+        "update",
+        "other",
+    }
+    context_inventories = {
+        "analysis/source-inventory/environment-access-callsites.jsonl": (
+            2548,
+            True,
+        ),
+        "analysis/source-inventory/feature-flag-callsites.jsonl": (498, False),
+    }
+    for relative, (expected_count, needs_access_mode) in context_inventories.items():
+        rows = read_jsonl(repo / relative, failures)
+        if len(rows) != expected_count:
+            failures.append(
+                f"consumer context inventory count mismatch: {relative}: "
+                f"{len(rows)} != {expected_count}"
+            )
+        for index, row in enumerate(rows, 1):
+            if row.get("functionKind") not in {"top-level", "named", "anonymous"}:
+                failures.append(
+                    f"consumer context row has invalid function kind: {relative}:{index}"
+                )
+            scope_path = row.get("scopePath")
+            if not isinstance(scope_path, list) or not all(
+                isinstance(item, int) and item > 0 for item in scope_path
+            ):
+                failures.append(
+                    f"consumer context row has invalid scope path: {relative}:{index}"
+                )
+            consumer = row.get("consumer")
+            if not isinstance(consumer, dict):
+                failures.append(
+                    f"consumer context row is missing consumer object: {relative}:{index}"
+                )
+                continue
+            if consumer.get("role") not in consumer_roles:
+                failures.append(
+                    f"consumer context row has invalid role: {relative}:{index}"
+                )
+            for range_field in ("consumerRange", "valueRange"):
+                value = consumer.get(range_field)
+                if not (
+                    isinstance(value, list)
+                    and len(value) == 2
+                    and all(isinstance(item, int) and item >= 0 for item in value)
+                    and value[0] <= value[1]
+                ):
+                    failures.append(
+                        f"consumer context row has invalid {range_field}: "
+                        f"{relative}:{index}"
+                    )
+            if needs_access_mode and row.get("accessMode") not in {
+                "read",
+                "write",
+                "read-write",
+                "delete",
+            }:
+                failures.append(
+                    f"environment context row has invalid access mode: {relative}:{index}"
+                )
+        if needs_access_mode:
+            dynamic_rows = [row for row in rows if row.get("name") is None]
+            resolved_rows = [
+                row
+                for row in dynamic_rows
+                if "resolvedStaticValue" in row or "resolvedFiniteValues" in row
+            ]
+            unresolved_rows = [
+                row
+                for row in dynamic_rows
+                if "resolvedStaticValue" not in row
+                and "resolvedFiniteValues" not in row
+            ]
+            if (len(dynamic_rows), len(resolved_rows), len(unresolved_rows)) != (
+                145,
+                60,
+                85,
+            ):
+                failures.append(
+                    "dynamic environment resolution coverage mismatch: "
+                    f"{len(dynamic_rows)}/{len(resolved_rows)}/{len(unresolved_rows)}"
+                )
+            for row in resolved_rows:
+                values = (
+                    [row["resolvedStaticValue"]]
+                    if "resolvedStaticValue" in row
+                    else row.get("resolvedFiniteValues")
+                )
+                if not (
+                    isinstance(values, list)
+                    and values
+                    and len(values) <= 64
+                    and len(values) == len(set(values))
+                    and all(
+                        isinstance(value, str)
+                        and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value)
+                        for value in values
+                    )
+                ):
+                    failures.append(
+                        "resolved dynamic environment row has invalid finite names: "
+                        f"{row.get('comparisonKey')}"
+                    )
+                resolution = row.get("resolutionEvidence")
+                if not (
+                    isinstance(resolution, dict)
+                    and resolution.get("complete") is True
+                    and resolution.get("valueCount") == len(values or [])
+                    and isinstance(resolution.get("strategy"), str)
+                    and resolution["strategy"]
+                ):
+                    failures.append(
+                        "resolved dynamic environment row has invalid evidence: "
+                        f"{row.get('comparisonKey')}"
+                    )
+
+    inventory_summary = json.loads(
+        (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
+    )
+    expected_environment_coverage = {
+        "dynamicBracketCallsites": 145,
+        "resolvedDynamicBracketCallsites": 60,
+        "unresolvedDynamicBracketCallsites": 85,
+        "unresolvedDynamicExpressionKinds": {
+            "call": 2,
+            "expression": 3,
+            "identifier": 55,
+            "member-or-call": 25,
+        },
+    }
+    environment_coverage = inventory_summary.get("coverage", {}).get(
+        "environment", {}
+    )
+    for field, expected_value in expected_environment_coverage.items():
+        if environment_coverage.get(field) != expected_value:
+            failures.append(
+                "dynamic environment summary mismatch: "
+                f"{field} expected={expected_value!r}, "
+                f"actual={environment_coverage.get(field)!r}"
+            )
 
     expected = {
         "analysis/environment-variable-reference.md": (
@@ -2823,6 +3226,11 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "untyped_named_names": 137,
                 "untyped_named_callsites": 242,
                 "dynamic_environment_callsites": 145,
+                "resolved_dynamic_environment_callsites": 60,
+                "unresolved_dynamic_environment_callsites": 85,
+                "resolved_dynamic_environment_names": 105,
+                "resolved_dynamic_only_typed_names": 6,
+                "typed_no_static_consumer": 74,
             },
         ),
         "analysis/feature-flag-reference.md": (
@@ -2844,34 +3252,70 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
             "countField": "consumerContractCount",
             "hashField": "consumerContractNamesSha256",
-            "minimumCount": 152,
+            "minimumCount": 313,
             "callsiteOnlyField": "callsiteOnlyNamedReadCount",
-            "expectedCallsiteOnly": 747,
+            "expectedCallsiteOnly": 592,
+            "summaryCounts": {
+                "lexicalContextCallsiteCount": 2548,
+                "consumerContextCallsiteCount": 2548,
+                "accessModeCallsiteCount": 2548,
+                "directConsumerContractCount": 307,
+                "resolvedDynamicOnlyConsumerContractCount": 6,
+                "semanticFollowupStaticNameCount": 654,
+                "resolvedDynamicCallsiteCount": 60,
+                "unresolvedDynamicCallsiteCount": 85,
+                "resolvedDynamicOnlyTypedNameCount": 6,
+                "noStaticConsumerTypedNameCount": 74,
+            },
             "required": {
+                "ALL_PROXY",
+                "ANTHROPIC_BEDROCK_SERVICE_TIER",
                 "ANTHROPIC_CONFIG_DIR",
+                "AWS_SHARED_CREDENTIALS_FILE",
+                "BASH_MAX_OUTPUT_LENGTH",
+                "CLAUDE_AGENT_SDK_VERSION",
                 "CLAUDE_CODE_AUTO_COMPACT_WINDOW",
                 "CLAUDE_CODE_BRIEF",
                 "CLAUDE_CODE_CERT_STORE",
                 "CLAUDE_CODE_DISABLE_ADVISOR_TOOL",
+                "CLAUDE_CODE_DISABLE_AGENT_VIEW",
+                "CLAUDE_CODE_DISABLE_AUTO_MEMORY",
                 "CLAUDE_CODE_ENABLE_AWAY_SUMMARY",
                 "CLAUDE_CODE_OAUTH_TOKEN",
+                "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS",
                 "CLAUDE_CODE_PERFETTO_TRACE",
                 "CLAUDE_CODE_SESSION_LOG",
                 "DISABLE_BRIEF_MODE_STOP_HOOK",
                 "OTEL_LOG_RAW_API_BODIES",
+                "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+                "OTEL_EXPORTER_OTLP_LOGS_HEADERS",
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
+                "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
                 "CLAUDE_PTY_HEARTBEAT_MS",
+                "CLAUDE_PTY_ORPHAN_CHECK_MS",
                 "CLAUDE_BG_CLAIM_AUTH",
                 "CLAUDE_BG_SOCKET_TOKENS_PATH",
+                "MCP_CONNECT_TIMEOUT_MS",
             },
         },
         "analysis/feature-flag-reference.md": {
             "marker": "FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS",
             "countField": "consumerContractCount",
             "hashField": "consumerContractKeysSha256",
-            "minimumCount": 56,
+            "minimumCount": 150,
             "callsiteOnlyField": "callsiteOnlyStaticKeyCount",
-            "expectedCallsiteOnly": 305,
+            "expectedCallsiteOnly": 211,
+            "summaryCounts": {
+                "lexicalContextCallsiteCount": 498,
+                "consumerContextCallsiteCount": 498,
+            },
             "required": {
+                "tengu_amber_packet",
+                "tengu_bg_attach_upgrade",
+                "tengu_ccr_idle_heartbeat",
+                "tengu_cobalt_plinth_reader_persist",
                 "tengu_copper_thistle",
                 "tengu_flint_harbor_prompt",
                 "tengu_gb_refresh_interval_minutes",
@@ -2880,6 +3324,10 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "tengu_hover_rest",
                 "tengu_kairos_brief",
                 "tengu_kairos_brief_config",
+                "tengu_import",
+                "tengu_keybinding_customization_release",
+                "tengu_mcp_listen_reopen_park",
+                "tengu_mcp_proxy_needs_approval_retry",
                 "tengu_remote_backend",
                 "tengu_sedge_lantern_config",
                 "tengu_slate_harbor",
@@ -2950,6 +3398,12 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             contract["expectedCallsiteOnly"]
         ):
             failures.append(f"callsite-only coverage mismatch: {relative}")
+        for field, expected_count in contract.get("summaryCounts", {}).items():
+            if summary.get(field) != expected_count:
+                failures.append(
+                    f"consumer context coverage mismatch: {relative}: "
+                    f"{field} expected={expected_count}, actual={summary.get(field)}"
+                )
         missing_required = sorted(set(contract["required"]) - set(contract_names))
         if missing_required:
             failures.append(
@@ -4712,7 +5166,7 @@ def validate_release_notes(repo: Path, failures: list[str]) -> None:
         10: "tui-input-accessibility-media-ide-chrome.md",
         11: "cloud-background-channels.md",
         12: "tui-input-accessibility-media-ide-chrome.md",
-        13: "Boundary",
+        13: "embedded-grep.json",
         14: "context-governance-and-caching.md",
         15: "reverse/javascript/cli.readable.js",
         16: "reverse/javascript/cli.readable.js",

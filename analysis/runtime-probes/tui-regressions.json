@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-23T13:52:26.691Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "x86_64",
+    "pythonProcessArch": "x86_64",
+    "nodeVersion": "v22.21.1",
+    "pythonVersion": "3.14.6",
+    "terminal": {
+      "term": "xterm-256color",
+      "rows": 40,
+      "columns": 120
+    }
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748",
+    "binaryArchitecture": "arm64"
+  },
+  "commands": {
+    "shiftTabComment": "$CLAUDE_TARGET --model claude-sonnet-4-5 --tools Read,Edit --permission-mode default TUI_PERMISSION_PROBE_MARKER # PTY 40x120; Tab, COMMENT_MARKER, Shift+Tab, Enter, Escape, /exit",
+    "quickArrowEnter": "$CLAUDE_TARGET --model claude-sonnet-4-5 --tools Read,Edit --permission-mode default TUI_PERMISSION_PROBE_MARKER # PTY 40x120; Down+Enter in one write, /exit"
+  },
+  "input": {
+    "isolatedState": "temporary HOME, CLAUDE_CONFIG_DIR and workspace; loopback Messages API; no user configuration",
+    "modelToolSequence": [
+      "Read($WORKSPACE/first.txt)",
+      "Edit($WORKSPACE/first.txt, FIRST_ORIGINAL -> FIRST_CHANGED)",
+      "Read($WORKSPACE/second.txt)",
+      "Edit($WORKSPACE/second.txt, SECOND_ORIGINAL -> SECOND_CHANGED)"
+    ],
+    "shiftTabComment": {
+      "keystrokes": [
+        "Tab",
+        "COMMENT_MARKER",
+        "Shift+Tab (ESC [ Z)",
+        "Enter",
+        "Escape",
+        "/exit"
+      ],
+      "expectedScope": "Shift+Tab closes Yes comment input; later Enter grants only the first Edit"
+    },
+    "quickArrowEnter": {
+      "keystrokes": [
+        "Down+Enter in one PTY write",
+        "/exit"
+      ],
+      "expectedScope": "the newly focused acceptEdits session option settles the prompt"
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "shiftTabComment": {
+      "beforeShiftTab": "mainRequestCount=2; first=FIRST_ORIGINAL; second=SECOND_ORIGINAL",
+      "afterShiftTab": "mainRequestCount=2; first=FIRST_ORIGINAL; second=SECOND_ORIGINAL",
+      "afterExplicitEnter": "mainRequestCount=4; first=FIRST_CHANGED; second=SECOND_ORIGINAL; second permission prompt visible",
+      "afterEscape": "mainRequestCount=4; second=SECOND_ORIGINAL; User rejected update"
+    },
+    "quickArrowEnter": "mainRequestCount=5; first=FIRST_CHANGED; second=SECOND_CHANGED; second permission prompt absent; TUI_PERMISSION_PROBE_DONE"
+  },
+  "exitStatus": {
+    "version": 0,
+    "shiftTabComment": 0,
+    "quickArrowEnter": 0
+  },
+  "observed": {
+    "shiftTabComment": {
+      "beforeShiftTab": {
+        "mainRequestCount": 2,
+        "firstFile": "FIRST_ORIGINAL",
+        "secondFile": "SECOND_ORIGINAL"
+      },
+      "afterShiftTab": {
+        "mainRequestCount": 2,
+        "firstFile": "FIRST_ORIGINAL",
+        "secondFile": "SECOND_ORIGINAL"
+      },
+      "afterExplicitAcceptOnce": {
+        "mainRequestCount": 4,
+        "firstFile": "FIRST_CHANGED",
+        "secondFile": "SECOND_ORIGINAL"
+      },
+      "finalFiles": {
+        "first": "FIRST_CHANGED",
+        "second": "SECOND_ORIGINAL"
+      },
+      "mainRequestCount": 4
+    },
+    "quickArrowEnter": {
+      "mainRequestCount": 5,
+      "firstFile": "FIRST_CHANGED",
+      "secondFile": "SECOND_CHANGED",
+      "finalFiles": {
+        "first": "FIRST_CHANGED",
+        "second": "SECOND_CHANGED"
+      }
+    }
+  },
+  "coverageBoundary": {
+    "multiLineHighlight": "Static offset-to-rendered-line mapping is available, but raw PTY bytes are not a canonical final screen or ANSI-style coordinate model; no runtime claim is made without a terminal emulator and style-position assertions.",
+    "vimPanelRestore": "Static external vimMode/savedCursorOffset ownership is available, but the PTY probe does not yet expose an unambiguous mode-and-cursor snapshot across component remount; no runtime claim is made."
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "shiftTabFirstPermissionPromptVisible": true,
+    "shiftTabDidNotSettlePrompt": true,
+    "shiftTabDidNotEditFiles": true,
+    "explicitEnterExecutedFirstEdit": true,
+    "secondEditStillPrompted": true,
+    "secondEditDenied": true,
+    "denyStoppedTurnWithoutAnotherRequest": true,
+    "quickArrowEnterFirstPermissionPromptVisible": true,
+    "quickArrowEnterExecutedFirstEdit": true,
+    "quickArrowEnterGrantedSessionEdits": true,
+    "secondEditDidNotPrompt": true,
+    "fiveRequestToolChainCompleted": true,
+    "shiftTabExitZero": true,
+    "quickArrowEnterExitZero": true
+  },
+  "pass": true
+}

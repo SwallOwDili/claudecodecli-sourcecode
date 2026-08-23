@@ -567,6 +567,33 @@ def main() -> None:
             "required probe check failed: exactVersion",
         ),
         (
+            "analysis/runtime-probes/embedded-grep.json",
+            lambda data: replace_once(
+                data,
+                b'"pathologicalPeakRssBounded": true',
+                b'"pathologicalPeakRssBounded": false',
+            ),
+            "required probe check failed: pathologicalPeakRssBounded",
+        ),
+        (
+            "analysis/runtime-probes/telemetry-otlp.json",
+            lambda data: replace_once(
+                data,
+                b'"rawInlineContainsRequestMarker": true',
+                b'"rawInlineContainsRequestMarker": false',
+            ),
+            "required probe check failed: rawInlineContainsRequestMarker",
+        ),
+        (
+            "analysis/runtime-probes/tui-regressions.json",
+            lambda data: replace_once(
+                data,
+                b'"shiftTabDidNotSettlePrompt": true',
+                b'"shiftTabDidNotSettlePrompt": false',
+            ),
+            "required probe check failed: shiftTabDidNotSettlePrompt",
+        ),
+        (
             "analysis/source-inventory/summary.json",
             corrupt_discovered_symbol,
             "callsite symbol mismatch for firstPartyEventAsync",
@@ -878,7 +905,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                "## 从六个案例归纳出的五个阅读面".encode(),
+                "## 最后再用 C/Q/E/S/O 作为阅读路由".encode(),
                 "## 运行结构概览".encode(),
             ),
             "product surface reader-first narrative must place",
@@ -887,8 +914,8 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "从六个案例归纳出的五个阅读面",
-                "这是 Derived 分析框架，不是源码目录图",
+                "最后再用 C/Q/E/S/O 作为阅读路由",
+                "C/Q/E/S/O 是本文的 Derived 分析框架，不是源码目录图，也不是 Anthropic 官方架构或命名",
                 "这是源码原生架构，不是本文归纳模型",
             ),
             "product surface five-plane model must be labeled as a Derived reading model",
@@ -897,7 +924,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "从六个案例归纳出的五个阅读面",
+                "最后再用 C/Q/E/S/O 作为阅读路由",
                 "它不拥有真实文件、子进程和远端对象",
                 "它拥有真实文件、子进程和远端对象",
             ),
@@ -917,7 +944,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "先分清两种工具：client `tool_use` 与 `server_tool_use`",
+                "矛盾一：让模型自主，但不把执行权交给模型",
                 "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **否** |",
                 "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **是** |",
             ),
@@ -927,7 +954,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例一：Bash",
+                "矛盾一：让模型自主，但不把执行权交给模型",
                 "改写后不会重新计算 `isConcurrencySafe`",
                 "改写后会重新计算 `isConcurrencySafe`",
             ),
@@ -937,7 +964,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例二：上下文治理不是一个 `/compact` 按钮",
+                "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
                 "hit  -> 不发送新的 summary request",
                 "hit  -> 仍发送新的 summary request",
             ),
@@ -947,7 +974,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例五：Artifact 发布",
+                "压力测试五：Artifact 超时后",
                 "不做 local-version equality",
                 "强制做 local-version equality",
             ),
@@ -957,7 +984,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例六：`audio-capture.node`",
+                "矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
                 "**Derived / Compatible**",
                 "**Observed**",
             ),
@@ -967,7 +994,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例三：遥测不是一个总开关",
+                "矛盾三：既要看见系统，又不能把观测误当成事实",
                 "关闭其中一条，不代表其他通道同时关闭",
                 "关闭其中一条，代表其他通道同时关闭",
             ),
@@ -977,11 +1004,69 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "案例四：状态可续，是按对象恢复",
-                "reference 不是分布式事务句柄",
+                "矛盾四：想恢复任务，但系统没有一台时间机器",
+                "reference 也不是分布式事务句柄",
                 "reference 是分布式事务句柄",
             ),
             "product surface recovery semantics must separate message graph",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                "三个不等价的世界".encode(),
+                "一个统一世界".encode(),
+            ),
+            "product surface opening must teach proposal authority",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                "<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论".encode(),
+                "<div><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论".encode(),
+            ),
+            "product surface evidence methodology must be collapsed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "矛盾一：让模型自主，但不把执行权交给模型",
+                "本会话批准同类 Edit",
+                "批准 Edit",
+            ),
+            "product surface tool authority must separate discovery",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
+                "| Context hint |",
+                "| Context hint / microcompaction |",
+            ),
+            "product surface must not collapse the server context-hint protocol",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "矛盾三：既要看见系统，又不能把观测误当成事实",
+                "即使 `OTEL_LOG_USER_PROMPTS` 没开",
+                "仅当 `OTEL_LOG_USER_PROMPTS` 已开",
+            ),
+            "product surface telemetry privacy explanation must cover disabled, inline, and file",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "六个压力测试共同暴露出的技术性格",
+                "第四，恢复按对象负责",
+                "第四，统一恢复控制器负责",
+            ),
+            "product surface must derive the version's technical character",
         ),
         (
             "analysis/product-surface-evidence-map.md",
@@ -1011,6 +1096,15 @@ def main() -> None:
             "product surface evidence lifecycle is missing edge candidate -> untraced",
         ),
         (
+            "analysis/visuals/runtime-authority-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b'gate -> effects [label="',
+                b'model -> effects [label="',
+            ),
+            "product surface runtime-authority visual is missing edge gate -> effects",
+        ),
+        (
             "analysis/visuals/product-surface-runtime-planes.dot",
             lambda data: replace_once(
                 data,
@@ -1036,6 +1130,15 @@ def main() -> None:
                 b'\n  observe -> request [label="controls retry"];\n}\n',
             ),
             "product surface runtime-plane visual must keep observability as an inbound-only sink",
+        ),
+        (
+            "analysis/visuals/product-surface-runtime-planes.dot",
+            lambda data: replace_once(
+                data,
+                b"\n}\n",
+                b'\n  recovery [label="central recovery manager"];\n}\n',
+            ),
+            "product surface runtime-plane visual must not invent a centralized recovery node",
         ),
         (
             "analysis/visuals/product-surface-runtime-planes.svg",
@@ -1070,16 +1173,51 @@ def main() -> None:
             "environment/feature reference generation check failed",
         ),
         (
+            "analysis/source-inventory/environment-access-callsites.jsonl",
+            lambda data: replace_once(
+                data,
+                b'"accessMode":"read"',
+                b'"accessMode":"invalid"',
+            ),
+            "environment context row has invalid access mode",
+        ),
+        (
+            "analysis/source-inventory/environment-access-callsites.jsonl",
+            lambda data: replace_once(
+                data,
+                b'"resolvedFiniteValues":["OTEL_ATTRIBUTE_COUNT_LIMIT"',
+                b'"resolvedFiniteValues":["invalid-name!"',
+            ),
+            "resolved dynamic environment row has invalid finite names",
+        ),
+        (
+            "analysis/source-inventory/feature-flag-callsites.jsonl",
+            lambda data: replace_once(
+                data,
+                b'"role":"binary"',
+                b'"role":"invalid"',
+            ),
+            "consumer context row has invalid role",
+        ),
+        (
             "analysis/feature-flag-reference.md",
             lambda data: replace_once(data, b"361/361", b"360/361"),
             "environment/feature reference generation check failed",
         ),
         (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: data.replace(
+                b'"topic":"artifact-watch"',
+                b'"topic":"artifact-watch-disabled"',
+            ),
+            "mechanism topic 'artifact-watch' has 0 claims; minimum is 3",
+        ),
+        (
             "analysis/feature-flag-reference.md",
             lambda data: replace_once(
                 data,
-                "Opaque codename / Inventory only：codename 加 fallback/callsite".encode(),
-                "Opaque codename：codename 加 fallback/callsite".encode(),
+                "Opaque name / Static immediate consumer：codename 本身不可解释".encode(),
+                "Opaque name / Static consumer：codename 本身不可解释".encode(),
             ),
             "environment/feature reference generation check failed",
         ),

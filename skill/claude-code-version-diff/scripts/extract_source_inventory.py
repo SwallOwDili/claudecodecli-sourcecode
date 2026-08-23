@@ -2053,6 +2053,8 @@ def callsite_rows(
             "column": call["column"],
             "function": call.get("function"),
             "functionKind": call.get("functionKind", "top-level"),
+            "scopePath": call.get("scopePath", []),
+            "consumer": call.get("consumer"),
             "arguments": [expression_record(source, start, end) for start, end in arguments],
         }
         semantic: dict[str, Any] = {"calleeRole": role}
@@ -2253,6 +2255,11 @@ def environment_access_rows(
             "column": node["column"],
             "accessor": node["accessor"],
             "name": node.get("name"),
+            "accessMode": node.get("accessMode", "read"),
+            "function": node.get("function"),
+            "functionKind": node.get("functionKind", "top-level"),
+            "scopePath": node.get("scopePath", []),
+            "consumer": node.get("consumer"),
         }
         semantic: dict[str, Any] = {
             "accessor": node["accessor"],
@@ -2264,6 +2271,14 @@ def environment_access_rows(
             expression = expression_record(source, expression_start, expression_end)
             row["expression"] = expression
             semantic["expression"] = compact_expression(expression)
+        for key in (
+            "resolvedStaticValue",
+            "resolvedFiniteValues",
+            "resolutionEvidence",
+            "caller",
+        ):
+            if key in node:
+                row[key] = node[key]
         fallback_start = node.get("fallbackStart")
         fallback_end = node.get("fallbackEnd")
         if fallback_start is not None and fallback_end is not None:
@@ -2826,6 +2841,21 @@ def main() -> int:
         for row in environment_accesses
         if row["accessor"] == "process.env.bracket" and row["name"] is None
     ]
+    resolved_dynamic_environment_accesses = [
+        row
+        for row in environment_accesses
+        if row["name"] is None
+        and (
+            "resolvedStaticValue" in row or "resolvedFiniteValues" in row
+        )
+    ]
+    unresolved_dynamic_environment_accesses = [
+        row
+        for row in environment_accesses
+        if row["name"] is None
+        and "resolvedStaticValue" not in row
+        and "resolvedFiniteValues" not in row
+    ]
     environment_schema = environment_schema_rows(
         source, locator, discovered["environmentBuilder"]
     )
@@ -3019,7 +3049,7 @@ def main() -> int:
         if not value:
             completion_gaps.append(f"detected subsystem produced no {label}")
     summary = {
-        "formatVersion": 5,
+        "formatVersion": 6,
         "version": (repo / "VERSION").read_text(encoding="utf-8").strip(),
         "canonicalSource": {
             "path": "extracted/cli.js",
@@ -3030,10 +3060,10 @@ def main() -> int:
         "discoveredSymbols": discovered,
         "methods": {
             "symbolDiscovery": "stable export names, function-body literals, schema constructor shapes, catalog notes, and subsystem-specific field anchors discover release-local minified symbols before AST extraction",
-            "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
+            "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, immediate parent consumer roles/ranges/targets/operators, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
             "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
             "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-            "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access",
+            "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates, nearest same-or-ancestor lexical assignments, static collection callbacks, or complete finite caller argument sets, while the original expression remains authoritative",
             "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
             "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
             "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
@@ -3066,6 +3096,23 @@ def main() -> int:
             "environment": {
                 "accessCallsites": len(environment_accesses),
                 "dynamicProcessEnvCallsites": len(dynamic_environment_accesses),
+                "dynamicBracketCallsites": sum(
+                    1 for row in environment_accesses if row["name"] is None
+                ),
+                "resolvedDynamicBracketCallsites": len(
+                    resolved_dynamic_environment_accesses
+                ),
+                "unresolvedDynamicBracketCallsites": len(
+                    unresolved_dynamic_environment_accesses
+                ),
+                "unresolvedDynamicExpressionKinds": dict(
+                    sorted(
+                        Counter(
+                            row.get("expression", {}).get("kind", "missing")
+                            for row in unresolved_dynamic_environment_accesses
+                        ).items()
+                    )
+                ),
                 "typedSchemaEntries": len(environment_schema),
                 "observabilitySchemaEntries": len(observability_environment_schema),
                 "observabilityDefaults": len(observability_environment_defaults),

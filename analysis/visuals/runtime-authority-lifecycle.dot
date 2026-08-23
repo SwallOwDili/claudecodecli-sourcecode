@@ -1,0 +1,50 @@
+digraph RuntimeAuthorityLifecycle {
+  graph [
+    rankdir=TB,
+    bgcolor="#ffffff",
+    pad="0.28",
+    nodesep="0.42",
+    ranksep="0.72",
+    fontname="Helvetica"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#334155",
+    fontcolor="#111827",
+    fontname="Helvetica",
+    fontsize=11,
+    margin="0.16,0.11"
+  ];
+  edge [
+    color="#475569",
+    fontcolor="#334155",
+    fontname="Helvetica",
+    fontsize=9,
+    arrowsize=0.72
+  ];
+
+  request [label="用户任务\n需要改变真实世界", fillcolor="#E0F2FE"];
+  assemble [label="客户端装配本次请求\nmessages + request-time tools[]", fillcolor="#F8FAFC"];
+  model [label="模型提案空间\ntext / client tool_use / server_tool_use", fillcolor="#EDE9FE"];
+  gate [label="本地裁决管线\nschema + Hook + permission\npolicy + sandbox", fillcolor="#FEF3C7"];
+  effects [label="外部 owner\n文件 / 进程 / MCP / 远端对象", fillcolor="#FEE2E2"];
+  ledger [label="客户端因果账本\ntool_result + transcript\ncheckpoint + remote reference", fillcolor="#DCFCE7"];
+  observe [label="观测分支\nanalytics / Datadog / OTEL / debug", fillcolor="#F1F5F9"];
+
+  { rank=same; request; assemble; }
+  { rank=same; model; gate; }
+  { rank=same; effects; ledger; }
+
+  request -> assemble [label="触发 user turn"];
+  assemble -> model [label="发送一次 API attempt"];
+  model -> gate [label="提出完整 client tool_use"];
+  model -> model [label="server_tool_use 由服务端闭合", style=dashed];
+  gate -> effects [label="批准后才执行真实动作"];
+  effects -> ledger [label="返回结果；保留不可逆事实"];
+  ledger -> assemble [label="重建下一轮有效视图"];
+
+  assemble -> observe [label="发出请求事件", style=dashed];
+  gate -> observe [label="发出裁决/工具事件", style=dashed];
+  ledger -> observe [label="发出状态/终止事件", style=dashed];
+}

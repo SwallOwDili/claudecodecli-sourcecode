@@ -10,13 +10,15 @@ digraph agent_loop_lifecycle {
   feedback [label="结果回灌\n按 tool_use_id 配对", fillcolor="#c8e6c9"];
   decide [label="继续条件\nqueue / endsTurn / Stop hook\nmaxTurns / terminal reason", fillcolor="#b2dfdb"];
   external [label="外部副作用\n文件、命令、远端写入", fillcolor="#ffccbc"];
+  surface [label="当前轮 UI / SDK\nprogress 与本地 result", fillcolor="#f1f5f9"];
 
   state -> request [label="装配本次迭代"];
   request -> schedule [label="content_block_stop\n完成 client tool_use 即入队"];
   schedule -> execute [label="按屏障顺序启动"];
-  execute -> request [label="progress/result 可与后续 blocks 交错", style=dashed, color="#1565c0", fontcolor="#1565c0"];
+  execute -> surface [label="当前 stream 期间持续 emit", style=dashed, color="#1565c0", fontcolor="#1565c0"];
   execute -> external [label="改变外部状态"];
   execute -> feedback [label="产生 tool_result"];
   feedback -> decide [label="吸收工具观察"];
-  decide -> state [label="继续时更新消息与计数"];
+  decide -> state [label="drain 后更新消息与计数"];
+  state -> request [label="下一轮才把 tool_result 送模", color="#1565c0", fontcolor="#1565c0"];
 }

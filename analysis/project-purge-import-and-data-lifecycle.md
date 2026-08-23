@@ -216,6 +216,90 @@ validator 在 unzip filter 中逐 entry 执行，任一超限会在真正 import
 
 所以 exit 1 只说明 manifest 声明的 conversation/message/project/doc 数量与实际不一致，不说明 import 被回滚。自动化必须解析 result JSON 中的 `sessionIds/jsonlPaths/counts`，决定保留、审计或显式清理。[manifest 对账：629496-629527](../reverse/javascript/cli.readable.js#L629496)，[post-write exit：629612-629623](../reverse/javascript/cli.readable.js#L629612)
 
+## 精确二进制 Probe：dry-run、真实导入与部分写入
+
+[project-data-lifecycle.json](runtime-probes/project-data-lifecycle.json) 使用 SHA-256 为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` 的 `2.1.235` 原始二进制。脚本为七次 CLI 执行分别建立不共享的 HOME、`TMPDIR`、`CLAUDE_CONFIG_DIR`、secure-storage、workspace 和目标目录；进程环境采用 replace 而不是继承。合同显式关闭 GrowthBook、非必要流量、遥测、错误上报和自动更新，清空 Anthropic API/auth/OAuth/session 凭据，并用 `/dev/null` global Git config、禁用 system config/prompt、固定 askpass。输入只包含受控 marker，没有读取或写入真实用户配置。
+
+报告把“方便阅读”和“可复现执行”分成两层，避免再把缩略命令冒充 exact：
+
+- `commands.<scenario>` 是从合同生成的完整 `env -i ...` shell 展示串，适合复制和审阅；
+- `executionContracts.<scenario>` 才是权威执行记录，逐项保存 `$CLAUDE_TARGET`、完整 normalized `argv`、`cwd`、stdin 策略、`environmentMode: replace` 和全部环境键值；
+- `literalOutput` 与 `exitStatus` 保存实际返回，`beforeAfter` 保存文件状态，`observed` 只由 stdout 解析或 before/after 计算，不预填 `5/0/false`；
+- `target.version`、实际 binary SHA 与 snapshot metadata 都必须精确等于本版常量；`pass` 只由全部 69 项 checks 的布尔合取产生。
+
+脚本在两个随机临时根中连续运行两次；对完整 JSON 执行 `jq -S 'del(.capturedAt)'` 后，两份结果逐字相等，SHA-256 同为 `77e749180c01b38ede7aa99f56c8946e64b860120b9c303487ed42235855be2b`。这项稳定性来自路径规范化而不是忽略 transcript：JSONL 先把随机 cwd/config/HOME/TMPDIR/target 路径替换成稳定占位符，再计算 canonical content SHA-256。
+
+### Purge dry-run 建立计划，但 domain 数据零变化
+
+隔离配置目录包含 `projects/`、`tasks/`、`debug/`、`file-history/`、`history.jsonl`、`shell-snapshots/` 和 `backups/`。下面只展示业务 argv；完整环境以报告中的 `executionContracts.purgeDryRun` 为准：
+
+```text
+$CLAUDE_TARGET project purge --all --dry-run
+```
+
+CLI exit `0`，stdout 最终逐字为 `Dry run: 5 item(s) would be deleted.`。Probe 不是只匹配这个数字，而是逐行解析五个 plan entry 的 kind、完整规范化路径和 owned target，得到四个 dir：`projects`、`tasks`、`debug`、`file-history`，以及一个 file：`history.jsonl`。stderr 同时确认 `shell-snapshots/ are not project-scoped and will not be touched`，并说明 backups 只会按自己的轮换策略退出。planned 与 excluded fixture 的 path、mode、bytes 和 SHA-256 在命令前后完全相同。
+
+这里观察到一个必须单列的进程边界：CLI 启动阶段仍创建了 `.claude.json` 和一份自动 backup。也就是说，`--dry-run` 对 **purge 拥有的删除/重写对象** 是零写入，不代表整个 CLI 进程绝对不产生启动级配置文件。后续自动化如果要求真正 filesystem-silent，必须先在隔离目录完成 CLI bootstrap，再比较 domain roots。
+
+### `project purge --all -y` 的真实删除合同
+
+第二个完全独立的 fixture 使用相同五类 owned target，但 marker、HOME、TMPDIR、config 和 workspace 均不与 dry-run 共用。实际 argv 是：
+
+```text
+$CLAUDE_TARGET project purge --all -y
+```
+
+它 exit `0`，stdout 逐字结束于 `Purged 5 item(s) across all projects.`。关键证据不是成功文案，而是状态差：
+
+| 对象 | before | after | 判定 |
+| --- | --- | --- | --- |
+| `projects/` | mode `0700`，含 mode `0600` transcript marker及其 bytes/SHA | 无任何 row | 已删除 |
+| `tasks/` | 含 task marker及其 bytes/SHA | 无任何 row | 已删除 |
+| `debug/` | 含 debug marker及其 bytes/SHA | 无任何 row | 已删除 |
+| `file-history/` | 含 snapshot marker及其 bytes/SHA | 无任何 row | 已删除 |
+| `history.jsonl` | mode `0600`，74 bytes，有固定 SHA | 无任何 row | 已删除 |
+| `shell-snapshots/keep.txt` | mode `0600`，42 bytes，SHA `315eb961…d6a6c0` | mode/bytes/SHA 完全相同 | 明确保留 |
+| `backups/keep.txt` | mode `0600`，34 bytes，SHA `3a1f8536…f79d55` | mode/bytes/SHA 完全相同 | 明确保留 |
+
+进程另行新增 `.claude.json` 与 `backups/$AUTO_BACKUP`，报告把二者放在 `startupChangesOutsidePlan`，没有把它们混进 purge 成功判定。这个正向 Probe 只证明 `--all` 的五项全局计划和执行一致；它**没有运行指定 path 的单项目 purge**，因此单项目 `history.jsonl` 过滤、project config key 删除和失败恢复仍以 Static 路径为证，不能由本结果外推。
+
+### JSON dry-run 与真实 import 的状态差异
+
+同一份 JSON fixture 声明 1 个 project、1 个 conversation、2 条 message、1 个 doc。dry-run 命令 exit `0` 并输出：
+
+```text
+[dry-run] imported: conversations=1 skipped=0 messages=2 projects=1 docs=1 files=0
+```
+
+目标 cwd 与 transcript root 前后都为空。去掉 `--dry-run` 后命令仍 exit `0`，但状态发生三组可观察变化：
+
+1. 写出 1 个 mode `0600` 的 JSONL transcript；user UUID 精确为 fixture 的 `50000000-…0005`，assistant UUID 精确为 `70000000-…0007`，后者 `parentUuid` 精确等于前者，record version 均为 `claude-export-import`。随机路径规范化后的 transcript 是 1,216 bytes，canonical SHA-256 为 `bbf01984…7aac6b0`。
+2. `prompt_template` 写成精确路径 `projects/json-import-project-10000000-…0001/project-instructions.md`；mode `0600`、32 bytes、内容 SHA `5b7f8bd7…23648a` 与输入 marker 的预期 bytes/SHA 全等。
+3. 输入 doc 名为 `CLAUDE.md`，实际写成同项目目录下的 `imported-CLAUDE.md`；mode `0600`、31 bytes、内容 SHA `3083f6f2…804c4` 与输入正文全等。这里验证的是路径、mode、bytes 和内容，不是只看文件名 suffix。
+
+### ZIP manifest mismatch 在 exit 1 前已经完成写入
+
+ZIP fixture 的真实内容仍是 1 个 conversation、2 条 message、1 个 project、1 个 doc、1 个 project file，但 manifest 故意声明 3 条 message 和 2 个 doc。命令 stdout 先报告真实导入计数，随后 stderr 逐字给出：
+
+```text
+manifest mismatch:
+  messages: manifest=3 imported=2
+  docs: manifest=2 imported=1
+Import completed with mismatches (IMPORT_MANIFEST_MISMATCH)
+```
+
+进程 exit `1`，但 before/after 证明 1 个 mode `0600` transcript、`project-instructions.md`、`imported-CLAUDE.md` 和 `imported-AGENTS.md` 全部保留。transcript 两个 UUID 精确复用 fixture 的 `60000000-…0006` 与 `80000000-…0008`，assistant parent 精确指向 user；规范化 transcript canonical SHA 为 `4d37df63…836db`。三个 project artifact 均位于精确的 `projects/zip-mismatch-project-20000000-…0002/` 下，mode 都是 `0600`，bytes 分别为 33/32/33，实际内容 SHA 分别精确等于 project instructions、CLAUDE doc 和 AGENTS file fixture 的预期 SHA。这个 Probe 把“post-write manifest check”从 Static 顺序提升为真实部分完成语义：调用方必须联合读取 stdout result、stderr mismatch 和目标目录，不能只凭 exit code 决定是否清理。
+
+### Config import 的本地正向路径仍被 feature gate 阻断
+
+隔离 HOME 中存在一个合法 Codex `config.toml`，但禁用在线 feature evaluation 后，`tengu_import` 使用本版内置 false；本地 override 又是不可达分支。命令 exit `1`，stderr 逐字为：
+
+```text
+`claude import` is not yet available in this build. Run `claude` and use /mcp or edit ~/.claude/settings.json directly.
+```
+
+Codex fixture 与 Claude config before/after 相同。因此本组 Probe 不把 config preview/digest/apply 升级为正向运行结论；它证明的是 exact-binary action gate 和零 apply，真实账号 rollout 值仍属于 Boundary。
+
 ## 失败、部分完成和恢复矩阵
 
 | Failure | Detection | Retry/change | State retained | Final user effect |
@@ -260,7 +344,7 @@ validator 在 unzip filter 中逐 entry 执行，任一超限会在真正 import
 | Privacy | purge plan、import result 和 status JSON 会打印项目路径、session title/ID、foreign config label；公开日志前应脱敏 |
 | Security | config importer重点防 path traversal、symlink、shell-marker语义升级、repo-authored grant 和 plugin-like skill adoption |
 | Integrity | digest 保护 preview-to-apply，manifest 保护声明-to-result；二者都不替代原子写入 |
-| Recoverability | `--dry-run` 是唯一普遍的零副作用模式；真实执行后的恢复依赖 per-item结果、backup 和人工清理 |
+| Recoverability | `--dry-run` 对 purge/import 自己拥有的 domain 对象不写；CLI bootstrap 仍可能初始化 `.claude.json`/backup。真实执行后的恢复依赖 per-item 结果、backup 和人工清理 |
 
 ## 微小但关键的特性
 
@@ -285,7 +369,7 @@ validator 在 unzip filter 中逐 entry 执行，任一超限会在真正 import
 
 ### Probe
 
-本专题没有对真实用户 config、history 或 archive执行破坏性 positive probe，也没有把 fixture 写入本机真实 Claude 目录。文中的顺序、阈值、mode 和错误分类来自目标版本 Static runtime path；dry-run/partial-failure 语义尚未作为独立 exact-binary probe 注册。
+专属脚本 [probe_project_data_lifecycle.mjs](../skill/claude-code-version-diff/scripts/probe_project_data_lifecycle.mjs) 和报告 [project-data-lifecycle.json](runtime-probes/project-data-lifecycle.json) 已覆盖 purge dry-run、独立 `--all -y` 正向删除、conversation JSON dry-run/真实导入、ZIP manifest mismatch 部分写入和 config import gate。报告保存 shell 展示命令、权威结构化 execution contract、完整 fixture、规范化 literal stdout/stderr、exit status、文件精确 path/mode/bytes/content SHA、transcript UUID parent chain、canonical transcript SHA 与 69 项 checks；本轮总结果为 `pass: true`。所有目标数据都位于自动清理的临时目录，真实用户配置未进入输入或输出。
 
 ### Public
 

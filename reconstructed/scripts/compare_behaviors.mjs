@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -16,7 +17,14 @@ const rebuiltDir = path.resolve(process.argv[3] ?? "");
 const reportFlag = process.argv.indexOf("--report");
 const reportPath = reportFlag >= 0 ? path.resolve(process.argv[reportFlag + 1] ?? "") : null;
 const selfTest = process.argv.includes("--self-test");
-const contractsValidated = process.argv.includes("--contracts-validated");
+const x86DualOnly = process.argv.includes("--x86-dual-only");
+const moduleContract = JSON.parse(
+  fs.readFileSync(
+    path.join(repoRoot, "reconstructed/contracts/module-exports.json"),
+    "utf8",
+  ),
+);
+const compatibleModuleNames = Object.keys(moduleContract).sort();
 
 if (!selfTest && !process.argv[3]) {
   console.error("usage: compare_behaviors.mjs ORIGINAL_DIR REBUILT_DIR");
@@ -24,10 +32,6 @@ if (!selfTest && !process.argv[3]) {
 }
 if (reportFlag >= 0 && !process.argv[reportFlag + 1]) {
   console.error("--report requires a path");
-  process.exit(2);
-}
-if (reportPath && !contractsValidated) {
-  console.error("--report requires --contracts-validated after both contract validators pass");
   process.exit(2);
 }
 if (reportPath) fs.rmSync(reportPath, { force: true });
@@ -90,6 +94,150 @@ function boundary(label, reason) {
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function architectureName(cpuType) {
+  if (cpuType === 0x01000007) return "x86_64";
+  if (cpuType === 0x0100000c) return "arm64";
+  return `cpu-${cpuType.toString(16)}`;
+}
+
+function machoArchitectures(buffer) {
+  if (buffer.length < 8) return [];
+  if (buffer.readUInt32LE(0) === 0xfeedfacf) {
+    return [architectureName(buffer.readUInt32LE(4))];
+  }
+  const magic = buffer.readUInt32BE(0);
+  if (magic !== 0xcafebabe && magic !== 0xcafebabf) return [];
+  const count = buffer.readUInt32BE(4);
+  const stride = magic === 0xcafebabf ? 32 : 20;
+  const architectures = [];
+  for (let index = 0; index < count; index += 1) {
+    const offset = 8 + index * stride;
+    if (offset + stride > buffer.length) return [];
+    architectures.push(architectureName(buffer.readUInt32BE(offset)));
+  }
+  return [...new Set(architectures)].sort();
+}
+
+function ownFunctionNames(value) {
+  return Object.entries(Object.getOwnPropertyDescriptors(value))
+    .filter(([, descriptor]) => typeof descriptor.value === "function")
+    .map(([name]) => name)
+    .sort();
+}
+
+function validateContractDirectory(directory, names) {
+  for (const filename of names) {
+    const expected = moduleContract[filename];
+    assert.ok(expected, `missing native contract for ${filename}`);
+    const loaded = load(directory, filename);
+    if (expected.functions) {
+      assert.deepStrictEqual(
+        ownFunctionNames(loaded),
+        [...expected.functions].sort(),
+        `${filename} export contract`,
+      );
+    }
+    if (expected.prototype) {
+      const methods = Object.getOwnPropertyNames(loaded.ImageProcessor.prototype)
+        .filter((name) => name !== "constructor")
+        .sort();
+      assert.deepStrictEqual(
+        methods,
+        [...expected.prototype].sort(),
+        `${filename} prototype contract`,
+      );
+    }
+    if (expected.objects?.computerUse) {
+      const computerUse = loaded.computerUse;
+      assert.deepStrictEqual(
+        ownFunctionNames(computerUse),
+        [...expected.objects.computerUse.functions].sort(),
+        `${filename} computerUse contract`,
+      );
+      for (const [group, functions] of Object.entries(
+        expected.objects.computerUse.objects,
+      )) {
+        assert.deepStrictEqual(
+          ownFunctionNames(computerUse[group]),
+          [...functions].sort(),
+          `${filename} computerUse.${group} contract`,
+        );
+      }
+    }
+  }
+}
+
+function nativeArtifact(directory, filename, requiredArchitecture) {
+  const root = fs.realpathSync(directory);
+  const candidate = path.join(root, filename);
+  const stat = fs.lstatSync(candidate);
+  assert.equal(stat.isSymbolicLink(), false, `${filename} must not be a symlink`);
+  assert.equal(stat.isFile(), true, `${filename} must be a regular file`);
+  const real = fs.realpathSync(candidate);
+  const relative = path.relative(root, real);
+  assert.ok(
+    relative !== "" && !relative.startsWith(`..${path.sep}`) && relative !== "..",
+    `${filename} escapes its artifact directory`,
+  );
+  const bytes = fs.readFileSync(real);
+  const architectures = machoArchitectures(bytes);
+  assert.ok(
+    architectures.includes(requiredArchitecture),
+    `${filename} lacks ${requiredArchitecture}: ${architectures.join(",")}`,
+  );
+  return {
+    filename,
+    bytes: bytes.length,
+    sha256: sha256(bytes),
+    architectures,
+    fileKind: "regular-file",
+  };
+}
+
+function validateX86ArtifactProvenance() {
+  const dualModules = ["computer-use-input.node", "computer-use-swift.node"];
+  assert.notEqual(
+    fs.realpathSync(originalDir),
+    fs.realpathSync(rebuiltDir),
+    "original and rebuilt native directories must differ",
+  );
+  const original = dualModules.map((filename) =>
+    nativeArtifact(originalDir, filename, "x86_64"));
+  const compatible = compatibleModuleNames.map((filename) =>
+    nativeArtifact(rebuiltDir, filename, "x86_64"));
+  const originalHashes = new Set(
+    compatibleModuleNames.map((filename) =>
+      sha256(fs.readFileSync(path.join(originalDir, filename)))),
+  );
+  for (const artifact of compatible) {
+    assert.equal(
+      originalHashes.has(artifact.sha256),
+      false,
+      `${artifact.filename} reuses original module bytes`,
+    );
+  }
+  return { original, compatible, dualModules };
+}
+
+function x86ExecutionEnvironment() {
+  if (process.platform !== "darwin" || process.arch !== "x64") {
+    return { rosettaTranslated: false, arm64HardwareAvailable: false };
+  }
+  const sysctl = (name) => {
+    try {
+      return execFileSync("/usr/sbin/sysctl", ["-n", name], {
+        encoding: "utf8",
+      }).trim();
+    } catch {
+      return "";
+    }
+  };
+  return {
+    rosettaTranslated: sysctl("sysctl.proc_translated") === "1",
+    arm64HardwareAvailable: sysctl("hw.optional.arm64") === "1",
+  };
 }
 
 function crc32(buffer) {
@@ -635,31 +783,41 @@ if (selfTest) {
   process.exit(0);
 }
 
-const originalAudio = load(originalDir, "audio-capture.node");
-const rebuiltAudio = load(rebuiltDir, "audio-capture.node");
-equal(
-  "audio initial state",
-  {
-    recording: rebuiltAudio.isRecording(),
-    playing: rebuiltAudio.isPlaying(),
-    microphoneAuthorizationStatus: rebuiltAudio.microphoneAuthorizationStatus(),
-  },
-  {
-    recording: originalAudio.isRecording(),
-    playing: originalAudio.isPlaying(),
-    microphoneAuthorizationStatus: originalAudio.microphoneAuthorizationStatus(),
-  },
+const x86Provenance = x86DualOnly ? validateX86ArtifactProvenance() : null;
+validateContractDirectory(
+  originalDir,
+  x86DualOnly ? x86Provenance.dualModules : compatibleModuleNames,
 );
+validateContractDirectory(rebuiltDir, compatibleModuleNames);
 
-const originalUrl = load(originalDir, "url-handler.node");
-const rebuiltUrl = load(rebuiltDir, "url-handler.node");
-equal("URL timeout", await rebuiltUrl.waitForUrlEvent(1), await originalUrl.waitForUrlEvent(1));
-
-const originalImageModule = load(originalDir, "image-processor.node");
 const rebuiltImageModule = load(rebuiltDir, "image-processor.node");
-const originalImage = await inspectImage(originalImageModule);
-const rebuiltImage = await inspectImage(rebuiltImageModule);
-equal("image processor behavior", rebuiltImage, originalImage);
+let originalImageModule = rebuiltImageModule;
+if (!x86DualOnly) {
+  const originalAudio = load(originalDir, "audio-capture.node");
+  const rebuiltAudio = load(rebuiltDir, "audio-capture.node");
+  equal(
+    "audio initial state",
+    {
+      recording: rebuiltAudio.isRecording(),
+      playing: rebuiltAudio.isPlaying(),
+      microphoneAuthorizationStatus: rebuiltAudio.microphoneAuthorizationStatus(),
+    },
+    {
+      recording: originalAudio.isRecording(),
+      playing: originalAudio.isPlaying(),
+      microphoneAuthorizationStatus: originalAudio.microphoneAuthorizationStatus(),
+    },
+  );
+
+  const originalUrl = load(originalDir, "url-handler.node");
+  const rebuiltUrl = load(rebuiltDir, "url-handler.node");
+  equal("URL timeout", await rebuiltUrl.waitForUrlEvent(1), await originalUrl.waitForUrlEvent(1));
+
+  originalImageModule = load(originalDir, "image-processor.node");
+  const originalImage = await inspectImage(originalImageModule);
+  const rebuiltImage = await inspectImage(rebuiltImageModule);
+  equal("image processor behavior", rebuiltImage, originalImage);
+}
 
 const originalInputModule = load(originalDir, "computer-use-input.node");
 const rebuiltInputModule = load(rebuiltDir, "computer-use-input.node");
@@ -677,16 +835,22 @@ await inspectSwift(
   rebuiltImageModule,
 );
 
-truthy("behavior check count", checks === 22, `expected 22 substantive checks before the guard, got ${checks}`);
+const expectedSubstantiveChecks = x86DualOnly ? 19 : 22;
+const expectedTotalChecks = expectedSubstantiveChecks + 1;
+truthy(
+  "behavior check count",
+  checks === expectedSubstantiveChecks,
+  `expected ${expectedSubstantiveChecks} substantive checks before the guard, got ${checks}`,
+);
 
 const passedChecks = results.filter((item) => item.status === "pass").length;
 const labels = results.map((item) => item.label);
 const behaviorPass = failures.length === 0
-  && checks === 23
-  && results.length === 23
-  && passedChecks === 23
+  && checks === expectedTotalChecks
+  && results.length === expectedTotalChecks
+  && passedChecks === expectedTotalChecks
   && new Set(labels).size === labels.length
-  && process.arch === "arm64";
+  && process.arch === (x86DualOnly ? "x64" : "arm64");
 
 if (reportPath) {
   const version = fs.readFileSync(path.join(repoRoot, "VERSION"), "utf8").trim();
@@ -702,6 +866,19 @@ if (reportPath) {
     (originalArchitectures[match[2]] ??= []).push(match[1]);
   }
   for (const modules of Object.values(originalArchitectures)) modules.sort();
+  const compatibleModules = Object.keys(
+    JSON.parse(
+      fs.readFileSync(
+        path.join(repoRoot, "reconstructed/contracts/module-exports.json"),
+        "utf8",
+      ),
+    ),
+  ).sort();
+  const x86DualModules = [
+    "computer-use-input.node",
+    "computer-use-swift.node",
+  ];
+  const x86Environment = x86DualOnly ? x86ExecutionEnvironment() : null;
   const report = {
     schemaVersion: 1,
     capturedAt: new Date().toISOString(),
@@ -709,52 +886,147 @@ if (reportPath) {
       platform: process.platform,
       arch: process.arch,
       nodeVersion: process.version,
+      ...(x86DualOnly ? x86Environment : {}),
     },
     target: { version, binarySha256: versionRecord.binary.sha256 },
     evidenceClasses: {
       original: "Observed: release modules and same-input runtime outputs",
-      compatible: "Compatible: independently rebuilt modules matching checked external behavior",
+      compatible: x86DualOnly
+        ? "Compatible: independently authored artifacts supplied to this run and validated for architecture, identity separation, exports, and checked runtime behavior; this report does not attest a fresh build"
+        : "Compatible: independently rebuilt modules matching checked external behavior",
     },
-    architectureCoverage: {
-      original: {
-        arm64: { method: "runtime-and-static", modules: originalArchitectures.arm64 ?? [] },
-        x86_64: { method: "static-only", modules: originalArchitectures.x86_64 ?? [] },
-      },
-      compatible: {
-        arm64: { method: "build-and-runtime", modules: Object.keys(JSON.parse(fs.readFileSync(path.join(repoRoot, "reconstructed/contracts/module-exports.json"), "utf8"))).sort() },
-        x86_64: { method: "not-built-or-run", modules: [] },
-      },
-    },
-    commands: {
-      buildAndValidate: "reconstructed/scripts/build_and_validate.sh extracted $OUTPUT_PARENT",
-    },
-    input: {
-      audioCapture: "initial state and authorization query; no microphone capture",
-      urlHandler: "1ms no-event timeout",
-      imageProcessor: "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-      computerUseInput: "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
-      computerUseSwift: "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
-    },
-    inputStrategies: {
-      "audio-capture.node": "initial state and authorization query; no microphone capture",
-      "url-handler.node": "1ms no-event timeout",
-      "image-processor.node": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
-      "computer-use-input.node": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
-      "computer-use-swift.node": "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
-    },
-    literalOutput: {
-      originalContract: "native contract validation: PASS",
-      compatibleContract: "native contract validation: PASS",
-      behavior: `native behavior comparison: ${behaviorPass ? "PASS" : "FAIL"}`,
-      checksPassed: passedChecks,
-    },
-    exitStatus: { buildAndValidate: behaviorPass ? 0 : 1 },
+    ...(x86DualOnly ? { artifactProvenance: x86Provenance } : {}),
+    ...(x86DualOnly
+      ? {
+          attestationScope: {
+            method: "validated-artifacts-and-runtime",
+            proves: [
+              "compatible artifacts are non-symlink regular x86_64 files inside the supplied directory",
+              "compatible artifact hashes do not reuse any original module bytes",
+              "all compatible exports load and match the committed N-API contract",
+              "original dual-slice and compatible Computer Use artifacts pass the recorded same-input runtime comparisons under Rosetta",
+            ],
+            doesNotProve: [
+              "the supplied artifacts were freshly built during this report invocation",
+              "the Rust or Swift build recipes ran successfully in this report invocation",
+              "compatible-only modules match unavailable original x86_64 behavior",
+            ],
+          },
+        }
+      : {}),
+    architectureCoverage: x86DualOnly
+      ? {
+          original: {
+            x86_64: {
+              method: "runtime-and-static",
+              modules: originalArchitectures.x86_64 ?? [],
+            },
+          },
+          compatible: {
+            x86_64: {
+              method: "validated-artifacts-and-runtime",
+              modules: x86DualModules,
+              validatedArtifactContractModules: compatibleModules,
+            },
+          },
+        }
+      : {
+          original: {
+            arm64: {
+              method: "runtime-and-static",
+              modules: originalArchitectures.arm64 ?? [],
+            },
+            x86_64: {
+              method: "static-only",
+              modules: originalArchitectures.x86_64 ?? [],
+            },
+          },
+          compatible: {
+            arm64: { method: "build-and-runtime", modules: compatibleModules },
+            x86_64: { method: "reported-separately", modules: [] },
+          },
+        },
+    commands: x86DualOnly
+      ? {
+          behavior: "arch -x86_64 node reconstructed/scripts/compare_behaviors.mjs extracted $X86_REBUILT_DIR --x86-dual-only --report analysis/runtime-probes/native-reconstruction-x86.json",
+        }
+      : {
+          buildAndValidate: "reconstructed/scripts/build_and_validate.sh extracted $OUTPUT_PARENT",
+        },
+    ...(x86DualOnly
+      ? {
+          buildRecipes: {
+            rustBuild: "CARGO_TARGET_DIR=$X86_CARGO_TARGET cargo build --manifest-path reconstructed/Cargo.toml --release --target x86_64-apple-darwin",
+            swiftBuild: "swift build --disable-sandbox --package-path reconstructed/swift/computer-use-swift --scratch-path $X86_SWIFT_SCRATCH --triple x86_64-apple-macosx -c release",
+          },
+          buildRecipeSemantics:
+            "Reference recipes only; this report records no build command execution, literal build output, or build exit status.",
+        }
+      : {}),
+    input: x86DualOnly
+      ? {
+          computerUseInput: "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+          computerUseSwift: "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
+          imageProcessor: "compatible x86_64 decoder helper for validating screenshot JPEG invariants; no original x86_64 image module exists",
+        }
+      : {
+          audioCapture: "initial state and authorization query; no microphone capture",
+          urlHandler: "1ms no-event timeout",
+          imageProcessor: "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
+          computerUseInput: "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+          computerUseSwift: "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
+        },
+    inputStrategies: x86DualOnly
+      ? {
+          "computer-use-input.node": "same-input original/compatible x86_64 behavior; read-only state and deterministic invalid-input errors",
+          "computer-use-swift.node": "same-input original/compatible x86_64 behavior under Rosetta; read-only TCC/display/application and screenshot invariants",
+          "image-processor.node": "compatible-only JPEG decode helper because the release has no original x86_64 slice",
+        }
+      : {
+          "audio-capture.node": "initial state and authorization query; no microphone capture",
+          "url-handler.node": "1ms no-event timeout",
+          "image-processor.node": "fixed in-memory 1x1 RGBA PNG and consumed/disposed lifecycle",
+          "computer-use-input.node": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+          "computer-use-swift.node": "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
+        },
+    literalOutput: x86DualOnly
+      ? {
+          behavior: `native behavior comparison: ${behaviorPass ? "PASS" : "FAIL"}`,
+          checksPassed: passedChecks,
+        }
+      : {
+          originalContract: "native contract validation: PASS",
+          compatibleContract: "native contract validation: PASS",
+          behavior: `native behavior comparison: ${behaviorPass ? "PASS" : "FAIL"}`,
+          checksPassed: passedChecks,
+        },
+    exitStatus: x86DualOnly
+      ? {
+          behavior: behaviorPass ? 0 : 1,
+        }
+      : { buildAndValidate: behaviorPass ? 0 : 1 },
     checks: {
       originalContract: true,
       compatibleContract: true,
       behaviorChecksPassed: behaviorPass,
-      arm64RuntimeCoverage: process.arch === "arm64",
-      x86StaticBoundaryExplicit: (originalArchitectures.x86_64?.length ?? 0) > 0,
+      ...(x86DualOnly
+        ? {
+            x86RuntimeCoverage: process.arch === "x64",
+            x86OriginalDualSliceCoverage:
+              x86Provenance.original.length === x86DualModules.length,
+            x86CompatibleAllModuleContractCoverage:
+              x86Provenance.compatible.length === 5,
+            x86OriginalSlicesPresent:
+              (originalArchitectures.x86_64?.length ?? 0) > 0,
+            x86ArtifactProvenanceValidated: true,
+            x86RosettaTranslationObserved:
+              x86Environment.rosettaTranslated && x86Environment.arm64HardwareAvailable,
+          }
+        : {
+            arm64RuntimeCoverage: process.arch === "arm64",
+            x86StaticBoundaryExplicit:
+              (originalArchitectures.x86_64?.length ?? 0) > 0,
+          }),
     },
     checkResults: results,
     summary: { checksRun: checks, checksPassed: passedChecks },

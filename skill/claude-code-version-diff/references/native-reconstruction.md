@@ -56,6 +56,12 @@ A reusable script should:
 6. run paired behavior probes;
 7. print the unique artifact directory.
 
+When a release carries multiple Mach-O slices, repeat build, load and behavior evidence per architecture. On Apple Silicon, use a universal x86 Node through Rosetta, a Rust macOS x86 target and an explicit Swift x86 triple. Keep four states separate for every module: original/compatible same-input comparison, validated compatible artifact load/export evidence, separately attested fresh build evidence, and not validated. A release without an original x86 slice can support artifact validation, never original/compatible behavior comparison.
+
+Do not let a `--contracts-validated` flag attest its own prerequisites. The report generator must inspect every rebuilt artifact as a non-symlink regular file inside the rebuilt directory, parse its architecture, record bytes/hash, reject original/rebuilt identity, and rerun export contracts itself. When claiming Rosetta, record translation state rather than inferring it from `process.arch`. Add a negative fixture that points a fake rebuilt directory at original modules and prove no PASS report is written.
+
+Do not present build recipes as commands observed by an artifact/runtime report. Unless the same report binds the actual build invocation, literal output, exit status, and resulting artifact hashes, store Rust/Swift commands under an explicit recipe-only field and use `validated-artifacts-and-runtime` rather than `build-and-runtime`.
+
 ## Documentation
 
 For each module, record:

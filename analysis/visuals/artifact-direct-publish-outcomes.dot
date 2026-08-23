@@ -1,0 +1,50 @@
+digraph ArtifactDirectPublishOutcomes {
+  graph [
+    rankdir=TB,
+    bgcolor="#ffffff",
+    pad="0.24",
+    nodesep="0.38",
+    ranksep="0.62",
+    fontname="Helvetica"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#334155",
+    fontcolor="#111827",
+    fontname="Helvetica",
+    fontsize=11,
+    margin="0.16,0.11"
+  ];
+  edge [
+    color="#475569",
+    fontcolor="#334155",
+    fontname="Helvetica",
+    fontsize=9,
+    arrowsize=0.72
+  ];
+
+  proposal [label="本地发布提案\nslug / baseVersion / content", fillcolor="#E0F2FE"];
+  request [label="POST /deploy/direct\n60 秒客户端 timeout", fillcolor="#EDE9FE"];
+  compatibility [label="兼容重试\n删除被拒 force/baseVersion", fillcolor="#FEF3C7"];
+  retry [label="有界容量重试\n429: 1 次 / 503: 最多 3 attempts", fillcolor="#FEF3C7"];
+  success [label="可信成功响应\nschema 合法 + 目标 slug 相等", fillcolor="#DCFCE7"];
+  conflict [label="确定的版本冲突\n409 + liveVersion", fillcolor="#FFEDD5"];
+  unknown [label="结果未知\ntimeout / relay / malformed / slug mismatch", fillcolor="#FEE2E2"];
+  local [label="更新本地 known version\n采用 server-returned version", fillcolor="#DCFCE7"];
+  readback [label="先 list/readback\n再决定是否重试", fillcolor="#F1F5F9"];
+
+  { rank=same; compatibility; retry; }
+  { rank=same; success; conflict; unknown; }
+
+  proposal -> request [label="发送远端写入"];
+  request -> compatibility [label="400 明确拒绝旧字段"];
+  compatibility -> request [label="只降级一次"];
+  request -> retry [label="429 / 503"];
+  retry -> request [label="预算内重发"];
+  request -> success [label="2xx + validation PASS"];
+  request -> conflict [label="409 暴露 liveVersion"];
+  request -> unknown [label="没有可信提交回执"];
+  success -> local [label="采纳服务端 version"];
+  unknown -> readback [label="避免盲目重复写"];
+}

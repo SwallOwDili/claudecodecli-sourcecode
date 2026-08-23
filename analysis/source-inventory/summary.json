@@ -106,7 +106,7 @@
     "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, immediate parent consumer roles/ranges/targets/operators, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
     "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
     "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-    "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates, nearest same-or-ancestor lexical assignments, static collection callbacks, or complete finite caller argument sets, while the original expression remains authoritative",
+    "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates/concatenations, lexical or unique bundle/member assignments, finite object/array members and enumeration, static collection callbacks/for-of bindings, trivial local returns, or complete finite caller argument sets, while the original expression remains authoritative and unresolved rows retain a classified failure chain",
     "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
     "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
     "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
@@ -199,13 +199,23 @@
       "accessCallsites": 2548,
       "dynamicProcessEnvCallsites": 143,
       "dynamicBracketCallsites": 145,
-      "resolvedDynamicBracketCallsites": 60,
-      "unresolvedDynamicBracketCallsites": 85,
+      "resolvedDynamicBracketCallsites": 7,
+      "unresolvedDynamicBracketCallsites": 138,
       "unresolvedDynamicExpressionKinds": {
         "call": 2,
         "expression": 3,
-        "identifier": 55,
-        "member-or-call": 25
+        "identifier": 101,
+        "member-or-call": 26,
+        "template": 6
+      },
+      "unresolvedDynamicReasonKinds": {
+        "assignment-does-not-dominate-function-executions": 62,
+        "no-static-function-callers": 9,
+        "non-direct-function-call": 1,
+        "runtime-environment-keyset": 1,
+        "runtime-identifier": 46,
+        "runtime-logical-name": 2,
+        "untraced-function-reference": 17
       },
       "typedSchemaEntries": 842,
       "observabilitySchemaEntries": 71,
@@ -402,8 +412,8 @@
     {
       "path": "analysis/source-inventory/dynamic-process-environment-callsites.jsonl",
       "lines": 143,
-      "size": 198452,
-      "sha256": "2f4db07f9934652ae6fc53853296ffa9bb064fb3c255892f33fa3c0f66ec1018"
+      "size": 170807,
+      "sha256": "ffd6f2943783a2e6380be81bdc5e35daac1a90090ada5cb348348076c815867f"
     },
     {
       "path": "analysis/source-inventory/endpoint-hosts.txt",
@@ -414,8 +424,8 @@
     {
       "path": "analysis/source-inventory/environment-access-callsites.jsonl",
       "lines": 2548,
-      "size": 1615267,
-      "sha256": "3c6f068ceed8916aa02807fd71cdb1ddb96f8e94bafbfaa14ee7f30b6b448f6e"
+      "size": 1583475,
+      "sha256": "43372eb48d7c73b0041a19a3824c3a0baf4307107ebcf34f719c613cda00908f"
     },
     {
       "path": "analysis/source-inventory/environment-access-identifiers.txt",

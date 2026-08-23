@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四种时钟贯穿 Bash、`/compact`、遥测、resume、Artifact 与 native Voice 六个压力测试；最后才归纳能力晚绑定、权力不对称、事实/表示分离、按对象恢复和从属观测。C/Q/E/S/O 只是分析者归纳的阅读路由，不是源码原生模块或 Anthropic 官方架构。证据方法与 71 类 inventory 分别放在折叠附录，当前语义欠账在机器清单前明示。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再从 workspace trust/settings/provider 的能力编译进入 Agent Loop 四种时钟、Bash 分层风控、上下文治理、Telemetry、Resume 消息图、MCP/Skills/子 Agent、Artifact 结果未知与 native Voice；最后归纳逐请求编译能力、权力不对称、四时钟因果反馈、事实/表示分离、按对象恢复、隔离扩展和观测出口边界。C/Q/E/S/O 只是分析者归纳的阅读索引，不是源码原生模块或 Anthropic 官方架构。精确的 71 类 inventory、335 条 claim、三轴证据分类和未完成 consumer tracing 单独放在 [机器证据索引](product-surface-inventory-index.md)，不再压住正文。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -944,7 +944,7 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 看到 recording或 profile标识不等于默认上传。需要分别检查创建 gate、文件路径、retention和发送 consumer。
 
-需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans；allowlist/静态调用点都不等于运行时已发送。需要从异常或日志文本下钻时，使用 [错误与诊断机制图谱](error-diagnostic-atlas.md)：它把 4,831 个错误构造点和 5,403 个 `T()` 调用点放回 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，避免把一条 message 当成完整行为。
+需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans。原 family `tengu_other` 的 911 event / 1,297 callsite 当前只接受 25 条 exact caller identity，完整收口 5 Single-owner、1 Cross-owner；905 event / 1,272 callsite 保留 Unresolved。这是 Derived 客户端 owner 投影，仍不等于分支运行、采样命中或远端送达。需要从异常或日志文本下钻时，使用 [错误与诊断机制图谱](error-diagnostic-atlas.md)：它把 4,831 个错误构造点和 5,403 个 `T()` 调用点放回 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，避免把一条 message 当成完整行为。
 
 ## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
@@ -1021,7 +1021,7 @@ Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。
 
 ### 26.7 架构覆盖
 
-ARM64上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 22 个真实原版/兼容对照和 1 个最低覆盖审计组成；22 个对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。动态 hide 候选按 bundle ID 归序后深比较完整成员和字段。原版 `computeHideCandidates` 固定豁免 Finder，并要求窗口为 layer 0、alpha 严格大于 `0.1`、与目标显示器相交；该路径没有 `width/height > 1` 门槛，源码里的尺寸判断属于窗口显示器归属和普通激活候选。`prepareDisplay` 调用方又额外 union host 与 Finder。`previewHideSet` 调用方只传用户给定的豁免集合，但仍经过固定 Finder helper；它会把可选 display ID 解析成指定显示器，缺失或无效时回退主显示器。screenshot 路径单独使用 8 项系统界面 bundle ID 白名单，其中 loginwindow 与 Finder 的 hide 规则不是同一集合。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG 首尾标记，并由对应原版/兼容版图像模块实际解码，格式必须为 JPEG，解码宽高必须等于截图返回值；不比较实时帧字节。只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界，一边成功、一边失败或错误漂移直接失败。构建门从原版 arm64/x86_64 Mach-O 静态数组对象逐项解码 8 个 Swift String，并核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度；兼容源码也按函数绑定两条错误文本、`captureScreen` 的白名单 union 与 caller-specific catch，内置负向注入证明删掉任一消费点都会失败。同一门还校验 Finder 编码、`0.1` 常量和 preview display 指令。报告在比较前使旧文件失效，随后无论 PASS/FAIL 都通过临时文件、`fsync` 和 rename 原子落盘。两个 Computer Use原版含 x86_64 slice，但兼容 x86_64尚未构建运行；其证据仅为静态 Mach-O归档。
+ARM64 上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由 22 个真实原版/兼容对照和 1 个最低覆盖审计组成；22 个对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。动态 hide 候选按 bundle ID 归序后深比较完整成员和字段。原版 `computeHideCandidates` 固定豁免 Finder，并要求窗口为 layer 0、alpha 严格大于 `0.1`、与目标显示器相交；该路径没有 `width/height > 1` 门槛，源码里的尺寸判断属于窗口显示器归属和普通激活候选。`prepareDisplay` 调用方又额外 union host 与 Finder。`previewHideSet` 调用方只传用户给定的豁免集合，但仍经过固定 Finder helper；它会把可选 display ID 解析成指定显示器，缺失或无效时回退主显示器。screenshot 路径单独使用 8 项系统界面 bundle ID 白名单，其中 loginwindow 与 Finder 的 hide 规则不是同一集合。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG 首尾标记，并由对应图像模块实际解码，格式必须为 JPEG，解码宽高必须等于截图返回值；不比较实时帧字节。只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界，一边成功、一边失败或错误漂移直接失败。构建门从原版 arm64/x86_64 Mach-O 静态数组对象逐项解码 8 个 Swift String，并核对数组初始化、`computeExcludedApps -> Set.contains` 消费链、full/region nil 分支、cstring 地址和 79/75 字节长度；兼容源码也按函数绑定两条错误文本、`captureScreen` 的白名单 union 与 caller-specific catch，内置负向注入证明删掉任一消费点都会失败。同一门还校验 Finder 编码、`0.1` 常量和 preview display 指令。第二份报告采用 `validated-artifacts-and-runtime`：它验证 5/5 supplied compatible 文件为独立 regular x86_64 Mach-O、未复用原版 hash，并在 Rosetta x86 Node 下完成加载和导出合同；Rust x86 target 与 Swift x86 triple 只是 build recipe，没有同次 build output/status。发布物含 x86 slice 的 Input/Swift 两模块完成 19 项同输入行为比较和 1 项覆盖 guard。audio、image、URL 没有 original x86 slice，不能外推原版 x86 行为。两个报告都在比较前使旧文件失效，并通过临时文件、`fsync` 和 rename 原子落盘。
 
 ## 27. 安装、更新与 Doctor
 
@@ -1229,7 +1229,7 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 329 条机制证据：243 Static、38 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，329 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 335 条机制证据：243 Static、44 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，335 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
 - 58 个能力面：57 项 Deep、1 项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
@@ -1261,9 +1261,7 @@ Doctor分别检查：
 - 真实 Anthropic服务端 prompt-cache命中与账单；
 - Bedrock、Vertex、Foundry等真实云凭据闭环；
 - 登录账户的 Remote Control和 cloud orchestration；
-- `2.1.235`多数 TUI/VS Code release fix的自动键盘/视觉回归；
-- embedded grep病态 pattern和 context组合的精确 binary行为测试；
-- x86_64 compatible native构建运行；
+- 除已覆盖的 Shift+Tab 和快速 Arrow+Enter 外，其余多行 highlight、Vim panel 与 VS Code release fix 的自动视觉/宿主回归；
 - CLI退出后的真实 background supervisor耐久。
 
 这些缺口不会抹掉已完成的客户端静态与本地 Probe结论，但也不能被“validator PASS”替代。
@@ -1272,7 +1270,7 @@ Doctor分别检查：
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |
-| 为什么模型只有提案权、本地 runtime 怎样裁决并记因果；Bash、`compact`、遥测、resume、Artifact 与 native Voice 六个压力测试怎样共同暴露版本技术性格 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| 为什么模型只有提案权、本地 runtime 怎样逐请求编译能力、裁决并记因果；Agent Loop、Bash 风控、`compact`、resume、MCP/子 Agent、Artifact、Telemetry 与 native Voice 怎样共同暴露版本技术性格 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
 | 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
 | Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
 | Plan Mode 怎样阻止实施、保存计划并把批准/拒绝回灌 Agent Loop | [plan-mode-and-human-approval.md](plan-mode-and-human-approval.md) |
@@ -1316,7 +1314,7 @@ Doctor分别检查：
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
 | 遥测、日志、隐私、诊断 | [telemetry.md](telemetry.md) |
-| API、工具、compact、session、MCP 等场景的事件顺序，以及 1,441 个一方事件、Datadog/OTEL 字段与动态事件名 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
+| API、工具、compact、session、MCP 等场景的事件顺序，1,441 个一方事件、Datadog/OTEL 字段、动态事件名，以及 `tengu_other` 25 条 exact / 905 项 Unresolved caller-owner 投影 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
 | 99 条 API path、53 个 Beta 和 Gateway/SDK owner | [api-beta-route-ownership.md](api-beta-route-ownership.md) |
 | Error、debug、tool failure、abort 与 LSP diagnostics | [error-diagnostic-atlas.md](error-diagnostic-atlas.md) |
 | Artifact Watch 评论自动响应 | [artifact-watch-comment-autoreact.md](artifact-watch-comment-autoreact.md) |
@@ -1497,7 +1495,7 @@ Thinking、Effort 和 Fast Mode 是三条控制轴。Thinking 决定请求是否
 
 `claude project purge`、`claude import` 和隐藏的 conversation import 没有共享一个事务引擎。Purge 先建立项目状态计划，按 transcript 归属、Storage/history 和 prompt history 分别删除或过滤重写；Config import 先扫描 Codex/Gemini 等输入，映射可支持项并用 digest 绑定 preview 与 apply；Conversation import 对 JSON/ZIP 做体积、条目、路径和 no-overwrite 约束，再写文件并在最后核对 manifest。
 
-共同风险是确认后的执行采用顺序副作用：中途失败不会自动撤销先前成功项，manifest mismatch 甚至发生在文件已落盘之后。Preview 能做到零写入，digest 能发现 TOCTOU，却不提供跨文件事务。输入护栏、文件模式、恢复动作和隐私边界见 [Project Purge、Import 与数据生命周期](project-purge-import-and-data-lifecycle.md)。
+共同风险是确认后的执行采用顺序副作用：中途失败不会自动撤销先前成功项，manifest mismatch 甚至发生在文件已落盘之后。精确二进制 Probe 已把这条顺序跑通：purge 与 JSON dry-run 不改各自 domain bytes；真实 JSON import 写出 mode 0600 transcript、正确 parent chain、project instructions 和降权后的 `imported-CLAUDE.md`；故意错误的 ZIP manifest 则 exit 1，但 transcript、instructions、`imported-CLAUDE.md` 与 `imported-AGENTS.md` 全部保留。注意 purge dry-run 仍允许普通 CLI bootstrap 创建 `.claude.json`/backup，因此“domain 零写入”不能夸大成“进程 filesystem-silent”。Config import 在离线内置 false gate 下仍不可正向 apply。输入护栏、文件模式、恢复动作和隐私边界见 [Project Purge、Import 与数据生命周期](project-purge-import-and-data-lifecycle.md)。
 
 ## 45. Sandbox 安装态与运行态
 

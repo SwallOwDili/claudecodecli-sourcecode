@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 import re
 import tempfile
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, NamedTuple, Sequence
 
 
 EXPECTED_VERSION = "2.1.235"
@@ -55,6 +55,86 @@ EXPECTED_OTEL_NAME_KINDS = {"string": 49, "identifier": 2, "template": 1}
 EXPECTED_OTEL_PAYLOADS = {"static-object": 51, "not-static-object": 1}
 EXPECTED_OTEL_UNRESOLVED_SPREADS = 72
 EXPECTED_OTEL_FUNCTIONS = 35
+EXPECTED_READABLE_SHA256 = "99c8608118d643802dbca7bf86b031bb3f565fb78bad093494a841de3e6783b4"
+EXPECTED_READABLE_SIZE = 34_418_467
+EXPECTED_READABLE_LINES = 638_178
+
+class CallerOwnerMapping(NamedTuple):
+    mapping_id: str
+    rule_id: str
+    event: str
+    readable_line: int
+    function: str
+    consumer: str
+    comparison_key: str
+    evidence_fingerprint: str
+    owner: str
+    topic: str
+    scenario: str
+    navigation_start: int
+    navigation_end: int
+
+
+# Owner labels are admitted one caller at a time. The navigation range only tells
+# a reviewer where to read surrounding code; it is never part of the match.
+CALLER_OWNER_ALLOWLIST = (
+    CallerOwnerMapping("reactive-compact-succeeded", "limits-teleport-compact", "tengu_reactive_compact_succeeded", 232_876, "named:Smi", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:efe72721146a01b53303:1", "ed0e3fc8361b6e11", "model-request", "limits, teleport and compact", "request watchdog, quota, teleport and reactive compact", 232_819, 232_876),
+    CallerOwnerMapping("transcript-write-failed", "transcript-storage", "tengu_transcript_write_failed", 400_287, "named:VBt", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:17dcb89a5d0c4c678677:1", "12f0d75e82351f99", "workspace-state", "transcript storage", "transcript writes, compaction and graph repair", 400_287, 400_292),
+    CallerOwnerMapping("post-tool-hook-error", "tool-hooks-and-subagents", "tengu_post_tool_hook_error", 292_451, "named:Tcr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:9105077132739d67e8e2:1", "437e45b5ec5debcb", "tool-runtime", "tool hooks and subagents", "subagent execution, tool hooks and MCP tool calls", 292_451, 292_451),
+    CallerOwnerMapping("review-remote-precondition-01", "remote-review", "tengu_review_remote_precondition_failed", 363_040, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:77f7dc32276c3b3f875a:1", "4bcd7bc9ec6b5a3f", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-02", "remote-review", "tengu_review_remote_precondition_failed", 363_048, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:3334a2f1d5c60e09efc0:1", "dab82b5e72ab975e", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-03", "remote-review", "tengu_review_remote_precondition_failed", 363_052, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:77f7dc32276c3b3f875a:2", "d1ec8824e31cf1d7", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-04", "remote-review", "tengu_review_remote_precondition_failed", 363_053, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:77f7dc32276c3b3f875a:3", "fac1e91436f5617e", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-05", "remote-review", "tengu_review_remote_precondition_failed", 363_058, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe77f89981a097154130:1", "02c4583d6ac5fb43", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-06", "remote-review", "tengu_review_remote_precondition_failed", 363_064, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:70765335f41f6085292d:1", "a8215d19cd6dba34", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-07", "remote-review", "tengu_review_remote_precondition_failed", 363_068, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:9ce132afd38a2de77563:1", "89567f42b4e29344", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-08", "remote-review", "tengu_review_remote_precondition_failed", 363_077, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:087d1e4a1583760734b9:1", "a23dc3ce0df11070", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-09", "remote-review", "tengu_review_remote_precondition_failed", 363_080, "named:v1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:087d1e4a1583760734b9:2", "2e8cd5f0a2f5fb56", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-10", "remote-review", "tengu_review_remote_precondition_failed", 363_100, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:77f7dc32276c3b3f875a:4", "f702b685d4248d36", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-11", "remote-review", "tengu_review_remote_precondition_failed", 363_103, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:e89d37bfed2506422351:1", "3cb7ac8f86efd78c", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-12", "remote-review", "tengu_review_remote_precondition_failed", 363_111, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:e1f096346c8efc4369bf:1", "e424ecc4f312a3d4", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-13", "remote-review", "tengu_review_remote_precondition_failed", 363_119, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:7d358430ca3e11061685:1", "4771f494ba97995d", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-14", "remote-review", "tengu_review_remote_precondition_failed", 363_123, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:0c05c311849e1a19b527:1", "01ad925d46649881", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-15", "remote-review", "tengu_review_remote_precondition_failed", 363_131, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe77f89981a097154130:2", "9e412a005b1d8bec", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-16", "remote-review", "tengu_review_remote_precondition_failed", 363_198, "named:w1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:afb0620a24652829ac87:1", "2f19c0f9fd246b2d", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("review-remote-precondition-17", "remote-review", "tengu_review_remote_precondition_failed", 363_218, "named:w1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:77f7dc32276c3b3f875a:5", "e416e9357e321e15", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 363_040, 363_218),
+    CallerOwnerMapping("fast-mode-identity", "identity-and-model-access", "tengu_fast_mode_toggled", 69_298, "named:GW", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:1", "f86f1d5f8048b76f", "identity-account", "identity, limits and model access", "credential locks, account limits and fast mode", 69_298, 69_298),
+    CallerOwnerMapping("fast-mode-remote-review", "remote-review", "tengu_fast_mode_toggled", 364_739, "named:$1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:2", "e49adb6d17c58782", "workflow-product", "remote review and Ultraplan", "remote review gates, recovery and Ultraplan", 364_739, 364_739),
+    CallerOwnerMapping("fast-mode-usage-picker", "usage-and-credits", "tengu_fast_mode_toggled", 487_764, "named:des", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:3", "f84c72f348ead43c", "identity-account", "usage and credits", "usage-credit approval, extra usage and fast-mode selection", 487_764, 487_764),
+    CallerOwnerMapping("fast-mode-message-ui", "input-and-refusal-ui", "tengu_fast_mode_toggled", 524_166, "named:onMessage", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:4", "8669fea1e83d5530", "terminal-host", "input and refusal UI", "hotkeys, paste, mode cycling and refusal retraction", 524_166, 524_166),
+    CallerOwnerMapping("copper-lantern", "daemon-service-recall", "tengu_copper_lantern", 632_061, "named:Ehy", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:deaf317c346f375f3cd9:1", "a575093a2f5cb62f", "remote-runtime", "daemon supervisor", "service recall, worker drain and supervisor shutdown", 632_000, 632_084),
+)
+
+EXPECTED_CALLER_OWNER_EVENTS = 911
+EXPECTED_CALLER_OWNER_CALLSITES = 1_297
+EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES = 25
+EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = "5e88441ffcf2cff47b10bfb980618a98f2d16487c3c2a3f3b351e0db45dbeb92"
+EXPECTED_CALLER_OWNER_STATUS = {
+    "Single-owner": 5,
+    "Cross-owner": 1,
+    "Partially resolved": 0,
+    "Unresolved": 905,
+}
+EXPECTED_CALLER_OWNER_BUCKETS = {
+    "Unresolved": (905, 1_272),
+    "identity-account": (1, 2),
+    "model-request": (1, 1),
+    "remote-runtime": (1, 1),
+    "terminal-host": (1, 1),
+    "tool-runtime": (1, 1),
+    "workflow-product": (2, 18),
+    "workspace-state": (1, 1),
+}
+CALLER_OWNER_REPRESENTATIVES = {
+    "Unresolved": ("tengu_end_conversation_tool_call", "tengu_heap_dump", "tengu_update_refused"),
+    "identity-account": ("tengu_fast_mode_toggled",),
+    "model-request": ("tengu_reactive_compact_succeeded",),
+    "remote-runtime": ("tengu_copper_lantern",),
+    "terminal-host": ("tengu_fast_mode_toggled",),
+    "tool-runtime": ("tengu_post_tool_hook_error",),
+    "workflow-product": ("tengu_review_remote_precondition_failed", "tengu_fast_mode_toggled"),
+    "workspace-state": ("tengu_transcript_write_failed",),
+}
 
 PREFIX_FAMILIES = {
     "tengu_agent",
@@ -406,6 +486,349 @@ def family_projection(event: str, families: Sequence[str]) -> str:
     return max(candidates, key=lambda family: (len(family), family))
 
 
+def verify_readable_callsites(
+    root: Path,
+    rows: Sequence[dict[str, Any]],
+) -> tuple[dict[int, int], dict[str, Any]]:
+    readable_path = root / "reverse/javascript/cli.readable.js"
+    metadata_path = root / "reverse/javascript/metadata.json"
+    require(readable_path.is_file(), "missing reverse/javascript/cli.readable.js")
+    require(metadata_path.is_file(), "missing reverse/javascript/metadata.json")
+    readable_data = readable_path.read_bytes()
+    metadata_data = metadata_path.read_bytes()
+    readable_hash = sha256_bytes(readable_data)
+    # Use physical LF records. Python splitlines() also treats embedded Unicode
+    # separators as line breaks, while esbuild/readable source locations do not.
+    readable_lines = readable_data.decode("utf-8").split("\n")
+    require(len(readable_data) == EXPECTED_READABLE_SIZE, "readable source size changed")
+    physical_line_count = readable_data.count(b"\n")
+    require(physical_line_count == EXPECTED_READABLE_LINES, "readable source line count changed")
+    require(
+        len(readable_lines) == EXPECTED_READABLE_LINES + 1 and readable_lines[-1] == "",
+        "readable source must end with one physical newline",
+    )
+    require(readable_hash == EXPECTED_READABLE_SHA256, "readable source hash changed")
+    metadata = json.loads(metadata_data.decode("utf-8"))
+    require(metadata.get("path") == "reverse/javascript/cli.readable.js", "readable metadata path")
+    require(metadata.get("size") == len(readable_data), "readable metadata size")
+    require(metadata.get("lines") == len(readable_lines), "readable metadata lines")
+    require(metadata.get("sha256") == readable_hash, "readable metadata hash")
+
+    queues: dict[str, collections.deque[dict[str, Any]]] = collections.defaultdict(collections.deque)
+    static_rows = []
+    for row in sorted(rows, key=position_sort_key):
+        event = row.get("nameArgument", {}).get("staticValue")
+        if isinstance(event, str):
+            queues[event].append(row)
+            static_rows.append(row)
+
+    pattern = re.compile(r"\b(?:H|Fv)\(\s*[\"'](tengu_[^\"']+)[\"']")
+    readable_by_row: dict[int, int] = {}
+    observed = collections.Counter()
+    for line_number, line in enumerate(readable_lines, start=1):
+        for match in pattern.finditer(line):
+            event = match.group(1)
+            require(queues[event], f"readable caller has no inventory row: {event}@L{line_number}")
+            row = queues[event].popleft()
+            readable_by_row[id(row)] = line_number
+            observed[event] += 1
+    leftovers = {
+        event: len(queue)
+        for event, queue in queues.items()
+        if queue
+    }
+    require(not leftovers, f"inventory callsites missing from readable view: {leftovers}")
+    require(len(readable_by_row) == len(static_rows) == 2_151, "readable static caller count")
+    require(
+        observed
+        == collections.Counter(row["nameArgument"]["staticValue"] for row in static_rows),
+        "readable event/callsite multiplicity differs from inventory",
+    )
+    return readable_by_row, {
+        "path": "reverse/javascript/cli.readable.js",
+        "lines": physical_line_count,
+        "size": len(readable_data),
+        "sha256": readable_hash,
+        "metadataPath": "reverse/javascript/metadata.json",
+        "metadataLines": line_count(metadata_data),
+        "metadataSize": len(metadata_data),
+        "metadataSha256": sha256_bytes(metadata_data),
+    }
+
+
+def caller_consumer_label(row: dict[str, Any]) -> str:
+    consumer = row.get("consumer", {})
+    return "/".join(
+        str(consumer.get(key, ""))
+        for key in ("parentType", "relation", "role", "target")
+        if consumer.get(key) is not None
+    )
+
+
+def caller_owner_allowlist_sha256(
+    mappings: Sequence[CallerOwnerMapping],
+) -> str:
+    encoded = json.dumps(
+        [mapping._asdict() for mapping in mappings],
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return sha256_bytes(encoded)
+
+
+def caller_exact_identity(
+    event: str,
+    row: dict[str, Any],
+    readable_line: int,
+) -> tuple[str, int, str, str, str]:
+    return (
+        event,
+        readable_line,
+        function_label(row),
+        caller_consumer_label(row),
+        str(row.get("comparisonKey")),
+    )
+
+
+def caller_evidence_fingerprint(
+    event: str,
+    row: dict[str, Any],
+    readable_line: int,
+    rule_id: str | None,
+) -> str:
+    consumer = row.get("consumer", {})
+    payload = row.get("payload", {})
+    evidence = {
+        "event": event,
+        "function": row.get("function"),
+        "functionKind": row.get("functionKind"),
+        "consumer": {
+            "parentType": consumer.get("parentType"),
+            "relation": consumer.get("relation"),
+            "role": consumer.get("role"),
+            "target": consumer.get("target"),
+        },
+        "payload": {
+            "objectStatus": payload.get("objectStatus"),
+            "directKeys": payload.get("directKeys", []),
+            "expandedKeys": payload.get("expandedKeys", []),
+            "unresolvedSpreads": [source_text(item) for item in payload.get("unresolvedSpreads", [])],
+        },
+        "canonical": {
+            "line": row.get("line"),
+            "column": row.get("column"),
+            "offset": row.get("offset"),
+        },
+        "readableLine": readable_line,
+        "rule": rule_id,
+    }
+    encoded = json.dumps(evidence, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode()
+    return sha256_bytes(encoded)[:16]
+
+
+def validate_caller_owner_allowlist(
+    grouped: dict[str, list[dict[str, Any]]],
+    projections: dict[str, str],
+    readable_by_row: dict[int, int],
+) -> None:
+    require(
+        len(CALLER_OWNER_ALLOWLIST) == EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES,
+        "caller-owner allowlist entry count",
+    )
+    require(
+        caller_owner_allowlist_sha256(CALLER_OWNER_ALLOWLIST)
+        == EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256,
+        "caller-owner exact allowlist digest changed",
+    )
+    mapping_ids: set[str] = set()
+    exact_identities: set[tuple[str, int, str, str, str]] = set()
+    target_events = {
+        event for event, family in projections.items() if family == "tengu_other"
+    }
+    for mapping in CALLER_OWNER_ALLOWLIST:
+        require(mapping.mapping_id not in mapping_ids, f"duplicate caller-owner mapping {mapping.mapping_id}")
+        mapping_ids.add(mapping.mapping_id)
+        require(mapping.event in target_events, f"caller-owner mapping event is not tengu_other: {mapping.mapping_id}")
+        require(mapping.owner and mapping.topic and mapping.scenario, f"caller-owner mapping has empty label: {mapping.mapping_id}")
+        require(
+            mapping.navigation_start <= mapping.readable_line <= mapping.navigation_end,
+            f"caller-owner navigation range misses exact line: {mapping.mapping_id}",
+        )
+        exact_identity = (
+            mapping.event,
+            mapping.readable_line,
+            mapping.function,
+            mapping.consumer,
+            mapping.comparison_key,
+        )
+        require(exact_identity not in exact_identities, f"duplicate caller-owner exact identity: {mapping.mapping_id}")
+        exact_identities.add(exact_identity)
+        matches = [
+            row
+            for row in grouped[mapping.event]
+            if caller_exact_identity(
+                mapping.event,
+                row,
+                readable_by_row[id(row)],
+            )
+            == exact_identity
+        ]
+        require(len(matches) == 1, f"caller-owner mapping does not select one exact callsite: {mapping.mapping_id}")
+        actual_fingerprint = caller_evidence_fingerprint(
+            mapping.event,
+            matches[0],
+            mapping.readable_line,
+            mapping.rule_id,
+        )
+        require(
+            actual_fingerprint == mapping.evidence_fingerprint,
+            f"caller-owner exact mapping fingerprint mismatch: {mapping.mapping_id}",
+        )
+
+
+def caller_owner_mapping(
+    event: str,
+    row: dict[str, Any],
+    readable_line: int,
+) -> CallerOwnerMapping | None:
+    exact_identity = caller_exact_identity(event, row, readable_line)
+    candidates = [
+        mapping
+        for mapping in CALLER_OWNER_ALLOWLIST
+        if (
+            mapping.event,
+            mapping.readable_line,
+            mapping.function,
+            mapping.consumer,
+            mapping.comparison_key,
+        )
+        == exact_identity
+    ]
+    require(len(candidates) <= 1, f"multiple caller-owner mappings select {event}@L{readable_line}")
+    if not candidates:
+        return None
+    mapping = candidates[0]
+    require(
+        caller_evidence_fingerprint(event, row, readable_line, mapping.rule_id)
+        == mapping.evidence_fingerprint,
+        f"caller-owner exact mapping fingerprint mismatch: {mapping.mapping_id}",
+    )
+    return mapping
+
+
+def project_caller_owners(
+    grouped: dict[str, list[dict[str, Any]]],
+    projections: dict[str, str],
+    readable_by_row: dict[int, int],
+) -> dict[str, dict[str, Any]]:
+    validate_caller_owner_allowlist(grouped, projections, readable_by_row)
+    result: dict[str, dict[str, Any]] = {}
+    target_events = sorted(event for event, family in projections.items() if family == "tengu_other")
+    require(len(target_events) == EXPECTED_CALLER_OWNER_EVENTS, "caller-owner target event count")
+    for event in target_events:
+        callsites = []
+        for row in sorted(grouped[event], key=position_sort_key):
+            readable_line = readable_by_row[id(row)]
+            mapping = caller_owner_mapping(event, row, readable_line)
+            if mapping is None:
+                mapping_id = None
+                rule_id = None
+                owner = "Unresolved"
+                topic = "Unresolved"
+                scenario = "No reviewed exact caller allowlist entry matches this callsite"
+                navigation_range = None
+            else:
+                mapping_id = mapping.mapping_id
+                rule_id = mapping.rule_id
+                owner = mapping.owner
+                topic = mapping.topic
+                scenario = mapping.scenario
+                navigation_range = [mapping.navigation_start, mapping.navigation_end]
+            callsites.append(
+                {
+                    "owner": owner,
+                    "topic": topic,
+                    "scenario": scenario,
+                    "mappingId": mapping_id,
+                    "ruleId": rule_id,
+                    "navigationRange": navigation_range,
+                    "readableLine": readable_line,
+                    "function": function_label(row),
+                    "consumer": caller_consumer_label(row),
+                    "payloadStatus": row.get("payload", {}).get("objectStatus"),
+                    "payloadKeys": row.get("payload", {}).get("expandedKeys", []),
+                    "canonicalPosition": format_position(row),
+                    "evidenceFingerprint": caller_evidence_fingerprint(
+                        event, row, readable_line, rule_id
+                    ),
+                }
+            )
+        owners = sorted_unique(item["owner"] for item in callsites)
+        topics = sorted_unique(item["topic"] for item in callsites)
+        scenarios = sorted_unique(item["scenario"] for item in callsites)
+        rules = sorted_unique(
+            item["ruleId"] for item in callsites if item["ruleId"] is not None
+        )
+        if owners == ["Unresolved"]:
+            status = "Unresolved"
+        elif "Unresolved" in owners:
+            status = "Partially resolved"
+        elif len(owners) > 1:
+            status = "Cross-owner"
+        else:
+            status = "Single-owner"
+        result[event] = {
+            "status": status,
+            "owners": owners,
+            "topics": topics,
+            "scenarios": scenarios,
+            "rules": rules,
+            "callsites": callsites,
+        }
+    require(len(result) == EXPECTED_CALLER_OWNER_EVENTS, "caller-owner projection output count")
+    status_counter = collections.Counter(item["status"] for item in result.values())
+    status_counts = {
+        status: status_counter[status]
+        for status in EXPECTED_CALLER_OWNER_STATUS
+    }
+    require(
+        dict(status_counts) == EXPECTED_CALLER_OWNER_STATUS,
+        f"caller-owner status counts changed: {dict(status_counts)}",
+    )
+    require(
+        sum(len(item["callsites"]) for item in result.values())
+        == EXPECTED_CALLER_OWNER_CALLSITES,
+        "caller-owner callsite count",
+    )
+    owner_events: dict[str, set[str]] = collections.defaultdict(set)
+    owner_callsites: collections.Counter[str] = collections.Counter()
+    for event, item in result.items():
+        for callsite in item["callsites"]:
+            owner_events[callsite["owner"]].add(event)
+            owner_callsites[callsite["owner"]] += 1
+    observed_buckets = {
+        owner: (len(owner_events[owner]), owner_callsites[owner])
+        for owner in sorted(owner_events)
+    }
+    require(
+        observed_buckets == EXPECTED_CALLER_OWNER_BUCKETS,
+        f"caller-owner bucket counts changed: {observed_buckets}",
+    )
+    require(
+        set(CALLER_OWNER_REPRESENTATIVES) == set(EXPECTED_CALLER_OWNER_BUCKETS),
+        "caller-owner representative bucket set",
+    )
+    for owner, events in CALLER_OWNER_REPRESENTATIVES.items():
+        for event in events:
+            require(event in result, f"caller-owner representative missing: {event}")
+            require(
+                owner in result[event]["owners"],
+                f"caller-owner representative moved: {owner}/{event}",
+            )
+    return result
+
+
 def quoted_literals(expression: str) -> set[str]:
     return set(re.findall(r"[\"']([^\"']+)[\"']", expression))
 
@@ -604,7 +1027,7 @@ def render_header(version: str) -> list[str]:
         "| 第三方 OTEL | enable gate、signal exporter、content gate、resource attributes | 26 个事件、52 个调用点、8 个 metric、10 个 span | 管理员 collector 的落盘、转发和保留策略 |",
         "| 服务端/collector | 接受、拒绝、二次处理、保留和访问控制 | 客户端请求形状之外没有静态证据 | Anthropic 服务端或管理员 collector 的最终处理 |",
         "",
-        "`tengu_other` 只是本生成器的 `Derived` 投影兜底桶：它表示事件名没有命中 release-local family 规则，不是产品 owner、模块边界或服务端分类。像 `tengu_background` 这类 singleton label 只匹配同名事件，不会自动吞并所有同前缀名字。",
+        "family 层的 `tengu_other` 只表示事件名没有命中 release-local family 规则。它不是产品 owner、模块边界或服务端分类；后文 caller projection 只给 25 个逐项复核的 exact callsite 归属，剩余 905 个事件保持 `Unresolved`。像 `tengu_background` 这类 singleton label 仍只匹配同名事件，不会自动吞并所有同前缀名字。",
         "",
         "## 字段怎么读",
         "",
@@ -612,6 +1035,7 @@ def render_header(version: str) -> list[str]:
         "| --- | --- | --- |",
         "| event name | `Static` | AST 已把第一个参数解析成固定字符串；同名调用点可聚合 |",
         "| family projection | `Derived` | 复现 release-local extractor：eligible family prefixes 做最长匹配，singleton labels 只做 exact match；仅用于导航和跨版本统计 |",
+        "| caller owner/topic/scenario | `Derived` from `Static` | 只有 event、readable line、function、consumer、comparison key 与证据指纹同时命中逐 caller allowlist 才投影本地状态 owner；导航区间不参与分类；不是原始源码模块名 |",
         "| call count | `Derived` from `Static` | 发布包中同名静态调用点数量，不是生产上报次数 |",
         "| logger role / callee | `Static` | 稳定角色和版本本地短符号；`H` 与 `Fv` 分别是一方同步/异步入口 |",
         "| function | `Static` | AST 记录的词法函数；压缩名用于定位，不等于原始 TypeScript 名 |",
@@ -686,7 +1110,9 @@ def render_lifecycle_and_impact() -> list[str]:
 
 
 def render_scenario_semantic_index(
-    grouped: dict[str, list[dict[str, Any]]], projections: dict[str, str]
+    grouped: dict[str, list[dict[str, Any]]],
+    projections: dict[str, str],
+    caller_projections: dict[str, dict[str, Any]],
 ) -> list[str]:
     missing = sorted(SEMANTIC_INDEX_EVENTS - set(grouped))
     require(not missing, f"semantic scenario events missing: {', '.join(missing)}")
@@ -699,6 +1125,16 @@ def render_scenario_semantic_index(
         all(projections.get(event) == "tengu_other" for event in other_examples),
         "semantic index tengu_other examples changed family projection",
     )
+    expected_callers = {
+        "tengu_reactive_compact_succeeded": ["model-request"],
+        "tengu_query_error": ["Unresolved"],
+        "tengu_transcript_write_failed": ["workspace-state"],
+    }
+    for event, expected in expected_callers.items():
+        require(
+            caller_projections[event]["owners"] == expected,
+            f"semantic index caller owner changed: {event}",
+        )
     return [
         "## 按排障场景阅读：事件名、字段和状态变化",
         "",
@@ -711,17 +1147,17 @@ def render_scenario_semantic_index(
         "| API 请求 | `tengu_api_query` -> `tengu_api_retry`（0..N） -> `tengu_api_success` 或 `tengu_api_error` | request controller 拥有一次模型请求及其重试 attempt；retry 增加网络 attempt，不自动增加 Agent Loop turn | `attempt` 是本请求内序号；`delayMs/status/errorType` 解释为何等待；`durationMsIncludingRetries` 是跨 attempt 总时长；token/cost 字段只在成功面有完整值；`requestId/clientRequestId` 用于关联，不是业务成功标志 | query 之后没有 success/error，先查 abort、进程退出或日志丢失；有 retry 要区分 429/5xx、fallback 与用户新一轮。见 [请求装配](models-auth-providers-request.md)、[韧性与恢复](resilience-and-recovery.md)，源码 215719、232156-232244 |",
         "| 工具授权与执行 | `tengu_tool_use_show_permission_request`（可选） -> `...can_use_tool_allowed` 或 `...rejected` -> `...success` / `...error` / `...cancelled` | permission pipeline 决定是否允许，tool executor 才拥有实际调用；allowed 只证明通过权限层，不证明 `tool.call` 成功 | `messageID/toolUseID` 分别关联 assistant message 和具体调用；`decisionReasonType/deniedBy/permissionMode` 解释决策来源；`durationMs/permissionDurationMs/preToolHookDurationMs` 拆开等待；`errorCode/phase/abortKind` 区分校验、执行和中断 | 有 rejected 时工具没有进入正常 call；有 allowed 后仍可能 validation/error/cancel；success 也不等于外部副作用可回滚。见 [Agent Loop](agent-loop.md)、[工具/权限/Hooks](tools-permissions-hooks.md)，源码 289754、315978-316476 |",
         "| Permission 解释器 UI | `tengu_permission_explainer_generated` 或 `...error`；用户选择记录 `tengu_permission_request_option_selected` | explainer 只生成风险说明和记录界面选择，不拥有最终 allow/deny；最终决策仍看上一行的 tool permission 事件 | `risk_level/tool_name/latency_ms/error_type` 描述说明生成；`option_index` 只是 UI 选项位置，必须结合当时选项集合解释 | 不能用 explainer success 断言工具获批，也不能用 option_index 跨版本推断固定语义。见 [工具/权限/Hooks](tools-permissions-hooks.md)，源码 530713、530993、532684 |",
-        "| Reactive compact | `tengu_reactive_compact_triggered` -> `...attempt`（1..N） -> `...succeeded` 或 `...failed` | compactor 拥有“总结前缀、保留合法后缀、恢复附件、写 boundary”的表示切换；它不回滚既有工具副作用 | `groupsToSummarize/groupsToPreserve/tokenGap` 描述每次选择；`attempts/preCompactTokens/postCompactTokens/preservedMessageCount/restoredAttachmentCount` 描述结果；`trigger/thresholdSource/precomputed` 解释入口 | success 才证明 rebuilt context 已形成；failed 后旧历史仍是当前表示。注意这些 `tengu_reactive_*` 事件落在 Derived 的 `tengu_other`，不能因 family 名缺失而跳过。见 [`/compact` 图文专题](compact-visual-guide.md)，源码 232819-232876、262267 |",
+        "| Reactive compact | `tengu_reactive_compact_triggered` -> `...attempt`（1..N） -> `...succeeded` 或 `...failed` | compactor 拥有“总结前缀、保留合法后缀、恢复附件、写 boundary”的表示切换；它不回滚既有工具副作用 | `groupsToSummarize/groupsToPreserve/tokenGap` 描述每次选择；`attempts/preCompactTokens/postCompactTokens/preservedMessageCount/restoredAttachmentCount` 描述结果；`trigger/thresholdSource/precomputed` 解释入口 | family 仍是 `tengu_other`，caller projection 则落到 `model-request` / compact 场景；success 才证明 rebuilt context 已形成，failed 后旧历史仍是当前表示。见 [`/compact` 图文专题](compact-visual-guide.md)，源码 232819-232876、262267 |",
         "| Session 启动、恢复与持久化 | `tengu_session_start`；resume 分支产生 `tengu_session_resumed{success}`；远端/内部镜像失败另记 `tengu_session_persistence_failed` | session loader 拥有恢复视图，transcript/remote mirror 各自拥有持久化；启动成功和后续每次写入成功不是同一状态 | `previous_session_id/source/permissionMode` 描述启动来源；`entrypoint/success/failure_reason/resume_duration_ms` 描述恢复；persistence failure 当前无 payload，必须回源码/diagnostic 定位 owner | resumed success 不证明之后 transcript 永不丢写；persistence failure 也不等于当前模型回答失败。见 [Sessions/Checkpoint/Memory](sessions-checkpoints-memory.md)，源码 401679-401697、587827-594803、591606 |",
         "| MCP 认证与工具失败 | `tengu_mcp_server_needs_auth` -> `tengu_mcp_oauth_flow_start` -> `...success` / `...failure` / `...error`；调用期仍可出现 `tengu_mcp_tool_call_auth_error` | MCP connection/auth controller 拥有发现、OAuth 和 token；tool executor 只消费当时连接状态 | `transportType/cause` 说明在哪个发现阶段需要认证；`flowAttemptId/authMethod/http_status/error_code/reason` 关联 OAuth；`authErrorKind` 区分未连接和 token 过期 | OAuth success 只完成该 flow，不保证 tools/list 或下一次 tool call 成功；调用期 auth error 需要重新连接/授权。见 [MCP、Agents 与后台协作](mcp-agents-background.md)，源码 381285-381456、384086、385348 |",
         "| 后台任务派发 | `tengu_bg_dispatch`；失败前后可见 `...rejected`、`...fallback`、`...rescued`；最终工作结果另看 `tengu_bg_agent_terminal` | dispatcher/daemon 拥有进程与消息投递，agent registry 拥有最终 outcome；dispatch ACK 不是任务完成 | `source_* / via / has_worktree / has_agent` 解释入口；fallback 的 reason flags 解释 transport；rescued 表示 ACK 不确定但 worker 被 readback 找到；terminal 的 `outcome/durationMs` 才接近任务终态 | 只有 dispatch 没有 terminal 时查 daemon、roster、worker crash 或会话仍运行；rescued 不是重复启动证据。见 [Runtime Supervision](runtime-supervision-and-processes.md)，源码 270118、480234-480323、631031 |",
         "| CLI 登录 | `tengu_oauth_flow_start` -> `tengu_oauth_auth_code_received`（浏览器流） -> `tengu_oauth_token_exchange_success` -> `tengu_oauth_success` 或 `tengu_oauth_error` | login controller 拥有 UI/flow，token exchange/storage 和 profile/account check 是后续独立阶段 | `loginWithClaudeAi/automatic` 区分入口；`account_on_hold/ssl_error` 是特定失败分类；token-exchange success 不携带账号完整状态 | 不要把 token exchange success 当作最终登录；最终 success 之后仍可能有 profile、role 或持久化告警。见 [认证与账号生命周期](auth-account-and-subscription-lifecycle.md)，源码 78277、299879、441642-441703 |",
-        "| 错误终态层级 | tool 层用 `tengu_tool_use_error`；Agent/query wrapper 用 `tengu_query_error`；未捕获进程错误用 `tengu_uncaught_exception` / `tengu_unhandled_rejection` | 不同 owner 决定错误能否作为 tool_result 回到模型、结束当前 query，或升级为进程级异常 | tool 的 `errorCode/toolName` 可操作；query error 只给 assistant/tool-use 数量和 chain 深度；uncaught/rejection 的 `error_name` 已经过错误封装，不能替代原始 stack | 同一次根因可能在多层留下记录，但不能把多条事件统计成多个独立故障。`tengu_query_error` 位于 `tengu_other`，仍是高价值终态事件。见 [错误与诊断图谱](error-diagnostic-atlas.md)，源码 272115、316183-316476、78172、111364-111403 |",
-        "| Transcript 写入恢复 | `tengu_transcript_write_failed` -> 后续成功写同一路径时 `tengu_transcript_writer_recovered` | transcript writer 拥有本地落盘和 degraded latch；模型/API 请求可以已经成功，而持久化单独失败 | `errno_code/errno_enospc/errno_emfile/consecutive_failures/degraded/source` 用于判断磁盘、fd 和连续退化；recovered 只说明 writer 清除了对应 degraded state | failed 后应核对磁盘与 transcript 完整性；recovered 不补证失败窗口内每条记录都已重放。两事件也落在 `tengu_other`。见 [Sessions/Checkpoint/Memory](sessions-checkpoints-memory.md)，源码 400287-400292 |",
+        "| 错误终态层级 | tool 层用 `tengu_tool_use_error`；Agent/query wrapper 用 `tengu_query_error`；未捕获进程错误用 `tengu_uncaught_exception` / `tengu_unhandled_rejection` | 不同 owner 决定错误能否作为 tool_result 回到模型、结束当前 query，或升级为进程级异常 | tool 的 `errorCode/toolName` 可操作；query error 只给 assistant/tool-use 数量和 chain 深度；uncaught/rejection 的 `error_name` 已经过错误封装，不能替代原始 stack | 同一次根因可能在多层留下记录，但不能把多条事件统计成多个独立故障。`tengu_query_error` 的 family 是 `tengu_other`，但本版尚无逐 caller 人工 allowlist，owner 保持 `Unresolved`。见 [错误与诊断图谱](error-diagnostic-atlas.md)，源码 272115、316183-316476、78172、111364-111403 |",
+        "| Transcript 写入恢复 | `tengu_transcript_write_failed` -> 后续成功写同一路径时 `tengu_transcript_writer_recovered` | transcript writer 拥有本地落盘和 degraded latch；模型/API 请求可以已经成功，而持久化单独失败 | `errno_code/errno_enospc/errno_emfile/consecutive_failures/degraded/source` 用于判断磁盘、fd 和连续退化；recovered 只说明 writer 清除了对应 degraded state | family 仍是 `tengu_other`，caller projection 已解析为 `workspace-state` / transcript storage；recovered 不补证失败窗口内每条记录都已重放。见 [Sessions/Checkpoint/Memory](sessions-checkpoints-memory.md)，源码 400287-400292 |",
         "",
-        "### 为什么 `tengu_other` 不能当作“低价值垃圾桶”",
+        "### 为什么 family `tengu_other` 不能再承担语义归属",
         "",
-        "`tengu_other` 只表示当前 family 前缀规则没有命中。`tengu_reactive_compact_succeeded`、`tengu_query_error`、`tengu_transcript_write_failed` 都在这个桶里，却分别对应上下文切换、query 终态和持久化退化。排障应先按事件 consumer 和相邻状态机阅读，再用 family 做导航；不能按 family 名决定事件是否重要。",
+        "`tengu_other` 不能当作语义兜底或低价值垃圾桶；它只表示当前 family 前缀规则没有命中。独立 caller projection 只把逐项复核的 `tengu_reactive_compact_succeeded` 与 `tengu_transcript_write_failed` 分别归入 `model-request`、`workspace-state`；`tengu_query_error` 等其余事件继续标成 `Unresolved`。排障先看 exact caller 证据，再用 family 做名字导航；family 和行区间都不能决定产品所有权。",
         "",
     ]
 
@@ -730,6 +1166,7 @@ def render_coverage(
     first_party_rows: Sequence[dict[str, Any]],
     first_party_dynamic: Sequence[dict[str, Any]],
     otel_rows: Sequence[dict[str, Any]],
+    caller_projections: dict[str, dict[str, Any]],
 ) -> list[str]:
     first_party_functions = len({str(row.get("function")) for row in first_party_rows})
     first_party_spreads = sum(
@@ -737,6 +1174,7 @@ def render_coverage(
     )
     otel_functions = len({str(row.get("function")) for row in otel_rows})
     otel_spreads = sum(len(row["payload"].get("unresolvedSpreads", [])) for row in otel_rows)
+    caller_status = collections.Counter(item["status"] for item in caller_projections.values())
     return [
         "## 精确覆盖摘要",
         "",
@@ -750,6 +1188,7 @@ def render_coverage(
         "| 一方 static-object payloads | 1,860 | 顶层对象形状可解析 |",
         "| 一方 not-static-object payloads | 334 | 仅保留原参数/边界 |",
         f"| 一方 unresolved spreads | {first_party_spreads} | 保留表达式，字段集合是下界 |",
+        f"| family `tengu_other` caller projection | {len(caller_projections)} events / {sum(len(item['callsites']) for item in caller_projections.values())} callsites | {caller_status['Single-owner']} single-owner + {caller_status['Cross-owner']} cross-owner + {caller_status['Partially resolved']} partial + {caller_status['Unresolved']} unresolved |",
         "| Datadog allowlist | 181 | 只代表分支资格 |",
         "| OTEL unique static events | 26 | structured event 名字 |",
         "| OTEL callsites | 52 | 49 string + 2 identifier + 1 template |",
@@ -788,6 +1227,219 @@ def render_sensitivity_summary(field_map: dict[str, list[str]]) -> list[str]:
     return lines
 
 
+def render_caller_owner_projection(
+    projection: dict[str, dict[str, Any]],
+) -> list[str]:
+    status_counts = collections.Counter(item["status"] for item in projection.values())
+    callsite_count = sum(len(item["callsites"]) for item in projection.values())
+    unresolved_events = sorted(
+        event for event, item in projection.items() if item["status"] == "Unresolved"
+    )
+    partial_events = sorted(
+        event for event, item in projection.items() if item["status"] == "Partially resolved"
+    )
+    cross_owner_events = sorted(
+        event for event, item in projection.items() if item["status"] == "Cross-owner"
+    )
+    owner_events: dict[str, set[str]] = collections.defaultdict(set)
+    owner_callsites: collections.Counter[str] = collections.Counter()
+    owner_topics: dict[str, set[str]] = collections.defaultdict(set)
+    owner_rules: dict[str, set[str]] = collections.defaultdict(set)
+    for event, item in projection.items():
+        for callsite in item["callsites"]:
+            owner = callsite["owner"]
+            owner_events[owner].add(event)
+            owner_callsites[owner] += 1
+            owner_topics[owner].add(callsite["topic"])
+            if callsite["ruleId"] is not None:
+                owner_rules[owner].add(callsite["ruleId"])
+
+    lines = [
+        "## `tengu_other` caller/owner 场景投影",
+        "",
+        "<!-- TELEMETRY_CALLER_OWNER_PROJECTION -->",
+        f"<!-- caller-owner-target-events:{len(projection)} -->",
+        f"<!-- caller-owner-target-callsites:{callsite_count} -->",
+        f"<!-- caller-owner-single:{status_counts['Single-owner']} -->",
+        f"<!-- caller-owner-cross:{status_counts['Cross-owner']} -->",
+        f"<!-- caller-owner-partial:{status_counts['Partially resolved']} -->",
+        f"<!-- caller-owner-unresolved:{status_counts['Unresolved']} -->",
+        f"<!-- caller-owner-allowlist-entries:{len(CALLER_OWNER_ALLOWLIST)} -->",
+        f"<!-- caller-owner-mapped-callsites:{callsite_count - owner_callsites['Unresolved']} -->",
+        f"<!-- caller-owner-unresolved-callsites:{owner_callsites['Unresolved']} -->",
+        "",
+        "family projection 有 911 个名字、1,297 个静态调用点落入 `tengu_other`。生成器先把它们与同哈希 readable view 逐个对齐，再只接受 25 条逐 caller 人工 allowlist：这 25 个调用点完整覆盖 6 个代表事件，其余 905 个事件、1,272 个调用点保持 `Unresolved`。family 继续承担名字导航；caller projection 不会用邻近行替未审阅 caller 猜 owner。",
+        "",
+        "### 分类合同",
+        "",
+        "1. **输入不是事件名清单。** 每条 allowlist 同时固定 event name、readable line、词法 function、consumer parent/relation/role、inventory comparison key 和 16 位证据指纹；缺一项都不能命中。",
+        "2. **owner 由 exact caller allowlist 决定。** readable range 只帮助人阅读附近代码，分类器完全不读取 range；扩大导航区间不会吸收同区间的其他 caller，事件前缀也不会自动成为 owner。",
+        "3. **同名事件按全部调用点聚合。** 全部 caller 都有 exact mapping 且落在同一 owner 才是 `Single-owner`；跨 host/owner 的同名事件标成 `Cross-owner`；只有一部分 caller 命中时标成 `Partially resolved`；所有调用点都没有 exact mapping 才是 `Unresolved`。",
+        "4. **双重身份校验防止静默换义。** inventory comparison key 参与初筛；event/function/consumer/payload/canonical position/readable line/rule 生成的 16 位 SHA-256 前缀再做复核。整个 25 条 allowlist 另有完整 SHA-256，删除或篡改都会让生成失败。",
+        "5. **这是客户端 Derived 投影。** 它说明 2.1.235 中 logger caller 的状态 owner，不证明分支实际执行、采样命中、网络送达、服务端保留，也不声称这些 owner 是 Anthropic 原始源码模块名。",
+        "",
+        "### 覆盖结果",
+        "",
+        "| Projection status | unique events | 正确读法 |",
+        "| --- | ---: | --- |",
+        f"| `Single-owner` | {status_counts['Single-owner']} | 全部静态调用点逐项命中 allowlist，且落在同一个 caller owner；topic/scenario 仍可有多个 |",
+        f"| `Cross-owner` | {status_counts['Cross-owner']} | 同名事件由多个本地 owner/host 调用，不能强塞进单一模块 |",
+        f"| `Partially resolved` | {status_counts['Partially resolved']} | 至少一个调用点命中 exact mapping，至少一个调用点没有 mapping |",
+        f"| `Unresolved` | {status_counts['Unresolved']} | 所有调用点都没有经过逐项复核的 exact mapping |",
+        f"| **Total** | **{len(projection)}** | 对应 family `tengu_other` 的全部 unique static events、共 {callsite_count} 个静态调用点 |",
+        "",
+        "### Caller owner buckets",
+        "",
+        "| Derived caller owner | member events | callsites | topics | rules | representative events |",
+        "| --- | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for owner in sorted(owner_events):
+        events = sorted(owner_events[owner])
+        representatives = CALLER_OWNER_REPRESENTATIVES[owner]
+        lines.append(
+            f"| {code_span(owner)} | {len(events)} | {owner_callsites[owner]} | "
+            f"{len(owner_topics[owner])} | {len(owner_rules[owner])} | "
+            f"{table_cell(code_list(representatives))} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "`Unresolved` bucket 是未完成人工归属的显式欠账，不是一个产品 owner。事件 membership 可以在 `Cross-owner` 情况下进入多个已解析 owner bucket，所以 owner 表的 member-event 列不能相加后当作 911；上面的 status 表才是互斥覆盖。callsites 按真实调用点计数。",
+            "",
+            "### 代表性因果链",
+            "",
+            "| event | status | caller owner | topic / scenario | caller evidence |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    representative_events = (
+        "tengu_reactive_compact_succeeded",
+        "tengu_transcript_write_failed",
+        "tengu_post_tool_hook_error",
+        "tengu_review_remote_precondition_failed",
+        "tengu_fast_mode_toggled",
+        "tengu_copper_lantern",
+    )
+    for event in representative_events:
+        require(event in projection, f"caller-owner representative missing: {event}")
+        item = projection[event]
+        evidence_items = [
+            f"{callsite['function']} @ readable L{callsite['readableLine']} / "
+            f"{callsite['consumer']} / {callsite['evidenceFingerprint']}"
+            for callsite in item["callsites"]
+        ]
+        evidence = "; ".join(evidence_items[:3])
+        if len(evidence_items) > 3:
+            evidence += f"; +{len(evidence_items) - 3} more callsites in the exhaustive entry"
+        lines.append(
+            f"| {code_span(event)} | {code_span(item['status'])} | "
+            f"{table_cell(code_list(item['owners']))} | "
+            f"{table_cell(code_list(item['topics']))}<br>{table_cell(code_list(item['scenarios']))} | "
+            f"{table_cell(evidence)} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "**不靠名字猜的代表：** `tengu_copper_lantern` 的名字和空 payload 都不提供产品语义；其唯一 caller 位于 daemon supervisor 的 service-recall 条件，紧邻 worker drain、service uninstall 和 `tengu_daemon_exit{cause=service_recall}`。因此 exact identity `event + L632061 + named:Ehy + ExpressionStatement/expression/other + comparison key + fingerprint` 才绑定到 `remote-runtime / daemon supervisor`；`L632000-L632084` 仅供阅读上下文。",
+            "",
+            "**不能强行单归属的代表：** `tengu_fast_mode_toggled` 有四个 caller，分别位于身份/模型访问、remote review、usage picker 和消息 UI。目录把它保留为 `Cross-owner`，说明同名事件可以是共享观测词，而不是共享状态 owner。",
+            "",
+            "### Cross-owner events",
+            "",
+            "这些同名事件的 caller 确实跨 owner；把它们按名字强制归入一个功能，会丢掉 host 或状态所有权差异。",
+            "",
+            "| event | owners | topics | rules | readable lines |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for event in cross_owner_events:
+        item = projection[event]
+        lines.append(
+            f"| {code_span(event)} | {table_cell(code_list(item['owners']))} | "
+            f"{table_cell(code_list(item['topics']))} | {table_cell(code_list(item['rules']))} | "
+            f"{table_cell(code_list(callsite['readableLine'] for callsite in item['callsites']))} |"
+        )
+
+    unresolved_callsite_count = sum(
+        len(projection[event]["callsites"])
+        for event in unresolved_events + partial_events
+    )
+    counterexample_events = (
+        "tengu_end_conversation_tool_call",
+        "tengu_heap_dump",
+        "tengu_update_refused",
+    )
+    lines.extend(
+        [
+            "",
+            "### 真正未收口的调用点",
+            "",
+            f"当前明确欠账是 **{len(unresolved_events)} 个 Unresolved events / {unresolved_callsite_count:,} 个 callsites**。`Unresolved` 不是低价值事件，而是当前没有逐 caller 复核结果承担语义归属。即便调用点恰好落在某个已解释机制附近，也不会自动继承邻近 owner。",
+            "",
+            "下列三个反例原先会被宽行区间误归属；现在即使把 allowlist 的导航区间扩大到覆盖它们，event/function/consumer/comparison identity 不匹配，仍必须保持 `Unresolved`：",
+            "",
+            "| regression counterexample | callsites | functions | readable lines | result |",
+            "| --- | ---: | --- | --- | --- |",
+        ]
+    )
+    for event in counterexample_events:
+        require(event in unresolved_events, f"caller-owner counterexample is no longer unresolved: {event}")
+        item = projection[event]
+        lines.append(
+            f"| {code_span(event)} | {len(item['callsites'])} | "
+            f"{table_cell(code_list(callsite['function'] for callsite in item['callsites']))} | "
+            f"{table_cell(code_list(callsite['readableLine'] for callsite in item['callsites']))} | "
+            "`Unresolved`; no exact mapping |"
+        )
+    lines.extend(
+        [
+            "",
+            "<details>",
+            f"<summary>完整 Unresolved caller 证据（{len(unresolved_events)} events / {unresolved_callsite_count:,} callsites）</summary>",
+            "",
+            "完整表保留 function、consumer、payload、canonical/readable 双位置和 fingerprint，作为后续逐 caller 人工收口的输入；默认折叠，避免机器清单打断正文。",
+            "",
+            "| event | status | functions | consumer contexts | payload keys | canonical / readable positions | evidence fingerprints |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for event in sorted(unresolved_events + partial_events):
+        item = projection[event]
+        callsites = item["callsites"]
+        lines.append(
+            f"| {code_span(event)} | {code_span(item['status'])} | "
+            f"{table_cell(code_list(callsite['function'] for callsite in callsites))} | "
+            f"{table_cell(code_list(callsite['consumer'] for callsite in callsites))} | "
+            f"{table_cell(code_list(field for callsite in callsites for field in callsite['payloadKeys']))} | "
+            f"{table_cell(code_list(callsite['canonicalPosition'] + ' / readable L' + str(callsite['readableLine']) for callsite in callsites))} | "
+            f"{table_cell(code_list(callsite['evidenceFingerprint'] for callsite in callsites))} |"
+        )
+    lines.extend(
+        [
+            "",
+            "</details>",
+            "",
+            "<details>",
+            "<summary>Exact caller allowlist 全集（导航区间不参与分类）</summary>",
+            "",
+            "| mapping | event | exact caller identity | evidence fingerprint | navigation only | caller owner | topic / scenario |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for mapping in CALLER_OWNER_ALLOWLIST:
+        lines.append(
+            f"| {code_span(mapping.mapping_id)} | {code_span(mapping.event)} | "
+            f"{table_cell(code_span(f'L{mapping.readable_line} / {mapping.function} / {mapping.consumer} / {mapping.comparison_key}'))} | "
+            f"{code_span(mapping.evidence_fingerprint)} | "
+            f"{code_span(f'L{mapping.navigation_start}-L{mapping.navigation_end}')} | "
+            f"{code_span(mapping.owner)} | {table_cell(mapping.topic)}<br>{table_cell(mapping.scenario)} |"
+        )
+    lines.extend(["", "</details>", ""])
+    return lines
+
+
 def render_family_summary(
     families: dict[str, int],
     grouped: dict[str, list[dict[str, Any]]],
@@ -819,7 +1471,13 @@ def render_family_summary(
                 spreads=len(unresolved_spreads(rows)),
             )
         )
-    lines.extend(["", "`tengu_other` 的 911 项只是未命中其余前缀的兜底集合，不能解释为一个拥有 911 个功能的模块。", ""])
+    lines.extend(
+        [
+            "",
+            "family 层的 `tengu_other` 仍有 911 项，因为 family 规则只复现名字前缀。独立 caller/owner projection 目前仅逐项收口 6 个事件；其余 905 项明确保持 `Unresolved`，不能把它们解释成一个语义兜底、产品模块或低价值集合。",
+            "",
+        ]
+    )
     return lines
 
 
@@ -864,6 +1522,7 @@ def render_event_entry(
     family: str,
     rows: Sequence[dict[str, Any]],
     allowlist: set[str],
+    caller_projection: dict[str, Any] | None,
 ) -> list[str]:
     ordered = sorted(rows, key=position_sort_key)
     canonical = ordered[0]
@@ -886,11 +1545,31 @@ def render_event_entry(
         f"<summary><code>{html.escape(summary)}</code></summary>",
         "",
         f"- **Family projection (`Derived`):** {code_span(family)}. This is a release-local reading bucket, not an owner.",
-        f"- **Call shape (`Static`):** {len(ordered)} callsite{'s' if len(ordered) != 1 else ''}; logger role / callee: {code_list(roles)}; lexical functions: {code_list(functions)}; payload status: {format_counter(statuses)}.",
-        f"- **Canonical position (`Static`):** line {canonical['line']}, column {canonical['column']}, offset {canonical['offset']}. All positions in offset order: {', '.join(code_span(item) for item in all_positions)}.",
-        f"- **Payload keys (`Static`):** direct: {code_list(direct)}; expanded: {code_list(expanded)}; shorthand: {code_list(shorthand)}.",
-        f"- **Unresolved spreads (`Boundary`):** {len(spreads)} occurrence(s).",
     ]
+    if caller_projection is not None:
+        caller_lines = sorted_unique(
+            callsite["readableLine"] for callsite in caller_projection["callsites"]
+        )
+        caller_consumers = sorted_unique(
+            callsite["consumer"] for callsite in caller_projection["callsites"]
+        )
+        fingerprints = sorted_unique(
+            callsite["evidenceFingerprint"] for callsite in caller_projection["callsites"]
+        )
+        lines.extend(
+            [
+                f"- **Caller/owner projection (`Derived` from `Static` caller evidence):** status {code_span(caller_projection['status'])}; owner {code_list(caller_projection['owners'])}; topic {code_list(caller_projection['topics'])}; scenario {code_list(caller_projection['scenarios'])}; rules {code_list(caller_projection['rules'])}.",
+                f"- **Caller evidence:** readable lines {code_list(caller_lines)}; consumer contexts {code_list(caller_consumers)}; evidence fingerprints {code_list(fingerprints)}. Classification requires an exact allowlist identity; name prefixes and navigation ranges do not assign owner.",
+            ]
+        )
+    lines.extend(
+        [
+            f"- **Call shape (`Static`):** {len(ordered)} callsite{'s' if len(ordered) != 1 else ''}; logger role / callee: {code_list(roles)}; lexical functions: {code_list(functions)}; payload status: {format_counter(statuses)}.",
+            f"- **Canonical position (`Static`):** line {canonical['line']}, column {canonical['column']}, offset {canonical['offset']}. All positions in offset order: {', '.join(code_span(item) for item in all_positions)}.",
+            f"- **Payload keys (`Static`):** direct: {code_list(direct)}; expanded: {code_list(expanded)}; shorthand: {code_list(shorthand)}.",
+            f"- **Unresolved spreads (`Boundary`):** {len(spreads)} occurrence(s).",
+        ]
+    )
     if spread_counts:
         rendered = "; ".join(
             f"{code_span(expression)} x{count}"
@@ -917,6 +1596,7 @@ def render_static_first_party(
     projections: dict[str, str],
     families: dict[str, int],
     allowlist: set[str],
+    caller_projections: dict[str, dict[str, Any]],
 ) -> list[str]:
     by_family: dict[str, list[str]] = collections.defaultdict(list)
     for event, family in projections.items():
@@ -938,7 +1618,15 @@ def render_static_first_party(
             ]
         )
         for event in events:
-            lines.extend(render_event_entry(event, family, grouped[event], allowlist))
+            lines.extend(
+                render_event_entry(
+                    event,
+                    family,
+                    grouped[event],
+                    allowlist,
+                    caller_projections.get(event),
+                )
+            )
     return lines
 
 
@@ -1093,6 +1781,7 @@ def render_provenance(
     summary_path: Path,
     summary: dict[str, Any],
     verified: dict[str, dict[str, Any]],
+    readable: dict[str, Any],
 ) -> list[str]:
     summary_data = summary_path.read_bytes()
     generator_path = Path(__file__)
@@ -1105,6 +1794,7 @@ def render_provenance(
         f"- Canonical source: {code_span(canonical['path'])}; bytes {canonical['size']:,}; SHA-256 {code_span(canonical['sha256'])}.",
         f"- Parser: {code_span(summary['javascriptParser']['name'])} {code_span(summary['javascriptParser']['version'])}, ECMAScript {code_span(summary['javascriptParser']['ecmaVersion'])}.",
         f"- Generator: {code_span('skill/claude-code-version-diff/scripts/build_telemetry_event_catalog.py')}; SHA-256 {code_span(sha256_bytes(generator_data))}.",
+        "- Caller projection additionally verifies the linked readable JavaScript view and its metadata file byte-for-byte, then admits owner labels only through the 25-entry exact caller allowlist; navigation ranges are display-only.",
         "",
         "| Input | lines | bytes | SHA-256 |",
         "| --- | ---: | ---: | --- |",
@@ -1117,6 +1807,12 @@ def render_provenance(
     lines.append(
         f"| {code_span('analysis/source-inventory/summary.json')} | {line_count(summary_data)} | {len(summary_data)} | {code_span(sha256_bytes(summary_data))} |"
     )
+    lines.append(
+        f"| {code_span('readable caller view input')} | {readable['lines']} | {readable['size']} | {code_span(readable['sha256'])} |"
+    )
+    lines.append(
+        f"| {code_span('readable caller metadata input')} | {readable['metadataLines']} | {readable['metadataSize']} | {code_span(readable['metadataSha256'])} |"
+    )
     lines.extend(
         [
             "",
@@ -1127,12 +1823,12 @@ def render_provenance(
             "shasum -a 256 analysis/telemetry-event-catalog.md",
             "```",
             "",
-            "生成器会先校验版本、所有精确数量、调用点 kinds/roles/callees、payload 状态、unresolved spread 总数、family 投影、事件字段映射和输入文件 hash；任一不匹配都会拒绝覆盖输出。输出按稳定排序生成，不包含时间戳或机器绝对路径，并通过同目录临时文件原子替换。",
+            "生成器会先校验版本、所有精确数量、调用点 kinds/roles/callees、payload 状态、unresolved spread 总数、family 投影、事件字段映射、readable view hash、2,151 个固定 caller 的逐项对齐，以及 25 条 exact caller mapping 的完整 digest、identity 和 evidence fingerprint；任一不匹配都会拒绝覆盖输出。导航区间只用于阅读，不参与归属。输出按稳定排序生成，不包含时间戳或机器绝对路径，并通过同目录临时文件原子替换。",
             "",
             "## 最终边界",
             "",
             "- `Static`：只描述 Claude Code 2.1.235 已发布 bundle 中可到达的语法结构和静态集合，不等于某次运行已触发。",
-            "- `Derived`：family、计数、交集、canonical position 和聚合字段由本生成器确定性计算；它们不是 Anthropic 服务端定义。",
+            "- `Derived`：family、caller owner/topic/scenario、计数、交集、canonical/readable position 和聚合字段由本生成器确定性计算；它们不是 Anthropic 原始源码模块或服务端 taxonomy。",
             "- `Heuristic`：sensitivity 只看字段名，不看值、数据来源、内容 gate 或服务端处理。",
             "- `Boundary`：动态 name expression、unresolved spread 的实际展开、feature/policy/auth 状态、随机采样、队列丢弃、网络发送、collector 行为和服务端风控/保留不在静态目录的证明范围内。",
             "",
@@ -1160,6 +1856,8 @@ def build_catalog(root: Path) -> str:
     grouped, dynamic, projections = validate_first_party(
         events, first_party_fields, families, first_party_rows
     )
+    readable_by_row, readable_provenance = verify_readable_callsites(root, first_party_rows)
+    caller_projections = project_caller_owners(grouped, projections, readable_by_row)
 
     allowlist = sorted(read_lines(inventory / "datadog-forwarded-events.txt"))
     redacted_fields = sorted(read_lines(inventory / "datadog-redacted-fields.txt"))
@@ -1181,12 +1879,21 @@ def build_catalog(root: Path) -> str:
     lines: list[str] = []
     lines.extend(render_header(summary["version"]))
     lines.extend(render_lifecycle_and_impact())
-    lines.extend(render_scenario_semantic_index(grouped, projections))
-    lines.extend(render_coverage(first_party_rows, dynamic, otel_rows))
+    lines.extend(render_scenario_semantic_index(grouped, projections, caller_projections))
+    lines.extend(render_coverage(first_party_rows, dynamic, otel_rows, caller_projections))
     lines.extend(render_sensitivity_summary(first_party_fields))
+    lines.extend(render_caller_owner_projection(caller_projections))
     lines.extend(render_family_summary(families, grouped, projections, set(allowlist)))
     lines.extend(render_dynamic_first_party(dynamic))
-    lines.extend(render_static_first_party(grouped, projections, families, set(allowlist)))
+    lines.extend(
+        render_static_first_party(
+            grouped,
+            projections,
+            families,
+            set(allowlist),
+            caller_projections,
+        )
+    )
     lines.extend(
         render_datadog(
             allowlist,
@@ -1199,7 +1906,15 @@ def build_catalog(root: Path) -> str:
     lines.extend(render_otel_events(otel_events, otel_grouped, otel_fields))
     lines.extend(render_otel_callsites(otel_rows))
     lines.extend(render_metrics_and_spans(inventory / "otel-metrics.tsv", spans))
-    lines.extend(render_provenance(root, summary_path, summary, verified))
+    lines.extend(
+        render_provenance(
+            root,
+            summary_path,
+            summary,
+            verified,
+            readable_provenance,
+        )
+    )
     text = "\n".join(lines)
     if not text.endswith("\n"):
         text += "\n"

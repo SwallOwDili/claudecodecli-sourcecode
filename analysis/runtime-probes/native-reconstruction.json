@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-08-23T04:00:53.351Z",
+  "capturedAt": "2026-08-23T14:53:01.796Z",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -46,7 +46,7 @@
         ]
       },
       "x86_64": {
-        "method": "not-built-or-run",
+        "method": "reported-separately",
         "modules": []
       }
     }

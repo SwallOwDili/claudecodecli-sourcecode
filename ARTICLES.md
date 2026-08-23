@@ -4,7 +4,7 @@
 
 ## 先读这七篇
 
-1. [模型只有提案权：2.1.235 本地执行系统解剖](analysis/product-surface-evidence-map.md)：从“改端口、跑测试、compact、resume”走完一次任务，分清模型提案、客户端因果账本与外部真实副作用，再用六组工程矛盾讲透 Agent Loop、Bash 调度与权限、上下文治理、遥测隐私、按对象恢复、Artifact 结果未知和 native/Voice 边界；C/Q/E/S/O 只在结尾作为 Derived 阅读路由。
+1. [模型只有提案权：2.1.235 本地执行系统解剖](analysis/product-surface-evidence-map.md)：从陌生项目的 trust/settings/provider 能力编译开始，用“改端口、跑测试、失败修复、compact、resume、MCP/子 Agent、Artifact 超时”走完一条任务；逐章解释 Agent Loop 四种时钟、工具分层风控、上下文决策线、消息图恢复、动态扩展、Telemetry 与 Native/Voice 的状态 owner、失败和工程取舍。
 2. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 58 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到 Artifact Watch、`/insights`、启动资源、复杂 Slash Command、原生桥和准确性边界。
 3. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 4. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
@@ -16,7 +16,7 @@
 
 ## 本轮新增的全量参考
 
-1. [模型提案权、本地裁决与六组工程矛盾](analysis/product-surface-evidence-map.md)：正文先讲三个状态世界和 Agent Loop 四种生命周期单位，再从六个压力测试归纳能力晚绑定、权力不对称、事实/表示分离、按对象恢复和从属观测；证据方法与 71 类 inventory 分别折叠，当前 654/211/85/911 项语义欠账在机器附录前明示。
+1. [模型提案权、本地裁决与九条机制主线](analysis/product-surface-evidence-map.md)：正文只讲可执行的因果链与设计取舍，不再用文件数、字段数和完成度数字制造深度；71 类 inventory、335 条 claim 和仍未收口的 consumer 统一进入独立的 [机器证据索引](analysis/product-surface-inventory-index.md)。
 2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 58 个产品能力面区分 Deep 与 Boundary；57 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
 3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
 4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
@@ -26,9 +26,9 @@
 8. [完整 CLI 命令树](analysis/cli-command-reference.md)：恢复 90 个普通/隐藏/条件/fast-path/manual-parser 路径及 8 个内部入口，逐层解释 alias、arguments/options、gate、handler、副作用和失败，说明为什么顶层 `--help` 不是全貌。
 9. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
 10. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
-11. [842 个 typed 环境变量](analysis/environment-variable-reference.md)：区分 842 个 schema 声明、2,161 个 typed named read、80 个 declaration-only、137 个非 typed 名称与 145 个动态调用点，不用名称猜 consumer。
+11. [842 个 typed 环境变量](analysis/environment-variable-reference.md)：区分 842 个 schema 声明、2,161 个 typed named read、137 个非 typed 名称与 145 个动态调用点；只有 7 个动态 callsite 通过完整支配/引用证明并恢复 22 个有限名称，138 个保留 7 类主失败链，606 个已知静态名称仍标 Semantic follow-up，不用名称猜 consumer。
 12. [361 个 Feature key](analysis/feature-flag-reference.md)：精确拆分 444 个 literal、11 个 assignment-resolved 和 43 个真正动态调用点，并保留 fallback、shape、consumer 与服务端 Boundary。
-13. [遥测排障场景与 1,441 个一方事件](analysis/telemetry-event-catalog.md)：先按 API、工具授权、Permission UI、compact、session、MCP、后台任务、登录、错误终态和 transcript 恢复解释事件顺序、owner、字段与状态变化，再逐事件保留 payload field、spread、function、Datadog/OTEL 资格和动态名称边界；911 项 `tengu_other` 是确定性投影兜底桶，不是低价值事件。
+13. [遥测排障场景与 1,441 个一方事件](analysis/telemetry-event-catalog.md)：先按 API、工具授权、Permission UI、compact、session、MCP、后台任务、登录、错误终态和 transcript 恢复解释事件顺序、owner、字段与状态变化，再逐事件保留 payload field、spread、function、Datadog/OTEL 资格和动态名称边界；原 `tengu_other` 的 911 个事件 / 1,297 callsite 当前仅用 25 条 exact caller identity 收口 5 Single-owner、1 Cross-owner，其余 905 项明确 Unresolved，不再用宽行号桶制造假完整。
 14. [99 条 API 路径与 53 个 Beta 的所有权](analysis/api-beta-route-ownership.md)：逐项区分客户端 product consumer、发布物内 Gateway handler、SDK/依赖、prefix/allowlist 和内嵌参考文本，解释 header/path 出现为什么不等于 runtime 已发送或服务端已开放。
 15. [错误与诊断机制图谱](analysis/error-diagnostic-atlas.md)：把 4,831 个错误构造点、5,403 个 debug diagnostic 调用点、tool failure、abort、stderr/TUI、LSP attachment、Hook、telemetry 和外部副作用放回同一条恢复链。
 
@@ -84,7 +84,7 @@
 
 | 你想弄清楚什么 | 对应文章 |
 | --- | --- |
-| 为什么模型只能提案、本地 runtime 怎样裁决和记账；Bash、`compact`、遥测、resume、Artifact 与 Voice 六个压力测试怎样暴露这个版本的技术性格 | [2.1.235 本地执行系统解剖](analysis/product-surface-evidence-map.md) |
+| 为什么同一二进制会编译出不同能力图；Agent Loop、Bash 风控、`compact`、resume、MCP/子 Agent、Artifact、Telemetry 与 Voice 怎样共同暴露这个版本的技术性格 | [2.1.235 本地执行系统解剖](analysis/product-surface-evidence-map.md) |
 | 一次请求从输入到工具执行、持久化和遥测经历什么 | [技术机制总图](analysis/technical-mechanism-atlas.md) |
 | 当前分析到底覆盖了什么、还有哪些能力面不能称为全面 | [全面性审计与收口合同](analysis/completeness-audit.md) |
 | Artifact 评论为什么不能直接指挥 Agent，自动回复怎样被 plan、permission 和 breaker 阻止 | [Artifact Watch 评论自动响应](analysis/artifact-watch-comment-autoreact.md) |

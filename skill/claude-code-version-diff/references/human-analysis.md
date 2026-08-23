@@ -9,6 +9,8 @@ For mechanisms with multiple phases, state transformations, retries, or version-
 Every full snapshot includes:
 
 ```text
+analysis/product-surface-evidence-map.md
+analysis/product-surface-inventory-index.md
 analysis/completeness-audit.md
 analysis/plan-mode-and-human-approval.md
 analysis/structured-output-and-schema-contract.md
@@ -58,7 +60,7 @@ README routes readers into these documents and keeps hashes/counts secondary.
 
 The mechanism chapters explain shared architecture. They do not prove that every product surface has been covered. A full snapshot must therefore maintain ten additional contracts:
 
-1. `product-surface-evidence-map.md` classifies every inventory file registered by `summary.json` and routes it to a human mechanism; `completeness-audit.md` enumerates authoritative capability surfaces and uses `Documented` or `Inventory only` only while work remains. A completed snapshot allows only `Deep` or precise `Boundary` rows. A validator PASS or a large word count never upgrades a row without the consumer/lifecycle evidence.
+1. `product-surface-evidence-map.md` is a reader-first architecture article: one scenario must cross capability compilation, Agent Loop, execution control, context, recovery, dynamic extension, remote uncertainty, observability and native boundaries. `product-surface-inventory-index.md` separately classifies every inventory file registered by `summary.json` and routes it to a human mechanism. `completeness-audit.md` enumerates authoritative capability surfaces and uses `Documented` or `Inventory only` only while work remains. A completed snapshot allows only `Deep` or precise `Boundary` rows. A validator PASS, word count, file count or claim count never upgrades a row without consumer/lifecycle evidence.
 2. `tool-registration-and-host-surfaces.md` contains a machine-checkable marker block matching every same-factory AST registration callsite. It distinguishes direct object literals, reusable factory templates, statically expanded callers, the curated core reference set, editorial host classification and request-time tools. A hand-maintained allowlist is not a source-native assembly set; a retained dynamic expression is not runtime-unknown until callers and constant arguments have been traced; callsite presence never proves request-time advertisement.
 3. `brief-mode-and-user-visible-output.md` traces Brief entry gates, `SendUserMessage`, plain assistant-text projection, attachment validation, lane selection, the actual shared upload function/endpoint, client-mapped partial delivery, renderer state and bounded turn-end enforcement. Lane labels do not prove distinct transports, and HTTP success plus a file identifier does not prove a remote viewer rendered the attachment.
 4. `builtin-tools-reference.md` contains a machine-checkable marker block matching the exact release-local core-terminal inventory. Every tool gets owned state, input/output, side effects, persistence, failure, retry/recovery, user impact, cost, privacy, security, and evidence boundaries.

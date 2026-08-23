@@ -47,8 +47,11 @@ const maxReferenceLength = 160;
 const maxFiniteValues = 64;
 const maxResolutionDepth = 16;
 const assignmentNodes = [];
+const memberAssignmentNodes = [];
+const iterationBindings = [];
 const functionScopes = [];
 const allCallNodes = [];
+const identifierReferences = [];
 const memberAliases = [];
 const environmentResolutionCandidates = [];
 let nextScopeId = 1;
@@ -118,6 +121,33 @@ function parameterName(node) {
 
 function sourceRange(node) {
   return node ? [node.start, node.end] : null;
+}
+
+function patternBindings(node, path = [], result = []) {
+  if (!node) return result;
+  if (node.type === "Identifier") {
+    result.push({ name: node.name, path });
+    return result;
+  }
+  if (node.type === "AssignmentPattern") {
+    return patternBindings(node.left, path, result);
+  }
+  if (node.type === "ArrayPattern") {
+    for (let index = 0; index < node.elements.length; index += 1) {
+      const element = node.elements[index];
+      if (!element || element.type === "RestElement") continue;
+      patternBindings(element, [...path, index], result);
+    }
+    return result;
+  }
+  if (node.type === "ObjectPattern") {
+    for (const property of node.properties) {
+      if (property.type !== "Property" || property.computed) continue;
+      const key = propertyName(property.key);
+      if (key !== null) patternBindings(property.value, [...path, key], result);
+    }
+  }
+  return result;
 }
 
 function boundedLabel(value) {
@@ -347,12 +377,30 @@ const stack = [
 while (stack.length > 0) {
   const { node, parent, parentKey, parentIndex, context } = stack.pop();
   let childContext = context;
+  if (node.type === "Identifier") {
+    identifierReferences.push({
+      node,
+      parent,
+      parentKey,
+      parentIndex,
+      context,
+    });
+  }
   if (
     node.type === "FunctionDeclaration" ||
     node.type === "FunctionExpression" ||
     node.type === "ArrowFunctionExpression"
   ) {
     const name = inferredFunctionName(node, parent);
+    const parameterBindings = new Map();
+    node.params.forEach((parameter, parameterIndex) => {
+      for (const binding of patternBindings(parameter)) {
+        parameterBindings.set(binding.name, {
+          parameterIndex,
+          path: binding.path,
+        });
+      }
+    });
     const scope = {
       id: nextScopeId++,
       name,
@@ -360,6 +408,7 @@ while (stack.length > 0) {
       parentContext: context,
       parentScopePath: scopePath(context),
       params: node.params.map(parameterName),
+      parameterBindings,
       returnNodes: [],
       callback:
         parent?.type === "CallExpression" && parentKey === "arguments"
@@ -443,6 +492,7 @@ while (stack.length > 0) {
       name: node.id.name,
       start: node.init.start,
       end: node.init.end,
+      bindingKind: parent?.type === "VariableDeclaration" ? parent.kind : "declaration",
       ...functionRecord(childContext),
     };
     assignments.push(assignment);
@@ -457,23 +507,53 @@ while (stack.length > 0) {
       name: node.left.name,
       start: node.right.start,
       end: node.right.end,
+      bindingKind: "assignment",
       ...functionRecord(childContext),
     };
     assignments.push(assignment);
     assignmentNodes.push({ ...assignment, valueNode: node.right, context: childContext });
-  } else if (
+  }
+
+  if (
     node.type === "AssignmentExpression" &&
     node.operator === "=" &&
-    node.left.type === "MemberExpression" &&
-    node.right.type === "Identifier"
+    node.left.type === "MemberExpression"
   ) {
+    const reference = staticReference(node.left);
+    if (reference !== null) {
+      memberAssignmentNodes.push({
+        ...location(node.left),
+        reference,
+        valueNode: node.right,
+        context: childContext,
+        scopePath: scopePath(childContext),
+      });
+    }
     const alias = propertyName(node.left.property);
-    if (alias !== null) {
+    if (alias !== null && node.right.type === "Identifier") {
       memberAliases.push({
         alias,
         functionName: node.right.name,
         offset: node.start,
         scopePath: scopePath(childContext),
+      });
+    }
+  }
+
+  if (node.type === "ForOfStatement") {
+    const pattern =
+      node.left.type === "VariableDeclaration" && node.left.declarations.length === 1
+        ? node.left.declarations[0].id
+        : node.left;
+    for (const binding of patternBindings(pattern)) {
+      iterationBindings.push({
+        ...binding,
+        rightNode: node.right,
+        bodyRange: sourceRange(node.body),
+        offset: node.start,
+        context: childContext,
+        scopePath: scopePath(childContext),
+        await: node.await === true,
       });
     }
   }
@@ -546,6 +626,25 @@ for (const assignment of assignmentNodes) {
 }
 for (const values of assignmentsByName.values()) {
   values.sort((left, right) => left.offset - right.offset);
+}
+
+const memberAssignmentsByReference = new Map();
+for (const assignment of memberAssignmentNodes) {
+  if (!memberAssignmentsByReference.has(assignment.reference)) {
+    memberAssignmentsByReference.set(assignment.reference, []);
+  }
+  memberAssignmentsByReference.get(assignment.reference).push(assignment);
+}
+for (const values of memberAssignmentsByReference.values()) {
+  values.sort((left, right) => left.offset - right.offset);
+}
+
+const iterationBindingsByName = new Map();
+for (const binding of iterationBindings) {
+  if (!iterationBindingsByName.has(binding.name)) {
+    iterationBindingsByName.set(binding.name, []);
+  }
+  iterationBindingsByName.get(binding.name).push(binding);
 }
 
 const functionsByName = new Map();
@@ -680,11 +779,17 @@ function uniqueValues(values) {
 
 function mergeResults(results) {
   if (results.length === 0 || results.some((result) => !result.complete)) {
-    return { complete: false, values: [], evidence: [], callers: [] };
+    return {
+      complete: false,
+      values: [],
+      evidence: [],
+      callers: [],
+      failures: results.flatMap((result) => result.failures ?? []),
+    };
   }
   const values = uniqueValues(results.flatMap((result) => result.values));
   if (values === null || values.length === 0) {
-    return { complete: false, values: [], evidence: [], callers: [] };
+    return unresolvedResult("empty-or-oversized-merged-domain");
   }
   return {
     complete: true,
@@ -698,14 +803,32 @@ function stringResult(value, evidence = [], callers = []) {
   return { complete: true, values: [value], evidence, callers };
 }
 
-function unresolvedResult() {
-  return { complete: false, values: [], evidence: [], callers: [] };
+function unresolvedResult(reason = "unsupported-or-incomplete", node = null, extra = {}) {
+  return {
+    complete: false,
+    values: [],
+    evidence: [],
+    callers: [],
+    failures: [
+      {
+        reason,
+        ...(node
+          ? {
+              nodeType: node.type,
+              ...location(node),
+              range: sourceRange(node),
+            }
+          : {}),
+        ...extra,
+      },
+    ],
+  };
 }
 
 function nearestParameterScope(name, context) {
   for (let index = context.length - 1; index >= 0; index -= 1) {
-    const parameterIndex = context[index].params.indexOf(name);
-    if (parameterIndex >= 0) return { scope: context[index], parameterIndex };
+    const binding = context[index].parameterBindings.get(name);
+    if (binding) return { scope: context[index], ...binding };
   }
   return null;
 }
@@ -729,6 +852,116 @@ function nearestAssignment(name, before, context, parameterScope) {
       right.scopePath.length - left.scopePath.length || right.offset - left.offset,
   );
   return candidates[0];
+}
+
+function assignmentPrecedesAllKnownTopLevelExecutions(assignment, context) {
+  const scope = context.at(-1);
+  if (
+    scope === undefined ||
+    scope.name === null ||
+    scope.parentScopePath.length !== 0 ||
+    (assignment.scopePath ?? []).length !== 0
+  ) {
+    return false;
+  }
+  const callbackCalls = namedCallbackCallsForFunction(scope);
+  if (hasUnknownFunctionReferences(scope, callbackCalls)) return false;
+  const executions = [
+    ...callsForFunction(scope).map((call) => call),
+    ...callbackCalls.map(({ call }) => call),
+  ];
+  return (
+    executions.length > 0 &&
+    executions.every(
+      (call) => call.context.length === 0 && call.node.start > assignment.offset,
+    )
+  );
+}
+
+function sameScopePath(left, right) {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
+function isFinalIdentifierAssignment(assignment) {
+  const candidates = assignmentsByName.get(assignment.name) ?? [];
+  return (
+    candidates.length > 0 &&
+    candidates.every((candidate) =>
+      sameScopePath(candidate.scopePath ?? [], assignment.scopePath ?? []),
+    ) &&
+    candidates.at(-1) === assignment
+  );
+}
+
+function isUniqueConstInitializer(assignment, before) {
+  if (assignment.bindingKind !== "const" || assignment.offset >= before) return false;
+  const candidates = assignmentsByName.get(assignment.name) ?? [];
+  return candidates.length === 1 && candidates[0] === assignment;
+}
+
+function identifierAssignmentIsProvable(assignment, before, context) {
+  if (isUniqueConstInitializer(assignment, before)) return true;
+  return (
+    isFinalIdentifierAssignment(assignment) &&
+    assignmentPrecedesAllKnownTopLevelExecutions(assignment, context)
+  );
+}
+
+function isFinalMemberAssignment(assignment) {
+  const candidates = memberAssignmentsByReference.get(assignment.reference) ?? [];
+  return (
+    candidates.length > 0 &&
+    candidates.every((candidate) =>
+      sameScopePath(candidate.scopePath ?? [], assignment.scopePath ?? []),
+    ) &&
+    candidates.at(-1) === assignment
+  );
+}
+
+function uniqueBundleAssignment(name, before, context, parameterScope) {
+  if (context.length === 0 || parameterScope !== null) return null;
+  const candidates = assignmentsByName.get(name) ?? [];
+  if (candidates.length !== 1) return null;
+  const [candidate] = candidates;
+  if (!isPathPrefix(candidate.scopePath ?? [], scopePath(context))) return null;
+  return identifierAssignmentIsProvable(candidate, before, context) ? candidate : null;
+}
+
+function nearestIterationBinding(name, before, context) {
+  const path = scopePath(context);
+  const candidates = (iterationBindingsByName.get(name) ?? []).filter(
+    (binding) =>
+      binding.await !== true &&
+      binding.bodyRange !== null &&
+      binding.bodyRange[0] <= before &&
+      before <= binding.bodyRange[1] &&
+      isPathPrefix(binding.scopePath, path),
+  );
+  candidates.sort(
+    (left, right) =>
+      left.bodyRange[1] - left.bodyRange[0] - (right.bodyRange[1] - right.bodyRange[0]) ||
+      right.offset - left.offset,
+  );
+  return candidates[0] ?? null;
+}
+
+function memberAssignmentFor(reference, before, context) {
+  const candidates = memberAssignmentsByReference.get(reference) ?? [];
+  const path = scopePath(context);
+  const visible = candidates.filter(
+    (assignment) =>
+      assignment.offset < before && isPathPrefix(assignment.scopePath, path),
+  );
+  const candidate = visible.length > 0 ? visible.at(-1) : candidates[0];
+  if (candidate === undefined) return null;
+  if (!isPathPrefix(candidate.scopePath ?? [], path)) return null;
+  return isFinalMemberAssignment(candidate) &&
+    assignmentPrecedesAllKnownTopLevelExecutions(candidate, context)
+    ? candidate
+    : null;
 }
 
 function exportedAliases(scope) {
@@ -757,6 +990,62 @@ function callsForFunction(scope) {
   );
 }
 
+function namedCallbackCallsForFunction(scope) {
+  if (scope.name === null) return [];
+  return allCallNodes
+    .flatMap((call) => {
+      if (call.node.type !== "CallExpression" || call.node.callee.type !== "MemberExpression") {
+        return [];
+      }
+      const method = propertyName(call.node.callee.property);
+      if (!callbackMethods.has(method)) return [];
+      return call.node.arguments.flatMap((argument, argumentIndex) =>
+        argument.type === "Identifier" &&
+        argument.name === scope.name &&
+        nearestVisibleFunction(scope.name, call.context) === scope
+          ? [{ call, argumentIndex, method }]
+          : [],
+      );
+    })
+    .sort((left, right) => left.call.node.start - right.call.node.start);
+}
+
+function hasUnknownFunctionReferences(scope, callbackCalls) {
+  if (scope.name === null) return false;
+  const callbackOffsets = new Set(
+    callbackCalls.map(({ call, argumentIndex }) => call.node.arguments[argumentIndex].start),
+  );
+  for (const reference of identifierReferences) {
+    if (reference.node.name !== scope.name) continue;
+    if (nearestVisibleFunction(scope.name, reference.context) !== scope) continue;
+    if (reference.node === scope.node.id) continue;
+    if (callbackOffsets.has(reference.node.start)) continue;
+    if (
+      (reference.parent?.type === "CallExpression" ||
+        reference.parent?.type === "NewExpression") &&
+      reference.parentKey === "callee"
+    ) {
+      continue;
+    }
+    if (
+      reference.parent?.type === "MemberExpression" &&
+      reference.parentKey === "property" &&
+      reference.parent.computed === false
+    ) {
+      continue;
+    }
+    if (
+      reference.parent?.type === "Property" &&
+      reference.parentKey === "key" &&
+      reference.parent.computed === false
+    ) {
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
 const callbackMethods = new Set([
   "every",
   "filter",
@@ -768,7 +1057,89 @@ const callbackMethods = new Set([
   "some",
 ]);
 
-function callbackParameterResult(scope, parameterIndex, state) {
+function namedCallbackParameterResult(scope, parameterIndex, parameterPath, state) {
+  if (parameterIndex !== 0) return { matched: false, result: null };
+  const callbacks = namedCallbackCallsForFunction(scope);
+  if (callbacks.length === 0) return { matched: false, result: null };
+  if (hasUnknownFunctionReferences(scope, callbacks)) {
+    return {
+      matched: true,
+      result: unresolvedResult("untraced-function-reference", scope.node, {
+        function: scope.name,
+      }),
+    };
+  }
+  const results = [];
+  for (const { call, argumentIndex, method } of callbacks) {
+    const receiver = evaluateNode(
+      call.node.callee.object,
+      call.context,
+      call.node.start,
+      {
+        ...state,
+        depth: state.depth + 1,
+      },
+    );
+    if (!receiver.complete) return { matched: true, result: receiver };
+    const values = [];
+    for (const candidate of receiver.values) {
+      if (candidate?.kind !== "array") {
+        return {
+          matched: true,
+          result: unresolvedResult(
+            "non-finite-named-callback-collection",
+            call.node.callee.object,
+            { function: scope.name, method },
+          ),
+        };
+      }
+      for (const item of candidate.items) {
+        const selected = valueAtPath(item, parameterPath);
+        if (selected === undefined) {
+          return {
+            matched: true,
+            result: unresolvedResult(
+              "incomplete-named-callback-destructuring",
+              scope.node,
+              { function: scope.name, parameterPath },
+            ),
+          };
+        }
+        values.push(selected);
+      }
+    }
+    const unique = uniqueValues(values);
+    if (unique === null || unique.length === 0) {
+      return {
+        matched: true,
+        result: unresolvedResult("empty-or-oversized-named-callback-domain", call.node, {
+          function: scope.name,
+          method,
+        }),
+      };
+    }
+    results.push({
+      complete: true,
+      values: unique,
+      evidence: [
+        ...receiver.evidence,
+        resolutionStep("static-named-callback-collection", call.node, {
+          function: scope.name,
+          method,
+          argumentIndex,
+          parameterPath,
+        }),
+      ],
+      callers: [
+        ...receiver.callers,
+        callerStep("named-array-callback", call, { argumentIndex }),
+      ],
+    });
+  }
+  return { matched: true, result: mergeResults(results) };
+}
+
+function callbackParameterResult(scope, parameterIndex, parameterPath, state) {
   const callback = scope.callback;
   const callee = callback?.call?.callee;
   if (
@@ -777,20 +1148,37 @@ function callbackParameterResult(scope, parameterIndex, state) {
     callee?.type !== "MemberExpression" ||
     !callbackMethods.has(propertyName(callee.property))
   ) {
-    return unresolvedResult();
+    return unresolvedResult("not-a-static-collection-callback", scope.node, {
+      function: scope.name,
+      parameterIndex,
+    });
   }
   const receiver = evaluateNode(callee.object, scope.parentContext, callback.call.start, {
     ...state,
     depth: state.depth + 1,
   });
-  if (!receiver.complete) return unresolvedResult();
+  if (!receiver.complete) return receiver;
   const items = [];
   for (const value of receiver.values) {
-    if (value?.kind !== "array") return unresolvedResult();
-    items.push(...value.items);
+    if (value?.kind !== "array") {
+      return unresolvedResult("non-finite-callback-collection", callee.object);
+    }
+    for (const item of value.items) {
+      const selected = valueAtPath(item, parameterPath);
+      if (selected === undefined) {
+        return unresolvedResult("incomplete-callback-destructuring", scope.node, {
+          function: scope.name,
+          parameterIndex,
+          parameterPath,
+        });
+      }
+      items.push(selected);
+    }
   }
   const values = uniqueValues(items);
-  if (values === null || values.length === 0) return unresolvedResult();
+  if (values === null || values.length === 0) {
+    return unresolvedResult("empty-or-oversized-callback-domain", callback.call);
+  }
   return {
     complete: true,
     values,
@@ -799,6 +1187,7 @@ function callbackParameterResult(scope, parameterIndex, state) {
       resolutionStep("static-callback-collection", callback.call, {
         method: propertyName(callee.property),
         parameter: scope.params[parameterIndex],
+        parameterPath,
       }),
     ],
     callers: [
@@ -810,44 +1199,192 @@ function callbackParameterResult(scope, parameterIndex, state) {
   };
 }
 
-function functionParameterResult(scope, parameterIndex, state) {
-  const callback = callbackParameterResult(scope, parameterIndex, state);
+function functionParameterResult(scope, parameterIndex, parameterPath, state) {
+  const callback = callbackParameterResult(
+    scope,
+    parameterIndex,
+    parameterPath,
+    state,
+  );
   if (callback.complete) return callback;
+  const namedCallback = namedCallbackParameterResult(
+    scope,
+    parameterIndex,
+    parameterPath,
+    state,
+  );
+  const namedCallbackCalls = namedCallbackCallsForFunction(scope);
+  if (hasUnknownFunctionReferences(scope, namedCallbackCalls)) {
+    return unresolvedResult("untraced-function-reference", scope.node, {
+      function: scope.name,
+      parameterIndex,
+    });
+  }
   const calls = callsForFunction(scope);
-  if (calls.length === 0) return unresolvedResult();
+  if (calls.length === 0 && namedCallback.matched) return namedCallback.result;
+  if (calls.length === 0) {
+    return unresolvedResult("no-static-function-callers", scope.node, {
+      function: scope.name,
+      parameterIndex,
+    });
+  }
   const results = [];
   for (const call of calls) {
     const argument = call.node.arguments[parameterIndex];
-    if (!argument || argument.type === "SpreadElement") return unresolvedResult();
+    if (!argument || argument.type === "SpreadElement") {
+      return unresolvedResult("incomplete-function-argument", call.node, {
+        function: scope.name,
+        parameterIndex,
+      });
+    }
     const result = evaluateNode(argument, call.context, call.node.start, {
       ...state,
       depth: state.depth + 1,
     });
-    if (!result.complete) return unresolvedResult();
+    if (!result.complete) return result;
+    const projected = projectResultPath(
+      result,
+      parameterPath,
+      argument,
+      scope.params[parameterIndex],
+    );
+    if (!projected.complete) return projected;
     results.push({
-      ...result,
+      ...projected,
       evidence: [
-        ...result.evidence,
+        ...projected.evidence,
         resolutionStep("finite-function-argument", argument, {
           function: scope.name,
           parameter: scope.params[parameterIndex],
+          parameterPath,
         }),
       ],
       callers: [
-        ...result.callers,
+        ...projected.callers,
         callerStep("function-call", call, { argumentIndex: parameterIndex }),
       ],
     });
   }
+  if (namedCallback.matched) results.push(namedCallback.result);
   return mergeResults(results);
+}
+
+function valueAtPath(value, path) {
+  let current = value;
+  for (const segment of path) {
+    if (current?.kind === "array" && typeof segment === "number") {
+      current = current.items[segment];
+    } else if (current?.kind === "object" && typeof segment === "string") {
+      if (current.unsafeKeys?.has(segment)) return undefined;
+      const values = current.properties.get(segment);
+      if (!values || values.length !== 1) return undefined;
+      [current] = values;
+    } else {
+      return undefined;
+    }
+    if (current === undefined) return undefined;
+  }
+  return current;
+}
+
+function projectResultPath(result, path, node, identifier) {
+  if (path.length === 0) return result;
+  const values = [];
+  for (const value of result.values) {
+    const selected = valueAtPath(value, path);
+    if (selected === undefined) {
+      return unresolvedResult("incomplete-static-destructuring", node, {
+        identifier,
+        path,
+      });
+    }
+    values.push(selected);
+  }
+  const unique = uniqueValues(values);
+  if (unique === null || unique.length === 0) {
+    return unresolvedResult("empty-or-oversized-destructured-domain", node, {
+      identifier,
+      path,
+    });
+  }
+  return {
+    ...result,
+    values: unique,
+    evidence: [
+      ...result.evidence,
+      resolutionStep("static-destructuring", node, { identifier, path }),
+    ],
+  };
+}
+
+function iterationBindingResult(binding, state) {
+  const collection = evaluateNode(
+    binding.rightNode,
+    binding.context,
+    binding.offset,
+    {
+      ...state,
+      depth: state.depth + 1,
+    },
+  );
+  if (!collection.complete) return collection;
+  const values = [];
+  for (const candidate of collection.values) {
+    if (candidate?.kind !== "array") {
+      return unresolvedResult("non-finite-iteration-source", binding.rightNode, {
+        identifier: binding.name,
+      });
+    }
+    for (const item of candidate.items) {
+      const selected = valueAtPath(item, binding.path);
+      if (selected === undefined) {
+        return unresolvedResult("incomplete-destructuring-path", binding.rightNode, {
+          identifier: binding.name,
+          path: binding.path,
+        });
+      }
+      values.push(selected);
+    }
+  }
+  const unique = uniqueValues(values);
+  if (unique === null || unique.length === 0) {
+    return unresolvedResult("empty-or-oversized-iteration-domain", binding.rightNode, {
+      identifier: binding.name,
+    });
+  }
+  return {
+    complete: true,
+    values: unique,
+    evidence: [
+      ...collection.evidence,
+      resolutionStep("static-for-of-collection", binding.rightNode, {
+        identifier: binding.name,
+        path: binding.path,
+      }),
+    ],
+    callers: collection.callers,
+  };
 }
 
 function evaluateIdentifier(node, context, before, state) {
   const parameter = nearestParameterScope(node.name, context);
+  const iteration = nearestIterationBinding(node.name, before, context);
   const assignment = nearestAssignment(node.name, before, context, parameter);
-  if (assignment !== null) {
+  if (
+    assignment !== null &&
+    (iteration === null || assignment.offset > iteration.offset)
+  ) {
+    if (!identifierAssignmentIsProvable(assignment, before, context)) {
+      return unresolvedResult(
+        "assignment-does-not-dominate-function-executions",
+        assignment.valueNode,
+        { identifier: node.name, assignmentOffset: assignment.offset },
+      );
+    }
     const key = `assignment:${assignment.offset}`;
-    if (state.seen.has(key)) return unresolvedResult();
+    if (state.seen.has(key)) {
+      return unresolvedResult("resolution-cycle", node, { identifier: node.name });
+    }
     const result = evaluateNode(
       assignment.valueNode,
       assignment.context,
@@ -871,16 +1408,63 @@ function evaluateIdentifier(node, context, before, state) {
       ],
     };
   }
-  if (parameter !== null) {
-    const key = `parameter:${parameter.scope.id}:${parameter.parameterIndex}`;
-    if (state.seen.has(key)) return unresolvedResult();
-    return functionParameterResult(parameter.scope, parameter.parameterIndex, {
+  if (iteration !== null) {
+    const key = `iteration:${iteration.offset}:${node.name}:${JSON.stringify(iteration.path)}`;
+    if (state.seen.has(key)) {
+      return unresolvedResult("resolution-cycle", node, { identifier: node.name });
+    }
+    return iterationBindingResult(iteration, {
       ...state,
       depth: state.depth + 1,
       seen: new Set([...state.seen, key]),
     });
   }
-  return unresolvedResult();
+  if (parameter !== null) {
+    const key = `parameter:${parameter.scope.id}:${parameter.parameterIndex}:${JSON.stringify(parameter.path)}`;
+    if (state.seen.has(key)) {
+      return unresolvedResult("resolution-cycle", node, { identifier: node.name });
+    }
+    return functionParameterResult(
+      parameter.scope,
+      parameter.parameterIndex,
+      parameter.path,
+      {
+        ...state,
+        depth: state.depth + 1,
+        seen: new Set([...state.seen, key]),
+      },
+    );
+  }
+  const unique = uniqueBundleAssignment(node.name, before, context, parameter);
+  if (unique !== null) {
+    const key = `unique-bundle-assignment:${unique.offset}`;
+    if (state.seen.has(key)) {
+      return unresolvedResult("resolution-cycle", node, { identifier: node.name });
+    }
+    const result = evaluateNode(
+      unique.valueNode,
+      unique.context,
+      unique.offset,
+      {
+        ...state,
+        depth: state.depth + 1,
+        seen: new Set([...state.seen, key]),
+      },
+    );
+    if (!result.complete) return result;
+    return {
+      ...result,
+      evidence: [
+        ...result.evidence,
+        resolutionStep("unique-bundle-assignment", unique.valueNode, {
+          identifier: node.name,
+          assignmentOffset: unique.offset,
+          bindingKind: unique.bindingKind,
+        }),
+      ],
+    };
+  }
+  return unresolvedResult("runtime-identifier", node, { identifier: node.name });
 }
 
 function evaluateTemplate(node, context, before, state) {
@@ -889,21 +1473,26 @@ function evaluateTemplate(node, context, before, state) {
   let callers = [];
   for (let index = 0; index < node.quasis.length; index += 1) {
     const quasi = node.quasis[index].value.cooked;
-    if (quasi === null) return unresolvedResult();
+    if (quasi === null) return unresolvedResult("invalid-template-quasi", node);
     values = values.map((value) => value + quasi);
     if (index >= node.expressions.length) continue;
     const expression = evaluateNode(node.expressions[index], context, before, {
       ...state,
       depth: state.depth + 1,
     });
-    if (!expression.complete || expression.values.some((value) => typeof value !== "string")) {
-      return unresolvedResult();
+    if (!expression.complete) return expression;
+    if (expression.values.some((value) => typeof value !== "string")) {
+      return unresolvedResult("non-string-template-expression", node.expressions[index]);
     }
     const expanded = [];
     for (const prefix of values) {
       for (const value of expression.values) {
         expanded.push(prefix + value);
-        if (expanded.length > maxFiniteValues) return unresolvedResult();
+        if (expanded.length > maxFiniteValues) {
+          return unresolvedResult("oversized-template-domain", node, {
+            maxFiniteValues,
+          });
+        }
       }
     }
     values = expanded;
@@ -913,10 +1502,166 @@ function evaluateTemplate(node, context, before, state) {
   return { complete: true, values, evidence, callers };
 }
 
+function guaranteedFunctionReturn(scope) {
+  const body = scope.node.body;
+  if (scope.node.type === "ArrowFunctionExpression" && body.type !== "BlockStatement") {
+    return body;
+  }
+  if (
+    body.type === "BlockStatement" &&
+    body.body.length === 1 &&
+    body.body[0].type === "ReturnStatement" &&
+    body.body[0].argument !== null
+  ) {
+    return body.body[0].argument;
+  }
+  return null;
+}
+
+function directFunctionResult(node, context, before, state) {
+  if (node.callee.type !== "Identifier") {
+    return unresolvedResult("non-direct-function-call", node);
+  }
+  const scope = nearestVisibleFunction(node.callee.name, context);
+  if (scope === null || scope.params.length !== 0 || node.arguments.length !== 0) {
+    return unresolvedResult("runtime-function-call", node, {
+      callee: node.callee.name,
+    });
+  }
+  const returned = guaranteedFunctionReturn(scope);
+  if (returned === null) {
+    return unresolvedResult("non-trivial-function-return", node, {
+      callee: node.callee.name,
+    });
+  }
+  const key = `function-return:${scope.id}`;
+  if (state.seen.has(key)) {
+    return unresolvedResult("resolution-cycle", node, { callee: node.callee.name });
+  }
+  const result = evaluateNode(
+    returned,
+    [...scope.parentContext, scope],
+    returned.start,
+    {
+      ...state,
+      depth: state.depth + 1,
+      seen: new Set([...state.seen, key]),
+    },
+  );
+  if (!result.complete) return result;
+  return {
+    ...result,
+    evidence: [
+      ...result.evidence,
+      resolutionStep("static-function-return", returned, {
+        function: scope.name,
+      }),
+    ],
+    callers: [
+      ...result.callers,
+      callerStep("direct-function-call", { node, context }),
+    ],
+  };
+}
+
+function directMemberAssignmentResult(node, context, before, state) {
+  const reference = staticReference(node);
+  if (reference === null) return unresolvedResult("dynamic-member-reference", node);
+  const assignment = memberAssignmentFor(reference, before, context);
+  if (assignment === null) {
+    return unresolvedResult(
+      memberAssignmentsByReference.has(reference)
+        ? "assignment-does-not-dominate-function-executions"
+        : "runtime-object-member",
+      node,
+      { reference },
+    );
+  }
+  const key = `member-assignment:${assignment.offset}`;
+  if (state.seen.has(key)) {
+    return unresolvedResult("resolution-cycle", node, { reference });
+  }
+  const result = evaluateNode(
+    assignment.valueNode,
+    assignment.context,
+    assignment.offset,
+    {
+      ...state,
+      depth: state.depth + 1,
+      seen: new Set([...state.seen, key]),
+    },
+  );
+  if (!result.complete) return result;
+  return {
+    ...result,
+    evidence: [
+      ...result.evidence,
+      resolutionStep("unique-member-assignment", assignment.valueNode, {
+        reference,
+        assignmentOffset: assignment.offset,
+      }),
+    ],
+  };
+}
+
+function primitiveBinaryResult(node, context, before, state) {
+  if (node.operator !== "+") {
+    return unresolvedResult("unsupported-binary-operator", node, {
+      operator: node.operator,
+    });
+  }
+  const left = evaluateNode(node.left, context, before, {
+    ...state,
+    depth: state.depth + 1,
+  });
+  const right = evaluateNode(node.right, context, before, {
+    ...state,
+    depth: state.depth + 1,
+  });
+  if (!left.complete || !right.complete) return mergeResults([left, right]);
+  const values = [];
+  for (const first of left.values) {
+    for (const second of right.values) {
+      if (
+        !["string", "number", "boolean"].includes(typeof first) ||
+        !["string", "number", "boolean"].includes(typeof second)
+      ) {
+        return unresolvedResult("non-primitive-concatenation", node);
+      }
+      values.push(first + second);
+    }
+  }
+  const unique = uniqueValues(values);
+  if (unique === null || unique.length === 0) {
+    return unresolvedResult("empty-or-oversized-concatenation", node);
+  }
+  return {
+    complete: true,
+    values: unique,
+    evidence: [
+      ...left.evidence,
+      ...right.evidence,
+      resolutionStep("static-binary-concatenation", node, { operator: "+" }),
+    ],
+    callers: [...left.callers, ...right.callers],
+  };
+}
+
 function evaluateNode(node, context, before, state) {
-  if (!node || state.depth > maxResolutionDepth) return unresolvedResult();
+  if (!node) return unresolvedResult("missing-expression");
+  if (state.depth > maxResolutionDepth) {
+    return unresolvedResult("resolution-depth-limit", node, {
+      maxResolutionDepth,
+    });
+  }
   if (node.type === "ChainExpression") {
     return evaluateNode(node.expression, context, before, state);
+  }
+  if (node.type === "SequenceExpression" && node.expressions.length > 0) {
+    return evaluateNode(node.expressions.at(-1), context, before, {
+      ...state,
+      depth: state.depth + 1,
+    });
   }
   if (node.type === "Literal") {
     if (typeof node.value === "string") {
@@ -941,6 +1686,41 @@ function evaluateNode(node, context, before, state) {
   if (node.type === "Identifier") {
     return evaluateIdentifier(node, context, before, state);
   }
+  if (
+    node.type === "UnaryExpression" &&
+    (node.operator === "+" || node.operator === "-")
+  ) {
+    const argument = evaluateNode(node.argument, context, before, {
+      ...state,
+      depth: state.depth + 1,
+    });
+    if (!argument.complete || argument.values.some((value) => typeof value !== "number")) {
+      return argument.complete
+        ? unresolvedResult("non-numeric-unary-operand", node)
+        : argument;
+    }
+    return {
+      ...argument,
+      values: argument.values.map((value) =>
+        node.operator === "-" ? -value : +value,
+      ),
+      evidence: [
+        ...argument.evidence,
+        resolutionStep("static-unary-number", node, { operator: node.operator }),
+      ],
+    };
+  }
+  if (node.type === "BinaryExpression") {
+    return primitiveBinaryResult(node, context, before, state);
+  }
+  if (node.type === "LogicalExpression") {
+    return unresolvedResult("runtime-logical-name", node, {
+      operator: node.operator,
+    });
+  }
+  if (node.type === "AwaitExpression") {
+    return unresolvedResult("runtime-await-result", node);
+  }
   if (node.type === "ConditionalExpression") {
     return mergeResults([
       evaluateNode(node.consequent, context, before, {
@@ -958,18 +1738,31 @@ function evaluateNode(node, context, before, state) {
     const evidence = [resolutionStep("static-array", node)];
     const callers = [];
     for (const element of node.elements) {
-      if (!element || element.type === "SpreadElement") return unresolvedResult();
-      const result = evaluateNode(element, context, before, {
+      if (!element) return unresolvedResult("array-hole", node);
+      const target = element.type === "SpreadElement" ? element.argument : element;
+      const result = evaluateNode(target, context, before, {
         ...state,
         depth: state.depth + 1,
       });
-      if (!result.complete) return unresolvedResult();
-      items.push(...result.values);
+      if (!result.complete) return result;
+      if (element.type === "SpreadElement") {
+        for (const value of result.values) {
+          if (value?.kind !== "array") {
+            return unresolvedResult("non-finite-array-spread", element.argument);
+          }
+          items.push(...value.items);
+        }
+        evidence.push(
+          resolutionStep("static-array-spread", element.argument),
+        );
+      } else {
+        items.push(...result.values);
+      }
       evidence.push(...result.evidence);
       callers.push(...result.callers);
     }
     const unique = uniqueValues(items);
-    if (unique === null) return unresolvedResult();
+    if (unique === null) return unresolvedResult("oversized-array-domain", node);
     return {
       complete: true,
       values: [{ kind: "array", items: unique }],
@@ -984,37 +1777,88 @@ function evaluateNode(node, context, before, state) {
     const callers = [];
     for (const property of node.properties) {
       if (property.type === "SpreadElement") {
-        const spreadKeys = staticObjectKeys(property.argument, context);
-        if (spreadKeys === null) return unresolvedResult();
-        for (const key of spreadKeys) {
-          properties.delete(key);
-          unsafeKeys.add(key);
+        const spread = evaluateNode(property.argument, context, before, {
+          ...state,
+          depth: state.depth + 1,
+        });
+        if (!spread.complete) {
+          const spreadKeys = staticObjectKeys(property.argument, context);
+          if (spreadKeys === null) return spread;
+          for (const key of spreadKeys) {
+            properties.delete(key);
+            unsafeKeys.add(key);
+          }
+          evidence.push(
+            resolutionStep("static-object-spread-keys", property.argument, {
+              keys: [...spreadKeys].sort(),
+            }),
+          );
+          continue;
         }
+        for (const value of spread.values) {
+          if (value?.kind !== "object") {
+            return unresolvedResult("non-finite-object-spread", property.argument);
+          }
+          for (const [key, values] of value.properties) {
+            if (value.unsafeKeys?.has(key)) {
+              properties.delete(key);
+              unsafeKeys.add(key);
+            } else {
+              properties.set(key, values);
+              unsafeKeys.delete(key);
+            }
+          }
+        }
+        evidence.push(...spread.evidence);
+        callers.push(...spread.callers);
         evidence.push(
-          resolutionStep("static-object-spread-keys", property.argument, {
-            keys: [...spreadKeys].sort(),
-          }),
+          resolutionStep("static-object-spread", property.argument),
         );
         continue;
       }
       if (
         property.type !== "Property" ||
-        property.computed ||
         property.kind !== "init"
       ) {
-        return unresolvedResult();
+        return unresolvedResult("unsupported-object-property", property);
       }
-      const key = propertyName(property.key);
-      if (key === null) return unresolvedResult();
+      let keys;
+      let keyEvidence = [];
+      let keyCallers = [];
+      if (property.computed) {
+        const keyResult = evaluateNode(property.key, context, before, {
+          ...state,
+          depth: state.depth + 1,
+        });
+        if (
+          !keyResult.complete ||
+          keyResult.values.some(
+            (value) => typeof value !== "string" && typeof value !== "number",
+          )
+        ) {
+          return keyResult.complete
+            ? unresolvedResult("non-finite-object-key", property.key)
+            : keyResult;
+        }
+        keys = keyResult.values.map(String);
+        keyEvidence = keyResult.evidence;
+        keyCallers = keyResult.callers;
+      } else {
+        const key = propertyName(property.key);
+        if (key === null) return unresolvedResult("unsupported-object-key", property.key);
+        keys = [key];
+      }
       const result = evaluateNode(property.value, context, before, {
         ...state,
         depth: state.depth + 1,
       });
-      if (!result.complete) return unresolvedResult();
-      properties.set(key, result.values);
-      unsafeKeys.delete(key);
-      evidence.push(...result.evidence);
-      callers.push(...result.callers);
+      if (!result.complete) return result;
+      for (const key of keys) {
+        properties.set(key, result.values);
+        unsafeKeys.delete(key);
+      }
+      evidence.push(...keyEvidence, ...result.evidence);
+      callers.push(...keyCallers, ...result.callers);
     }
     return {
       complete: true,
@@ -1024,11 +1868,29 @@ function evaluateNode(node, context, before, state) {
     };
   }
   if (node.type === "MemberExpression") {
+    if (isProcessEnv(node)) {
+      return unresolvedResult("runtime-environment-keyset", node);
+    }
+    const direct = directMemberAssignmentResult(node, context, before, state);
+    if (direct.complete) return direct;
+    if (
+      direct.failures?.some(
+        (failure) =>
+          failure.reason === "assignment-does-not-dominate-function-executions",
+      )
+    ) {
+      return direct;
+    }
     const object = evaluateNode(node.object, context, before, {
       ...state,
       depth: state.depth + 1,
     });
-    if (!object.complete) return unresolvedResult();
+    if (!object.complete) {
+      return {
+        ...object,
+        failures: [...(direct.failures ?? []), ...(object.failures ?? [])],
+      };
+    }
     let keys;
     let keyEvidence = [];
     let keyCallers = [];
@@ -1045,35 +1907,45 @@ function evaluateNode(node, context, before, state) {
             typeof value !== "number",
         )
       ) {
-        return unresolvedResult();
+        return keyResult.complete
+          ? unresolvedResult("non-finite-member-key", node.property)
+          : keyResult;
       }
       keys = keyResult.values.map(String);
       keyEvidence = keyResult.evidence;
       keyCallers = keyResult.callers;
     } else {
       const key = propertyName(node.property);
-      if (key === null) return unresolvedResult();
+      if (key === null) return unresolvedResult("unsupported-member-key", node.property);
       keys = [key];
     }
     const values = [];
     for (const value of object.values) {
       for (const key of keys) {
         if (value?.kind === "object") {
-          if (value.unsafeKeys?.has(key)) return unresolvedResult();
+          if (value.unsafeKeys?.has(key)) {
+            return unresolvedResult("unsafe-object-spread-key", node, { key });
+          }
           const propertyValues = value.properties.get(key);
-          if (!propertyValues) return unresolvedResult();
+          if (!propertyValues) {
+            return unresolvedResult("missing-static-object-key", node, { key });
+          }
           values.push(...propertyValues);
         } else if (value?.kind === "array" && /^\d+$/.test(key)) {
           const item = value.items[Number(key)];
-          if (item === undefined) return unresolvedResult();
+          if (item === undefined) {
+            return unresolvedResult("array-index-out-of-range", node, { key });
+          }
           values.push(item);
         } else {
-          return unresolvedResult();
+          return unresolvedResult("runtime-object-member", node, { key });
         }
       }
     }
     const unique = uniqueValues(values);
-    if (unique === null || unique.length === 0) return unresolvedResult();
+    if (unique === null || unique.length === 0) {
+      return unresolvedResult("empty-or-oversized-member-domain", node);
+    }
     return {
       ...object,
       values: unique,
@@ -1081,17 +1953,117 @@ function evaluateNode(node, context, before, state) {
       callers: [...object.callers, ...keyCallers],
     };
   }
-  if (node.type === "CallExpression" && node.arguments.length === 0) {
-    const callee = node.callee.type === "ChainExpression" ? node.callee.expression : node.callee;
+  if (
+    node.type === "NewExpression" &&
+    identifierName(node.callee) === "Set" &&
+    node.arguments.length <= 1
+  ) {
+    if (node.arguments.length === 0) {
+      return {
+        complete: true,
+        values: [{ kind: "array", items: [] }],
+        evidence: [resolutionStep("static-set", node)],
+        callers: [],
+      };
+    }
+    const argument = evaluateNode(node.arguments[0], context, before, {
+      ...state,
+      depth: state.depth + 1,
+    });
+    if (!argument.complete) return argument;
+    if (argument.values.some((value) => value?.kind !== "array")) {
+      return unresolvedResult("non-finite-set-source", node.arguments[0]);
+    }
+    return {
+      ...argument,
+      evidence: [...argument.evidence, resolutionStep("static-set", node)],
+    };
+  }
+  if (node.type === "NewExpression") {
+    return unresolvedResult("runtime-constructed-collection", node, {
+      callee: staticReference(node.callee),
+    });
+  }
+  if (node.type === "CallExpression") {
+    const callee =
+      node.callee.type === "ChainExpression" ? node.callee.expression : node.callee;
+    if (
+      callee?.type === "MemberExpression" &&
+      identifierName(callee.object) === "Object" &&
+      ["keys", "values", "entries"].includes(propertyName(callee.property)) &&
+      node.arguments.length === 1
+    ) {
+      const method = propertyName(callee.property);
+      const object = evaluateNode(node.arguments[0], context, before, {
+        ...state,
+        depth: state.depth + 1,
+      });
+      if (!object.complete) return object;
+      const items = [];
+      for (const value of object.values) {
+        if (value?.kind !== "object" || (value.unsafeKeys?.size ?? 0) > 0) {
+          return unresolvedResult("non-finite-object-enumeration", node.arguments[0], {
+            method,
+          });
+        }
+        for (const [key, propertyValues] of value.properties) {
+          if (method === "keys") items.push(key);
+          else if (method === "values") items.push(...propertyValues);
+          else {
+            for (const propertyValue of propertyValues) {
+              items.push({ kind: "array", items: [key, propertyValue] });
+            }
+          }
+        }
+      }
+      const unique = uniqueValues(items);
+      if (unique === null) {
+        return unresolvedResult("oversized-object-enumeration", node, { method });
+      }
+      return {
+        complete: true,
+        values: [{ kind: "array", items: unique }],
+        evidence: [
+          ...object.evidence,
+          resolutionStep("static-object-enumeration", node, { method }),
+        ],
+        callers: object.callers,
+      };
+    }
+    if (
+      callee?.type === "MemberExpression" &&
+      identifierName(callee.object) === "Object" &&
+      propertyName(callee.property) === "freeze" &&
+      node.arguments.length === 1
+    ) {
+      const frozen = evaluateNode(node.arguments[0], context, before, {
+        ...state,
+        depth: state.depth + 1,
+      });
+      if (!frozen.complete) return frozen;
+      return {
+        ...frozen,
+        evidence: [
+          ...frozen.evidence,
+          resolutionStep("static-object-freeze", node),
+        ],
+      };
+    }
     if (callee?.type === "MemberExpression") {
       const method = propertyName(callee.property);
-      if (method === "toUpperCase" || method === "toLowerCase") {
+      if (
+        node.arguments.length === 0 &&
+        (method === "toUpperCase" || method === "toLowerCase")
+      ) {
         const object = evaluateNode(callee.object, context, before, {
           ...state,
           depth: state.depth + 1,
         });
-        if (!object.complete || object.values.some((value) => typeof value !== "string")) {
-          return unresolvedResult();
+        if (!object.complete) return object;
+        if (object.values.some((value) => typeof value !== "string")) {
+          return unresolvedResult("non-string-transform-source", callee.object, {
+            method,
+          });
         }
         return {
           ...object,
@@ -1104,9 +2076,97 @@ function evaluateNode(node, context, before, state) {
           ],
         };
       }
+      if (
+        (method === "find" || method === "filter") &&
+        node.arguments.length >= 1
+      ) {
+        const collection = evaluateNode(callee.object, context, before, {
+          ...state,
+          depth: state.depth + 1,
+        });
+        if (!collection.complete) return collection;
+        const items = [];
+        for (const value of collection.values) {
+          if (value?.kind !== "array") {
+            return unresolvedResult("non-finite-collection-method", callee.object, {
+              method,
+            });
+          }
+          if (method === "find") items.push(...value.items);
+          else items.push(value);
+        }
+        const unique = uniqueValues(items);
+        if (unique === null || unique.length === 0) {
+          return unresolvedResult("empty-or-oversized-collection-method", node, {
+            method,
+          });
+        }
+        return {
+          complete: true,
+          values: unique,
+          evidence: [
+            ...collection.evidence,
+            resolutionStep("finite-collection-result", node, {
+              method,
+              predicateIgnored: true,
+            }),
+          ],
+          callers: collection.callers,
+        };
+      }
+      if (method === "at" && node.arguments.length === 1) {
+        const collection = evaluateNode(callee.object, context, before, {
+          ...state,
+          depth: state.depth + 1,
+        });
+        const index = evaluateNode(node.arguments[0], context, before, {
+          ...state,
+          depth: state.depth + 1,
+        });
+        if (!collection.complete || !index.complete) {
+          return mergeResults([collection, index]);
+        }
+        if (
+          collection.values.some((value) => value?.kind !== "array") ||
+          index.values.some((value) => !Number.isInteger(value))
+        ) {
+          return unresolvedResult("non-finite-array-at", node);
+        }
+        const values = [];
+        for (const value of collection.values) {
+          for (const rawIndex of index.values) {
+            const selected = value.items.at(rawIndex);
+            if (selected === undefined) {
+              return unresolvedResult("array-index-out-of-range", node, {
+                index: rawIndex,
+              });
+            }
+            values.push(selected);
+          }
+        }
+        const unique = uniqueValues(values);
+        if (unique === null || unique.length === 0) {
+          return unresolvedResult("empty-or-oversized-array-at", node);
+        }
+        return {
+          complete: true,
+          values: unique,
+          evidence: [
+            ...collection.evidence,
+            ...index.evidence,
+            resolutionStep("static-array-at", node),
+          ],
+          callers: [...collection.callers, ...index.callers],
+        };
+      }
     }
+    const direct = directFunctionResult(node, context, before, state);
+    if (direct.complete) return direct;
+    return direct;
   }
-  return unresolvedResult();
+  return unresolvedResult("unsupported-expression-node", node, {
+    nodeType: node.type,
+  });
 }
 
 function dedupeRecords(records, limit = maxFiniteValues) {
@@ -1133,17 +2193,47 @@ for (const candidate of environmentResolutionCandidates) {
     candidate.expressionNode.start,
     { depth: 0, seen: new Set() },
   );
-  if (
-    !result.complete ||
-    result.values.length === 0 ||
-    result.values.some(
+  const validEnvironmentNames =
+    result.complete &&
+    result.values.length > 0 &&
+    result.values.every(
       (value) =>
-        typeof value !== "string" ||
-        value.length === 0 ||
-        value.length > maxReferenceLength ||
-        !/^[A-Za-z_][A-Za-z0-9_]*$/.test(value),
-    )
-  ) {
+        typeof value === "string" &&
+        value.length > 0 &&
+        value.length <= maxReferenceLength &&
+        /^[A-Za-z_][A-Za-z0-9_]*$/.test(value),
+    );
+  if (!validEnvironmentNames) {
+    const failures = dedupeRecords(
+      result.complete
+        ? [
+            {
+              reason: "non-environment-name-domain",
+              ...location(candidate.expressionNode),
+              range: sourceRange(candidate.expressionNode),
+              valueCount: result.values.length,
+              valueTypes: [...new Set(result.values.map((value) => typeof value))].sort(),
+            },
+          ]
+        : result.failures ?? [
+            {
+              reason: "unsupported-or-incomplete",
+              ...location(candidate.expressionNode),
+              range: sourceRange(candidate.expressionNode),
+            },
+          ],
+    );
+    const failureCount = uniqueRecordCount(
+      result.complete ? failures : result.failures ?? failures,
+    );
+    candidate.record.unresolvedResolution = {
+      complete: false,
+      primaryReason: failures.at(-1)?.reason ?? "unsupported-or-incomplete",
+      reasons: [...new Set(failures.map((failure) => failure.reason))].sort(),
+      failureCount,
+      failuresTruncated: failures.length < failureCount,
+      failures,
+    };
     continue;
   }
   const values = [...new Set(result.values)].sort();

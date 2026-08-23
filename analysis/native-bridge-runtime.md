@@ -199,7 +199,7 @@ JS wrapper 在 `reverse/javascript/cli.readable.js` 604122-604133 lazy load modu
 - 把产物复制到全新临时目录并改成原 `.node` 文件名；
 - 分别加载 original 与 reconstructed；
 - 比较 exports 和 23 组行为；
-- 写出 [native-reconstruction.json](runtime-probes/native-reconstruction.json)，逐项记录模块、比较模式、输入策略和架构证据；
+- 写出 arm64 [native-reconstruction.json](runtime-probes/native-reconstruction.json) 与 x86_64 [native-reconstruction-x86.json](runtime-probes/native-reconstruction-x86.json)，逐项记录模块、比较模式、输入策略和架构证据；
 - 避免覆盖已经映射的 Mach-O。
 
 当前 arm64 结果：
@@ -215,20 +215,35 @@ reconstructed native validation: PASS
 
 通过说明重建实现满足当前检查过的外部合同，不说明内部算法等同原始源码。
 
+发布脚本提供 Rust `x86_64-apple-darwin` target 和 Swift `--triple x86_64-apple-macosx` 两条 build recipe，再把准备好的 x86 artifact 交给 Rosetta x86 Node。下面是 x86_64/Rosetta artifact 合同与运行比较的输出；x86 报告没有绑定同次 Rust/Swift build 的 literal output 和 exit status，因此这段输出不能单独证明 artifact 在该次报告生成时由当前源码新鲜构建：
+
+```text
+native contract validation: PASS
+modules checked: 2
+native contract validation: PASS
+modules checked: 5
+native behavior comparison: PASS
+checks passed: 20
+```
+
+第一组 2 个合同验证原版确实存在 x86 slice 的 Computer Use 模块；第二组验证 5 个 supplied compatible artifact 都能加载且导出符合合同。20 项行为结果由 Input/Swift 的 19 项同输入对照和 1 项覆盖 guard 构成。报告把这一级写成 `validated-artifacts-and-runtime`，不是 `build-and-runtime`。
+
+x86 报告还逐 artifact 保存 bytes、SHA-256、Mach-O slice 和 regular-file 状态；比较器自行执行导出合同，并拒绝 symlink、目录逃逸、缺失模块、非 x86 slice 与 original/rebuilt 同 hash。环境字段同时要求 x64 Node、arm64 hardware 和 `sysctl.proc_translated=1`，因此这里的 Rosetta 不是根据 `process.arch` 猜测。专属 forged-directory 测试证明拿 original symlink 冒充 compatible 不能生成 PASS 报告。
+
 机器报告把 23 项拆为：22 项真实原版/重建对照和 1 个最低覆盖审计。22 项对照中有 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本轮 `environment-boundary` 为 0。`exact` 用于稳定状态、错误和归序后的完整 hide 候选；`normalized-semantic` 用于应用、显示器和 icon 等先归一化再比较的结果；`schema-and-invariants` 用于输入模块和实时截图结构。hide 候选保留全部字段与成员：公共 helper 固定豁免 Finder，并筛掉非 layer 0、alpha 不大于 `0.1` 或不与目标显示器相交的窗口；它不检查窗口宽高，源码中 `width/height > 1` 只用于窗口所属显示器和普通激活候选两个独立流程。`prepareDisplay` 调用方又额外豁免 host 与 Finder，preview 调用方不另加 Finder，但仍经过公共 helper，并把可选 display ID 解析为指定或主显示器 frame。screenshot 则单独使用 8 项系统界面 bundle ID 白名单，loginwindow 只属于该集合。截图比较字段、尺寸、显示器元数据、规范 Base64 和 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，要求格式为 JPEG 且解码宽高等于返回值；不比较实时像素字节。只有双方返回完全相同的已知 TCC/ScreenCaptureKit 失败合同才改记 `environment-boundary`，其他成功/失败组合或错误文本漂移都会失败。构建前置静态校验同时绑定 arm64/x86_64 的 Finder 编码、`0.1` 常量和关键指令。比较器先使旧报告失效，再把 PASS 或 FAIL 通过临时文件、`fsync` 和 rename 原子写入；因此失败运行不会把旧 PASS 留给后续 validator。这样后续版本能看出是“行为变了”“环境没提供能力”还是“总覆盖不足”，而不只是总 PASS 变成 FAIL。
 
 ## 架构与平台边界
 
-发布产物中 `computer-use-input.node` 和 `computer-use-swift.node` 含 arm64 + x86_64 slice；其他模块的归档架构见 [native-architectures.txt](../reverse/index/native-architectures.txt)。当前可编译重建只在 arm64 macOS 实际运行。
+发布产物中 `computer-use-input.node` 和 `computer-use-swift.node` 含 arm64 + x86_64 slice；其他模块的归档架构见 [native-architectures.txt](../reverse/index/native-architectures.txt)。compatible 源码有 arm64/x86 build recipe；提交的 x86 报告只对 supplied artifact 的架构、身份分离、load/export 和 Rosetta runtime 负责。
 
 | 层 | arm64 | x86_64 |
 | --- | --- | --- |
-| Original 发布模块 | 5 个模块，runtime + static | 2 个 Computer Use slice，static only |
-| Compatible 重建模块 | 5 个模块，build + runtime，23/23 checks | not built or run |
+| Original 发布模块 | 5 个模块，runtime + static | 2 个 Computer Use slice，runtime + static |
+| Compatible 重建模块 | 5 个模块，build + runtime，23/23 checks | 5 个 supplied artifact 通过架构、非同 hash、load/export 验证；2 个可对照模块 20/20 checks |
 
-因此“重建通过”只落在 arm64 外部合同。x86_64 原始机器码仍已完整静态归档，但没有被兼容源码的 x86_64 产物和运行结果覆盖。
+因此“x86 重建通过”有两种强度：5 个 compatible artifact 都证明了 x86 架构、与 original 非同 hash、load/export；只有发布物自身含 x86 slice 的 Input/Swift 两个模块能进一步证明 original/compatible 同输入行为。其余三个模块没有 original x86 对象，不能从 compatible-only 成功外推原版行为；两条 build recipe 也不能替代同次构建输出与退出状态。
 
-跨版本应分别比较 slice。universal module 的一个 slice 未变化，不代表另一个 slice 未变化；arm64 probe 也不能替代 x86_64 execution evidence。
+跨版本应分别比较 slice。universal module 的一个 slice 未变化，不代表另一个 slice 未变化；当前两份报告也必须分别保持 PASS，不能用任一架构替代另一份执行证据。
 
 ## 失败与恢复
 
@@ -258,6 +273,6 @@ Native 操作已经改变外部状态时，Agent Loop 的 message tombstone、re
 
 ## 证据与边界
 
-结构化证据条目除静态 consumer 外，还包括 `probe.native-original-compatible` 与 `probe.native-architecture-boundary`。完整 Mach-O 证据在 [reverse/native](../reverse/native)，归一化 ABI/依赖/Swift symbol diff 在 [reverse/index](../reverse/index)。
+结构化证据条目除静态 consumer 外，还包括 `probe.native-original-compatible`、`probe.native-x86-build-load` 与 `probe.native-x86-original-compatible`。完整 Mach-O 证据在 [reverse/native](../reverse/native)，归一化 ABI/依赖/Swift symbol diff 在 [reverse/index](../reverse/index)。
 
 本仓库已经尽可能恢复发布物可观察合同和兼容源码；它不是 Anthropic 构建前的原始 C/C++/Rust/Swift 仓库。缺失源码级 debug info 后，内部文件布局、注释、优化前函数体和被编译器删除的代码不能逐字恢复。

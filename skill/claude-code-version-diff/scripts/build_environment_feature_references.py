@@ -20,11 +20,11 @@ EXPECTED_2_1_235 = {
     "untyped_named_names": 137,
     "untyped_named_callsites": 242,
     "dynamic_environment_callsites": 145,
-    "resolved_dynamic_environment_callsites": 60,
-    "unresolved_dynamic_environment_callsites": 85,
-    "resolved_dynamic_environment_names": 105,
-    "resolved_dynamic_only_typed_names": 6,
-    "typed_no_static_consumer": 74,
+    "resolved_dynamic_environment_callsites": 7,
+    "unresolved_dynamic_environment_callsites": 138,
+    "resolved_dynamic_environment_names": 22,
+    "resolved_dynamic_only_typed_names": 0,
+    "typed_no_static_consumer": 80,
     "feature_keys": 361,
     "feature_callsites": 498,
     "feature_resolvable_static_callsites": 455,
@@ -296,30 +296,6 @@ ENV_MEANINGS: dict[str, tuple[str, str]] = {
     ),
     "OTEL_EXPORTER_OTLP_ENDPOINT": (
         "generic OTLP base endpoint；logs、metrics 和 traces 的 signal-specific endpoint 可覆盖，Gateway 路径还可锁定自己的出口，因此不能只检查这一项。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": (
-        "logs 专用 OTLP endpoint，通过已证明的 `OTEL_EXPORTER_OTLP_${signal}_ENDPOINT` 动态模板在 signal=logs 时读取；它优先于 generic endpoint，缺失时才从 generic base 派生 `/v1/logs`。设置存在不证明 exporter 启用或 collector 接受。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_LOGS_HEADERS": (
-        "logs 专用 OTLP headers，动态模板在 signal=logs 时读取，并与 generic `OTEL_EXPORTER_OTLP_HEADERS` 合并；signal-specific 键覆盖同名 generic 键。运行值可含凭据，报告只保留名称和 consumer 证据。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": (
-        "metrics 专用 OTLP endpoint，动态模板在 signal=metrics 时读取；它优先于 generic endpoint，缺失才派生 `/v1/metrics`。Prometheus/console/none exporter 可使该值完全不被网络使用。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_METRICS_HEADERS": (
-        "metrics 专用 OTLP headers，通过 finite dynamic signal 读取并覆盖同名 generic header；只有 metrics exporter 实际选中 OTLP 才进入 transport。真实 header 值和 collector auth 结果是运行时 Boundary。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": (
-        "traces 专用 OTLP endpoint，动态模板在 signal=traces 时读取；它优先于 generic endpoint，缺失才派生 `/v1/traces`。traces 还要通过 enhanced/session tracing gate，endpoint 不能单独开启 span 上报。",
-        "telemetry.md",
-    ),
-    "OTEL_EXPORTER_OTLP_TRACES_HEADERS": (
-        "traces 专用 OTLP headers，通过 finite dynamic signal 读取并与 generic headers 合并；只有 traces OTLP exporter 已建立时才进入请求。静态证据不包含真实凭据或 collector 回执。",
         "telemetry.md",
     ),
     "OTEL_EXPORTER_OTLP_PROTOCOL": (
@@ -2328,6 +2304,25 @@ def build_environment_document(
         for row in dynamic_calls
         if "resolvedStaticValue" not in row and "resolvedFiniteValues" not in row
     ]
+    unresolved_reason_counts = Counter(
+        row.get("unresolvedResolution", {}).get(
+            "primaryReason", "missing-classification"
+        )
+        for row in unresolved_dynamic_calls
+    )
+    unresolved_reason_explanations = {
+        "empty-or-oversized-iteration-domain": "\u9759\u6001\u96c6\u5408\u4e3a\u7a7a\u6216\u8d85\u8fc7\u6709\u9650\u4f20\u64ad\u4e0a\u9650\uff0c\u4e0d\u80fd\u628a\u90e8\u5206\u96c6\u5408\u5192\u5145\u5b8c\u6574\u540d\u79f0\u57df",
+        "no-static-function-callers": "\u901a\u7528 helper \u6ca1\u6709\u5b8c\u6574\u7684\u672c\u5730\u9759\u6001 caller \u96c6\uff0c\u5916\u90e8\u6216\u4f9d\u8d56\u8c03\u7528\u4ecd\u53ef\u4f20\u5165\u8fd0\u884c\u65f6\u540d\u79f0",
+        "non-direct-function-call": "\u540d\u79f0\u7ee7\u7eed\u6d41\u5165\u6210\u5458\u8c03\u7528\u6216\u9ad8\u9636\u8c03\u7528\uff0c\u5f53\u524d\u8c03\u7528\u53c2\u6570\u4e0d\u80fd\u5b8c\u6574\u9759\u6001\u6c42\u503c",
+        "runtime-await-result": "\u540d\u79f0\u6765\u81ea await \u7684\u8fd0\u884c\u65f6\u7ed3\u679c\u5bf9\u8c61",
+        "runtime-constructed-collection": "\u540d\u79f0\u6765\u81ea\u8fd0\u884c\u65f6\u6784\u9020\u7684 Map\u3001Set \u6216\u5176\u4ed6\u5bb9\u5668",
+        "runtime-environment-keyset": "\u540d\u79f0\u76f4\u63a5\u6765\u81ea\u5f53\u524d\u8fdb\u7a0b\u7684\u52a8\u6001\u73af\u5883 key \u96c6",
+        "runtime-function-call": "\u540d\u79f0\u7531\u65e0\u6cd5\u8bc1\u660e\u4e3a\u7eaf\u9759\u6001\u8fd4\u56de\u7684\u51fd\u6570\u8c03\u7528\u4ea7\u751f",
+        "runtime-identifier": "\u6807\u8bc6\u7b26\u6700\u7ec8\u6765\u81ea\u8fd0\u884c\u65f6\u8f93\u5165\u3001\u52a8\u6001 import \u89e3\u6784\u6216\u53ef\u53d8\u72b6\u6001",
+        "runtime-logical-name": "\u903b\u8f91\u8868\u8fbe\u5f0f\u81f3\u5c11\u4e00\u4fa7\u662f\u8fd0\u884c\u65f6\u53ef\u914d\u7f6e\u540d\u79f0\uff0c\u9759\u6001 fallback \u4e0d\u662f\u5b8c\u6574\u540d\u79f0\u57df",
+        "runtime-object-member": "\u5bf9\u8c61\u672c\u8eab\u6216\u6210\u5458\u503c\u7531\u8fd0\u884c\u65f6\u6570\u636e\u51b3\u5b9a",
+        "unsupported-expression-node": "\u5931\u8d25\u94fe\u4fdd\u7559\u5177\u4f53 AST \u8282\u70b9\uff0c\u4f46\u5f53\u524d\u6ca1\u6709\u5b8c\u6574\u6709\u9650\u540d\u79f0\u8bc1\u660e",
+    }
     resolved_dynamic_by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in resolved_dynamic_calls:
         values = (
@@ -2400,7 +2395,7 @@ def build_environment_document(
         f"| \u65e0\u9759\u6001 consumer \u7684 typed \u540d\u79f0 | {len(declaration_only)} | schema \u4e2d\u5b58\u5728\uff0c\u4f46\u65e2\u65e0 named access\uff0c\u4e5f\u672a\u88ab\u5b89\u5168\u7684 dynamic finite-name resolver \u547d\u4e2d | \u53ef\u4ee5\u628a\u5b83\u5199\u6210\u8fd0\u884c\u65f6\u529f\u80fd\u5f00\u5173 |",
         f"| \u4ec5\u901a\u8fc7\u52a8\u6001\u4e0b\u6807\u89e3\u6790\u7684 typed \u540d\u79f0 | {len(resolved_dynamic_only_typed)} | \u65e0 direct named access\uff0c\u4f46\u6709\u5b8c\u6574 caller/finite-name \u8bc1\u636e | \u8fd0\u884c\u503c\u3001\u5f53\u524d\u5206\u652f\u53ef\u8fbe\u6216\u8fdc\u7aef\u63a5\u53d7\u5df2\u8bc1\u660e |",
         f"| \u975e typed \u9759\u6001\u540d\u79f0 | {metrics['untyped_named_names']} \u4e2a\u540d\u79f0 / {metrics['untyped_named_callsites']} \u4e2a\u8c03\u7528\u70b9 | \u8fd0\u884c\u65f6\u4ee3\u7801\u76f4\u63a5\u8bfb\u53d6\u4e86 schema \u5916\u540d\u79f0 | \u503c\u7ecf\u8fc7\u7edf\u4e00\u7c7b\u578b\u9a8c\u8bc1 |",
-        f"| \u52a8\u6001\u4e0b\u6807\u8c03\u7528\u70b9 | {metrics['dynamic_environment_callsites']}\uff08{len(resolved_dynamic_calls)} \u4e2a\u5df2\u8bc1\u660e\u9759\u6001/\u6709\u9650\u540d\u79f0\uff0c{len(unresolved_dynamic_calls)} \u4e2a\u672a\u89e3\u6790\uff09 | \u4ee3\u7801\u6309\u8868\u8fbe\u5f0f\u8ba1\u7b97\u73af\u5883\u53d8\u91cf\u540d\uff1b\u6709\u9650\u89e3\u6790\u53ea\u63a5\u53d7 lexical assignment\u3001\u9759\u6001 collection callback \u6216\u5b8c\u6574 caller \u53c2\u6570\u96c6 | \u540d\u79f0\u5df2\u89e3\u6790\u4e0d\u7b49\u4e8e\u8fd0\u884c\u503c\u3001consumer \u5206\u652f\u6216\u8fdc\u7a0b\u80fd\u529b\u5df2\u786e\u5b9a |",
+        f"| \u52a8\u6001\u4e0b\u6807\u8c03\u7528\u70b9 | {metrics['dynamic_environment_callsites']}\uff08{len(resolved_dynamic_calls)} \u4e2a\u5df2\u8bc1\u660e\u9759\u6001/\u6709\u9650\u540d\u79f0\uff0c{len(unresolved_dynamic_calls)} \u4e2a\u672a\u89e3\u6790\uff09 | \u4ee3\u7801\u6309\u8868\u8fbe\u5f0f\u8ba1\u7b97\u73af\u5883\u53d8\u91cf\u540d\uff1b\u6709\u9650\u89e3\u6790\u63a5\u53d7\u53ef\u8bc1\u660e\u7684 assignment/member\u3001\u5bf9\u8c61/\u6570\u7ec4\u3001for-of/callback\u3001\u5b57\u7b26\u4e32\u53d8\u6362\u4e0e\u5b8c\u6574 caller \u53c2\u6570\u96c6 | \u540d\u79f0\u5df2\u89e3\u6790\u4e0d\u7b49\u4e8e\u8fd0\u884c\u503c\u3001consumer \u5206\u652f\u6216\u8fdc\u7a0b\u80fd\u529b\u5df2\u786e\u5b9a |",
         f"| \u5168\u90e8\u73af\u5883\u8bfb\u53d6 | {metrics['environment_callsites']} | \u56db\u7c7b accessor \u7684\u5b8c\u6574\u8c03\u7528\u70b9\u96c6\u5408 | \u670d\u52a1\u5668\u3001shell \u6ce8\u5165\u548c\u771f\u5b9e\u8fd0\u884c\u503c |",
         "",
         "Accessor \u5206\u5e03\uff1a" + "\uff1b".join(f"`{name}`={accessor_counts[name]}" for name in sorted(accessor_counts)) + "\u3002",
@@ -2548,6 +2543,17 @@ def build_environment_document(
             "",
             "\u6bcf\u884c\u4ee3\u8868\u4e00\u4e2a\u771f\u5b9e AST callsite\u3002`expression` \u59cb\u7ec8\u4fdd\u7559 bundle \u539f\u8868\u8fbe\u5f0f\uff1b`resolved name(s)` \u53ea\u5728\u540c/\u7956\u5148\u4f5c\u7528\u57df assignment\u3001\u9759\u6001\u6570\u7ec4 callback \u6216\u6240\u6709\u53ef\u89c1 caller \u53c2\u6570\u90fd\u80fd\u6c42\u6210\u6709\u9650\u5b57\u7b26\u4e32\u96c6\u65f6\u51fa\u73b0\u3002\u4efb\u4e00\u8def\u5f84\u6709\u8fd0\u884c\u53c2\u6570\u6216\u52a8\u6001 spread\uff0c\u8be5\u884c\u4ecd\u4fdd\u6301\u672a\u89e3\u6790\uff0c\u4e0d\u628a minified identifier \u7ffb\u8bd1\u6210\u731c\u6d4b\u540d\u79f0\u3002",
             "",
+            "\u5f53\u524d\u89e3\u6790\u5668\u8fd8\u8986\u76d6\u552f\u4e00 bundle/member assignment\u3001\u6709\u9650\u5bf9\u8c61/\u6570\u7ec4\u3001for-of\u3001\u547d\u540d callback\u3001\u9759\u6001\u5b57\u7b26\u4e32\u53d8\u6362\u4e0e\u5bf9\u8c61\u679a\u4e3e\uff1b\u6bcf\u79cd\u7b56\u7565\u90fd\u8981\u6c42\u5b8c\u6574\u6709\u9650\u57df\uff0c\u4e0d\u63a5\u53d7\u90e8\u5206\u547d\u4e2d\u3002",
+            "",
+            f"### {len(unresolved_dynamic_calls)} \u4e2a\u672a\u89e3\u6790\u8c03\u7528\u70b9\u4e3a\u4ec0\u4e48\u505c\u5728\u8fd9\u91cc",
+            "",
+            "| primary reason | callsites | \u4e0d\u80fd\u7ee7\u7eed\u9759\u6001\u6536\u53e3\u7684\u539f\u56e0 |",
+            "| --- | ---: | --- |",
+            *(
+                f"| {reason} | {count} | {unresolved_reason_explanations.get(reason, '\u5931\u8d25\u94fe\u4fdd\u7559\u4e86\u5177\u4f53 AST \u8282\u70b9\uff1b\u5f53\u524d\u6ca1\u6709\u5b8c\u6574\u6709\u9650\u540d\u79f0\u8bc1\u660e')} |"
+                for reason, count in sorted(unresolved_reason_counts.items())
+            ),
+            "",
             "| comparison key | expression | resolved name(s) | accessor / access mode | lexical owner / immediate consumer | fallback | location | resolution / Boundary |",
             "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
@@ -2564,12 +2570,29 @@ def build_environment_document(
         else:
             resolved = "Unresolved"
         resolution = row.get("resolutionEvidence")
+        unresolved_resolution = row.get("unresolvedResolution")
         if resolution:
             evidence = (
                 "Static/finite name proof: "
                 + compact_code(str(resolution.get("strategy", "static-expression")))
                 + f"\uff1b{resolution.get('callerCount', len(row.get('caller', [])))} \u4e2a caller/callback \u8bc1\u636e\u3002"
                 + "Boundary\uff1a\u672c\u6b21\u8fdb\u7a0b\u4e2d\u7684\u771f\u5b9e\u73af\u5883\u503c\u3001consumer \u53ef\u8fbe\u6027\u548c\u8fdc\u7a0b\u63a5\u53d7\u5ea6\u672a\u6267\u884c\u3002"
+            )
+        elif unresolved_resolution:
+            primary_reason = unresolved_resolution.get(
+                "primaryReason", "missing-classification"
+            )
+            reasons = ", ".join(unresolved_resolution.get("reasons", []))
+            evidence = (
+                "Unresolved finite-name proof: "
+                + compact_code(str(primary_reason))
+                + (
+                    f"\uff1bfailure chain: {compact_code(reasons)}\u3002"
+                    if reasons
+                    else "\u3002"
+                )
+                + "Boundary\uff1a\u539f\u8868\u8fbe\u5f0f\u3001lexical owner \u4e0e immediate consumer \u53ef\u8bc1\uff1b"
+                "\u6700\u7ec8\u540d\u79f0\u4ecd\u4f9d\u8d56\u8fd0\u884c\u65f6\u8f93\u5165/\u5bb9\u5668\uff0c\u6216\u7f3a\u5c11\u5b8c\u6574 caller \u96c6\u3002"
             )
         else:
             evidence = (
@@ -2614,6 +2637,7 @@ def build_environment_document(
         ),
         "resolvedDynamicCallsiteCount": len(resolved_dynamic_calls),
         "unresolvedDynamicCallsiteCount": len(unresolved_dynamic_calls),
+        "unresolvedDynamicReasonCounts": dict(sorted(unresolved_reason_counts.items())),
         "resolvedDynamicOnlyTypedNameCount": len(resolved_dynamic_only_typed),
         "noStaticConsumerTypedNameCount": len(declaration_only),
         "resolvedDynamicNamesSha256": names_sha256(resolved_dynamic_names),

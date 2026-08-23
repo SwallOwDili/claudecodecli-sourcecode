@@ -264,6 +264,14 @@ interaction、LLM 和 tool span 同时可以关联 Perfetto span ID。LLM 完成
 
 一方 logger 尚未初始化且 batch config 也未知时，GrowthBook 调用返回可接受状态；config 已知但 logger 不可用时返回失败状态，让上层决定是否重试/降级。
 
+## `tengu_other` 不是 owner：caller 场景已经逐项落位
+
+事件名前缀 family 只是确定性导航。原目录有 911 个 unique event / 1,297 个固定 callsite 落入 `tengu_other`，这不表示它们共享一个“其他功能”。当前生成器把每个 `H`/`Fv` caller 同时绑定 event、词法 function、consumer parent/role、payload keys、canonical position、同哈希 readable line 和证据指纹，但 owner 只接受 25 条 exact caller allowlist，行号区间只供阅读、不参与分类。当前逐项收口 6 个事件：5 `Single-owner`、1 `Cross-owner`；其余 905 个 event / 1,272 个 callsite 保持 `Unresolved`。
+
+规则不使用事件前缀推断 owner。`tengu_copper_lantern` 的 codename 和空 payload 没有业务语义；它之所以归入 `remote-runtime / daemon supervisor`，是因为唯一 caller 位于 service recall、worker drain、service uninstall 和 daemon exit 的窄区间。相反，`tengu_fast_mode_toggled` 的 caller 分布在 identity/model access、remote review、usage picker 和 terminal message UI，因此保留 `Cross-owner`，不强行塞进一个模块。
+
+这一步只解决已进入 exact allowlist 的 caller 归属，不是“事件一定执行或送达”。EndConversation、heap dump、update refused 等未逐项映射的邻近 caller 明确保留 Unresolved，不会继承某个宽导航区间的 owner；运行 gate、sampling、payload spread 的实际值、collector 接收与服务端 retention 仍需各自证据。25 条 allowlist、905 项折叠 Unresolved 证据和 caller 指纹见 [遥测事件目录](telemetry-event-catalog.md#tengu_other-callerowner-场景投影)。
+
 ## 错误上报、debug 和本地诊断
 
 除 analytics/OTEL 外，bundle 还包含以下可观察性面：

@@ -14,6 +14,7 @@ analysis/cli-surface.txt
 analysis/cli-command-inventory.json
 analysis/risk-control-surface.txt
 analysis/product-surface-evidence-map.md
+analysis/product-surface-inventory-index.md
 analysis/completeness-audit.md
 analysis/technical-architecture.md
 analysis/context-governance-and-caching.md
@@ -57,7 +58,7 @@ Required top-level fields:
 - Source inventory format v3 must record vendored Acorn 8.15.0 as the JavaScript parser. Node or Bun may host it, but parser semantics must not depend on an unpinned global package.
 - Every JSONL row must contain stable `comparisonKey` and `comparisonValue` fields. Location fields remain evidence but are excluded from semantic comparison values.
 - Broad inventories must document dependency/embedded-document contamination boundaries. Do not label all environment-shaped tokens, schema properties, namespaces, URLs, or named components as user-facing Claude Code settings.
-- `analysis/product-surface-evidence-map.md` must be regenerated from the exact `summary.json` file set. Every registered inventory requires an explicit domain, evidence-strength classification, human reading route, and Boundary; a new inventory category must fail closed until classified.
+- `analysis/product-surface-evidence-map.md` is the reader-first architecture article. `analysis/product-surface-inventory-index.md` is the exact machine mapping regenerated from `summary.json`. Every registered inventory requires an explicit domain, evidence-strength classification, human reading route, and Boundary; a new inventory category must fail closed until classified. Keep the full table out of the architecture article so inventory volume cannot substitute for explanation.
 - `analysis/completeness-audit.md` may declare completion only when every non-Boundary capability is `Deep`. Missing third-party/remote/platform behavior belongs in a precise Boundary rather than leaving the client lifecycle indefinitely `Documented`.
 
 ## Deep-reverse files
@@ -110,12 +111,14 @@ Include a boundary stating that local CLI execution controls do not prove server
 
 `analysis/inventory-field-guide.md` must explain JSONL/TSV/TXT formats, comparison fields, source locations/hashes, callsite and payload fields, environment/settings/model records, telemetry field families, heuristic boundaries, and how to translate a record into a product conclusion.
 
-`analysis/product-surface-evidence-map.md` must begin with a reader model, group inventories by product question, explain the classification labels, and keep the exact full mapping in a generated appendix. Run:
+`analysis/product-surface-evidence-map.md` must begin with a reader model and teach one scenario across capability compilation, Agent Loop, execution control, context governance, observability, recovery, dynamic extension, remote uncertainty, and native boundaries. The same command must generate the exact full mapping as `analysis/product-surface-inventory-index.md`; the article links it instead of embedding its table. Run:
 
 ```bash
 python3 skill/claude-code-version-diff/scripts/build_product_surface_map.py <repo> \
   --output <repo>/analysis/product-surface-evidence-map.md
 ```
+
+The command writes both `product-surface-evidence-map.md` and the sibling `product-surface-inventory-index.md`; `--check` validates both byte-for-byte.
 
 When Plugin/Skill/LSP are shipped, `probe_plugin_skill_lsp.mjs` must use an isolated session plugin and fake stdio LSP server. It must distinguish Skill launch acknowledgement from body injection, preserve deferred LSP schema semantics, verify initialize/open/request/shutdown, coordinate conversion, paired results, exact version/hash, literal output and exit status.
 

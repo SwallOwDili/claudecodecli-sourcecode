@@ -127,6 +127,20 @@ For every core human topic:
 
 The refresh is incomplete if readability improves by deleting details that a debugger, implementer, auditor, or cross-version comparator still needs.
 
+## Product-surface overview contract
+
+A product-surface overview is not the place to display how much extraction work was performed. It must synthesize how the product behaves as a system.
+
+- Use one governing thesis and one end-to-end scenario. Do not make readers simultaneously memorize several competing taxonomies such as worlds, planes, contradictions, feature groups and evidence axes.
+- Give every major chapter one technical claim that could support a 10-15 minute explanation. A chapter that only names fields, files, routes or counts is still an inventory entry.
+- The normal sequence is `user symptom -> owned state -> ordinary path -> design reason -> failure/recovery -> user impact -> evidence boundary`.
+- Connect settings/trust/provider capability compilation, Agent Loop, execution control, context, persistence, extensions, remote uncertainty, observability and native boundaries when the release ships those surfaces. Do not select only the mechanisms that already have convenient tables.
+- Put exact inventory ordering, canonical hashes, claim counts and unresolved-work counts in a separate generated machine index. Link that index from the article; do not embed its full table in the reader narrative, even under a collapsed block.
+- Keep numbers in the article only when they change a runtime decision, budget, timeout, threshold or user-visible result. Numbers that measure analyst output belong in the audit/index.
+- A validator should test semantic chapter contracts, evidence bindings and generated machine blocks. Avoid making prose authors preserve obsolete fixed headings or sentences solely to satisfy a fixture.
+
+The overview fails this contract when its sentences are governed mainly by filenames and counts, even if every number is correct.
+
 ## Reusable Markdown skeleton
 
 ```markdown

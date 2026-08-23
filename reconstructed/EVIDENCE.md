@@ -54,7 +54,7 @@
 ### Derived / Compatible
 
 - 键盘和鼠标实际注入交给同版本 Enigo；自动化验证只执行坐标/前台应用只读调用和输入校验错误，不主动发送真实键鼠事件。
-- 发布模块包含 x86-64 + arm64；当前重建只在 arm64 实际构建运行。
+- 发布模块包含 x86-64 + arm64；x86 报告验证 supplied compatible artifact 的架构、身份分离、load/export 和 Rosetta runtime，并对两个原版 slice 做同输入行为比较。Rust/Swift 命令只作为 build recipe 保存，报告不把它们写成本次构建证据。
 
 ## `computer-use-swift.node`
 
@@ -101,4 +101,4 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 
 脚本每次创建唯一加载目录，避免覆盖已映射的 Mach-O。契约定义在 `contracts/module-exports.json`，行为比较实现在 `scripts/compare_behaviors.mjs`。
 
-归一化结果固化到 `analysis/runtime-probes/native-reconstruction.json`。其中 `Observed` 只描述 original 发布模块和原版运行输出，`Compatible` 只描述独立重建；arm64 实际双跑与 x86_64 静态-only 边界分别记录，测试通过不会把 Compatible 升格成 Observed。
+arm64 归一化结果固化到 `analysis/runtime-probes/native-reconstruction.json`，x86_64/Rosetta 结果固化到 `analysis/runtime-probes/native-reconstruction-x86.json`。其中 `Observed` 只描述 original 发布模块和原版运行输出，`Compatible` 只描述独立重建。x86 报告把 5/5 supplied compatible artifact 的架构、非同 hash、load/export 验证与两个 original/compatible Computer Use slice 的同输入行为比较分开；其他三个模块没有 original x86 slice，测试通过也不会把 compatible-only 加载升级成 Observed 行为相同。该报告 method 为 `validated-artifacts-and-runtime`，不证明同次新鲜构建。

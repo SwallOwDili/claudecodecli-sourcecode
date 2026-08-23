@@ -594,6 +594,51 @@ def main() -> None:
             "required probe check failed: shiftTabDidNotSettlePrompt",
         ),
         (
+            "analysis/runtime-probes/native-reconstruction-x86.json",
+            lambda data: replace_once(
+                data,
+                b'"x86RuntimeCoverage": true',
+                b'"x86RuntimeCoverage": false',
+            ),
+            "x86_64 native reconstruction required check failed: x86RuntimeCoverage",
+        ),
+        (
+            "analysis/runtime-probes/native-reconstruction-x86.json",
+            lambda data: replace_once(
+                data,
+                b'"fileKind": "regular-file"',
+                b'"fileKind": "symlink"',
+            ),
+            "x86_64 original artifact provenance mismatch",
+        ),
+        (
+            "analysis/runtime-probes/native-reconstruction-x86.json",
+            lambda data: replace_once(
+                data,
+                b'"method": "validated-artifacts-and-runtime"',
+                b'"method": "build-and-runtime"',
+            ),
+            "x86_64 native attestation scope overclaims build provenance",
+        ),
+        (
+            "analysis/runtime-probes/native-reconstruction-x86.json",
+            lambda data: replace_once(
+                data,
+                b'"commands": {\n    "behavior":',
+                b'"commands": {\n    "rustBuild": "unobserved",\n    "behavior":',
+            ),
+            "x86_64 native report must record only its behavior command",
+        ),
+        (
+            "analysis/runtime-probes/project-data-lifecycle.json",
+            lambda data: replace_once(
+                data,
+                b'"zipMismatchKeepsTranscript": true',
+                b'"zipMismatchKeepsTranscript": false',
+            ),
+            "required probe check failed: zipMismatchKeepsTranscript",
+        ),
+        (
             "analysis/source-inventory/summary.json",
             corrupt_discovered_symbol,
             "callsite symbol mismatch for firstPartyEventAsync",
@@ -830,7 +875,7 @@ def main() -> None:
             "human analysis document analysis/sessions-checkpoints-memory.md does not cover 'SharedInode'",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`tool-registrations.jsonl`]",
@@ -839,7 +884,7 @@ def main() -> None:
             "product surface inventory coverage mismatch",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `Template-prefix projection` | `Mixed` | `Candidate`",
@@ -848,7 +893,7 @@ def main() -> None:
             "product surface inventory api-path-templates.jsonl must use axes",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`environment-access-callsites.jsonl`](source-inventory/environment-access-callsites.jsonl) | `Whole-bundle AST` | `Mixed` | `Callsite`",
@@ -857,7 +902,7 @@ def main() -> None:
             "product surface environment inventory environment-access-callsites.jsonl ownership must be Mixed",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`dynamic-process-environment-callsites.jsonl`](source-inventory/dynamic-process-environment-callsites.jsonl) | `Whole-bundle AST` | `Mixed` | `Callsite`",
@@ -866,7 +911,7 @@ def main() -> None:
             "product surface environment inventory dynamic-process-environment-callsites.jsonl ownership must be Mixed",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`otel-environment-variables.txt`](source-inventory/otel-environment-variables.txt) | `Prefix-filtered environment union` | `Mixed` | `Candidate`",
@@ -875,7 +920,7 @@ def main() -> None:
             "product surface environment inventory otel-environment-variables.txt ownership must be Mixed",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`environment-schema.jsonl`](source-inventory/environment-schema.jsonl) | `Environment-builder extraction` | `Mixed` | `Declaration`",
@@ -884,7 +929,7 @@ def main() -> None:
             "product surface environment inventory environment-schema.jsonl ownership must be Mixed",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`observability-environment-defaults.jsonl`](source-inventory/observability-environment-defaults.jsonl) | `Observability-filtered environment callsites` | `Mixed` | `Callsite`",
@@ -893,7 +938,7 @@ def main() -> None:
             "product surface environment inventory observability-environment-defaults.jsonl ownership must be Mixed",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
                 b"[`observability-environment-schema.jsonl`](source-inventory/observability-environment-schema.jsonl) | `Observability regex projection` | `Mixed` | `Declaration`",
@@ -905,16 +950,16 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                "## 最后再用 C/Q/E/S/O 作为阅读路由".encode(),
+                "## 把 C/Q/E/S/O 留作阅读索引".encode(),
                 "## 运行结构概览".encode(),
             ),
-            "product surface reader-first narrative must place",
+            "product surface reader-first narrative is missing",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "最后再用 C/Q/E/S/O 作为阅读路由",
+                "把 C/Q/E/S/O 留作阅读索引",
                 "C/Q/E/S/O 是本文的 Derived 分析框架，不是源码目录图，也不是 Anthropic 官方架构或命名",
                 "这是源码原生架构，不是本文归纳模型",
             ),
@@ -924,7 +969,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "最后再用 C/Q/E/S/O 作为阅读路由",
+                "把 C/Q/E/S/O 留作阅读索引",
                 "它不拥有真实文件、子进程和远端对象",
                 "它拥有真实文件、子进程和远端对象",
             ),
@@ -934,7 +979,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
+                "Agent Loop：从按下回车到下一次决策",
                 "| API attempt |",
                 "| API request |",
             ),
@@ -944,7 +989,29 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾一：让模型自主，但不把执行权交给模型",
+                "能力编译：任务还没发给模型，边界已经形成",
+                "advertisement path",
+                "single capability path",
+                replace_all=True,
+            ),
+            "product surface capability compilation must connect trust, settings merge",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字",
+                "async_launched",
+                "task_started",
+                replace_all=True,
+            ),
+            "product surface dynamic-extension chapter must trace MCP generation",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
                 "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **否** |",
                 "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **是** |",
             ),
@@ -954,7 +1021,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾一：让模型自主，但不把执行权交给模型",
+                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
                 "改写后不会重新计算 `isConcurrencySafe`",
                 "改写后会重新计算 `isConcurrencySafe`",
             ),
@@ -964,7 +1031,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
+                "上下文治理：长对话为什么没有一个万能缓存",
                 "hit  -> 不发送新的 summary request",
                 "hit  -> 仍发送新的 summary request",
             ),
@@ -974,27 +1041,36 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "压力测试五：Artifact 超时后",
+                "远端副作用：Artifact 超时后，客户端为什么只能得到结果未知",
                 "不做 local-version equality",
                 "强制做 local-version equality",
             ),
             "product surface Artifact semantics must separate response-schema and target-slug validation",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
-            lambda data: replace_in_h2_section(
+            "analysis/visuals/artifact-direct-publish-outcomes.dot",
+            lambda data: replace_once(
                 data,
-                "矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
-                "**Derived / Compatible**",
-                "**Observed**",
+                "没有可信提交回执".encode(),
+                "普通网络失败".encode(),
             ),
-            "product surface Voice semantics must separate Observed wrapper/SoX evidence",
+            "product surface Artifact direct-publish visual is missing edge request -> unknown",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾三：既要看见系统，又不能把观测误当成事实",
+                "Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码",
+                "`validated-artifacts-and-runtime`",
+                "`build-and-runtime`",
+            ),
+            "product surface native explanation must trace the Voice lifecycle",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "观测系统：既要看见运行状态，又不能把遥测当成事实",
                 "关闭其中一条，不代表其他通道同时关闭",
                 "关闭其中一条，代表其他通道同时关闭",
             ),
@@ -1004,9 +1080,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾四：想恢复任务，但系统没有一台时间机器",
-                "reference 也不是分布式事务句柄",
-                "reference 是分布式事务句柄",
+                "恢复语义：Resume 恢复因果视图，不是旧进程",
+                "| Artifact reference |",
+                "| Unified transaction handle |",
             ),
             "product surface recovery semantics must separate message graph",
         ),
@@ -1032,7 +1108,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾一：让模型自主，但不把执行权交给模型",
+                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
                 "本会话批准同类 Edit",
                 "批准 Edit",
             ),
@@ -1042,7 +1118,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
+                "上下文治理：长对话为什么没有一个万能缓存",
                 "| Context hint |",
                 "| Context hint / microcompaction |",
             ),
@@ -1052,7 +1128,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "矛盾三：既要看见系统，又不能把观测误当成事实",
+                "观测系统：既要看见运行状态，又不能把遥测当成事实",
                 "即使 `OTEL_LOG_USER_PROMPTS` 没开",
                 "仅当 `OTEL_LOG_USER_PROMPTS` 已开",
             ),
@@ -1062,20 +1138,30 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "六个压力测试共同暴露出的技术性格",
-                "第四，恢复按对象负责",
-                "第四，统一恢复控制器负责",
+                "观测系统：既要看见运行状态，又不能把遥测当成事实",
+                "event + exact caller identity + comparison fingerprint",
+                "wide source range",
+            ),
+            "product surface telemetry explanation must teach why exact caller identity is required",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "这些机制共同暴露出的工程选择",
+                "第五，恢复按对象负责",
+                "第五，统一恢复控制器负责",
             ),
             "product surface must derive the version's technical character",
         ),
         (
-            "analysis/product-surface-evidence-map.md",
+            "analysis/product-surface-inventory-index.md",
             lambda data: replace_once(
                 data,
-                "## 机器附录：71 类机器清单的证据分类与阅读路由".encode(),
-                "## 机器附录：71/71 精确归属".encode(),
+                "## 全部 71 类机器清单".encode(),
+                "## 全部 71/71 精确归属".encode(),
             ),
-            "product surface inventory appendix must say 71 classes are classified",
+            "product surface inventory index must say 71 classes are classified",
         ),
         (
             "analysis/product-surface-evidence-map.md",
@@ -1189,6 +1275,15 @@ def main() -> None:
                 b'"resolvedFiniteValues":["invalid-name!"',
             ),
             "resolved dynamic environment row has invalid finite names",
+        ),
+        (
+            "analysis/source-inventory/environment-access-callsites.jsonl",
+            lambda data: replace_once(
+                data,
+                b'"primaryReason":"runtime-function-call"',
+                b'"primaryReason":"invented-reason"',
+            ),
+            "unresolved dynamic environment row has invalid reason evidence",
         ),
         (
             "analysis/source-inventory/feature-flag-callsites.jsonl",
@@ -1836,6 +1931,30 @@ def main() -> None:
         print(f"negative case {case_number}: PASS", flush=True)
 
     missing_cases = [
+        (
+            "analysis/runtime-probes/native-reconstruction-x86.json",
+            "missing x86_64 native reconstruction behavior report",
+        ),
+        (
+            "analysis/runtime-probes/project-data-lifecycle.json",
+            "probe report is missing",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_project_data_lifecycle_validator.py",
+            "missing project data lifecycle validator forgery test",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_dynamic_environment_resolver.mjs",
+            "missing dynamic environment resolver fixture test",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_telemetry_caller_owner_projection.py",
+            "missing telemetry caller-owner projection test",
+        ),
+        (
+            "reconstructed/scripts/test_x86_provenance.mjs",
+            "missing native x86 provenance forgery test",
+        ),
         (
             "analysis/feature-flags-remote-config.md",
             "missing human analysis document: analysis/feature-flags-remote-config.md",

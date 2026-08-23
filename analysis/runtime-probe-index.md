@@ -15,6 +15,7 @@
 | `input` | mock 响应、临时文件、设置层或 collector 的受控输入 | 触发条件没有依赖真实用户环境 | 真实模型质量、账号 entitlement |
 | `literalOutput` | CLI 或 collector 的归一化原始结果 | 用户或协议端实际看到什么 | 未记录的内部中间状态 |
 | `observed` | 请求次数、header、模型序列、文件字节、session ID 等观察值 | 机制的状态转换和副作用 | 服务端收到请求后的内部实现 |
+| `beforeAfter` | domain roots 在命令前后的 path、mode、bytes 与 SHA-256 | dry-run 是否改写目标、失败前哪些文件已经持久化 | 未列入 root 或 CLI bootstrap 之外的系统状态 |
 | `exitStatus` | 每个命令的进程退出状态 | CLI 成功、受控失败或预算终止 | 单靠 0 不能证明语义正确 |
 | `checks` | 从以上字段计算的验收断言 | 报告为何判定 PASS | 断言集合之外的泛化结论 |
 | `pass` | 所有要求检查是否通过 | 本报告满足当前探针合同 | 整个产品没有其他故障 |
@@ -173,6 +174,19 @@ task-notification:completed
 
 这证明了四件事：OTLP logs exporter 可达、实际使用 HTTP/JSON、prompt event 会发送、正文默认隐藏且可显式开启。它不代表一方 analytics、Datadog、error reporting 共享同一字段或同一脱敏策略；各 transport 必须分别分析。
 
+## Project purge 与 conversation import
+
+[project-data-lifecycle.json](runtime-probes/project-data-lifecycle.json) 以 schema 2 保存 7 份完整 `env -i` execution contract，在互不共享的临时 HOME、配置目录和目标 cwd 中执行，目标始终是同 SHA-256 的 `2.1.235`；69/69 checks 必须全部为 true：
+
+- `project purge --all --dry-run` exit `0`，计划删除 projects、tasks、debug、file-history 和 history 共 5 项；所有 planned/excluded fixture 的 mode、bytes 和 SHA-256 不变。`shell-snapshots/` 与 backups 只报告警告，不进入删除 plan。
+- 独立 `project purge --all -y` exit `0` 并真实删除上述 5 个 owned target；shell snapshot 和 backup fixture 的 metadata/content hash 保持，CLI bootstrap 新建文件继续单列。
+- JSON archive `--dry-run` exit `0`，报告 `conversations=1 messages=2 projects=1 docs=1`，目标 cwd 和 transcript root 都没有新增条目。
+- 同一 JSON 去掉 dry-run 后 exit `0`，写出 1 个 `0600` transcript，user/assistant UUID 与 `parentUuid` 因果链保持；project prompt 写为 `project-instructions.md`，输入 `CLAUDE.md` 降权为 `imported-CLAUDE.md`。
+- ZIP fixture 在所有真实内容写完后发现 manifest 把 2 条 message/1 个 doc 错报成 3/2。命令 exit `1` 并输出 `IMPORT_MANIFEST_MISMATCH`，但 transcript、project instructions、`imported-CLAUDE.md` 和 `imported-AGENTS.md` 全部留存。
+- 离线 `import codex --dry-run` 命中 `tengu_import` 内置 false，逐字报告该 build 尚不可用并 exit `1`；fixture 和 Claude config 没有 apply 写入。真实账号 rollout 尚未验证。
+
+Purge 场景还暴露了一个所有权细节：命令自己的 dry-run 没改 domain 数据，但普通 CLI bootstrap 创建了 `.claude.json` 和自动 backup。因此报告把 domain delta 与 startup delta 分开，避免把“purge 不删除”夸大成“整个进程绝对不落盘”。JSON/ZIP transcript 又在替换随机路径后计算 canonical bytes/hash，双跑去除 `capturedAt` 后逐字稳定。完整 fixture、literal stdout/stderr、exit、精确 path/mode/content hash、UUID parent chain 和 before/after 清单见报告；脚本为 [probe_project_data_lifecycle.mjs](../skill/claude-code-version-diff/scripts/probe_project_data_lifecycle.mjs)。
+
 ## Doctor、更新与 Remote Control 边界
 
 `probe.exact-binary-identity` 保证所有控制探针先核对版本和 SHA-256。`probe.lifecycle-doctor-update` 进一步观察：
@@ -200,11 +214,13 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 
 ## 原生兼容重建
 
-`probe.native-original-compatible` 对原始与独立重建模块运行相同 contract 和输入。报告共 23 个检查项，本次其中 22 项是真实原版/兼容对照，1 项是最低覆盖审计；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，没有 `environment-boundary`。不能把覆盖审计也写成行为双跑。`probe.native-architecture-boundary` 明确限制：arm64 compatible 经过构建和运行，原版两个 Computer Use 模块的 x86_64 slice 只有静态证据，compatible x86_64 没有构建和执行。
+`probe.native-original-compatible` 对 arm64 原始与独立重建模块运行相同 contract 和输入。报告共 23 个检查项，本次其中 22 项是真实原版/兼容对照，1 项是最低覆盖审计；22 项对照细分为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，没有 `environment-boundary`。不能把覆盖审计也写成行为双跑。
+
+第二份 `native-reconstruction-x86.json` 使用 universal Node 的 x86_64 slice 经 Rosetta 运行。其方法是 `validated-artifacts-and-runtime`：5 个 supplied compatible `.node` 均被验证为独立 regular x86_64 Mach-O、未复用原版 hash，并通过 x86_64 加载与 N-API 导出合同。Rust `x86_64-apple-darwin` target 与 Swift `--triple x86_64-apple-macosx` 只保存在 `buildRecipes`，报告没有同次构建的 literal output/exit status。发布物中只有 `computer-use-input.node` 和 `computer-use-swift.node` 含原版 x86_64 slice，因此同输入行为对照严格限制在这两个模块：19 项真实行为比较加 1 项覆盖 guard 全部 PASS。audio、image、URL 三个 compatible x86 artifact 只有 provenance/load/export 证据，不伪装成原版 x86 行为双跑。
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
-## 38 条 Probe 结论索引
+## 44 条 Probe 结论索引
 
 | Claim ID | 报告 | 核心状态变化 |
 | --- | --- | --- |
@@ -221,7 +237,13 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.subagent-notification-feedback` | `subagent-loop.json` | async ACK 与 completed notification 分离 |
 | `probe.exact-binary-identity` | `runtime-controls.json` | 版本和发布 SHA-256 一致 |
 | `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract；22 项真实对照、0 项环境边界、1 项覆盖审计 |
-| `probe.native-architecture-boundary` | `native-reconstruction.json` | x86_64 只保留原版静态证据 |
+| `probe.native-x86-build-load` | `native-reconstruction-x86.json` | 稳定 claim ID；5 个 supplied compatible x86_64 artifact 完成 provenance、Rosetta 加载和导出合同，recipe 不构成本次 build attestation |
+| `probe.native-x86-original-compatible` | `native-reconstruction-x86.json` | 原版有 x86 slice 的 Input/Swift 两模块完成 19 项同输入行为对照和覆盖 guard |
+| `probe.project-purge-dry-run` | `project-data-lifecycle.json` | purge 计划 5 项但不改 planned/excluded domain bytes；bootstrap 文件单列 |
+| `probe.project-purge-positive` | `project-data-lifecycle.json` | 独立 `--all -y` 删除 5 个 owned target，保留 shell snapshot/backup 原字节并单列 bootstrap |
+| `probe.project-conversation-import` | `project-data-lifecycle.json` | JSON dry-run 零 domain 写入；真实导入写 0600 transcript、父链、instructions 与降权 CLAUDE.md |
+| `probe.project-import-manifest-mismatch` | `project-data-lifecycle.json` | ZIP manifest mismatch exit 1 前 transcript 与 reserved project 文件已经持久化 |
+| `probe.config-import-gate` | `project-data-lifecycle.json` | 离线内置 false 阻断 config import，精确诊断且零 apply 写入 |
 | `probe.settings-layer-precedence` | `settings-resilience.json` | flag、local、project、user 运行优先级可观察 |
 | `probe.http-retry-classification` | `settings-resilience.json` | 529 重试，400 不重试 |
 | `probe.model-fallback-sequence` | `settings-resilience.json` | 主模型三次 529 后切备用模型 |

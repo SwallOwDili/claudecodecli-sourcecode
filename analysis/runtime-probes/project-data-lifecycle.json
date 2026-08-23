@@ -1,0 +1,1455 @@
+{
+  "schemaVersion": 2,
+  "capturedAt": "2026-08-23T16:27:54.133Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1",
+    "zipExecutable": "/usr/bin/zip"
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748",
+    "requiredVersion": "2.1.235",
+    "requiredBinarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "commandSemantics": "commands is a shell reproduction rendering; executionContracts is the authoritative normalized spawn argv, cwd and replacement environment contract",
+  "commands": {
+    "version": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$VERSION_CONFIG CLAUDE_IMPORT_CONVERSATIONS='' CLAUDE_SECURESTORAGE_CONFIG_DIR=$VERSION_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$VERSION_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$VERSION_TMPDIR USERPROFILE=$VERSION_HOME XDG_CONFIG_HOME=$VERSION_HOME/.config $CLAUDE_TARGET --version",
+    "purgeDryRun": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$PURGE_DRY_CONFIG CLAUDE_IMPORT_CONVERSATIONS='' CLAUDE_SECURESTORAGE_CONFIG_DIR=$PURGE_DRY_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$PURGE_DRY_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$PURGE_DRY_TMPDIR USERPROFILE=$PURGE_DRY_HOME XDG_CONFIG_HOME=$PURGE_DRY_HOME/.config $CLAUDE_TARGET project purge --all --dry-run",
+    "purgePositive": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$PURGE_POSITIVE_CONFIG CLAUDE_IMPORT_CONVERSATIONS='' CLAUDE_SECURESTORAGE_CONFIG_DIR=$PURGE_POSITIVE_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$PURGE_POSITIVE_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$PURGE_POSITIVE_TMPDIR USERPROFILE=$PURGE_POSITIVE_HOME XDG_CONFIG_HOME=$PURGE_POSITIVE_HOME/.config $CLAUDE_TARGET project purge --all -y",
+    "jsonDryRun": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$JSON_DRY_CONFIG CLAUDE_IMPORT_CONVERSATIONS=1 CLAUDE_SECURESTORAGE_CONFIG_DIR=$JSON_DRY_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$JSON_DRY_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$JSON_DRY_TMPDIR USERPROFILE=$JSON_DRY_HOME XDG_CONFIG_HOME=$JSON_DRY_HOME/.config $CLAUDE_TARGET import-conversations $JSON_ARCHIVE --cwd $JSON_DRY_TARGET --dry-run",
+    "jsonImport": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$JSON_CONFIG CLAUDE_IMPORT_CONVERSATIONS=1 CLAUDE_SECURESTORAGE_CONFIG_DIR=$JSON_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$JSON_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$JSON_TMPDIR USERPROFILE=$JSON_HOME XDG_CONFIG_HOME=$JSON_HOME/.config $CLAUDE_TARGET import-conversations $JSON_ARCHIVE --cwd $JSON_TARGET",
+    "zipManifestMismatch": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$ZIP_CONFIG CLAUDE_IMPORT_CONVERSATIONS=1 CLAUDE_SECURESTORAGE_CONFIG_DIR=$ZIP_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$ZIP_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$ZIP_TMPDIR USERPROFILE=$ZIP_HOME XDG_CONFIG_HOME=$ZIP_HOME/.config $CLAUDE_TARGET import-conversations $ZIP_ARCHIVE --cwd $ZIP_TARGET",
+    "configImportBoundary": "env -i ANTHROPIC_API_KEY='' ANTHROPIC_AUTH_TOKEN='' CI=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 CLAUDE_CODE_OAUTH_TOKEN='' CLAUDE_CODE_SESSION_ACCESS_TOKEN='' CLAUDE_CONFIG_DIR=$CONFIG_IMPORT_CONFIG CLAUDE_IMPORT_CONVERSATIONS='' CLAUDE_SECURESTORAGE_CONFIG_DIR=$CONFIG_IMPORT_CONFIG/secure-storage DISABLE_AUTOUPDATER=1 DISABLE_ERROR_REPORTING=1 DISABLE_GROWTHBOOK=1 DISABLE_TELEMETRY=1 GIT_ASKPASS=/usr/bin/false GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 HOME=$CONFIG_IMPORT_HOME LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 NO_COLOR=1 PATH=/usr/bin:/bin:/usr/sbin:/sbin SHELL=/bin/zsh SSH_ASKPASS=/usr/bin/false TERM=dumb TMPDIR=$CONFIG_IMPORT_TMPDIR USERPROFILE=$CONFIG_IMPORT_HOME XDG_CONFIG_HOME=$CONFIG_IMPORT_HOME/.config $CLAUDE_TARGET import codex --dry-run"
+  },
+  "executionContracts": {
+    "version": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "--version"
+      ],
+      "cwd": "$VERSION_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$VERSION_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$VERSION_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$VERSION_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$VERSION_TMPDIR",
+        "USERPROFILE": "$VERSION_HOME",
+        "XDG_CONFIG_HOME": "$VERSION_HOME/.config"
+      }
+    },
+    "purgeDryRun": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "project",
+        "purge",
+        "--all",
+        "--dry-run"
+      ],
+      "cwd": "$PURGE_DRY_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$PURGE_DRY_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$PURGE_DRY_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$PURGE_DRY_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$PURGE_DRY_TMPDIR",
+        "USERPROFILE": "$PURGE_DRY_HOME",
+        "XDG_CONFIG_HOME": "$PURGE_DRY_HOME/.config"
+      }
+    },
+    "purgePositive": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "project",
+        "purge",
+        "--all",
+        "-y"
+      ],
+      "cwd": "$PURGE_POSITIVE_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$PURGE_POSITIVE_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$PURGE_POSITIVE_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$PURGE_POSITIVE_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$PURGE_POSITIVE_TMPDIR",
+        "USERPROFILE": "$PURGE_POSITIVE_HOME",
+        "XDG_CONFIG_HOME": "$PURGE_POSITIVE_HOME/.config"
+      }
+    },
+    "jsonDryRun": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "import-conversations",
+        "$JSON_ARCHIVE",
+        "--cwd",
+        "$JSON_DRY_TARGET",
+        "--dry-run"
+      ],
+      "cwd": "$JSON_DRY_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$JSON_DRY_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "1",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$JSON_DRY_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$JSON_DRY_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$JSON_DRY_TMPDIR",
+        "USERPROFILE": "$JSON_DRY_HOME",
+        "XDG_CONFIG_HOME": "$JSON_DRY_HOME/.config"
+      }
+    },
+    "jsonImport": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "import-conversations",
+        "$JSON_ARCHIVE",
+        "--cwd",
+        "$JSON_TARGET"
+      ],
+      "cwd": "$JSON_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$JSON_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "1",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$JSON_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$JSON_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$JSON_TMPDIR",
+        "USERPROFILE": "$JSON_HOME",
+        "XDG_CONFIG_HOME": "$JSON_HOME/.config"
+      }
+    },
+    "zipManifestMismatch": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "import-conversations",
+        "$ZIP_ARCHIVE",
+        "--cwd",
+        "$ZIP_TARGET"
+      ],
+      "cwd": "$ZIP_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$ZIP_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "1",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$ZIP_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$ZIP_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$ZIP_TMPDIR",
+        "USERPROFILE": "$ZIP_HOME",
+        "XDG_CONFIG_HOME": "$ZIP_HOME/.config"
+      }
+    },
+    "configImportBoundary": {
+      "executable": "$CLAUDE_TARGET",
+      "argv": [
+        "import",
+        "codex",
+        "--dry-run"
+      ],
+      "cwd": "$CONFIG_IMPORT_WORKSPACE",
+      "stdin": "ignored",
+      "environmentMode": "replace",
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "CI": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_OAUTH_TOKEN": "",
+        "CLAUDE_CODE_SESSION_ACCESS_TOKEN": "",
+        "CLAUDE_CONFIG_DIR": "$CONFIG_IMPORT_CONFIG",
+        "CLAUDE_IMPORT_CONVERSATIONS": "",
+        "CLAUDE_SECURESTORAGE_CONFIG_DIR": "$CONFIG_IMPORT_CONFIG/secure-storage",
+        "DISABLE_AUTOUPDATER": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_GROWTHBOOK": "1",
+        "DISABLE_TELEMETRY": "1",
+        "GIT_ASKPASS": "/usr/bin/false",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "$CONFIG_IMPORT_HOME",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "NO_COLOR": "1",
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "SHELL": "/bin/zsh",
+        "SSH_ASKPASS": "/usr/bin/false",
+        "TERM": "dumb",
+        "TMPDIR": "$CONFIG_IMPORT_TMPDIR",
+        "USERPROFILE": "$CONFIG_IMPORT_HOME",
+        "XDG_CONFIG_HOME": "$CONFIG_IMPORT_HOME/.config"
+      }
+    }
+  },
+  "input": {
+    "purgeDryRun": {
+      "ownedTargets": [
+        "projects",
+        "tasks",
+        "debug",
+        "file-history",
+        "history.jsonl"
+      ],
+      "excludedFixtures": [
+        "shell-snapshots/keep.txt",
+        "backups/keep.txt"
+      ],
+      "directories": [
+        "projects",
+        "tasks",
+        "debug",
+        "file-history",
+        "shell-snapshots",
+        "backups"
+      ],
+      "files": {
+        "projects/project-marker/session.jsonl": "PURGE_DRY_TRANSCRIPT_MARKER\n",
+        "tasks/task-marker/task.json": "PURGE_DRY_TASK_MARKER\n",
+        "debug/debug-marker.txt": "PURGE_DRY_DEBUG_MARKER\n",
+        "file-history/history-marker/snapshot": "PURGE_DRY_FILE_HISTORY_MARKER\n",
+        "history.jsonl": "{\"project\":\"/synthetic/project\",\"display\":\"PURGE_DRY_PROMPT_MARKER\"}\n",
+        "shell-snapshots/keep.txt": "PURGE_DRY_SHELL_SNAPSHOT_KEEP_MARKER\n",
+        "backups/keep.txt": "PURGE_DRY_BACKUP_KEEP_MARKER\n"
+      }
+    },
+    "purgePositive": {
+      "ownedTargets": [
+        "projects",
+        "tasks",
+        "debug",
+        "file-history",
+        "history.jsonl"
+      ],
+      "excludedFixtures": [
+        "shell-snapshots/keep.txt",
+        "backups/keep.txt"
+      ],
+      "directories": [
+        "projects",
+        "tasks",
+        "debug",
+        "file-history",
+        "shell-snapshots",
+        "backups"
+      ],
+      "files": {
+        "projects/project-marker/session.jsonl": "PURGE_POSITIVE_TRANSCRIPT_MARKER\n",
+        "tasks/task-marker/task.json": "PURGE_POSITIVE_TASK_MARKER\n",
+        "debug/debug-marker.txt": "PURGE_POSITIVE_DEBUG_MARKER\n",
+        "file-history/history-marker/snapshot": "PURGE_POSITIVE_FILE_HISTORY_MARKER\n",
+        "history.jsonl": "{\"project\":\"/synthetic/project\",\"display\":\"PURGE_POSITIVE_PROMPT_MARKER\"}\n",
+        "shell-snapshots/keep.txt": "PURGE_POSITIVE_SHELL_SNAPSHOT_KEEP_MARKER\n",
+        "backups/keep.txt": "PURGE_POSITIVE_BACKUP_KEEP_MARKER\n"
+      }
+    },
+    "jsonArchive": {
+      "manifest": {
+        "account_uuid": "00000000-0000-4000-8000-000000000000",
+        "conversations": [
+          {
+            "uuid": "30000000-0000-4000-8000-000000000003",
+            "message_count": 2
+          }
+        ],
+        "projects": [
+          {
+            "uuid": "10000000-0000-4000-8000-000000000001",
+            "doc_count": 1
+          }
+        ]
+      },
+      "conversations": [
+        {
+          "uuid": "30000000-0000-4000-8000-000000000003",
+          "name": "JSON_IMPORT conversation",
+          "created_at": "2026-01-02T03:04:05.000Z",
+          "updated_at": "2026-01-02T03:05:06.000Z",
+          "project_uuid": "10000000-0000-4000-8000-000000000001",
+          "chat_messages": [
+            {
+              "uuid": "50000000-0000-4000-8000-000000000005",
+              "parent_message_uuid": null,
+              "sender": "human",
+              "text": "JSON_IMPORT_HUMAN_MARKER",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "JSON_IMPORT_HUMAN_MARKER"
+                }
+              ],
+              "created_at": "2026-01-02T03:04:05.000Z",
+              "attachments": [],
+              "files": []
+            },
+            {
+              "uuid": "70000000-0000-4000-8000-000000000007",
+              "parent_message_uuid": "50000000-0000-4000-8000-000000000005",
+              "sender": "assistant",
+              "text": "JSON_IMPORT_ASSISTANT_MARKER",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "JSON_IMPORT_ASSISTANT_MARKER"
+                }
+              ],
+              "created_at": "2026-01-02T03:05:06.000Z",
+              "attachments": [],
+              "files": []
+            }
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "uuid": "10000000-0000-4000-8000-000000000001",
+          "name": "JSON Import Project",
+          "prompt_template": "JSON_IMPORT_PROJECT_INSTRUCTIONS",
+          "docs": [
+            {
+              "filename": "CLAUDE.md",
+              "content": "JSON_IMPORT_RESERVED_DOC_MARKER"
+            }
+          ],
+          "files": []
+        }
+      ],
+      "files": {}
+    },
+    "zipArchive": {
+      "manifest": {
+        "account_uuid": "00000000-0000-4000-8000-000000000000",
+        "conversations": [
+          {
+            "uuid": "40000000-0000-4000-8000-000000000004",
+            "message_count": 3
+          }
+        ],
+        "projects": [
+          {
+            "uuid": "20000000-0000-4000-8000-000000000002",
+            "doc_count": 2
+          }
+        ]
+      },
+      "conversations": [
+        {
+          "uuid": "40000000-0000-4000-8000-000000000004",
+          "name": "ZIP_MISMATCH conversation",
+          "created_at": "2026-01-02T03:04:05.000Z",
+          "updated_at": "2026-01-02T03:05:06.000Z",
+          "project_uuid": "20000000-0000-4000-8000-000000000002",
+          "chat_messages": [
+            {
+              "uuid": "60000000-0000-4000-8000-000000000006",
+              "parent_message_uuid": null,
+              "sender": "human",
+              "text": "ZIP_MISMATCH_HUMAN_MARKER",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "ZIP_MISMATCH_HUMAN_MARKER"
+                }
+              ],
+              "created_at": "2026-01-02T03:04:05.000Z",
+              "attachments": [],
+              "files": []
+            },
+            {
+              "uuid": "80000000-0000-4000-8000-000000000008",
+              "parent_message_uuid": "60000000-0000-4000-8000-000000000006",
+              "sender": "assistant",
+              "text": "ZIP_MISMATCH_ASSISTANT_MARKER",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "ZIP_MISMATCH_ASSISTANT_MARKER"
+                }
+              ],
+              "created_at": "2026-01-02T03:05:06.000Z",
+              "attachments": [],
+              "files": []
+            }
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "uuid": "20000000-0000-4000-8000-000000000002",
+          "name": "ZIP Mismatch Project",
+          "prompt_template": "ZIP_MISMATCH_PROJECT_INSTRUCTIONS",
+          "docs": [
+            {
+              "filename": "CLAUDE.md",
+              "content": "ZIP_MISMATCH_RESERVED_DOC_MARKER"
+            }
+          ],
+          "files": [
+            {
+              "file_uuid": "90000000-0000-4000-8000-000000000009",
+              "file_name": "AGENTS.md"
+            }
+          ]
+        }
+      ],
+      "files": {
+        "90000000-0000-4000-8000-000000000009": "ZIP_MISMATCH_PROJECT_FILE_MARKER\n"
+      }
+    },
+    "configImportBoundary": {
+      "source": "codex",
+      "dryRun": true,
+      "codexConfigToml": "[mcp_servers.local]\ncommand = \"printf\"\nargs = [\"CONFIG_IMPORT_MARKER\"]\n",
+      "gate": "tengu_import uses its built-in false value because server evaluation is disabled and local overrides are unreachable in 2.1.235"
+    }
+  },
+  "literalOutput": {
+    "version": {
+      "stdout": "2.1.235 (Claude Code)",
+      "stderr": ""
+    },
+    "purgeDryRun": {
+      "stdout": "\nPurge plan for all projects:\n\n  dir:    $PURGE_DRY_CONFIG/projects\n           all project transcripts (.jsonl) and memory/\n  dir:    $PURGE_DRY_CONFIG/tasks\n           all session task lists\n  dir:    $PURGE_DRY_CONFIG/debug\n           all session debug logs\n  dir:    $PURGE_DRY_CONFIG/file-history\n           all session file edit history\n  file:    $PURGE_DRY_CONFIG/history.jsonl\n           prompt history across all projects\n\nDry run: 5 item(s) would be deleted.",
+      "stderr": "shell-snapshots/ are not project-scoped and will not be touched\nbackups/ may still contain project entries in old .claude.json snapshots ($PURGE_DRY_CONFIG/backups); at most 5 are kept and they rotate out automatically"
+    },
+    "purgePositive": {
+      "stdout": "\nPurge plan for all projects:\n\n  dir:    $PURGE_POSITIVE_CONFIG/projects\n           all project transcripts (.jsonl) and memory/\n  dir:    $PURGE_POSITIVE_CONFIG/tasks\n           all session task lists\n  dir:    $PURGE_POSITIVE_CONFIG/debug\n           all session debug logs\n  dir:    $PURGE_POSITIVE_CONFIG/file-history\n           all session file edit history\n  file:    $PURGE_POSITIVE_CONFIG/history.jsonl\n           prompt history across all projects\n\nPurged 5 item(s) across all projects.",
+      "stderr": "shell-snapshots/ are not project-scoped and will not be touched\nbackups/ may still contain project entries in old .claude.json snapshots ($PURGE_POSITIVE_CONFIG/backups); at most 5 are kept and they rotate out automatically"
+    },
+    "jsonDryRun": {
+      "stdout": "[dry-run] imported: conversations=1 skipped=0 messages=2 projects=1 docs=1 files=0\n{\"sessionIds\":[\"5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89\"],\"titles\":[\"JSON_IMPORT conversation\"],\"jsonlPaths\":[\"$JSON_DRY_CONFIG/projects/$PROJECT_KEY/5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89.jsonl\"],\"createdAts\":[1767323045000],\"updatedAts\":[1767323106000],\"cwd\":\"$JSON_DRY_TARGET\",\"projects\":[{\"uuid\":\"10000000-0000-4000-8000-000000000001\",\"name\":\"JSON Import Project\",\"dirName\":\"json-import-project-10000000-0000-4000-8000-000000000001\"}],\"conversationProjects\":{\"5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89\":\"10000000-0000-4000-8000-000000000001\"},\"attachmentFiles\":{},\"counts\":{\"conversations\":1,\"projects\":1,\"files\":0,\"docs\":1,\"skipped\":0}}",
+      "stderr": ""
+    },
+    "jsonImport": {
+      "stdout": "imported: conversations=1 skipped=0 messages=2 projects=1 docs=1 files=0\n{\"sessionIds\":[\"5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89\"],\"titles\":[\"JSON_IMPORT conversation\"],\"jsonlPaths\":[\"$JSON_CONFIG/projects/$PROJECT_KEY/5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89.jsonl\"],\"createdAts\":[1767323045000],\"updatedAts\":[1767323106000],\"cwd\":\"$JSON_TARGET\",\"projects\":[{\"uuid\":\"10000000-0000-4000-8000-000000000001\",\"name\":\"JSON Import Project\",\"dirName\":\"json-import-project-10000000-0000-4000-8000-000000000001\"}],\"conversationProjects\":{\"5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89\":\"10000000-0000-4000-8000-000000000001\"},\"attachmentFiles\":{},\"counts\":{\"conversations\":1,\"projects\":1,\"files\":0,\"docs\":1,\"skipped\":0}}",
+      "stderr": ""
+    },
+    "zipManifestMismatch": {
+      "stdout": "imported: conversations=1 skipped=0 messages=2 projects=1 docs=1 files=1\n{\"sessionIds\":[\"a2b47e45-0eba-5b1c-aec1-a7ffb525080d\"],\"titles\":[\"ZIP_MISMATCH conversation\"],\"jsonlPaths\":[\"$ZIP_CONFIG/projects/$PROJECT_KEY/a2b47e45-0eba-5b1c-aec1-a7ffb525080d.jsonl\"],\"createdAts\":[1767323045000],\"updatedAts\":[1767323106000],\"cwd\":\"$ZIP_TARGET\",\"projects\":[{\"uuid\":\"20000000-0000-4000-8000-000000000002\",\"name\":\"ZIP Mismatch Project\",\"dirName\":\"zip-mismatch-project-20000000-0000-4000-8000-000000000002\"}],\"conversationProjects\":{\"a2b47e45-0eba-5b1c-aec1-a7ffb525080d\":\"20000000-0000-4000-8000-000000000002\"},\"attachmentFiles\":{},\"counts\":{\"conversations\":1,\"projects\":1,\"files\":1,\"docs\":1,\"skipped\":0}}",
+      "stderr": "manifest mismatch:\n  messages: manifest=3 imported=2\n  docs: manifest=2 imported=1\nImport completed with mismatches (IMPORT_MANIFEST_MISMATCH)"
+    },
+    "configImportBoundary": {
+      "stdout": "",
+      "stderr": "`claude import` is not yet available in this build. Run `claude` and use /mcp or edit ~/.claude/settings.json directly."
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "purgeDryRun": 0,
+    "purgePositive": 0,
+    "jsonDryRun": 0,
+    "jsonImport": 0,
+    "zipManifestMismatch": 1,
+    "configImportBoundary": 1
+  },
+  "beforeAfter": {
+    "purgeDryRun": {
+      "domainBefore": [
+        {
+          "path": "backups",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 29,
+          "sha256": "de1ca3cb510e65392bef0016fa98a2f1f60aca2524ae508e3ccb9917ae5c11e3"
+        },
+        {
+          "path": "debug",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "debug/debug-marker.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 23,
+          "sha256": "e99e76ef553b7db757faf48d7a0bd5854dea4e1d0877d15c7951d73cd71a85ff"
+        },
+        {
+          "path": "file-history",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker/snapshot",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 30,
+          "sha256": "b70a3cc5704984c4599c9950fec17ce6763d232063762e9b2eaecccd087f1a95"
+        },
+        {
+          "path": "history.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 69,
+          "sha256": "6aa867012bd29f48f725200e829cede7edc6874a226a22df1b306bf5c4bae819"
+        },
+        {
+          "path": "projects",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker/session.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 28,
+          "sha256": "d9da98d3cfdffdd7f94dd31769fc6314b08dab111159469372f5c70be55c0882"
+        },
+        {
+          "path": "shell-snapshots",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 37,
+          "sha256": "334becbb559ca69f8847d36aa619c4295c2f8a19df05345f5acd2a1fb391a3a0"
+        },
+        {
+          "path": "tasks",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker/task.json",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 22,
+          "sha256": "4dee63958c2f92812a0ac3d3ea51a164740ecdc96da56cdfcce7b289e050f3f6"
+        }
+      ],
+      "domainAfter": [
+        {
+          "path": "backups",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 29,
+          "sha256": "de1ca3cb510e65392bef0016fa98a2f1f60aca2524ae508e3ccb9917ae5c11e3"
+        },
+        {
+          "path": "debug",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "debug/debug-marker.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 23,
+          "sha256": "e99e76ef553b7db757faf48d7a0bd5854dea4e1d0877d15c7951d73cd71a85ff"
+        },
+        {
+          "path": "file-history",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker/snapshot",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 30,
+          "sha256": "b70a3cc5704984c4599c9950fec17ce6763d232063762e9b2eaecccd087f1a95"
+        },
+        {
+          "path": "history.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 69,
+          "sha256": "6aa867012bd29f48f725200e829cede7edc6874a226a22df1b306bf5c4bae819"
+        },
+        {
+          "path": "projects",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker/session.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 28,
+          "sha256": "d9da98d3cfdffdd7f94dd31769fc6314b08dab111159469372f5c70be55c0882"
+        },
+        {
+          "path": "shell-snapshots",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 37,
+          "sha256": "334becbb559ca69f8847d36aa619c4295c2f8a19df05345f5acd2a1fb391a3a0"
+        },
+        {
+          "path": "tasks",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker/task.json",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 22,
+          "sha256": "4dee63958c2f92812a0ac3d3ea51a164740ecdc96da56cdfcce7b289e050f3f6"
+        }
+      ],
+      "startupChangesOutsidePlan": [
+        {
+          "path": ".claude.json",
+          "change": "added"
+        },
+        {
+          "path": "backups/$AUTO_BACKUP",
+          "change": "added"
+        }
+      ]
+    },
+    "purgePositive": {
+      "ownedBefore": [
+        {
+          "path": "debug",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "debug/debug-marker.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 28,
+          "sha256": "b8fff59d3957db9e320a1a3b83274e5e80400397fa33bd252bac5f65798be392"
+        },
+        {
+          "path": "file-history",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker/snapshot",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 35,
+          "sha256": "8ad0ca5649f7a2adab69e7e82a5db150e6e5324cc6785fd073bfc3d057539230"
+        },
+        {
+          "path": "history.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 74,
+          "sha256": "ee8b10169521d4f91a799394cc044809c6a985ea3d0a3905d42948f5aeb751f5"
+        },
+        {
+          "path": "projects",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker/session.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 33,
+          "sha256": "12336fedb5b896739425f659b9fbb744ee35c8a7af9013a612b072f96a3e15e2"
+        },
+        {
+          "path": "tasks",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker/task.json",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 27,
+          "sha256": "fd3c024a7cd7a893b70b9d7d0b516466bca7fd8eaa84e677e75155aaa3235add"
+        }
+      ],
+      "ownedAfter": [],
+      "excludedFixturesBefore": [
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 42,
+          "sha256": "315eb96188982e45bc142df4f1ad371d44f5b6473c92fa967d3cefd7e2d6a6c0"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 34,
+          "sha256": "3a1f85367188f1db6c4b1f3b95055eb069b63b10652e98b44f16550612f79d55"
+        }
+      ],
+      "excludedFixturesAfter": [
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 42,
+          "sha256": "315eb96188982e45bc142df4f1ad371d44f5b6473c92fa967d3cefd7e2d6a6c0"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 34,
+          "sha256": "3a1f85367188f1db6c4b1f3b95055eb069b63b10652e98b44f16550612f79d55"
+        }
+      ],
+      "domainBefore": [
+        {
+          "path": "backups",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 34,
+          "sha256": "3a1f85367188f1db6c4b1f3b95055eb069b63b10652e98b44f16550612f79d55"
+        },
+        {
+          "path": "debug",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "debug/debug-marker.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 28,
+          "sha256": "b8fff59d3957db9e320a1a3b83274e5e80400397fa33bd252bac5f65798be392"
+        },
+        {
+          "path": "file-history",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "file-history/history-marker/snapshot",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 35,
+          "sha256": "8ad0ca5649f7a2adab69e7e82a5db150e6e5324cc6785fd073bfc3d057539230"
+        },
+        {
+          "path": "history.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 74,
+          "sha256": "ee8b10169521d4f91a799394cc044809c6a985ea3d0a3905d42948f5aeb751f5"
+        },
+        {
+          "path": "projects",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "projects/project-marker/session.jsonl",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 33,
+          "sha256": "12336fedb5b896739425f659b9fbb744ee35c8a7af9013a612b072f96a3e15e2"
+        },
+        {
+          "path": "shell-snapshots",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 42,
+          "sha256": "315eb96188982e45bc142df4f1ad371d44f5b6473c92fa967d3cefd7e2d6a6c0"
+        },
+        {
+          "path": "tasks",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "tasks/task-marker/task.json",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 27,
+          "sha256": "fd3c024a7cd7a893b70b9d7d0b516466bca7fd8eaa84e677e75155aaa3235add"
+        }
+      ],
+      "domainAfter": [
+        {
+          "path": "backups",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "backups/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 34,
+          "sha256": "3a1f85367188f1db6c4b1f3b95055eb069b63b10652e98b44f16550612f79d55"
+        },
+        {
+          "path": "shell-snapshots",
+          "kind": "directory",
+          "mode": "700"
+        },
+        {
+          "path": "shell-snapshots/keep.txt",
+          "kind": "file",
+          "mode": "600",
+          "bytes": 42,
+          "sha256": "315eb96188982e45bc142df4f1ad371d44f5b6473c92fa967d3cefd7e2d6a6c0"
+        }
+      ],
+      "startupChangesOutsidePlan": [
+        {
+          "path": ".claude.json",
+          "change": "added"
+        },
+        {
+          "path": "backups/$AUTO_BACKUP",
+          "change": "added"
+        }
+      ]
+    },
+    "jsonDryRun": {
+      "before": {
+        "transcript": [],
+        "target": []
+      },
+      "after": {
+        "transcript": [],
+        "target": []
+      }
+    },
+    "jsonImport": {
+      "before": {
+        "transcript": [],
+        "target": []
+      },
+      "after": {
+        "transcript": [
+          {
+            "path": "$PROJECT_KEY",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "$PROJECT_KEY/5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89.jsonl",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 1427,
+            "contentSha256": "bbf01984050eecc6f52f0c4ead7b1f7758a7406b7f13ca7cd381c1a7f7aac6b0",
+            "hashBasis": "normalized transcript bytes"
+          }
+        ],
+        "target": [
+          {
+            "path": "files",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects/json-import-project-10000000-0000-4000-8000-000000000001",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects/json-import-project-10000000-0000-4000-8000-000000000001/imported-CLAUDE.md",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 31,
+            "sha256": "3083f6f2e9a2bfb617685b662ac32500b5cc6e579ee1fd09113763e7dce804c4"
+          },
+          {
+            "path": "projects/json-import-project-10000000-0000-4000-8000-000000000001/project-instructions.md",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 32,
+            "sha256": "5b7f8bd7f0c9d0fff46bf4dd171ae4ab93a742d61edd1b76f78426ed8023648a"
+          }
+        ]
+      }
+    },
+    "zipManifestMismatch": {
+      "before": {
+        "transcript": [],
+        "target": []
+      },
+      "after": {
+        "transcript": [
+          {
+            "path": "$PROJECT_KEY",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "$PROJECT_KEY/a2b47e45-0eba-5b1c-aec1-a7ffb525080d.jsonl",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 1447,
+            "contentSha256": "4d37df6304dce933a30a4550aa142ad16152c4fef5fe092c849713f7cb1836db",
+            "hashBasis": "normalized transcript bytes"
+          }
+        ],
+        "target": [
+          {
+            "path": "files",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002",
+            "kind": "directory",
+            "mode": "700"
+          },
+          {
+            "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/imported-AGENTS.md",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 33,
+            "sha256": "5f306c09352a38d7a6c3fdee021f2e2acfd1adea74f15f4df2e92b3264bc371a"
+          },
+          {
+            "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/imported-CLAUDE.md",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 32,
+            "sha256": "e25d876c59ad0f461a8f6b5dab82427fa27bbafa5b549fb59ed992188cc58bab"
+          },
+          {
+            "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/project-instructions.md",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 33,
+            "sha256": "ce88614a82886c45975a39561276c4210f3331e62d02e6711b6039463740debb"
+          }
+        ]
+      }
+    },
+    "configImportBoundary": {
+      "before": {
+        "claudeConfig": [],
+        "codexConfig": [
+          {
+            "path": "config.toml",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 71,
+            "sha256": "2d40d899c66c55966cdf9aadd5fb2df43ea6fbf4e96b1670315fb34230c639ee"
+          }
+        ]
+      },
+      "after": {
+        "claudeConfig": [],
+        "codexConfig": [
+          {
+            "path": "config.toml",
+            "kind": "file",
+            "mode": "600",
+            "bytes": 71,
+            "sha256": "2d40d899c66c55966cdf9aadd5fb2df43ea6fbf4e96b1670315fb34230c639ee"
+          }
+        ]
+      }
+    }
+  },
+  "observed": {
+    "purgeDryRunPlan": [
+      {
+        "kind": "dir",
+        "path": "$PURGE_DRY_CONFIG/projects",
+        "ownedTarget": "projects"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_DRY_CONFIG/tasks",
+        "ownedTarget": "tasks"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_DRY_CONFIG/debug",
+        "ownedTarget": "debug"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_DRY_CONFIG/file-history",
+        "ownedTarget": "file-history"
+      },
+      {
+        "kind": "file",
+        "path": "$PURGE_DRY_CONFIG/history.jsonl",
+        "ownedTarget": "history.jsonl"
+      }
+    ],
+    "purgeDryRunPlannedItems": 5,
+    "purgeDryRunChanges": [],
+    "purgeDryRunChangedEntries": 0,
+    "purgeDryRunStartupChanges": [
+      {
+        "path": ".claude.json",
+        "change": "added"
+      },
+      {
+        "path": "backups/$AUTO_BACKUP",
+        "change": "added"
+      }
+    ],
+    "purgePositivePlan": [
+      {
+        "kind": "dir",
+        "path": "$PURGE_POSITIVE_CONFIG/projects",
+        "ownedTarget": "projects"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_POSITIVE_CONFIG/tasks",
+        "ownedTarget": "tasks"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_POSITIVE_CONFIG/debug",
+        "ownedTarget": "debug"
+      },
+      {
+        "kind": "dir",
+        "path": "$PURGE_POSITIVE_CONFIG/file-history",
+        "ownedTarget": "file-history"
+      },
+      {
+        "kind": "file",
+        "path": "$PURGE_POSITIVE_CONFIG/history.jsonl",
+        "ownedTarget": "history.jsonl"
+      }
+    ],
+    "purgePositivePlannedItems": 5,
+    "purgePositiveDeletedTargets": [
+      "projects",
+      "tasks",
+      "debug",
+      "file-history",
+      "history.jsonl"
+    ],
+    "purgePositiveDeletedTargetCount": 5,
+    "purgePositiveExcludedFixturesPreserved": [
+      "shell-snapshots/keep.txt",
+      "backups/keep.txt"
+    ],
+    "purgePositiveStartupChanges": [
+      {
+        "path": ".claude.json",
+        "change": "added"
+      },
+      {
+        "path": "backups/$AUTO_BACKUP",
+        "change": "added"
+      }
+    ],
+    "jsonDryRunChanges": [],
+    "jsonDryRunChangedEntries": 0,
+    "jsonImportTranscriptCount": 1,
+    "jsonImportTranscript": {
+      "path": "$JSON_CONFIG/projects/$PROJECT_KEY/5cbc017d-7c10-53ae-8c44-3eb1b9a5ce89.jsonl",
+      "mode": "600",
+      "bytes": 1427,
+      "canonicalBytes": 1216,
+      "canonicalContentSha256": "bbf01984050eecc6f52f0c4ead7b1f7758a7406b7f13ca7cd381c1a7f7aac6b0",
+      "hashBasis": "UTF-8 transcript after normalization of probe cwd, config, HOME and temporary-root paths",
+      "records": [
+        {
+          "type": "user",
+          "uuid": "50000000-0000-4000-8000-000000000005",
+          "parentUuid": null,
+          "role": "user",
+          "text": "JSON_IMPORT_HUMAN_MARKER",
+          "version": "claude-export-import"
+        },
+        {
+          "type": "assistant",
+          "uuid": "70000000-0000-4000-8000-000000000007",
+          "parentUuid": "50000000-0000-4000-8000-000000000005",
+          "role": "assistant",
+          "text": "JSON_IMPORT_ASSISTANT_MARKER",
+          "version": "claude-export-import"
+        }
+      ]
+    },
+    "jsonImportArtifacts": {
+      "projectInstructions": {
+        "path": "projects/json-import-project-10000000-0000-4000-8000-000000000001/project-instructions.md",
+        "exists": true,
+        "mode": "600",
+        "bytes": 32,
+        "contentSha256": "5b7f8bd7f0c9d0fff46bf4dd171ae4ab93a742d61edd1b76f78426ed8023648a",
+        "expectedBytes": 32,
+        "expectedContentSha256": "5b7f8bd7f0c9d0fff46bf4dd171ae4ab93a742d61edd1b76f78426ed8023648a",
+        "contentMatchesExpected": true
+      },
+      "reservedClaudeDoc": {
+        "path": "projects/json-import-project-10000000-0000-4000-8000-000000000001/imported-CLAUDE.md",
+        "exists": true,
+        "mode": "600",
+        "bytes": 31,
+        "contentSha256": "3083f6f2e9a2bfb617685b662ac32500b5cc6e579ee1fd09113763e7dce804c4",
+        "expectedBytes": 31,
+        "expectedContentSha256": "3083f6f2e9a2bfb617685b662ac32500b5cc6e579ee1fd09113763e7dce804c4",
+        "contentMatchesExpected": true
+      }
+    },
+    "zipMismatchTranscriptCount": 1,
+    "zipMismatchTranscript": {
+      "path": "$ZIP_CONFIG/projects/$PROJECT_KEY/a2b47e45-0eba-5b1c-aec1-a7ffb525080d.jsonl",
+      "mode": "600",
+      "bytes": 1447,
+      "canonicalBytes": 1216,
+      "canonicalContentSha256": "4d37df6304dce933a30a4550aa142ad16152c4fef5fe092c849713f7cb1836db",
+      "hashBasis": "UTF-8 transcript after normalization of probe cwd, config, HOME and temporary-root paths",
+      "records": [
+        {
+          "type": "user",
+          "uuid": "60000000-0000-4000-8000-000000000006",
+          "parentUuid": null,
+          "role": "user",
+          "text": "ZIP_MISMATCH_HUMAN_MARKER",
+          "version": "claude-export-import"
+        },
+        {
+          "type": "assistant",
+          "uuid": "80000000-0000-4000-8000-000000000008",
+          "parentUuid": "60000000-0000-4000-8000-000000000006",
+          "role": "assistant",
+          "text": "ZIP_MISMATCH_ASSISTANT_MARKER",
+          "version": "claude-export-import"
+        }
+      ]
+    },
+    "zipMismatchArtifacts": {
+      "projectInstructions": {
+        "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/project-instructions.md",
+        "exists": true,
+        "mode": "600",
+        "bytes": 33,
+        "contentSha256": "ce88614a82886c45975a39561276c4210f3331e62d02e6711b6039463740debb",
+        "expectedBytes": 33,
+        "expectedContentSha256": "ce88614a82886c45975a39561276c4210f3331e62d02e6711b6039463740debb",
+        "contentMatchesExpected": true
+      },
+      "reservedClaudeDoc": {
+        "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/imported-CLAUDE.md",
+        "exists": true,
+        "mode": "600",
+        "bytes": 32,
+        "contentSha256": "e25d876c59ad0f461a8f6b5dab82427fa27bbafa5b549fb59ed992188cc58bab",
+        "expectedBytes": 32,
+        "expectedContentSha256": "e25d876c59ad0f461a8f6b5dab82427fa27bbafa5b549fb59ed992188cc58bab",
+        "contentMatchesExpected": true
+      },
+      "reservedAgentsFile": {
+        "path": "projects/zip-mismatch-project-20000000-0000-4000-8000-000000000002/imported-AGENTS.md",
+        "exists": true,
+        "mode": "600",
+        "bytes": 33,
+        "contentSha256": "5f306c09352a38d7a6c3fdee021f2e2acfd1adea74f15f4df2e92b3264bc371a",
+        "expectedBytes": 33,
+        "expectedContentSha256": "5f306c09352a38d7a6c3fdee021f2e2acfd1adea74f15f4df2e92b3264bc371a",
+        "contentMatchesExpected": true
+      }
+    },
+    "zipMismatchWritesSurvivedExitOne": true,
+    "configImportFeatureAvailableOffline": false
+  },
+  "reproducibilityContract": {
+    "canonicalization": "delete capturedAt, then compare the complete parsed JSON value byte-for-byte after deterministic JSON serialization",
+    "transcriptHashBasis": "normalize all scenario cwd, config, target, HOME, TMPDIR, fixture and probe-root paths before SHA-256"
+  },
+  "checks": {
+    "snapshotMetadataVersionExact": true,
+    "snapshotMetadataSha256Exact": true,
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "everyExecutionContractComplete": true,
+    "everyCommandIsFullEnvironmentRendering": true,
+    "everyScenarioHasDistinctHome": true,
+    "everyScenarioHasDistinctConfig": true,
+    "purgeDryRunExitZero": true,
+    "purgeDryRunPrintsPlan": true,
+    "purgeDryRunParsesEveryOwnedTarget": true,
+    "purgeDryRunListsFiveOwnedItems": true,
+    "purgeDryRunReportsParsedCount": true,
+    "purgeDryRunPreservesAllBytes": true,
+    "purgeDryRunHasNoDomainDelta": true,
+    "purgeDryRunExcludesShellSnapshots": true,
+    "purgeDryRunExcludesBackups": true,
+    "purgeDryRunClassifiesStartupFiles": true,
+    "purgePositiveExitZero": true,
+    "purgePositiveParsesEveryOwnedTarget": true,
+    "purgePositiveReportsDerivedCount": true,
+    "purgePositiveDeletesEveryOwnedTarget": true,
+    "purgePositiveLeavesNoOwnedRows": true,
+    "purgePositivePreservesExcludedFixtureMetadataAndBytes": true,
+    "purgePositivePreservesShellSnapshotContent": true,
+    "purgePositivePreservesBackupContent": true,
+    "purgePositiveWarnsAboutBothExcludedRoots": true,
+    "purgePositiveClassifiesStartupFiles": true,
+    "jsonDryRunExitZero": true,
+    "jsonDryRunReportsExpectedCounts": true,
+    "jsonDryRunDoesNotWrite": true,
+    "jsonDryRunHasNoObservedDelta": true,
+    "jsonImportExitZero": true,
+    "jsonImportReportsExpectedCounts": true,
+    "jsonImportWritesOneTranscript": true,
+    "jsonImportPreservesExactUuidParentChain": true,
+    "jsonImportPreservesMessageChain": true,
+    "jsonImportTranscriptMode0600": true,
+    "jsonImportTranscriptHasCanonicalContentHash": true,
+    "jsonImportTranscriptCanonicalBytesAndHashExact": true,
+    "jsonImportTranscriptPathsAreCanonicalized": true,
+    "jsonImportProjectInstructionsExact": true,
+    "jsonImportReservedClaudeDocExact": true,
+    "jsonImportWritesProjectInstructions": true,
+    "jsonImportDemotesClaudeMd": true,
+    "jsonImportWritesOnlyExpectedTargetArtifacts": true,
+    "zipMismatchExitOne": true,
+    "zipMismatchReportsExpectedCounts": true,
+    "zipMismatchReportsMessageDiff": true,
+    "zipMismatchReportsDocDiff": true,
+    "zipMismatchReportsTerminalCode": true,
+    "zipMismatchKeepsTranscript": true,
+    "zipMismatchPreservesExactUuidParentChain": true,
+    "zipMismatchPreservesMessageChain": true,
+    "zipMismatchTranscriptMode0600": true,
+    "zipMismatchTranscriptHasCanonicalContentHash": true,
+    "zipMismatchTranscriptCanonicalBytesAndHashExact": true,
+    "zipMismatchTranscriptPathsAreCanonicalized": true,
+    "zipMismatchProjectInstructionsExact": true,
+    "zipMismatchKeepsReservedClaudeDocExact": true,
+    "zipMismatchKeepsReservedAgentsFileExact": true,
+    "zipMismatchKeepsReservedDoc": true,
+    "zipMismatchKeepsReservedProjectFile": true,
+    "zipMismatchWritesOnlyExpectedTargetArtifacts": true,
+    "zipMismatchWritesSurviveExitOne": true,
+    "configImportGateExitOne": true,
+    "configImportGateMessageExact": true,
+    "configImportGateWritesNothing": true,
+    "configImportAvailabilityDerivedFromRun": true
+  },
+  "pass": true
+}

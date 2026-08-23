@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-23T17:10:53.166Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "x64",
+    "nodeVersion": "v22.21.1",
+    "rosettaTranslated": true,
+    "arm64HardwareAvailable": true
+  },
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "evidenceClasses": {
+    "original": "Observed: release modules and same-input runtime outputs",
+    "compatible": "Compatible: independently authored artifacts supplied to this run and validated for architecture, identity separation, exports, and checked runtime behavior; this report does not attest a fresh build"
+  },
+  "artifactProvenance": {
+    "original": [
+      {
+        "filename": "computer-use-input.node",
+        "bytes": 1692096,
+        "sha256": "55bd5d0da1d7f6d1afa92de91c20957a77b4a25483562d2dac433cb3370344da",
+        "architectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      },
+      {
+        "filename": "computer-use-swift.node",
+        "bytes": 879672,
+        "sha256": "5ce6c0773d532cd629dd4bd0eab9516dce20a5d66c6631f6be18f639d6a88524",
+        "architectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      }
+    ],
+    "compatible": [
+      {
+        "filename": "audio-capture.node",
+        "bytes": 955064,
+        "sha256": "e2d7c2ff32a47f4967ea16ee0baa8a9911ce491b278065b4898f0834a031e0c6",
+        "architectures": [
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      },
+      {
+        "filename": "computer-use-input.node",
+        "bytes": 1076876,
+        "sha256": "37c822bc6abcf893831a2362faf523c90d451c0cc960e08714ef81e852447f7c",
+        "architectures": [
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      },
+      {
+        "filename": "computer-use-swift.node",
+        "bytes": 390064,
+        "sha256": "68eeb8c4273be882406e2f844d45f621451abe5e013e9e11546acdf757fbcbed",
+        "architectures": [
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      },
+      {
+        "filename": "image-processor.node",
+        "bytes": 3186668,
+        "sha256": "ece342fa5b350fff1f2d59b130e70f8b8f7a9a8ec3b35adb55510e41c270c501",
+        "architectures": [
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      },
+      {
+        "filename": "url-handler.node",
+        "bytes": 780432,
+        "sha256": "b5a091279f6bfbbb754ce4b32ef1b6a3c1ba33c833e7a4dac556885cbe80bbea",
+        "architectures": [
+          "x86_64"
+        ],
+        "fileKind": "regular-file"
+      }
+    ],
+    "dualModules": [
+      "computer-use-input.node",
+      "computer-use-swift.node"
+    ]
+  },
+  "attestationScope": {
+    "method": "validated-artifacts-and-runtime",
+    "proves": [
+      "compatible artifacts are non-symlink regular x86_64 files inside the supplied directory",
+      "compatible artifact hashes do not reuse any original module bytes",
+      "all compatible exports load and match the committed N-API contract",
+      "original dual-slice and compatible Computer Use artifacts pass the recorded same-input runtime comparisons under Rosetta"
+    ],
+    "doesNotProve": [
+      "the supplied artifacts were freshly built during this report invocation",
+      "the Rust or Swift build recipes ran successfully in this report invocation",
+      "compatible-only modules match unavailable original x86_64 behavior"
+    ]
+  },
+  "architectureCoverage": {
+    "original": {
+      "x86_64": {
+        "method": "runtime-and-static",
+        "modules": [
+          "computer-use-input.node",
+          "computer-use-swift.node"
+        ]
+      }
+    },
+    "compatible": {
+      "x86_64": {
+        "method": "validated-artifacts-and-runtime",
+        "modules": [
+          "computer-use-input.node",
+          "computer-use-swift.node"
+        ],
+        "validatedArtifactContractModules": [
+          "audio-capture.node",
+          "computer-use-input.node",
+          "computer-use-swift.node",
+          "image-processor.node",
+          "url-handler.node"
+        ]
+      }
+    }
+  },
+  "commands": {
+    "behavior": "arch -x86_64 node reconstructed/scripts/compare_behaviors.mjs extracted $X86_REBUILT_DIR --x86-dual-only --report analysis/runtime-probes/native-reconstruction-x86.json"
+  },
+  "buildRecipes": {
+    "rustBuild": "CARGO_TARGET_DIR=$X86_CARGO_TARGET cargo build --manifest-path reconstructed/Cargo.toml --release --target x86_64-apple-darwin",
+    "swiftBuild": "swift build --disable-sandbox --package-path reconstructed/swift/computer-use-swift --scratch-path $X86_SWIFT_SCRATCH --triple x86_64-apple-macosx -c release"
+  },
+  "buildRecipeSemantics": "Reference recipes only; this report records no build command execution, literal build output, or build exit status.",
+  "input": {
+    "computerUseInput": "read-only mouse/frontmost outcomes, permission failures, and validation ordering; no input injection",
+    "computerUseSwift": "display/TCC/application outcomes, default/explicit/invalid display selection for hide preview, plus screenshot schema and JPEG decode invariants when available; unavailable system services are explicit environment boundaries",
+    "imageProcessor": "compatible x86_64 decoder helper for validating screenshot JPEG invariants; no original x86_64 image module exists"
+  },
+  "inputStrategies": {
+    "computer-use-input.node": "same-input original/compatible x86_64 behavior; read-only state and deterministic invalid-input errors",
+    "computer-use-swift.node": "same-input original/compatible x86_64 behavior under Rosetta; read-only TCC/display/application and screenshot invariants",
+    "image-processor.node": "compatible-only JPEG decode helper because the release has no original x86_64 slice"
+  },
+  "literalOutput": {
+    "behavior": "native behavior comparison: PASS",
+    "checksPassed": 20
+  },
+  "exitStatus": {
+    "behavior": 0
+  },
+  "checks": {
+    "originalContract": true,
+    "compatibleContract": true,
+    "behaviorChecksPassed": true,
+    "x86RuntimeCoverage": true,
+    "x86OriginalDualSliceCoverage": true,
+    "x86CompatibleAllModuleContractCoverage": true,
+    "x86OriginalSlicesPresent": true,
+    "x86ArtifactProvenanceValidated": true,
+    "x86RosettaTranslationObserved": true
+  },
+  "checkResults": [
+    {
+      "label": "input module behavior",
+      "module": "computer-use-input.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional undefined",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional null",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional zero",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift optional positive",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift accessibility",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift screen recording",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift displays",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift display size",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift running applications",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift installed applications",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift resolve bundle ids",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift window displays",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift hide preview",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift application under point",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift application icon",
+      "module": "computer-use-swift.node",
+      "comparison": "normalized-semantic",
+      "status": "pass"
+    },
+    {
+      "label": "swift unhide empty",
+      "module": "computer-use-swift.node",
+      "comparison": "exact",
+      "status": "pass"
+    },
+    {
+      "label": "swift full screenshot shape",
+      "module": "computer-use-swift.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "swift region screenshot shape",
+      "module": "computer-use-swift.node",
+      "comparison": "schema-and-invariants",
+      "status": "pass"
+    },
+    {
+      "label": "behavior check count",
+      "module": "all",
+      "comparison": "exact",
+      "status": "pass"
+    }
+  ],
+  "summary": {
+    "checksRun": 20,
+    "checksPassed": 20
+  },
+  "pass": true
+}

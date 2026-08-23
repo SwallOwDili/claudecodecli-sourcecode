@@ -9,7 +9,21 @@ const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nativeDir = path.resolve(process.argv[2] ?? path.join(root, "..", "extracted"));
 const contract = JSON.parse(fs.readFileSync(path.join(root, "contracts/module-exports.json"), "utf8"));
+const modulesFlag = process.argv.indexOf("--modules");
+const selectedModules = modulesFlag >= 0
+  ? new Set((process.argv[modulesFlag + 1] ?? "").split(",").filter(Boolean))
+  : null;
 const failures = [];
+
+if (modulesFlag >= 0 && selectedModules.size === 0) {
+  console.error("--modules requires a comma-separated module list");
+  process.exit(2);
+}
+if (selectedModules) {
+  for (const filename of selectedModules) {
+    if (!(filename in contract)) failures.push(`unknown contract module: ${filename}`);
+  }
+}
 
 function ownFunctionNames(value) {
   return Object.entries(Object.getOwnPropertyDescriptors(value))
@@ -24,7 +38,10 @@ function compare(label, actual, expected) {
   if (actualJson !== expectedJson) failures.push(`${label}: ${actualJson} != ${expectedJson}`);
 }
 
-for (const [filename, expected] of Object.entries(contract)) {
+const contractEntries = Object.entries(contract).filter(
+  ([filename]) => !selectedModules || selectedModules.has(filename),
+);
+for (const [filename, expected] of contractEntries) {
   const loaded = require(path.join(nativeDir, filename));
   if (expected.functions) compare(`${filename} exports`, ownFunctionNames(loaded), expected.functions);
   if (expected.prototype) {
@@ -47,4 +64,4 @@ if (failures.length) {
 }
 
 console.log("native contract validation: PASS");
-console.log(`modules checked: ${Object.keys(contract).length}`);
+console.log(`modules checked: ${contractEntries.length}`);

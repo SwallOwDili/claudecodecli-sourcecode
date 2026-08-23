@@ -2275,6 +2275,7 @@ def environment_access_rows(
             "resolvedStaticValue",
             "resolvedFiniteValues",
             "resolutionEvidence",
+            "unresolvedResolution",
             "caller",
         ):
             if key in node:
@@ -3063,7 +3064,7 @@ def main() -> int:
             "callsiteParser": "vendored Acorn 8.15.0 parses the canonical bundle as ECMAScript latest; AST CallExpression/NewExpression nodes provide exact callsites, arguments, lexical function scopes, immediate parent consumer roles/ranges/targets/operators, declaration exclusion, and nearest same-or-ancestor-scope assignment resolution",
             "payloadParser": "top-level object parser records properties, shorthand keys, computed keys, spreads, recursively expanded identifier/object spreads, and unresolved spread expressions for dynamically discovered event callsites",
             "literalSurface": "every Acorn string and template node is grouped by exact raw value with occurrence count and all source locations; long, credential-shaped, or user-home-shaped values keep length and SHA-256 instead of duplicating sensitive or very large text outside canonical extracted evidence",
-            "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates, nearest same-or-ancestor lexical assignments, static collection callbacks, or complete finite caller argument sets, while the original expression remains authoritative",
+            "environmentSchema": "joins uppercase export getters to variables assigned through the discovered str/bool/triBool/int/enum builder and records every static/dynamic process.env or discovered environment-proxy access with read/write/read-write/delete mode and lexical consumer context; dynamic bracket names are resolved only from static strings/templates/concatenations, lexical or unique bundle/member assignments, finite object/array members and enumeration, static collection callbacks/for-of bindings, trivial local returns, or complete finite caller argument sets, while the original expression remains authoritative and unresolved rows retain a classified failure chain",
             "rootSettingsSchema": "locates the settings function through strictPolicyHelperKeys plus $schema/apiKeyHelper anchors and parses every top-level entry and spread without relying on its minified function or builder name",
             "modelCatalog": "locates the hand-maintained baked catalog through its stable source note and parses complete per-model, pricing-tier, alias, and catalog-metadata JSONL records with resolved pricing",
             "toolRegistrations": "discovers the release-local tool-object factory from the Bash/Read/Write/Edit/Glob/Grep anchor set, then records every qualifying AST callsite to that factory, including statically resolved or retained dynamic name expressions, aliases, object-literal lifecycle properties, source offsets, and comparison fields; factory invocation expansion remains a separate human call-graph step",
@@ -3109,6 +3110,16 @@ def main() -> int:
                     sorted(
                         Counter(
                             row.get("expression", {}).get("kind", "missing")
+                            for row in unresolved_dynamic_environment_accesses
+                        ).items()
+                    )
+                ),
+                "unresolvedDynamicReasonKinds": dict(
+                    sorted(
+                        Counter(
+                            row.get("unresolvedResolution", {}).get(
+                                "primaryReason", "missing-classification"
+                            )
                             for row in unresolved_dynamic_environment_accesses
                         ).items()
                     )

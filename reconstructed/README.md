@@ -66,6 +66,15 @@ Rust 依赖版本尽量对齐发布二进制保留的构建路径和字符串，
 reconstructed/scripts/build_and_validate.sh extracted /tmp
 ```
 
+同一命令现在还执行 x86_64 发布门。它要求安装 Rust target，并要求 universal Node 能经 Rosetta 以 `x64` 运行：
+
+```bash
+rustup target add x86_64-apple-darwin
+arch -x86_64 node -p process.arch   # x64
+```
+
+Rust 阶段使用 `--target x86_64-apple-darwin`，Swift 阶段使用 `--triple x86_64-apple-macosx`。5 个兼容模块都必须生成 x86_64 Mach-O、被 x86 Node 加载并通过完整导出合同；发布物只有两个 Computer Use 模块携带原版 x86_64 slice，所以行为双跑只覆盖这两个真实可比对象。
+
 受限执行环境若禁止写用户级 Swift/clang cache，可显式把 module cache 放进临时目录；脚本已经关闭 SwiftPM 的内层 sandbox，避免与调用方外层 sandbox 冲突：
 
 ```bash
@@ -96,10 +105,25 @@ checks passed: 23
 reconstructed native validation: PASS
 ```
 
-逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL、环境边界和架构覆盖。本次 23 项由 22 项真实原版/重建对照和 1 项最低覆盖审计组成；22 项真实对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。hide 候选归序后深比较完整成员和字段；公共 helper 固定豁免 Finder，窗口必须满足 layer 0、alpha 严格大于 `0.1` 和 display intersection，但不受 `width/height > 1` 限制，源码中的尺寸判断服务于另外两个窗口流程。`prepareDisplay` 调用方又冗余加入 host 与 Finder，preview 的无效 display ID 回退主屏。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，格式和宽高必须与截图返回值一致；只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界。构建先运行双架构静态语义校验；报告开始前会使旧文件失效，PASS/FAIL 均原子落盘。validator 同时要求 x86_64 静态边界保持显式。
+当前 x86_64/Rosetta artifact 合同与行为实测输出：
+
+```text
+native contract validation: PASS
+modules checked: 2
+native contract validation: PASS
+modules checked: 5
+native behavior comparison: PASS
+checks passed: 20
+```
+
+arm64 逐检查机器报告写入 [`analysis/runtime-probes/native-reconstruction.json`](../analysis/runtime-probes/native-reconstruction.json)。它不保存本机原始路径或实时桌面内容，只保存比较项、模块、比较模式、输入策略、PASS/FAIL、环境边界和架构覆盖。本次 23 项由 22 项真实原版/重建对照和 1 项最低覆盖审计组成；22 项真实对照为 `14 exact`、`5 normalized-semantic`、`3 schema-and-invariants`，本次 `environment-boundary` 为 0。hide 候选归序后深比较完整成员和字段；公共 helper 固定豁免 Finder，窗口必须满足 layer 0、alpha 严格大于 `0.1` 和 display intersection，但不受 `width/height > 1` 限制，源码中的尺寸判断服务于另外两个窗口流程。`prepareDisplay` 调用方又冗余加入 host 与 Finder，preview 的无效 display ID 回退主屏。full/region screenshot 比较字段、尺寸、显示器元数据、规范 Base64 及 JPEG SOI/EOI，并由对应原版/重建版图像模块实际解码，格式和宽高必须与截图返回值一致；只有双方返回同一条已知 TCC/ScreenCaptureKit 失败合同才记环境边界。
+
+x86_64 报告写入 [`analysis/runtime-probes/native-reconstruction-x86.json`](../analysis/runtime-probes/native-reconstruction-x86.json)。其 method 是 `validated-artifacts-and-runtime`：它记录 5/5 supplied compatible artifact 的架构、regular-file、非同 hash 与 load/export contract，以及原版确实含 x86 slice 的 Input/Swift 两模块 19 项同输入行为比较和 1 项覆盖 guard。截图 JPEG 在此用 compatible x86 image module 仅作格式/尺寸解码 helper，因为发布物没有 original x86 image module；该 helper 不被算成 original/compatible image 行为对照。两个报告开始前都会失效旧结果，PASS/FAIL 均原子落盘。
+
+比较器不再信任 `--contracts-validated` 这类调用方声明。它会自行拒绝 symlink、目录逃逸、缺失模块、非 x86 Mach-O、original/rebuilt 同路径或同 hash，并重新加载 5 个 compatible 导出合同和 2 个 original dual-slice 合同。报告保存每个 artifact 的 byte count、SHA-256、slice 与 regular-file 状态，并记录 `sysctl.proc_translated=1` 和 arm64 hardware，证明当前 x64 Node 确由 Rosetta 承载。`test_x86_provenance.mjs` 用 original symlink 伪造 rebuilt 目录，要求比较器 exit 非零且不能落 forged PASS 报告。
 
 ## 重建边界
 
-当前源码能在本机 arm64 macOS 编译和加载。发布产物中两个 Computer Use 模块还包含 x86-64 slice；仓库保留了该架构的完整静态分析，但没有在本机交叉构建和运行 x86-64 重建产物。机器报告分别标成 `runtime-and-static`、`static-only`、`build-and-runtime`、`not-built-or-run`，避免把 universal 原版模块误写成 universal 兼容重建。
+发布流程保留 arm64 与 x86_64 build recipe，但提交的 x86 报告不保存同次 build 的 literal output 或 exit status。发布产物中只有两个 Computer Use 模块包含 x86_64 slice，因此这两个模块拥有 x86 `runtime-and-static` 原版证据和 `validated-artifacts-and-runtime` compatible 对照；audio、image、URL 三个 compatible artifact 虽完成 x86 架构与 load/export 验证，却没有 original x86 slice，不能声称 x86 原版行为相同，也不能由该报告单独声称本次新鲜构建。
 
 没有源码级 DWARF、source map 或上游仓库时，原始注释、局部变量名、文件拆分、泛型写法、内部辅助类型以及编译器删除的代码无法逐字恢复。音频重采样/静音检测、部分窗口选择顺序和错误分支属于兼容重建；这些位置必须继续用 `Compatible` 标注，不能因测试通过而改称 Anthropic 原始源码。

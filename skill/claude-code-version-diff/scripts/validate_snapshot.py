@@ -15,6 +15,8 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
+from validate_project_data_lifecycle import validate_project_data_lifecycle_report
+
 
 PERSONAL_PATH_RE = re.compile(
     rb"(?:/" + rb"Users/[^/\x00\r\n]+/|/" + rb"home/[^/\x00\r\n]+/|"
@@ -151,21 +153,20 @@ SOURCE_INVENTORY_MINIMUMS = {
 }
 HUMAN_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": (
-        "SOURCE_INVENTORY_COVERAGE_BEGIN",
-        "机器附录：71 类机器清单的证据分类与阅读路由",
         "Derived 阅读模型",
-        "矛盾一：让模型自主，但不把执行权交给模型",
-        "矛盾二：既要忘掉大部分历史，又要让任务继续成立",
-        "矛盾三：既要看见系统，又不能把观测误当成事实",
-        "矛盾四：想恢复任务，但系统没有一台时间机器",
-        "压力测试五：Artifact 超时后",
-        "矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
-        "六个压力测试共同暴露出的技术性格",
-        "关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
+        "能力编译：任务还没发给模型",
+        "Agent Loop：从按下回车到下一次决策",
+        "执行控制：模型能提出 Bash，不代表 Bash 会执行",
+        "上下文治理：长对话为什么没有一个万能缓存",
+        "观测系统：既要看见运行状态，又不能把遥测当成事实",
+        "恢复语义：Resume 恢复因果视图，不是旧进程",
+        "动态扩展：MCP、Skills 与子 Agent",
+        "远端副作用：Artifact 超时后",
+        "Native Bridge：CLI 不只有文本",
+        "这些机制共同暴露出的工程选择",
+        "四个嵌套生命周期单位各算各的账",
         "Untraced/Inventory only 不是 Boundary",
         "三轴证据坐标",
-        "Whole-bundle AST",
-        "Prefix-filtered environment union",
         "runtime-authority-lifecycle.svg",
         "product-surface-runtime-planes.svg",
         "evidence-surface-lifecycle.svg",
@@ -321,11 +322,13 @@ HUMAN_ANALYSIS_DOCS = {
     "analysis/environment-variable-reference.md": (
         "842/842",
         "2161",
-        "74 个无静态 consumer",
-        "6 个仅通过动态下标",
+        "80 个无静态 consumer",
+        "0 个仅通过动态下标",
         "137/137",
         "145 个动态下标调用点",
-        "60 个名称可证明",
+        "7 个名称可证明",
+        "138 个仍未解析",
+        "primary reason",
         "triBool",
         "Opaque/Boundary",
     ),
@@ -520,6 +523,9 @@ HUMAN_ANALYSIS_DOCS = {
         "ScreenCaptureKit",
         "waitForUrlEvent",
         "Compatible",
+        "native-reconstruction-x86.json",
+        "x86_64/Rosetta",
+        "20/20",
     ),
     "analysis/auto-mode-classifier.md": (
         "twoStageClassifier",
@@ -595,6 +601,10 @@ HUMAN_ANALYSIS_DOCS = {
         "Preview digest",
         "manifest mismatch",
         "best-effort",
+        "project-data-lifecycle.json",
+        "0600",
+        "IMPORT_MANIFEST_MISMATCH",
+        "CLI 启动阶段",
     ),
     "analysis/sandbox-install-and-runtime-enforcement.md": (
         "dangerouslyDisableSandbox",
@@ -655,6 +665,11 @@ HUMAN_ANALYSIS_DOCS = {
         "OpenTelemetry",
         "Datadog",
         "GrowthBook",
+        "5 `Single-owner`",
+        "1 `Cross-owner`",
+        "905 个 event / 1,272 个 callsite",
+        "tengu_copper_lantern",
+        "tengu_fast_mode_toggled",
     ),
     "analysis/telemetry-event-catalog.md": (
         "TELEMETRY_EVENT_CATALOG_BEGIN",
@@ -669,6 +684,14 @@ HUMAN_ANALYSIS_DOCS = {
         "tengu_reactive_compact_succeeded",
         "tengu_transcript_writer_recovered",
         "tengu_other` 不能当作",
+        "caller-owner-target-events:911",
+        "caller-owner-single:5",
+        "caller-owner-cross:1",
+        "caller-owner-unresolved:905",
+        "caller-owner-allowlist-entries:25",
+        "caller-owner-unresolved-callsites:1272",
+        "tengu_copper_lantern",
+        "tengu_fast_mode_toggled",
         "Boundary",
     ),
     "analysis/api-beta-route-ownership.md": (
@@ -760,7 +783,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/error-diagnostic-atlas.md": (15000, 16),
 }
 READER_FIRST_ANALYSIS_DOCS = {
-    "analysis/product-surface-evidence-map.md": "agent-loop-lifecycle",
+    "analysis/product-surface-evidence-map.md": "runtime-authority-lifecycle",
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
     "analysis/tool-registration-and-host-surfaces.md": "tool-registration-host-lifecycle",
     "analysis/brief-mode-and-user-visible-output.md": "brief-user-output-lifecycle",
@@ -2111,7 +2134,9 @@ def validate_dot_svg_regeneration(
 
 def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     relative = "analysis/product-surface-evidence-map.md"
+    inventory_relative = "analysis/product-surface-inventory-index.md"
     path = repo / relative
+    inventory_path = repo / inventory_relative
     generator = repo / "skill/claude-code-version-diff/scripts/build_product_surface_map.py"
     if not path.is_file():
         failures.append(f"missing product surface evidence map: {relative}")
@@ -2119,12 +2144,16 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     if not generator.is_file():
         failures.append("missing product surface evidence map generator")
         return
+    if not inventory_path.is_file():
+        failures.append(f"missing product surface inventory index: {inventory_relative}")
+        return
 
     summary = json.loads(
         (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
     )
     expected = [Path(entry["path"]).name for entry in summary.get("files", [])]
     content = path.read_text(encoding="utf-8")
+    inventory_content = inventory_path.read_text(encoding="utf-8")
     if len(expected) != EXPECTED_SOURCE_INVENTORY_COUNT:
         failures.append(
             "product surface source inventory count mismatch: "
@@ -2133,12 +2162,12 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     if "tool-registrations.jsonl" not in expected:
         failures.append("product surface source inventory is missing tool-registrations.jsonl")
     expected_marker = f"全部 {EXPECTED_SOURCE_INVENTORY_COUNT} 类机器清单"
-    if expected_marker not in content:
+    if expected_marker not in inventory_content:
         failures.append(
-            f"product surface evidence map is missing {expected_marker} coverage marker"
+            f"product surface inventory index is missing {expected_marker} coverage marker"
         )
     block = text_between(
-        content,
+        inventory_content,
         "<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->",
         "<!-- SOURCE_INVENTORY_COVERAGE_END -->",
     )
@@ -2247,33 +2276,34 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 f"product surface environment inventory {label} ownership must be Mixed"
             )
 
-    appendix_start = content.find("<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->")
+    narrative_end = len(content)
     narrative_markers = (
-        "## 关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
-        "## 矛盾一：让模型自主，但不把执行权交给模型",
-        "## 矛盾二：既要忘掉大部分历史，又要让任务继续成立",
-        "## 矛盾三：既要看见系统，又不能把观测误当成事实",
-        "## 矛盾四：想恢复任务，但系统没有一台时间机器",
-        "## 压力测试五：Artifact 超时后",
-        "## 矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码",
-        "## 六个压力测试共同暴露出的技术性格",
-        "## 最后再用 C/Q/E/S/O 作为阅读路由",
+        "## 能力编译：任务还没发给模型，边界已经形成",
+        "## Agent Loop：从按下回车到下一次决策",
+        "### 四个嵌套生命周期单位各算各的账",
+        "## 执行控制：模型能提出 Bash，不代表 Bash 会执行",
+        "## 上下文治理：长对话为什么没有一个万能缓存",
+        "## 观测系统：既要看见运行状态，又不能把遥测当成事实",
+        "## 恢复语义：Resume 恢复因果视图，不是旧进程",
+        "## 动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字",
+        "## 远端副作用：Artifact 超时后，客户端为什么只能得到结果未知",
+        "## Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码",
+        "## 这些机制共同暴露出的工程选择",
+        "## 把 C/Q/E/S/O 留作阅读索引",
         "<summary><strong>证据方法附录",
         "## 判断一条清单能否支持技术结论",
         "## 三轴证据坐标",
     )
     for marker in narrative_markers:
         position = content.find(marker)
-        if position < 0 or position >= appendix_start:
+        if position < 0 or position >= narrative_end:
             failures.append(
-                f"product surface reader-first narrative must place {marker!r} before appendix"
+                f"product surface reader-first narrative is missing {marker!r}"
             )
-    inventory_details_open = content.rfind("<details>", 0, appendix_start)
-    inventory_details_close = content.find("</details>", appendix_start)
-    if not (
-        0 <= inventory_details_open < appendix_start < inventory_details_close
-    ):
-        failures.append("product surface inventory appendix must be collapsed with details")
+    if "<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->" in content:
+        failures.append(
+            "product surface article must keep the full machine inventory in the separate index"
+        )
 
     required_case_anchors = (
         "tool-registrations.jsonl#L80",
@@ -2294,8 +2324,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "cli.readable.js#L216096",
         "cli.readable.js#L260784",
         "cli.readable.js#L261085",
-        "cli.readable.js#L362451",
-        "cli.readable.js#L362559",
+        "cli.readable.js#L362418",
+        "cli.readable.js#L362546",
         "cli.readable.js#L90870",
         "cli.readable.js#L90790",
         "cli.readable.js#L77977",
@@ -2307,6 +2337,13 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "cli.readable.js#L402489",
         "cli.readable.js#L402554",
         "cli.readable.js#L194641",
+        "cli.readable.js#L593436",
+        "cli.readable.js#L39176",
+        "cli.readable.js#L62740",
+        "cli.readable.js#L491915",
+        "cli.readable.js#L156505",
+        "cli.readable.js#L202474",
+        "cli.readable.js#L279171",
     )
     for anchor in required_case_anchors:
         if anchor not in content:
@@ -2315,7 +2352,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         if f"| `{lane}` |" not in content:
             failures.append(f"product surface runtime plane {lane} is missing")
 
-    narrative = content[:appendix_start] if appendix_start >= 0 else content
+    narrative = content
     if not all(
         marker in content[:5000]
         for marker in (
@@ -2336,14 +2373,70 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface must derive technical characteristics after the mechanism "
             "pressure tests instead of front-loading a repetitive feature table"
         )
+
+    capability_section = markdown_h2_section(
+        content, r"能力编译：任务还没发给模型，边界已经形成"
+    ) or ""
+    if not all(
+        marker in capability_section
+        for marker in (
+            "settings-policy-lifecycle.svg",
+            "shipped candidate -> trusted + enabled local registry",
+            "advertisement path",
+            "dispatch path",
+            "Workspace trust 不是一个欢迎弹窗",
+            "safe/bare startup",
+            "user < project < local < flag < policy",
+            "fallbackModel",
+            "--setting-sources",
+            "ConfigChange",
+            "Provider 选择会改写后续能力",
+            "first-party account entitlement",
+            "fresh memory、disk last-known-good 和 baked fallback",
+            "首请求未广告 LSP schema",
+            "本地 registry 仍完成执行与结果回灌",
+            "收益与代价",
+        )
+    ):
+        failures.append(
+            "product surface capability compilation must connect trust, settings merge, "
+            "provider selection, advertisement, local dispatch, and user-visible tradeoffs"
+        )
+
+    extension_section = markdown_h2_section(
+        content, r"动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字"
+    ) or ""
+    if not all(
+        marker in extension_section
+        for marker in (
+            "mcp-agent-lifecycle.svg",
+            "MCP 的 connected 只证明 transport",
+            "tools/list_changed",
+            "catalog generation",
+            "不热改已经发出的 Messages request",
+            "子 Agent 复用循环，不共享父 Agent 的脑内现场",
+            "maxTurns: 200",
+            "permissionMode: bubble",
+            "async_launched",
+            "Task registry 的 claim",
+            "team mailbox",
+            "worktree 隔离 Git 文件视图",
+            "Agent View 只是展示和控制投影",
+            "收益是可扩展与可并行",
+        )
+    ):
+        failures.append(
+            "product surface dynamic-extension chapter must trace MCP generation, subagent "
+            "isolation, notification feedback, task/mailbox/worktree scope, and supervision"
+        )
     evidence_details = content.find(
         "<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论"
     )
     evidence_method = content.find("## 读代码时最容易犯的十个归因错误")
     evidence_close = content.find("</details>", evidence_method)
-    completeness_heading = content.find("## 当前到底全面到哪里")
+    completeness_heading = content.find("## 证据、完成度与机器清单放在哪里")
     if not (
-        0 <= evidence_details < evidence_method < evidence_close < completeness_heading < appendix_start
+        0 <= evidence_details < evidence_method < evidence_close < completeness_heading
     ):
         failures.append(
             "product surface evidence methodology must be collapsed after the reader "
@@ -2366,7 +2459,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
     agent_loop_visual = re.search(
         r"!\[([^\]]+)\]\(visuals/agent-loop-lifecycle\.svg\)",
-        content[:8000],
+        content[:25000],
     )
     if not (
         agent_loop_visual
@@ -2386,7 +2479,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "API attempt, tool batch, and result-feedback semantics"
         )
     five_plane_section = markdown_h2_section(
-        content, r"最后再用 C/Q/E/S/O 作为阅读路由"
+        content, r"把 C/Q/E/S/O 留作阅读索引"
     ) or ""
     if not (
         "Derived 阅读模型" in content[:2000]
@@ -2432,7 +2525,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     tool_kind_section = markdown_h2_section(
-        content, r"矛盾一：让模型自主，但不把执行权交给模型"
+        content, r"执行控制：模型能提出 Bash，不代表 Bash 会执行"
     ) or ""
     client_tool_row = next(
         (
@@ -2468,7 +2561,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     loop_units_section = markdown_h2_section(
-        content, r"关键不是流程很长，而是四个嵌套生命周期单位各算各的账"
+        content, r"Agent Loop：从按下回车到下一次决策"
     ) or ""
     if not (
         all(
@@ -2490,7 +2583,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     bash_section = markdown_h2_section(
-        content, r"矛盾一：让模型自主，但不把执行权交给模型"
+        content, r"执行控制：模型能提出 Bash，不代表 Bash 会执行"
     ) or ""
     bash_classification = re.search(
         r"isConcurrencySafe.{0,260}(?:最初|原始|original).{0,40}input",
@@ -2539,7 +2632,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     compact_section = markdown_h2_section(
-        content, r"矛盾二：既要忘掉大部分历史，又要让任务继续成立"
+        content, r"上下文治理：长对话为什么没有一个万能缓存"
     ) or ""
     compact_hit = compact_section.lower().find("+-- hit")
     compact_miss = compact_section.lower().find("+-- miss")
@@ -2569,7 +2662,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     )
     if not (
         compact_hit >= 0
-        and "smi finalize" in hit_window.lower()
+        and "compact finalize" in hit_window.lower()
+        and "smi" in hit_window.lower()
         and hit_skips_request
         and compact_miss >= 0
         and miss_requests_summary
@@ -2585,7 +2679,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "<analysis>",
         "<summary>",
         "固定九段",
-        "客户端随后丢弃前者",
+        "不是严格双标签 parser",
+        "剥离首个 `<analysis>`",
         "| Summary |",
         "| Preserved message groups |",
         "| Attachments / hooks |",
@@ -2593,10 +2688,12 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "defer_loading:true",
         "| Context hint |",
         "| Local microcompaction |",
-        "144k 预计算",
-        "147k 警告",
+        "| Cold/full compact |",
+        "`messagesToKeep=[]`",
+        "144k precompute",
+        "147k warning",
         "167k compact",
-        "177k 阻塞",
+        "177k blocked",
     )
     if not all(marker in compact_section for marker in compact_teaching_markers):
         failures.append(
@@ -2611,7 +2708,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     artifact_section = markdown_h2_section(
-        content, r"压力测试五：Artifact 超时后"
+        content, r"远端副作用：Artifact 超时后，客户端为什么只能得到结果未知"
     ) or ""
     artifact_schema = re.search(
         r"(?:response|响应)\s*schema", artifact_section, re.IGNORECASE
@@ -2659,61 +2756,71 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "validation, server-version acceptance, and list advisory from automatic enforcement"
         )
 
-    voice_section = markdown_h2_section(
-        content, r"矛盾六：要调用本机原生能力，又不能把 ABI 当成原始源码"
-    ) or ""
-    voice_wrapper = re.search(
-        r"(?:JavaScript|JS)(?:\s+native)?\s*wrapper.{0,180}"
-        r"(?:透传|传递|pass|原样上抛).{0,80}bytes|"
-        r"(?:JavaScript|JS)(?:\s+native)?\s*wrapper.{0,180}bytes.{0,80}"
-        r"(?:透传|传递|pass|原样上抛)",
-        voice_section,
-        re.IGNORECASE | re.DOTALL,
-    )
-    voice_sox = all(
-        term in voice_section
-        for term in ("SoX fallback", "-r 16000", "-e signed", "-b 16", "-c 1")
-    )
-    voice_compatible = re.search(
-        r"(?:重建版\s*native.{0,260}Compatible|"
-        r"Compatible.{0,260}(?:native|重建|重采样|16\s*k))",
-        voice_section,
-        re.IGNORECASE | re.DOTALL,
-    )
-    voice_original_limit = (
-        "原版 native 内部 16 kHz/mono/s16 重采样细节" in voice_section
-        and "Boundary / 未恢复" in voice_section
-        and "不能直接推出" in voice_section
-    )
-    if not (
-        all(term in voice_section for term in ("Observed", "Derived", "Compatible"))
-        and voice_wrapper
-        and voice_sox
-        and voice_compatible
-        and voice_original_limit
-        and "native CPAL/CoreAudio 线程产生 16kHz" not in voice_section
-    ):
-        failures.append(
-            "product surface Voice semantics must separate Observed wrapper/SoX evidence, "
-            "Derived behavior, and Compatible native reconstruction"
+    artifact_dot = repo / "analysis/visuals/artifact-direct-publish-outcomes.dot"
+    artifact_svg = repo / "analysis/visuals/artifact-direct-publish-outcomes.svg"
+    if not artifact_dot.is_file() or not artifact_svg.is_file():
+        failures.append("product surface Artifact direct-publish DOT/SVG is missing")
+    else:
+        artifact_dot_text = artifact_dot.read_text(encoding="utf-8")
+        for source, target, label_terms in (
+            ("proposal", "request", ("远端写入",)),
+            ("request", "compatibility", ("400", "旧字段")),
+            ("request", "retry", ("429", "503")),
+            ("request", "success", ("2xx", "validation PASS")),
+            ("request", "conflict", ("409", "liveVersion")),
+            ("request", "unknown", ("没有可信提交回执",)),
+            ("unknown", "readback", ("避免盲目重复写",)),
+        ):
+            require_dot_edge(
+                artifact_dot_text,
+                source=source,
+                target=target,
+                label_terms=label_terms,
+                visual_name="product surface Artifact direct-publish visual",
+                failures=failures,
+            )
+        validate_dot_svg_regeneration(
+            artifact_dot,
+            artifact_svg,
+            "product surface Artifact direct-publish visual",
+            failures,
         )
+
+    voice_section = markdown_h2_section(
+        content, r"Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码"
+    ) or ""
     if not all(
         marker in voice_section
         for marker in (
-            "真实麦克风和 Voice service 的端到端 Probe",
-            "5 个 native 模块",
-            "23 项报告",
-            "x86_64 尚未实跑",
-            "不是找回 Anthropic 的 C/C++/Rust/Swift 原函数体",
+            "本地采集 -> 远端 STT -> composer 文本",
+            "audio-capture.node",
+            "native callback 的 bytes 原样上抛",
+            "16 kHz、mono、signed 16-bit raw PCM",
+            "WebSocket ready",
+            "内存 queue",
+            "interim/final",
+            "composer callback",
+            "取消录音会丢弃本次 buffer",
+            "early retry",
+            "silent-drop replay",
+            "partial salvage",
+            "Static artifact",
+            "受控 original/compatible 调用才是 Probe",
+            "只是 Compatible",
+            "validated-artifacts-and-runtime",
+            "build recipe",
+            "没有同次 build 的 literal output 和 exit status",
+            "不能证明服务端留存、训练或删除策略",
+            "不能恢复原版 native 的内部滤波/重采样函数",
         )
-    ):
+    ) or "完成 build+load contract" in voice_section:
         failures.append(
-            "product surface native explanation must state the end-to-end Voice, architecture, "
-            "and original-source reconstruction boundaries"
+            "product surface native explanation must trace the Voice lifecycle and keep static, "
+            "probe, compatible-source, x86 artifact, and original-source boundaries separate"
         )
 
     telemetry_section = markdown_h2_section(
-        content, r"矛盾三：既要看见系统，又不能把观测误当成事实"
+        content, r"观测系统：既要看见运行状态，又不能把遥测当成事实"
     ) or ""
     if not (
         all(
@@ -2735,8 +2842,10 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 "terminal_reason",
                 "关闭其中一条，不代表其他通道同时关闭",
                 "不是系统事实的唯一账本",
-                "不是 retry/compact/supervisor 的控制器",
+                "不拥有 retry/compact/supervisor 的控制决定",
                 "best-effort",
+                "GrowthBook Feature Evaluation",
+                "出口发送失败不反向支配 Agent Loop",
             )
         )
         and "共享点" in telemetry_section
@@ -2761,21 +2870,52 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface telemetry privacy explanation must cover disabled, inline, and "
             "file raw-body modes independently from prompt redaction"
         )
+    if not all(
+        marker in telemetry_section
+        for marker in (
+            "tengu_other",
+            "event + exact caller identity + comparison fingerprint",
+            "EndConversation",
+            "heap dump",
+            "update refused",
+            "继续是 Unresolved",
+            "完整分类数量和剩余欠账",
+        )
+    ):
+        failures.append(
+            "product surface telemetry explanation must teach why exact caller identity is "
+            "required and route projection counts to the machine catalog"
+        )
 
     recovery_section = markdown_h2_section(
-        content, r"矛盾四：想恢复任务，但系统没有一台时间机器"
+        content, r"恢复语义：Resume 恢复因果视图，不是旧进程"
     ) or ""
     if not (
         all(
             marker in recovery_section
             for marker in (
+                "U1 用户要求改端口",
+                "B1 compact_boundary",
+                "当前 leaf",
+                "transcript graph loader",
+                "compact-boundary relinker",
+                "ancestor walker",
+                "可读符号 `C6e`",
+                "可读符号 `H$i`",
+                "可读符号 `A_t`",
                 "| Message graph |",
                 "| Compact boundary |",
                 "| File checkpoint |",
-                "| Remote reference / result |",
+                "| Artifact reference |",
+                "| Background task |",
+                "| MCP/remote result |",
                 "不会重新执行历史工具",
                 "不恢复旧 socket/Promise",
-                "reference 也不是分布式事务句柄",
+                "| parent 环或非法自指 |",
+                "| parent 缺失 |",
+                "| 损坏 attachment |",
+                "| 中断的 tool pair |",
+                "| checkpoint 缺失或路径不受管 |",
                 "消息图续消息",
                 "checkpoint 续文件",
                 "各子系统的 remote reference",
@@ -2789,23 +2929,26 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
 
     synthesis_section = markdown_h2_section(
-        content, r"六个压力测试共同暴露出的技术性格"
+        content, r"这些机制共同暴露出的工程选择"
     ) or ""
     if not all(
         marker in synthesis_section
         for marker in (
-            "第一，能力晚绑定",
-            "第二，权力不对称",
-            "第三，事实与表示分离",
-            "第四，恢复按对象负责",
-            "第五，可观测性有意保持从属",
+            "Derived synthesis",
+            "第一，能力被逐请求编译",
+            "第二，自主性来自反复提案",
+            "第三，Agent Loop 是带四种时钟的因果反馈器",
+            "第四，事实与表示被刻意分开",
+            "第五，恢复按对象负责",
+            "第六，扩展能力靠隔离与 generation",
+            "第七，观测出口与控制输入相邻但不等价",
             "复杂度没有消失",
-            "真正拥有状态的组件",
+            "真正拥有状态的客户端和外部组件",
         )
     ):
         failures.append(
-            "product surface must derive the version's technical character from the six "
-            "mechanism pressure tests instead of ending with disconnected case summaries"
+            "product surface must derive the version's technical character from multiple "
+            "mechanism chains instead of ending with disconnected case summaries"
         )
 
     evidence_records = [
@@ -2819,33 +2962,33 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         record.get("evidenceClass") for record in evidence_records
     )
     expected_evidence_summary = (
-        f"结构化机制注册表当前有 {len(evidence_records)} 条 claim，覆盖 "
+        f"[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 "
+        f"{len(evidence_records)} 条 claim，覆盖 "
         f"{len({record['topic'] for record in evidence_records})} 个 topic："
         f"{evidence_counts['Static']} Static、{evidence_counts['Probe']} Probe、"
         f"{evidence_counts['Public']} Public、{evidence_counts['Boundary']} Boundary"
     )
-    if expected_evidence_summary not in content:
+    if expected_evidence_summary not in inventory_content:
         failures.append(
-            "product surface completeness statement does not match the mechanism evidence registry"
+            "product surface inventory completeness statement does not match the mechanism evidence registry"
         )
     for debt in (
-        "654 个静态环境名称",
+        "606 个静态环境名称",
         "211 个 Feature key",
-        "85 个仍含运行参数的动态环境表达式",
-        "911 个 `tengu_other`",
-        "x86_64 native",
+        "138 个动态环境表达式",
+        "905 个 `tengu_other` caller-owner",
     ):
-        if debt not in content:
+        if debt not in inventory_content:
             failures.append(
-                f"product surface completeness debt is missing {debt!r}"
+                f"product surface inventory completeness debt is missing {debt!r}"
             )
 
     if (
-        "71/71 精确归属" in content
-        or "机器附录：71 类机器清单的证据分类与阅读路由" not in content
+        "71/71 精确归属" in inventory_content
+        or "## 全部 71 类机器清单" not in inventory_content
     ):
         failures.append(
-            "product surface inventory appendix must say 71 classes are classified, "
+            "product surface inventory index must say 71 classes are classified, "
             "not claim 71/71 exact ownership"
         )
 
@@ -3017,6 +3160,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
 
     with tempfile.TemporaryDirectory(prefix="claude-product-surface-") as temporary:
         regenerated = Path(temporary) / "product-surface-evidence-map.md"
+        regenerated_inventory = Path(temporary) / "product-surface-inventory-index.md"
         process = subprocess.run(
             [sys.executable, str(generator), str(repo), "--output", str(regenerated)],
             cwd=repo,
@@ -3032,6 +3176,14 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         elif regenerated.read_bytes() != path.read_bytes():
             failures.append(
                 "product surface evidence map differs from deterministic regeneration"
+            )
+        elif not regenerated_inventory.is_file():
+            failures.append(
+                "product surface inventory index was not created during regeneration"
+            )
+        elif regenerated_inventory.read_bytes() != inventory_path.read_bytes():
+            failures.append(
+                "product surface inventory index differs from deterministic regeneration"
             )
 
 
@@ -3057,6 +3209,26 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "environment/feature reference generation check failed: "
             + process.stdout.strip()
         )
+    dynamic_resolver_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_dynamic_environment_resolver.mjs"
+    )
+    if not dynamic_resolver_test.is_file():
+        failures.append("missing dynamic environment resolver fixture test")
+    else:
+        resolver_process = subprocess.run(
+            ["node", str(dynamic_resolver_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if resolver_process.returncode != 0 or "dynamic environment resolver fixture: PASS" not in resolver_process.stdout:
+            failures.append(
+                "dynamic environment resolver fixture failed: "
+                + resolver_process.stdout.strip()
+            )
 
     consumer_roles = {
         "if",
@@ -3148,8 +3320,8 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             ]
             if (len(dynamic_rows), len(resolved_rows), len(unresolved_rows)) != (
                 145,
-                60,
-                85,
+                7,
+                138,
             ):
                 failures.append(
                     "dynamic environment resolution coverage mismatch: "
@@ -3188,19 +3360,91 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                         "resolved dynamic environment row has invalid evidence: "
                         f"{row.get('comparisonKey')}"
                     )
+            expected_unresolved_reasons = {
+                "assignment-does-not-dominate-function-executions",
+                "no-static-function-callers",
+                "non-direct-function-call",
+                "runtime-environment-keyset",
+                "runtime-identifier",
+                "runtime-logical-name",
+                "untraced-function-reference",
+            }
+            allowed_failure_reasons = expected_unresolved_reasons | {
+                "dynamic-member-reference",
+                "runtime-object-member",
+            }
+            for row in unresolved_rows:
+                resolution = row.get("unresolvedResolution")
+                if not isinstance(resolution, dict) or resolution.get("complete") is not False:
+                    failures.append(
+                        "unresolved dynamic environment row is missing an explicit incomplete proof: "
+                        f"{row.get('comparisonKey')}"
+                    )
+                    continue
+                primary_reason = resolution.get("primaryReason")
+                reasons = resolution.get("reasons")
+                failure_details = resolution.get("failures")
+                failure_count = resolution.get("failureCount")
+                if not (
+                    primary_reason in expected_unresolved_reasons
+                    and isinstance(reasons, list)
+                    and reasons
+                    and primary_reason in reasons
+                    and set(reasons) <= allowed_failure_reasons
+                    and isinstance(failure_details, list)
+                    and failure_details
+                    and isinstance(failure_count, int)
+                    and failure_count >= len(failure_details)
+                    and isinstance(resolution.get("failuresTruncated"), bool)
+                ):
+                    failures.append(
+                        "unresolved dynamic environment row has invalid reason evidence: "
+                        f"{row.get('comparisonKey')}"
+                    )
+                    continue
+                for failure in failure_details:
+                    source_range = failure.get("range")
+                    if not (
+                        isinstance(failure, dict)
+                        and failure.get("reason") in allowed_failure_reasons
+                        and isinstance(failure.get("nodeType"), str)
+                        and isinstance(source_range, list)
+                        and len(source_range) == 2
+                        and all(isinstance(value, int) and value >= 0 for value in source_range)
+                        and source_range[0] <= source_range[1]
+                        and all(
+                            isinstance(failure.get(field), int)
+                            for field in ("line", "column", "offset")
+                        )
+                    ):
+                        failures.append(
+                            "unresolved dynamic environment row has invalid failure chain: "
+                            f"{row.get('comparisonKey')}"
+                        )
+                        break
 
     inventory_summary = json.loads(
         (repo / "analysis/source-inventory/summary.json").read_text(encoding="utf-8")
     )
     expected_environment_coverage = {
         "dynamicBracketCallsites": 145,
-        "resolvedDynamicBracketCallsites": 60,
-        "unresolvedDynamicBracketCallsites": 85,
+        "resolvedDynamicBracketCallsites": 7,
+        "unresolvedDynamicBracketCallsites": 138,
         "unresolvedDynamicExpressionKinds": {
             "call": 2,
             "expression": 3,
-            "identifier": 55,
-            "member-or-call": 25,
+            "identifier": 101,
+            "member-or-call": 26,
+            "template": 6,
+        },
+        "unresolvedDynamicReasonKinds": {
+            "assignment-does-not-dominate-function-executions": 62,
+            "no-static-function-callers": 9,
+            "non-direct-function-call": 1,
+            "runtime-environment-keyset": 1,
+            "runtime-identifier": 46,
+            "runtime-logical-name": 2,
+            "untraced-function-reference": 17,
         },
     }
     environment_coverage = inventory_summary.get("coverage", {}).get(
@@ -3226,11 +3470,11 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "untyped_named_names": 137,
                 "untyped_named_callsites": 242,
                 "dynamic_environment_callsites": 145,
-                "resolved_dynamic_environment_callsites": 60,
-                "unresolved_dynamic_environment_callsites": 85,
-                "resolved_dynamic_environment_names": 105,
-                "resolved_dynamic_only_typed_names": 6,
-                "typed_no_static_consumer": 74,
+                "resolved_dynamic_environment_callsites": 7,
+                "unresolved_dynamic_environment_callsites": 138,
+                "resolved_dynamic_environment_names": 22,
+                "resolved_dynamic_only_typed_names": 0,
+                "typed_no_static_consumer": 80,
             },
         ),
         "analysis/feature-flag-reference.md": (
@@ -3252,7 +3496,7 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
             "countField": "consumerContractCount",
             "hashField": "consumerContractNamesSha256",
-            "minimumCount": 313,
+            "minimumCount": 307,
             "callsiteOnlyField": "callsiteOnlyNamedReadCount",
             "expectedCallsiteOnly": 592,
             "summaryCounts": {
@@ -3260,12 +3504,21 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "consumerContextCallsiteCount": 2548,
                 "accessModeCallsiteCount": 2548,
                 "directConsumerContractCount": 307,
-                "resolvedDynamicOnlyConsumerContractCount": 6,
-                "semanticFollowupStaticNameCount": 654,
-                "resolvedDynamicCallsiteCount": 60,
-                "unresolvedDynamicCallsiteCount": 85,
-                "resolvedDynamicOnlyTypedNameCount": 6,
-                "noStaticConsumerTypedNameCount": 74,
+                "resolvedDynamicOnlyConsumerContractCount": 0,
+                "semanticFollowupStaticNameCount": 606,
+                "resolvedDynamicCallsiteCount": 7,
+                "unresolvedDynamicCallsiteCount": 138,
+                "resolvedDynamicOnlyTypedNameCount": 0,
+                "noStaticConsumerTypedNameCount": 80,
+                "unresolvedDynamicReasonCounts": {
+                    "assignment-does-not-dominate-function-executions": 62,
+                    "no-static-function-callers": 9,
+                    "non-direct-function-call": 1,
+                    "runtime-environment-keyset": 1,
+                    "runtime-identifier": 46,
+                    "runtime-logical-name": 2,
+                    "untraced-function-reference": 17,
+                },
             },
             "required": {
                 "ALL_PROXY",
@@ -3287,17 +3540,19 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "CLAUDE_CODE_SESSION_LOG",
                 "DISABLE_BRIEF_MODE_STOP_HOOK",
                 "OTEL_LOG_RAW_API_BODIES",
+                "CLAUDE_PTY_HEARTBEAT_MS",
+                "CLAUDE_PTY_ORPHAN_CHECK_MS",
+                "CLAUDE_BG_CLAIM_AUTH",
+                "CLAUDE_BG_SOCKET_TOKENS_PATH",
+                "MCP_CONNECT_TIMEOUT_MS",
+            },
+            "requiredNoStaticConsumer": {
                 "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
                 "OTEL_EXPORTER_OTLP_LOGS_HEADERS",
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
-                "CLAUDE_PTY_HEARTBEAT_MS",
-                "CLAUDE_PTY_ORPHAN_CHECK_MS",
-                "CLAUDE_BG_CLAIM_AUTH",
-                "CLAUDE_BG_SOCKET_TOKENS_PATH",
-                "MCP_CONNECT_TIMEOUT_MS",
             },
         },
         "analysis/feature-flag-reference.md": {
@@ -3410,6 +3665,23 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 f"required consumer contracts missing: {relative}: "
                 + ", ".join(missing_required)
             )
+        required_no_consumer = set(contract.get("requiredNoStaticConsumer", set()))
+        if required_no_consumer:
+            no_consumer_names = {
+                line.strip()
+                for line in text_between(
+                    content,
+                    "<!-- BEGIN:ENVIRONMENT_VARIABLE_REFERENCE:NO_STATIC_CONSUMER_TYPED_NAMES",
+                    "END:ENVIRONMENT_VARIABLE_REFERENCE:NO_STATIC_CONSUMER_TYPED_NAMES -->",
+                ).splitlines()
+                if line.strip()
+            }
+            missing_no_consumer = sorted(required_no_consumer - no_consumer_names)
+            if missing_no_consumer:
+                failures.append(
+                    f"required declaration-only environment contracts missing: {relative}: "
+                    + ", ".join(missing_no_consumer)
+                )
 
     telemetry_generator = (
         repo
@@ -3447,6 +3719,26 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             elif regenerated.read_bytes() != telemetry_catalog.read_bytes():
                 failures.append(
                     "telemetry event catalog differs from deterministic regeneration"
+                )
+        caller_owner_test = (
+            repo
+            / "skill/claude-code-version-diff/scripts/"
+            "test_telemetry_caller_owner_projection.py"
+        )
+        if not caller_owner_test.is_file():
+            failures.append("missing telemetry caller-owner projection test")
+        else:
+            caller_owner_process = subprocess.run(
+                [sys.executable, str(caller_owner_test)],
+                cwd=repo,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            if caller_owner_process.returncode != 0:
+                failures.append(
+                    "telemetry caller-owner projection test failed: "
+                    + caller_owner_process.stdout.strip()
                 )
 
     api_error_generator = (
@@ -3963,6 +4255,26 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
 
 
 def validate_native_reconstruction_report(repo: Path, failures: list[str]) -> int:
+    provenance_test = repo / "reconstructed/scripts/test_x86_provenance.mjs"
+    if not provenance_test.is_file():
+        failures.append("missing native x86 provenance forgery test")
+    else:
+        provenance_process = subprocess.run(
+            ["node", str(provenance_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if (
+            provenance_process.returncode != 0
+            or "native x86 provenance forgery test: PASS"
+            not in provenance_process.stdout
+        ):
+            failures.append(
+                "native x86 provenance forgery test failed: "
+                + provenance_process.stdout.strip()
+            )
     path = repo / "analysis/runtime-probes/native-reconstruction.json"
     if not path.is_file():
         failures.append("missing native reconstruction behavior coverage report")
@@ -4013,9 +4325,163 @@ def validate_native_reconstruction_report(repo: Path, failures: list[str]) -> in
         failures.append("original x86_64 native coverage is not static-only")
     if coverage.get("compatible", {}).get("arm64", {}).get("method") != "build-and-runtime":
         failures.append("compatible arm64 native coverage is not build-and-runtime")
-    if coverage.get("compatible", {}).get("x86_64", {}).get("method") != "not-built-or-run":
-        failures.append("compatible x86_64 native boundary is not explicit")
-    return len(checks)
+    if coverage.get("compatible", {}).get("x86_64", {}).get("method") != "reported-separately":
+        failures.append("compatible x86_64 native coverage is not delegated to its report")
+
+    x86_path = repo / "analysis/runtime-probes/native-reconstruction-x86.json"
+    if not x86_path.is_file():
+        failures.append("missing x86_64 native reconstruction behavior report")
+        return len(checks)
+    try:
+        x86_report = json.loads(x86_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        failures.append(f"invalid x86_64 native reconstruction report: {error}")
+        return len(checks)
+    if x86_report.get("schemaVersion") != 1 or x86_report.get("pass") is not True:
+        failures.append("x86_64 native reconstruction report did not pass schema 1")
+    x86_captured_at = x86_report.get("capturedAt")
+    if not isinstance(x86_captured_at, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", x86_captured_at
+    ):
+        failures.append("x86_64 native reconstruction report has invalid capturedAt")
+    x86_environment = x86_report.get("environment", {})
+    if x86_environment.get("platform") != "darwin" or x86_environment.get("arch") != "x64":
+        failures.append("x86_64 native reconstruction report was not captured under x64 Node")
+    if x86_environment.get("rosettaTranslated") is not True or x86_environment.get("arm64HardwareAvailable") is not True:
+        failures.append("x86_64 native reconstruction report does not prove Rosetta translation")
+    if not isinstance(x86_environment.get("nodeVersion"), str) or not x86_environment["nodeVersion"]:
+        failures.append("x86_64 native reconstruction environment missing nodeVersion")
+    if x86_report.get("target", {}).get("version") != version.get("version"):
+        failures.append("x86_64 native reconstruction report version differs from snapshot")
+    if x86_report.get("target", {}).get("binarySha256") != version.get("binary", {}).get("sha256"):
+        failures.append("x86_64 native reconstruction report binary hash differs from snapshot")
+
+    x86_checks = x86_report.get("checkResults")
+    if not isinstance(x86_checks, list) or len(x86_checks) != 20:
+        failures.append("x86_64 native reconstruction report must contain exactly 20 checks")
+        x86_checks = []
+    if any(check.get("status") != "pass" for check in x86_checks if isinstance(check, dict)):
+        failures.append("x86_64 native reconstruction report contains a failed check")
+    if len({check.get("label") for check in x86_checks if isinstance(check, dict)}) != len(x86_checks):
+        failures.append("x86_64 native reconstruction report has duplicate check labels")
+    x86_required_checks = x86_report.get("checks", {})
+    for name in (
+        "originalContract",
+        "compatibleContract",
+        "behaviorChecksPassed",
+        "x86RuntimeCoverage",
+        "x86OriginalDualSliceCoverage",
+        "x86CompatibleAllModuleContractCoverage",
+        "x86OriginalSlicesPresent",
+        "x86ArtifactProvenanceValidated",
+        "x86RosettaTranslationObserved",
+    ):
+        if x86_required_checks.get(name) is not True:
+            failures.append(f"x86_64 native reconstruction required check failed: {name}")
+
+    x86_coverage = x86_report.get("architectureCoverage", {})
+    expected_dual_modules = ["computer-use-input.node", "computer-use-swift.node"]
+    expected_all_modules = sorted(
+        json.loads(
+            (repo / "reconstructed/contracts/module-exports.json").read_text(
+                encoding="utf-8"
+            )
+        )
+    )
+    original_x86 = x86_coverage.get("original", {}).get("x86_64", {})
+    compatible_x86 = x86_coverage.get("compatible", {}).get("x86_64", {})
+    if original_x86.get("method") != "runtime-and-static" or original_x86.get("modules") != expected_dual_modules:
+        failures.append("original x86_64 native runtime coverage is incomplete")
+    if (
+        compatible_x86.get("method") != "validated-artifacts-and-runtime"
+        or compatible_x86.get("modules") != expected_dual_modules
+    ):
+        failures.append("compatible x86_64 behavior coverage is incomplete")
+    if compatible_x86.get("validatedArtifactContractModules") != expected_all_modules:
+        failures.append("compatible x86_64 validated-artifact contract coverage is incomplete")
+    attestation_scope = x86_report.get("attestationScope", {})
+    attestation_proves = attestation_scope.get("proves")
+    attestation_boundaries = attestation_scope.get("doesNotProve")
+    if not (
+        attestation_scope.get("method") == "validated-artifacts-and-runtime"
+        and isinstance(attestation_proves, list)
+        and len(attestation_proves) >= 4
+        and all(isinstance(item, str) and item for item in attestation_proves)
+        and isinstance(attestation_boundaries, list)
+        and len(attestation_boundaries) >= 3
+        and all(isinstance(item, str) and item for item in attestation_boundaries)
+        and any("freshly built" in item for item in attestation_boundaries)
+        and any("build recipes" in item for item in attestation_boundaries)
+    ):
+        failures.append("x86_64 native attestation scope overclaims build provenance")
+    provenance = x86_report.get("artifactProvenance", {})
+    original_artifacts = provenance.get("original")
+    compatible_artifacts = provenance.get("compatible")
+    if not isinstance(original_artifacts, list) or not isinstance(compatible_artifacts, list):
+        failures.append("x86_64 native artifact provenance is missing")
+        original_artifacts = []
+        compatible_artifacts = []
+    if [item.get("filename") for item in original_artifacts if isinstance(item, dict)] != expected_dual_modules:
+        failures.append("x86_64 original artifact provenance is incomplete")
+    if [item.get("filename") for item in compatible_artifacts if isinstance(item, dict)] != expected_all_modules:
+        failures.append("x86_64 compatible artifact provenance is incomplete")
+    original_hashes = {
+        sha256(repo / "extracted" / filename)
+        for filename in expected_all_modules
+    }
+    for item in original_artifacts:
+        if not isinstance(item, dict):
+            failures.append("x86_64 original artifact provenance row is invalid")
+            continue
+        original_path = repo / "extracted" / str(item.get("filename"))
+        if not (
+            original_path.is_file()
+            and item.get("sha256") == sha256(original_path)
+            and item.get("bytes") == original_path.stat().st_size
+            and "x86_64" in item.get("architectures", [])
+            and item.get("fileKind") == "regular-file"
+        ):
+            failures.append(
+                f"x86_64 original artifact provenance mismatch: {item.get('filename')}"
+            )
+    for item in compatible_artifacts:
+        if not (
+            isinstance(item, dict)
+            and isinstance(item.get("bytes"), int)
+            and item["bytes"] > 0
+            and isinstance(item.get("sha256"), str)
+            and re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
+            and item["sha256"] not in original_hashes
+            and item.get("architectures") == ["x86_64"]
+            and item.get("fileKind") == "regular-file"
+        ):
+            failures.append(
+                f"x86_64 compatible artifact provenance row is invalid: {item.get('filename') if isinstance(item, dict) else '<row>'}"
+            )
+    x86_commands = x86_report.get("commands", {})
+    x86_literal_output = x86_report.get("literalOutput", {})
+    x86_exit_status = x86_report.get("exitStatus", {})
+    if set(x86_commands) != {"behavior"} or not isinstance(
+        x86_commands.get("behavior"), str
+    ):
+        failures.append("x86_64 native report must record only its behavior command")
+    if set(x86_exit_status) != {"behavior"} or x86_exit_status.get("behavior") != 0:
+        failures.append("x86_64 native report must record only the behavior exit status")
+    if set(x86_literal_output) != {"behavior", "checksPassed"}:
+        failures.append("x86_64 native report contains unobserved literal output fields")
+    build_recipes = x86_report.get("buildRecipes", {})
+    if not (
+        set(build_recipes) == {"rustBuild", "swiftBuild"}
+        and all(isinstance(value, str) and value for value in build_recipes.values())
+        and x86_report.get("buildRecipeSemantics")
+        == "Reference recipes only; this report records no build command execution, literal build output, or build exit status."
+    ):
+        failures.append("x86_64 native build recipes are missing or presented as execution evidence")
+    if x86_report.get("literalOutput", {}).get("behavior") != "native behavior comparison: PASS":
+        failures.append("x86_64 native behavior literal output is missing")
+    if x86_report.get("summary") != {"checksRun": 20, "checksPassed": 20}:
+        failures.append("x86_64 native reconstruction summary is invalid")
+    return len(checks) + len(x86_checks)
 
 
 def sha256(path: Path) -> str:
@@ -5650,6 +6116,9 @@ def main() -> int:
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
+    project_data_lifecycle_checks = validate_project_data_lifecycle_report(
+        repo, version, metadata, failures
+    )
     native_behavior_checks = validate_native_reconstruction_report(repo, failures)
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
@@ -5742,6 +6211,7 @@ def main() -> int:
     print(f"CLI command rows checked: {cli_command_rows}")
     print(f"CLI exact-binary help cases checked: {cli_help_cases}")
     print(f"mechanism evidence records checked: {mechanism_evidence}")
+    print(f"project data lifecycle checks recorded: {project_data_lifecycle_checks}")
     print(f"native behavior checks recorded: {native_behavior_checks}")
     print("capture path privacy: PASS")
     print(f"main source sha256: {sha256(main_source)}")

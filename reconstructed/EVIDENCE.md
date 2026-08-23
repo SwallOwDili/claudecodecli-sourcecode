@@ -17,14 +17,14 @@
 
 - Rust、`napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3` 构建路径和错误字符串。
 - 导出：`isPlaying`、`isRecording`、`stopPlayback`、`startPlayback`、`stopRecording`、`startRecording`、`writePlaybackData`、`microphoneAuthorizationStatus`。
-- CLI 以 16 kHz、单声道、signed 16-bit PCM 消费录音数据。
+- 原版 JS wrapper 只把 native callback 收到的 bytes 原样上抛，不声明采样率转换；SoX fallback 明确指定 `-r 16000 -e signed -b 16 -c 1`，Voice WebSocket query 声明 `encoding=linear16`、`sample_rate=16000`、`channels=1`。这些构成可观察的 fallback/wire 消费合同，不证明原版 native 内部采用了同一条转换实现。
 - 导入 CoreAudio/AudioUnit；授权函数反汇编显示 `dlopen(AVFoundation)`、`dlsym(AVMediaTypeAudio)`、`AVCaptureDevice` 和 `authorizationStatusForMediaType:`。
 - 原版初始探针为 `{ recording:false, playing:false, mic:0 }`；播放启动后 `isPlaying=true`，停止后立即为 `false`。
 
 ### Derived / Compatible
 
 - CPAL stream 固定保存在专用音频线程，因为 macOS `Stream` 不能跨线程安全移动。
-- 录音转换为 16 kHz mono PCM、静音阈值/持续时间和播放队列是根据 CLI 消费约定独立实现；内部滤波和缓冲策略不声明逐指令一致。
+- 原版 native 内部是否以及怎样完成 16 kHz/mono/s16 重采样仍未从静态证据恢复。重建版的录音转换、静音阈值/持续时间和播放队列根据 SoX/wire 消费合同独立实现；测试通过也不把内部滤波和缓冲策略升级成原始源码事实。
 
 ## `image-processor.node`
 

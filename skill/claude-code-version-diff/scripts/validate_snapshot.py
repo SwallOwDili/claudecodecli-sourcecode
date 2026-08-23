@@ -154,10 +154,21 @@ SOURCE_INVENTORY_MINIMUMS = {
 HUMAN_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": (
         "SOURCE_INVENTORY_COVERAGE_BEGIN",
-        "71/71",
-        "Product structured",
-        "Mixed heuristic",
-        "Evidence substrate",
+        "机器附录：71 类机器清单的证据分类与阅读路由",
+        "Derived 阅读模型",
+        "案例一：Bash",
+        "案例二：上下文治理不是一个 `/compact` 按钮",
+        "案例三：遥测不是一个总开关",
+        "案例四：状态可续，是按对象恢复",
+        "案例五：Artifact 发布",
+        "案例六：`audio-capture.node`",
+        "关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
+        "Untraced/Inventory only 不是 Boundary",
+        "三轴证据坐标",
+        "Whole-bundle AST",
+        "Prefix-filtered environment union",
+        "product-surface-runtime-planes.svg",
+        "evidence-surface-lifecycle.svg",
     ),
     "analysis/completeness-audit.md": (
         "58",
@@ -682,7 +693,7 @@ HUMAN_ANALYSIS_DOCS = {
     ),
 }
 HUMAN_ANALYSIS_MINIMUMS = {
-    "analysis/product-surface-evidence-map.md": (18000, 6),
+    "analysis/product-surface-evidence-map.md": (27000, 14),
     "analysis/completeness-audit.md": (5000, 6),
     "analysis/builtin-tools-reference.md": (9000, 10),
     "analysis/tool-registration-and-host-surfaces.md": (20000, 10),
@@ -743,7 +754,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/error-diagnostic-atlas.md": (15000, 16),
 }
 READER_FIRST_ANALYSIS_DOCS = {
-    "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
+    "analysis/product-surface-evidence-map.md": "agent-loop-lifecycle",
     "analysis/builtin-tools-reference.md": "builtin-tool-lifecycle",
     "analysis/tool-registration-and-host-surfaces.md": "tool-registration-host-lifecycle",
     "analysis/brief-mode-and-user-visible-output.md": "brief-user-output-lifecycle",
@@ -2013,6 +2024,78 @@ def validate_source_inventory(repo: Path, failures: list[str]) -> int:
     return len(entries)
 
 
+DOT_EDGE_RE = re.compile(
+    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*->\s*"
+    r"([A-Za-z_][A-Za-z0-9_]*)\s*\[(.*?)\]\s*;",
+    re.MULTILINE | re.DOTALL,
+)
+DOT_LABEL_RE = re.compile(r'\blabel\s*=\s*"((?:\\.|[^"\\])*)"')
+
+
+def dot_edges(dot_text: str) -> list[tuple[str, str, str]]:
+    edges: list[tuple[str, str, str]] = []
+    for source, target, attributes in DOT_EDGE_RE.findall(dot_text):
+        label_match = DOT_LABEL_RE.search(attributes)
+        if label_match is None:
+            continue
+        label = label_match.group(1).replace(r"\n", "\n").replace(r'\"', '"')
+        edges.append((source, target, label))
+    return edges
+
+
+def require_dot_edge(
+    dot_text: str,
+    *,
+    source: str,
+    target: str,
+    label_terms: tuple[str, ...],
+    visual_name: str,
+    failures: list[str],
+) -> None:
+    for edge_source, edge_target, label in dot_edges(dot_text):
+        if (
+            edge_source == source
+            and edge_target == target
+            and all(term in label for term in label_terms)
+        ):
+            return
+    failures.append(
+        f"{visual_name} is missing edge {source} -> {target} "
+        f"with label terms {label_terms!r}"
+    )
+
+
+def validate_dot_svg_regeneration(
+    dot_path: Path,
+    svg_path: Path,
+    visual_name: str,
+    failures: list[str],
+) -> None:
+    with tempfile.TemporaryDirectory(prefix="claude-dot-render-") as temporary:
+        regenerated = Path(temporary) / svg_path.name
+        try:
+            process = subprocess.run(
+                ["dot", "-Tsvg", str(dot_path), "-o", str(regenerated)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+        except OSError as error:
+            failures.append(
+                f"{visual_name} DOT regeneration could not start: {error}"
+            )
+            return
+        if process.returncode != 0:
+            failures.append(
+                f"{visual_name} DOT regeneration failed: {process.stdout.strip()}"
+            )
+            return
+        if regenerated.read_bytes() != svg_path.read_bytes():
+            failures.append(
+                f"{visual_name} rendered SVG differs from DOT regeneration"
+            )
+
+
 def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     relative = "analysis/product-surface-evidence-map.md"
     path = repo / relative
@@ -2036,9 +2119,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         )
     if "tool-registrations.jsonl" not in expected:
         failures.append("product surface source inventory is missing tool-registrations.jsonl")
-    expected_marker = (
-        f"{EXPECTED_SOURCE_INVENTORY_COUNT}/{EXPECTED_SOURCE_INVENTORY_COUNT}"
-    )
+    expected_marker = f"全部 {EXPECTED_SOURCE_INVENTORY_COUNT} 类机器清单"
     if expected_marker not in content:
         failures.append(
             f"product surface evidence map is missing {expected_marker} coverage marker"
@@ -2049,7 +2130,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "<!-- SOURCE_INVENTORY_COVERAGE_END -->",
     )
     rows = re.findall(
-        r"^\| \[`([^`]+)`\]\(source-inventory/([^)]+)\) \| `([^`]+)` \| `([^`]+)` \| ([^|]+) \| ([^|]+) \|",
+        r"^\| \[`([^`]+)`\]\(source-inventory/([^)]+)\) \| `([^`]+)` \| "
+        r"`([^`]+)` \| `([^`]+)` \| `([^`]+)` \| ([^|]+) \|$",
         block,
         re.MULTILINE,
     )
@@ -2060,52 +2142,630 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             f"expected={len(expected)}, actual={len(actual)}, "
             f"ordered={actual == expected}"
         )
-    allowed_domains = {
-        "request-model-network",
-        "tools-commands-protocol",
-        "settings-environment-policy",
-        "telemetry-feature",
-        "diagnostics-errors",
-        "storage-runtime",
-        "lexical-evidence",
-    }
-    allowed_classes = {
-        "Product structured",
-        "Product callsites",
-        "Product broad surface",
-        "Mixed heuristic",
-        "Dependency surface",
-        "Evidence substrate",
+    allowed_origins = {
+        "Structured extraction",
+        "Targeted AST",
+        "Broad static scan",
+        "Heuristic scan",
+        "Dependency schema",
+        "Lexical/AST substrate",
         "Derived projection",
-        "Manual reference",
-        "Mixed product/dependency",
+        "Manual intersection",
+        "Require literal scan",
+        "Whole-bundle AST",
+        "Prefix-filtered environment union",
+        "Template-prefix projection",
+        "Manual allowlist intersection",
+        "process.env text projection",
+        "Env-proxy projection",
+        "Prefix bucket projection",
+        "URL keyword projection",
+        "Environment-builder extraction",
+        "Observability-filtered environment callsites",
+        "Observability regex projection",
     }
-    for label, _, domain, classification, basis, authority in rows:
-        if domain not in allowed_domains:
-            failures.append(f"product surface inventory {label} has invalid domain")
-        if classification not in allowed_classes:
-            failures.append(f"product surface inventory {label} has invalid classification")
-        if not basis.strip():
-            failures.append(f"product surface inventory {label} has no extraction basis")
-        if not authority.strip():
-            failures.append(f"product surface inventory {label} has no consumer authority")
+    allowed_ownership = {"Product", "Dependency", "Mixed", "Unresolved"}
+    allowed_proof = {
+        "Candidate",
+        "Declaration",
+        "Callsite",
+        "Structured surface",
+        "Evidence substrate",
+    }
+    allowed_routes = {"C", "Q", "E", "S", "O"}
+    for label, _, origin, ownership, proof, routes, limitation in rows:
+        if origin not in allowed_origins:
+            failures.append(f"product surface inventory {label} has invalid extraction origin")
+        if ownership not in allowed_ownership:
+            failures.append(f"product surface inventory {label} has invalid ownership")
+        if proof not in allowed_proof:
+            failures.append(f"product surface inventory {label} has invalid proof level")
+        route_ids = routes.split("/")
+        if not route_ids or any(route not in allowed_routes for route in route_ids):
+            failures.append(f"product surface inventory {label} has invalid mechanism routes")
+        if not limitation.strip():
+            failures.append(f"product surface inventory {label} has no evidence limitation")
 
-    expected_classifications = {
-        "api-path-templates.jsonl": "Derived projection",
-        "builtin-tool-identifiers.txt": "Manual reference",
-        "direct-process-environment-accesses.txt": "Derived projection",
-        "environment-proxy-accesses.txt": "Derived projection",
-        "first-party-event-families.tsv": "Derived projection",
-        "runtime-requires.txt": "Mixed product/dependency",
-        "telemetry-endpoints.txt": "Mixed heuristic",
+    expected_axes = {
+        "api-path-templates.jsonl": ("Template-prefix projection", "Mixed", "Candidate"),
+        "builtin-tool-identifiers.txt": ("Manual allowlist intersection", "Mixed", "Candidate"),
+        "direct-process-environment-accesses.txt": ("process.env text projection", "Mixed", "Candidate"),
+        "dynamic-process-environment-callsites.jsonl": ("Whole-bundle AST", "Mixed", "Callsite"),
+        "environment-access-callsites.jsonl": ("Whole-bundle AST", "Mixed", "Callsite"),
+        "environment-proxy-accesses.txt": ("Env-proxy projection", "Mixed", "Candidate"),
+        "environment-schema.jsonl": ("Environment-builder extraction", "Mixed", "Declaration"),
+        "first-party-event-families.tsv": ("Prefix bucket projection", "Mixed", "Candidate"),
+        "observability-environment-defaults.jsonl": (
+            "Observability-filtered environment callsites",
+            "Mixed",
+            "Callsite",
+        ),
+        "observability-environment-schema.jsonl": (
+            "Observability regex projection",
+            "Mixed",
+            "Declaration",
+        ),
+        "otel-environment-variables.txt": ("Prefix-filtered environment union", "Mixed", "Candidate"),
+        "runtime-requires.txt": ("Require literal scan", "Mixed", "Callsite"),
+        "static-string-literals.jsonl": ("Lexical/AST substrate", "Unresolved", "Evidence substrate"),
+        "telemetry-endpoints.txt": ("URL keyword projection", "Mixed", "Candidate"),
+        "third-party-otel-events.txt": ("Dependency schema", "Dependency", "Declaration"),
+        "tool-registrations.jsonl": ("Structured extraction", "Product", "Structured surface"),
     }
-    actual_classifications = {row[0]: row[3] for row in rows}
-    for label, classification in expected_classifications.items():
-        if actual_classifications.get(label) != classification:
+    actual_axes = {row[0]: row[2:5] for row in rows}
+    for label, axes in expected_axes.items():
+        if actual_axes.get(label) != axes:
             failures.append(
-                f"product surface inventory {label} must be classified as "
-                f"{classification}"
+                f"product surface inventory {label} must use axes "
+                f"origin={axes[0]}, ownership={axes[1]}, proof={axes[2]}"
             )
+
+    for label in (
+        "dynamic-process-environment-callsites.jsonl",
+        "environment-access-callsites.jsonl",
+        "environment-schema.jsonl",
+        "observability-environment-defaults.jsonl",
+        "observability-environment-schema.jsonl",
+        "otel-environment-variables.txt",
+    ):
+        axes = actual_axes.get(label)
+        if axes is None or axes[1] != "Mixed":
+            failures.append(
+                f"product surface environment inventory {label} ownership must be Mixed"
+            )
+
+    appendix_start = content.find("<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->")
+    narrative_markers = (
+        "## 关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
+        "## 案例一：Bash",
+        "## 案例二：上下文治理不是一个 `/compact` 按钮",
+        "## 案例三：遥测不是一个总开关",
+        "## 案例四：状态可续，是按对象恢复",
+        "## 案例五：Artifact 发布",
+        "## 案例六：`audio-capture.node`",
+        "## 从六个案例归纳出的五个阅读面",
+        "## 判断一条清单能否支持技术结论",
+        "## 三轴证据坐标",
+    )
+    for marker in narrative_markers:
+        position = content.find(marker)
+        if position < 0 or position >= appendix_start:
+            failures.append(
+                f"product surface reader-first narrative must place {marker!r} before appendix"
+            )
+    if content.find("<details>") < 0 or not (
+        content.find("<details>") < appendix_start < content.find("</details>")
+    ):
+        failures.append("product surface inventory appendix must be collapsed with details")
+
+    required_case_anchors = (
+        "tool-registrations.jsonl#L80",
+        "cli.readable.js#L393203",
+        "api-paths.txt#L17",
+        "runtime-requires.txt#L1",
+        "cli.readable.js#L54",
+        "cli.readable.js#L271491",
+        "cli.readable.js#L271553",
+        "cli.readable.js#L270840",
+        "cli.readable.js#L272032",
+        "cli.readable.js#L409843",
+        "cli.readable.js#L267124",
+        "cli.readable.js#L316220",
+        "cli.readable.js#L331309",
+        "cli.readable.js#L262996",
+        "cli.readable.js#L260784",
+        "cli.readable.js#L261085",
+        "cli.readable.js#L362451",
+        "cli.readable.js#L362559",
+        "cli.readable.js#L90870",
+        "cli.readable.js#L90790",
+        "cli.readable.js#L77977",
+        "cli.readable.js#L77550",
+        "cli.readable.js#L361612",
+        "cli.readable.js#L93779",
+        "cli.readable.js#L323373",
+        "cli.readable.js#L403569",
+        "cli.readable.js#L402489",
+        "cli.readable.js#L402554",
+        "cli.readable.js#L194641",
+    )
+    for anchor in required_case_anchors:
+        if anchor not in content:
+            failures.append(f"product surface reader-first case is missing source anchor {anchor}")
+    for lane in ("C", "Q", "E", "S", "O"):
+        if f"| `{lane}` |" not in content:
+            failures.append(f"product surface runtime plane {lane} is missing")
+
+    narrative = content[:appendix_start] if appendix_start >= 0 else content
+    agent_loop_visual = re.search(
+        r"!\[([^\]]+)\]\(visuals/agent-loop-lifecycle\.svg\)",
+        content[:8000],
+    )
+    if not (
+        agent_loop_visual
+        and all(
+            marker in agent_loop_visual.group(1)
+            for marker in (
+                "用户任务",
+                "模型迭代",
+                "API attempt",
+                "工具批次",
+                "结果回灌",
+            )
+        )
+    ):
+        failures.append(
+            "product surface Agent Loop visual must expose user task, model iteration, "
+            "API attempt, tool batch, and result-feedback semantics"
+        )
+    five_plane_section = markdown_h2_section(
+        content, r"从六个案例归纳出的五个阅读面"
+    ) or ""
+    if not (
+        "Derived 阅读模型" in content[:2000]
+        and "Derived" in five_plane_section
+        and "分析框架" in five_plane_section
+        and re.search(
+            r"(?:不是|并非).{0,100}(?:源码|bundle).{0,100}(?:模块|架构)",
+            content[:2500],
+            re.DOTALL,
+        )
+        and re.search(
+            r"(?:不是|并非).{0,100}(?:Anthropic\s*)?官方.{0,80}(?:架构|命名|术语)",
+            content[:2500],
+            re.DOTALL,
+        )
+    ):
+        failures.append(
+            "product surface five-plane model must be labeled as a Derived reading model, "
+            "not source-native modules or an Anthropic official architecture"
+        )
+
+    state_plane_row = next(
+        (line for line in five_plane_section.splitlines() if line.startswith("| `S` |")),
+        "",
+    )
+    if not (
+        all(
+            term in state_plane_row
+            for term in (
+                "本地状态面",
+                "checkpoint",
+                "remote ID/reference",
+                "补偿线索",
+                "不拥有真实文件",
+                "远端对象",
+            )
+        )
+        and "文件和远端对象" not in state_plane_row
+    ):
+        failures.append(
+            "product surface state plane must own local records, checkpoints, remote "
+            "references, and compensation clues rather than real files or remote objects"
+        )
+
+    tool_kind_section = markdown_h2_section(
+        content, r"先分清两种工具：client `tool_use` 与 `server_tool_use`"
+    ) or ""
+    client_tool_row = next(
+        (
+            line
+            for line in tool_kind_section.splitlines()
+            if line.startswith("| client `tool_use` |")
+        ),
+        "",
+    )
+    server_tool_row = next(
+        (
+            line
+            for line in tool_kind_section.splitlines()
+            if line.startswith("| `server_tool_use` |")
+        ),
+        "",
+    )
+    if not (
+        client_tool_row
+        and server_tool_row
+        and all(
+            term in tool_kind_section
+            for term in ("registry", "permission", "sandbox", "tool.call")
+        )
+        and "**是**" in client_tool_row
+        and "**否**" in server_tool_row
+        and "不会本地 dispatch" in server_tool_row
+        and "本地 Agent Loop 只接管 client `tool_use`" in tool_kind_section
+    ):
+        failures.append(
+            "product surface execution semantics must distinguish client tool_use from "
+            "server_tool_use and keep server tools out of the local execution pipeline"
+        )
+
+    loop_units_section = markdown_h2_section(
+        content, r"关键不是流程很长，而是四个嵌套生命周期单位各算各的账"
+    ) or ""
+    if not (
+        all(
+            marker in loop_units_section
+            for marker in (
+                "| 用户 turn |",
+                "| 模型 iteration |",
+                "| API attempt |",
+                "| Tool batch |",
+                "maxTurns=1",
+                "error_max_turns",
+            )
+        )
+        and "API retry 也不必消耗新的模型轮次" in content[:8000]
+    ):
+        failures.append(
+            "product surface Agent Loop accounting must distinguish user turn, model "
+            "iteration, API attempt, and tool batch"
+        )
+
+    bash_section = markdown_h2_section(content, r"案例一：Bash") or ""
+    bash_classification = re.search(
+        r"isConcurrencySafe.{0,260}(?:最初|原始|original).{0,40}input",
+        bash_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    bash_rewrite = re.search(
+        r"(?:PreToolUse|Hook).{0,180}permission.{0,220}(?:改写|rewrite)",
+        bash_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    bash_no_recompute = re.search(
+        r"(?:不|不会|并不).{0,40}(?:重算|重新计算|recompute)",
+        bash_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not (
+        bash_classification
+        and bash_rewrite
+        and bash_no_recompute
+        and "改写后不会重新计算 `isConcurrencySafe`" in bash_section
+        and "改写后会重新计算 `isConcurrencySafe`" not in bash_section
+    ):
+        failures.append(
+            "product surface Bash semantics must classify concurrency on the original input "
+            "before Hook/permission rewrites and must not recompute it"
+        )
+
+    compact_section = markdown_h2_section(
+        content, r"案例二：上下文治理不是一个 `/compact` 按钮"
+    ) or ""
+    compact_hit = compact_section.lower().find("+-- hit")
+    compact_miss = compact_section.lower().find("+-- miss")
+    hit_window = (
+        compact_section[compact_hit : compact_hit + 900]
+        if compact_hit >= 0
+        else ""
+    )
+    miss_window = (
+        compact_section[compact_miss : compact_miss + 900]
+        if compact_miss >= 0
+        else ""
+    )
+    hit_skips_request = re.search(
+        r"(?:不发送|不会发送|不发起|不会发起|无需|跳过).{0,100}"
+        r"(?:summary\s*request|summary\s*请求|总结请求)",
+        hit_window,
+        re.IGNORECASE | re.DOTALL,
+    )
+    miss_requests_summary = (
+        re.search(r"(?:message\s*groups?|分组)", miss_window, re.IGNORECASE)
+        and re.search(
+            r"(?:summary\s*request|summary\s*请求|总结请求)",
+            miss_window,
+            re.IGNORECASE,
+        )
+    )
+    if not (
+        compact_hit >= 0
+        and "smi finalize" in hit_window.lower()
+        and hit_skips_request
+        and compact_miss >= 0
+        and miss_requests_summary
+        and "| `/compact` | 请求 + 状态平面 | 生成 summary" not in narrative
+    ):
+        failures.append(
+            "product surface compact semantics must separate precomputed hit/finalize without "
+            "a summary request from miss/grouping/summary request"
+        )
+
+    artifact_section = markdown_h2_section(content, r"案例五：Artifact 发布") or ""
+    artifact_schema = re.search(
+        r"(?:response|响应)\s*schema", artifact_section, re.IGNORECASE
+    )
+    artifact_slug = re.search(
+        r"(?:目标|target).{0,60}`?slug`?.{0,100}(?:相等|一致|equality)",
+        artifact_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    artifact_server_version = re.search(
+        r"(?:服务端|server).{0,60}`?version`?.{0,100}"
+        r"(?:采用|接受|接纳|adopt)",
+        artifact_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    artifact_no_local_equality = re.search(
+        r"(?:不|不会|并非).{0,80}(?:本地|local).{0,60}`?version`?.{0,120}"
+        r"(?:相等|一致|equality)",
+        artifact_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    artifact_advisory = (
+        "advisory" in artifact_section.lower()
+        and re.search(r"(?:artifact\s*)?list|列表", artifact_section, re.IGNORECASE)
+        and re.search(
+            r"(?:不是|并非|不会).{0,120}(?:自动|强制).{0,80}(?:查询|调用|list)",
+            artifact_section,
+            re.IGNORECASE | re.DOTALL,
+        )
+    )
+    artifact_overclaims = (
+        "校验服务端回显的 slug/version" in artifact_section
+        or "客户端要求先查 artifact list" in artifact_section
+    )
+    if not (
+        artifact_schema
+        and artifact_slug
+        and artifact_server_version
+        and artifact_no_local_equality
+        and artifact_advisory
+        and not artifact_overclaims
+    ):
+        failures.append(
+            "product surface Artifact semantics must separate response-schema and target-slug "
+            "validation, server-version acceptance, and list advisory from automatic enforcement"
+        )
+
+    voice_section = markdown_h2_section(
+        content, r"案例六：`audio-capture\.node`"
+    ) or ""
+    voice_wrapper = re.search(
+        r"(?:JavaScript|JS)(?:\s+native)?\s*wrapper.{0,180}"
+        r"(?:透传|传递|pass|原样上抛).{0,80}bytes|"
+        r"(?:JavaScript|JS)(?:\s+native)?\s*wrapper.{0,180}bytes.{0,80}"
+        r"(?:透传|传递|pass|原样上抛)",
+        voice_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    voice_sox = all(
+        term in voice_section
+        for term in ("SoX fallback", "-r 16000", "-e signed", "-b 16", "-c 1")
+    )
+    voice_compatible = re.search(
+        r"(?:重建版\s*native.{0,260}Compatible|"
+        r"Compatible.{0,260}(?:native|重建|重采样|16\s*k))",
+        voice_section,
+        re.IGNORECASE | re.DOTALL,
+    )
+    voice_original_limit = (
+        "原版 native 内部 16 kHz/mono/s16 重采样细节" in voice_section
+        and "Boundary / 未恢复" in voice_section
+        and "不能直接推出" in voice_section
+    )
+    if not (
+        all(term in voice_section for term in ("Observed", "Derived", "Compatible"))
+        and voice_wrapper
+        and voice_sox
+        and voice_compatible
+        and voice_original_limit
+        and "native CPAL/CoreAudio 线程产生 16kHz" not in voice_section
+    ):
+        failures.append(
+            "product surface Voice semantics must separate Observed wrapper/SoX evidence, "
+            "Derived behavior, and Compatible native reconstruction"
+        )
+
+    telemetry_section = markdown_h2_section(
+        content, r"案例三：遥测不是一个总开关"
+    ) or ""
+    if not (
+        all(
+            marker in telemetry_section
+            for marker in (
+                "| 一方事件 |",
+                "| Datadog forwarding |",
+                "| 第三方 OTEL |",
+                "| 本地诊断 |",
+                "CLAUDE_CODE_ENABLE_TELEMETRY",
+                "OTEL_LOG_USER_PROMPTS",
+                "<REDACTED>",
+                "session_id",
+                "queryChainId",
+                "queryDepth",
+                "request_id",
+                "tool_use_id",
+                "turn_count",
+                "terminal_reason",
+                "关闭其中一条，不代表其他通道同时关闭",
+                "不是系统事实的唯一账本",
+                "不是 retry/compact/supervisor 的控制器",
+                "best-effort",
+            )
+        )
+        and "共享点" in telemetry_section
+        and "不是两条管道等价" in telemetry_section
+    ):
+        failures.append(
+            "product surface telemetry semantics must distinguish first-party, Datadog, "
+            "OTEL, and local diagnostic pipelines from recovery control"
+        )
+
+    recovery_section = markdown_h2_section(
+        content, r"案例四：状态可续，是按对象恢复"
+    ) or ""
+    if not (
+        all(
+            marker in recovery_section
+            for marker in (
+                "| Message graph |",
+                "| Compact boundary |",
+                "| File checkpoint |",
+                "| Remote reference / result |",
+                "不会重新执行历史工具",
+                "不恢复旧 socket/Promise",
+                "reference 不是分布式事务句柄",
+                "消息图续消息",
+                "checkpoint 续文件",
+                "remote reference 续补偿线索",
+            )
+        )
+    ):
+        failures.append(
+            "product surface recovery semantics must separate message graph, compact "
+            "boundary, file checkpoint, and remote-reference recovery objects"
+        )
+
+    if (
+        "71/71 精确归属" in content
+        or "机器附录：71 类机器清单的证据分类与阅读路由" not in content
+    ):
+        failures.append(
+            "product surface inventory appendix must say 71 classes are classified, "
+            "not claim 71/71 exact ownership"
+        )
+
+    evidence_dot = repo / "analysis/visuals/evidence-surface-lifecycle.dot"
+    evidence_svg = repo / "analysis/visuals/evidence-surface-lifecycle.svg"
+    if not evidence_dot.is_file() or not evidence_svg.is_file():
+        failures.append("product surface evidence lifecycle DOT/SVG is missing")
+    else:
+        dot_text = evidence_dot.read_text(encoding="utf-8")
+        for source, target, label_terms in (
+            ("candidate", "untraced", ("先登记待追",)),
+            ("untraced", "mechanism", ("caller", "gate", "state")),
+            (
+                "candidate",
+                "boundary",
+                ("server/runtime/build-time unavailable",),
+            ),
+        ):
+            require_dot_edge(
+                dot_text,
+                source=source,
+                target=target,
+                label_terms=label_terms,
+                visual_name="product surface evidence lifecycle",
+                failures=failures,
+            )
+        if "证据不足时降级" in dot_text:
+            failures.append(
+                "product surface evidence lifecycle incorrectly maps incomplete tracing to Boundary"
+            )
+        validate_dot_svg_regeneration(
+            evidence_dot,
+            evidence_svg,
+            "product surface evidence lifecycle",
+            failures,
+        )
+
+    runtime_dot = repo / "analysis/visuals/product-surface-runtime-planes.dot"
+    runtime_svg = repo / "analysis/visuals/product-surface-runtime-planes.svg"
+    if not runtime_dot.is_file() or not runtime_svg.is_file():
+        failures.append("product surface runtime-plane DOT/SVG is missing")
+    else:
+        dot_text = runtime_dot.read_text(encoding="utf-8")
+        for required in (
+            "CLI / TUI / SDK",
+            "Streaming Agent Loop",
+            "paired tool_result",
+            "resume / fork / compact feedback",
+            "外部 owner 与真实副作用",
+            "服务端工具 Boundary",
+            "分布式恢复控制器",
+            "O 观测与诊断",
+        ):
+            if required not in dot_text:
+                failures.append(
+                    f"product surface runtime-plane visual is missing {required!r}"
+                )
+        for source, target, label_terms in (
+            ("input", "control", ("加载入口", "当前环境")),
+            ("control", "request", ("约束能力", "请求参数")),
+            ("request", "remote", ("API attempt",)),
+            ("remote", "loop", ("assistant blocks",)),
+            ("remote", "server_tools", ("server_tool_use", "服务端内部执行")),
+            ("server_tools", "remote", ("server result block",)),
+            ("loop", "execute", ("client tool_use",)),
+            ("execute", "loop", ("paired tool_result", "tool_use_id")),
+            ("execute", "effects", ("实际动作",)),
+            ("state", "request", ("resume / fork / compact feedback",)),
+            ("recovery", "request", ("retry", "fallback", "rebuilt attempt")),
+        ):
+            require_dot_edge(
+                dot_text,
+                source=source,
+                target=target,
+                label_terms=label_terms,
+                visual_name="product surface runtime-plane visual",
+                failures=failures,
+            )
+        outbound_observe = [
+            (source, target, label)
+            for source, target, label in dot_edges(dot_text)
+            if source == "observe"
+        ]
+        if outbound_observe:
+            failures.append(
+                "product surface runtime-plane visual must keep observability as an inbound-only sink"
+            )
+        validate_dot_svg_regeneration(
+            runtime_dot,
+            runtime_svg,
+            "product surface runtime-plane visual",
+            failures,
+        )
+
+    telemetry_dot = repo / "analysis/visuals/telemetry-pipeline.dot"
+    telemetry_svg = repo / "analysis/visuals/telemetry-pipeline.svg"
+    if not telemetry_dot.is_file() or not telemetry_svg.is_file():
+        failures.append("product surface telemetry DOT/SVG is missing")
+    else:
+        dot_text = telemetry_dot.read_text(encoding="utf-8")
+        for source, target, label_terms in (
+            ("events", "enrich", ("结构化记录",)),
+            ("enrich", "privacy", ("字段", "流量门")),
+            ("privacy", "first", ("一方发送", "best-effort")),
+            ("privacy", "datadog", ("sampling", "分支 gate")),
+            ("privacy", "otel", ("第三方出口", "signal/content")),
+            ("privacy", "local", ("本地诊断",)),
+        ):
+            require_dot_edge(
+                dot_text,
+                source=source,
+                target=target,
+                label_terms=label_terms,
+                visual_name="product surface telemetry visual",
+                failures=failures,
+            )
+        validate_dot_svg_regeneration(
+            telemetry_dot,
+            telemetry_svg,
+            "product surface telemetry visual",
+            failures,
+        )
 
     with tempfile.TemporaryDirectory(prefix="claude-product-surface-") as temporary:
         regenerated = Path(temporary) / "product-surface-evidence-map.md"
@@ -4490,6 +5150,14 @@ def main() -> int:
             failures.append(
                 f"README first screen does not link human analysis document: {relative}"
             )
+
+    if (
+        args.negative_test_expect is not None
+        and args.negative_test_expect.startswith("product surface")
+    ):
+        validate_product_surface_map(repo, failures)
+        if finish_expected_negative_failure(failures, args.negative_test_expect):
+            return 1
 
     validate_reader_first_analysis(repo, failures)
     if finish_expected_negative_failure(failures, args.negative_test_expect):

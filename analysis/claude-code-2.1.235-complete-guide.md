@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 58 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [Derived 五面阅读模型与三轴证据地图](product-surface-evidence-map.md)。它先用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四个嵌套生命周期单位建立任务总线，再用 Bash 调度、上下文治理与 `/compact`、多通道遥测、按对象恢复、Artifact 结果未知和 native Voice 六条真实机制链解释控制、请求、执行、状态与观测 owner；C/Q/E/S/O 只是分析者归纳的阅读模型，不是源码原生模块或 Anthropic 官方架构。再到折叠附录判断 71 类 inventory 的提取来源、所有权和证明层级；附录只证明分类完整与顺序稳定，不代表所有 identifier 已完成 consumer tracing。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -32,7 +32,7 @@ Claude Code CLI 同时承担六类责任：
   -> 计算本轮可发送的 system/messages/tools
   -> 添加 cache marker、beta、model/provider/auth 字段
   -> 调用 Messages API 并解析流
-  -> 完整 tool_use 出现后启动本地工具
+  -> 完整 client tool_use 出现后启动本地工具
   -> schema / hook / permission / policy / sandbox / tool body
   -> 生成同 tool_use_id 的 tool_result
   -> 吸收中途消息、MCP 变化、Stop hook 和剩余工具结果
@@ -268,7 +268,7 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 5. 创建本轮 streaming tool executor
 6. 构造 model/system/messages/tools/fallback 请求
 7. 解析流式 content block、usage、stop reason 和 timing
-8. 完整 tool_use block 到达后立即排入工具执行器
+8. 完整 client tool_use block 到达后立即排入工具执行器
 9. 模型流结束后排空剩余 tool_result
 10. 处理 Stop hook、maxTurns、tool endsTurn、defer、background
 11. 决定 completed、继续下一轮或 typed terminal error
@@ -562,7 +562,7 @@ Context hint 只在特定 first-party 主线程路径使用，并要求 keep-rec
 
 ### 14.4 Manual compact
 
-精确二进制 `/compact` 探针产生 `system:compact_boundary`，`trigger=manual`、`preTokens=104`。随后 fork 请求保留 compact summary和当前 prompt，移除 compact 前 prompt、旧 tool-use ID 和旧 assistant result。
+精确二进制 `/compact` 探针产生 `system:compact_boundary`，`trigger=manual`、`preTokens=104`。这里的 `104` 只是该 Probe 输入下 boundary 记录的观测值，不是自动 compact 阈值，也不能推出 2.1.235 存在固定的 compact token 触发线。随后 fork 请求保留 compact summary和当前 prompt，移除 compact 前 prompt、旧 tool-use ID 和旧 assistant result。
 
 这说明 compact改写的是下一轮送模结构历史，不是删除磁盘上一切事件，也不是清空 memory。
 
@@ -1011,9 +1011,9 @@ input -> processImage -> 同一个 native resource
 
 ### 26.5 `audio-capture.node`
 
-Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。导出录音、播放、状态和 microphone authorization。CLI消费 16kHz mono signed 16-bit PCM。
+Rust/N-API路径保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。导出录音、播放、状态和 microphone authorization。原版 JS wrapper 只把 native callback 收到的 bytes 原样上抛，本身没有声明采样率转换；可直接观察到的是 SoX fallback 使用 `-r 16000 -e signed -b 16 -c 1`，Voice WebSocket query 声明 `encoding=linear16`、`sample_rate=16000`、`channels=1`。
 
-初始 probe为 `{recording:false, playing:false, mic:0}`；播放启动后 `isPlaying=true`，停止后立即 false。重采样、静音阈值和内部 buffer policy属于兼容重建，不声明逐指令一致。
+初始 probe为 `{recording:false, playing:false, mic:0}`；播放启动后 `isPlaying=true`，停止后立即 false。原版 native 内部是否以及怎样完成 16 kHz/mono/s16 重采样仍是 Boundary；重建版按 SoX/wire 消费合同独立实现转换、静音阈值和 buffer policy，测试通过也不把这些实现升级成原始源码事实。
 
 ### 26.6 `url-handler.node`
 
@@ -1272,7 +1272,7 @@ Doctor分别检查：
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |
-| 71 类机器清单怎样归属，哪些不能直接算产品功能 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| Agent Loop 四种生命周期单位怎样构成任务总线，Bash、上下文治理/`compact`、遥测、按对象恢复、Artifact route 与 native Voice 六个案例怎样跨越 Derived 五面阅读模型；71 类机器清单能证明到哪 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
 | 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
 | Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
 | Plan Mode 怎样阻止实施、保存计划并把批准/拒绝回灌 Agent Loop | [plan-mode-and-human-approval.md](plan-mode-and-human-approval.md) |

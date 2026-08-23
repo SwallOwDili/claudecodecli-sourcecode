@@ -2,7 +2,7 @@
 
 本分支是 Claude Code CLI `2.1.235` 的完整发布产物逆向快照。它不是 Anthropic 内部原始 TypeScript 仓库的镜像，而是从实际发布的签名 Mach-O 可执行文件中，把仍然存在的内容最大化恢复并分类保存：逐字节 Bun 模块图、完整 JSC bytecode、可读化 JavaScript 分析视图、5 个原生模块的多架构静态分析、稳定字符串/配置/端点/风控索引，以及可长期复用的跨版本对比 skill。
 
-> **直接看文章：** [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact`](analysis/compact-visual-guide.md) · [全面性审计](analysis/completeness-audit.md)
+> **直接看文章：** [技术文章总入口](ARTICLES.md) · [Derived 五面阅读模型与证据地图](analysis/product-surface-evidence-map.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [Agent Loop](analysis/agent-loop.md) · [`/compact`](analysis/compact-visual-guide.md) · [全面性审计](analysis/completeness-audit.md)
 >
 > **七个新增深度专题：** [Plan Mode](analysis/plan-mode-and-human-approval.md) · [Structured Output](analysis/structured-output-and-schema-contract.md) · [REPL](analysis/repl-programmatic-tool-runtime.md) · [EndConversation 风控](analysis/end-conversation-risk-control.md) · [Remote/Runner/Notifications](analysis/remote-routines-runner-and-notifications.md) · [Connectors/Catalog/MCP](analysis/connectors-catalog-and-mcp-operators.md) · [ClaudeDesign/Projects](analysis/claude-design-and-projects.md)
 >
@@ -28,7 +28,7 @@
 
 | 入口 | 解决的问题 |
 | --- | --- |
-| [`analysis/product-surface-evidence-map.md`](analysis/product-surface-evidence-map.md) | **71/71 机器证据归属地图**：每一类 inventory 都标明产品结构、真实调用点、混合 heuristic、依赖 surface 或证据底座，并路由到人类机制与 Boundary |
+| [`analysis/product-surface-evidence-map.md`](analysis/product-surface-evidence-map.md) | **Derived 五面阅读模型与证据地图**：先用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四个嵌套生命周期单位建立总线，再展开 Bash 调度、上下文治理与 `/compact`、多通道遥测、按对象恢复、Artifact 结果未知、native Voice 证据等级六个真实机制案例；C/Q/E/S/O 只是阅读框架，不是源码原生模块或 Anthropic 官方架构，71 类机器清单只在折叠附录中证明分类完整与顺序稳定 |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
 | [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 58 章从发布物、请求装配、Agent Loop、工具注册/权限、Plan Mode、Structured Output、Brief 用户可见输出、上下文/cache/compact、会话恢复、多 Agent、遥测、Artifact Watch、`/insights`、启动资源和复杂 Slash Command 一直讲到最终边界 |
 | [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性收口合同**：把发布物拆成 58 个能力面；当前 57 个客户端能力面已收口为 Deep，1 个不可恢复面明确标为 Boundary，并保留每项证据与外部边界 |
@@ -199,7 +199,7 @@
 |   |-- background-model-tasks-and-memory-consolidation.md 后台摘要、建议、反馈和长期记忆
 |   |-- advisor-dual-model-runtime.md   Advisor server tool 与 fallback/strip
 |   |-- ultrareview-cloud-review.md     云端 review、本地 fix 和受限 PR post
-|   |-- product-surface-evidence-map.md 71 类 inventory 的产品归属与人类路由
+|   |-- product-surface-evidence-map.md Agent Loop 生命周期总线、六个真实机制案例、Derived 五面、三轴证据与 71 类分类附录
 |   |-- tool-registration-and-host-surfaces.md 80 个 Yi 注册调用点、工厂展开、分类、gate 与请求表面
 |   |-- brief-mode-and-user-visible-output.md Brief 主视图、附件与漏调修复
 |   |-- plan-mode-and-human-approval.md Plan Mode、计划文件与人工批准/拒绝
@@ -585,7 +585,7 @@ reconstructed/scripts/build_and_validate.sh extracted /tmp
 python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 ```
 
-重新生成并核对 71 类产品归属地图：
+重新生成并核对 71 类机器清单分类地图：
 
 ```bash
 python3 skill/claude-code-version-diff/scripts/build_product_surface_map.py . \
@@ -634,7 +634,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希与 71/71 产品归属地图、299 条结构化机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、58 个能力面的 Deep/Boundary 收口、十一个读者优先深度专题及其 DOT/SVG，以及遥测场景语义索引、1,441 个一方事件 catalog marker、正文与机制图合同。它还检查主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合、5 个原生源文件哈希，并精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希，以及产品地图的 Derived 声明、Agent Loop 四种嵌套生命周期单位、client/server tool 分流、Bash 改写前并发分类、上下文多机制与 compact hit/miss、遥测多通道分流、按对象恢复、Artifact 响应合同、Voice 证据等级、五面阅读模型、三轴证据合同和折叠分类附录；71 类清单只证明分类完整、顺序稳定与映射可复核，不代表所有 identifier 已完成 consumer tracing。校验器同时检查 299 条结构化机制证据、30 条 Probe 的人类索引、26 个官方来源、33 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、58 个能力面的 Deep/Boundary 收口、读者优先深度专题及其 DOT/SVG，以及遥测场景语义索引、1,441 个一方事件 catalog marker、正文与机制图合同。它还检查主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合、5 个原生源文件哈希，并精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外通过 Rust/Swift 发布构建和 5 模块导出契约；23 个报告项细分为 22 项真实原版/兼容对照和 1 项覆盖审计，本次环境边界为 0。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

@@ -28,6 +28,7 @@ API_EVIDENCE_LINES = {
     "/api/claude_code/skills": [495556, 495558, 495563],
     "/api/claude_code_grove": [334824, 334836, 334839],
     "/api/claude_code_shared_session_transcripts": [581317, 581319, 581327],
+    "/api/frame/deploy/direct": [260784, 260801, 260804, 260808, 261088],
     "/api/oauth/account/grove_notice_viewed": [334736, 334739, 334742],
     "/api/oauth/account/settings": [334747, 334750, 334824],
     "/api/oauth/organizations/:orgUUID/admin_requests": [366756, 366758, 366767],
@@ -113,8 +114,8 @@ API_PATH_DETAILS: dict[str, tuple[str, str, str]] = {
     ),
     "/api/frame/deploy/direct": (
         "Artifact inline publish consumer",
-        "POST HTML/manifest 与 metadata，timeout 60 s；处理 409 version conflict、404 create gate、400 compatibility retry、429 一次等待与 503 最多 3 attempts，并验证 slug/version echo。",
-        "timeout/relay error 后结果可能未知；客户端明确要求先查 artifact list，不能盲目重发。",
+        "POST HTML/manifest 与 metadata，timeout 60 s；处理 409 version conflict、404 create gate、400 compatibility retry、429 一次等待与 503 最多 3 attempts。成功响应先按 schema 校验 slug/version 的存在与格式；已有目标 slug 时只校验 slug 相等，version 采用服务端返回值并更新本地已知版本。",
+        "request/relay error、响应格式错误或 slug mismatch 时，错误文本会提示‘可能已经发布’并建议再次发布前检查 artifact list；这是恢复建议，不是该 direct-publish 函数强制执行的 list/read-before-write gate，远端是否落库仍需实际 readback。",
     ),
     "/api/frame/deploy/init": (
         "Artifact signed-upload preflight consumer",

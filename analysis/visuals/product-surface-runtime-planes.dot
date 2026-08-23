@@ -1,0 +1,47 @@
+digraph product_surface_runtime_planes {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.36", ranksep="0.56", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei", label="Claude Code CLI 2.1.235 Derived reading model\n实线 = 状态/控制流 | 虚线 = server boundary | 点线 = 观测", labelloc="t", fontsize=11.5];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.35, margin="0.17,0.12", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9.8];
+  edge [color="#455a64", penwidth=1.30, arrowsize=0.72, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.0, fontcolor="#263238"];
+
+  input [label="CLI / TUI / SDK 输入\n用户、IDE、Deep Link、remote event", fillcolor="#fff3cd"];
+  control [label="C 控制面\nsettings / env / policy / trust\nprovider / permission / feature gates", fillcolor="#e3f2fd"];
+  request [label="Q 请求与上下文面\nmodel / auth / system / messages\ncache / compact / request-time tools[]", fillcolor="#d1c4e9"];
+  remote [label="远端模型响应流\ntext / thinking / client tool_use\nserver_tool_use / server result", fillcolor="#ede7f6"];
+  loop [label="Streaming Agent Loop\n解析完整 block / stop state\nclient tool batch / turn transition", fillcolor="#ffe0b2"];
+  execute [label="E 本地受控执行\nregistry / schema / Hook / permission\npolicy / sandbox / tool.call", fillcolor="#ffccbc"];
+  server_tools [label="服务端工具 Boundary\nAdvisor 等 server_tool_use\n不进入本地 registry / permission / sandbox", fillcolor="#f3e5f5", style="rounded,filled,dashed"];
+  effects [label="外部 owner 与真实副作用\n文件系统 / 子进程 / MCP / Artifact\nGitHub / browser / runner", fillcolor="#ffcdd2"];
+  state [label="S 本地状态面\nmessage graph / transcript / boundary\ncheckpoint / storage / remote references", fillcolor="#c8e6c9"];
+  recovery [label="分布式恢复控制器\nrequest retry / fallback / compact\nstream tombstone / process supervisor", fillcolor="#fff9c4"];
+  observe [label="O 观测与诊断\nevent sinks: first-party / Datadog / OTEL\nlocal readers/probes: debug / profile / doctor", fillcolor="#b2dfdb"];
+
+  { rank=same; input; control; }
+  { rank=same; loop; execute; server_tools; }
+  { rank=same; state; recovery; observe; }
+
+  input -> control [label="加载入口与当前环境"];
+  control -> request [label="约束能力与请求参数"];
+  state -> request [label="resume / fork / compact feedback\n重建下一次有效 messages", color="#2e7d32", fontcolor="#2e7d32", penwidth=1.75];
+  request -> remote [label="发送一次 API attempt"];
+  remote -> loop [label="流式交付 assistant blocks"];
+  remote -> server_tools [label="server_tool_use\n服务端内部执行", style=dashed, color="#7b1fa2", fontcolor="#7b1fa2"];
+  server_tools -> remote [label="server result block", style=dashed, color="#7b1fa2", fontcolor="#7b1fa2"];
+  loop -> execute [label="完整 client tool_use"];
+  execute -> loop [label="paired tool_result\n同 tool_use_id", color="#1565c0", fontcolor="#1565c0", penwidth=1.75];
+  execute -> effects [label="实际动作"];
+  effects -> execute [label="进程 / 文件 / 远端结果"];
+  loop -> state [label="追加 assistant / stop events"];
+  execute -> state [label="追加 tool result / checkpoint / reference"];
+
+  request -> recovery [label="request / context failure", color="#8d6e00", fontcolor="#8d6e00"];
+  loop -> recovery [label="stream / turn failure", color="#8d6e00", fontcolor="#8d6e00"];
+  effects -> recovery [label="partial / unknown outcome", color="#8d6e00", fontcolor="#8d6e00"];
+  recovery -> request [label="retry / fallback / rebuilt attempt", color="#8d6e00", fontcolor="#8d6e00", penwidth=1.65];
+  recovery -> state [label="写 tombstone / boundary / status", color="#8d6e00", fontcolor="#8d6e00"];
+
+  control -> observe [label="gate / config events", style=dotted];
+  request -> observe [label="attempt / usage / cache events", style=dotted];
+  loop -> observe [label="stream / stop events", style=dotted];
+  execute -> observe [label="permission / tool outcome", style=dotted];
+  state -> observe [label="persistence / recovery records", style=dotted];
+}

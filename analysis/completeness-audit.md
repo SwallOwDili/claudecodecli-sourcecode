@@ -2,9 +2,11 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：**`2.1.235` 发布物中可归属于产品的 57 个客户端能力面已经在“机制层”按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 本轮除修正 29 项核心参考、80 个同工厂 AST 注册调用点和 Brief 主视图三组旧口径外，还把 Plan Mode、Structured Output、Artifact Watch、`/insights`、CLI 启动资源和复杂 Slash Command 提升为独立能力面，并对 REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects 建立独立读者优先专题和机制证据；Telemetry event catalog、API/Beta route ownership 与 Error/Diagnostic atlas 则把三个最容易被字符串清单误读的横切面绑定回现有能力 owner。
+当前结论：能力矩阵把 `2.1.235` 发布物中可归属于产品的 57 个客户端能力面标为机制层 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。这里的 `Deep` 只表示该能力已有 owner、生命周期、gate、失败恢复和边界说明，**不等于所有 identifier、字段和分支都完成逐项 consumer 追踪，也不等于 validator 已对 57 项逐一建立同等强度的深度合同。** 本轮除修正 29 项核心参考、80 个同工厂 AST 注册调用点和 Brief 主视图三组旧口径外，还把 Plan Mode、Structured Output、Artifact Watch、`/insights`、CLI 启动资源和复杂 Slash Command 提升为独立能力面，并对 REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects 建立独立读者优先专题和机制证据；Telemetry event catalog、API/Beta route ownership 与 Error/Diagnostic atlas 则把三个最容易被字符串清单误读的横切面绑定回现有能力 owner。
 
 这里必须区分两个层级：`Deep` 表示该能力的客户端 owner、调用顺序、gate、失败恢复、用户影响和证据边界已经讲清；它**不表示** 361 个 feature key、842 个 typed environment declaration、1,441 个一方事件名或全部错误字符串都恢复了原始业务命名和逐项 consumer 语义。可追到真实 consumer 的 identifier 才有 `Static consumer` 教学解释；存在 bundle named callsite 但尚未追清 consumer 的条目标 `Untraced/Inventory only`，codename 标 `Opaque codename / Inventory only`。`Boundary` 只保留给服务端状态、运行时动态名称、缺失源码或发布物之外的事实。同样，`Deep` 不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
+
+[Derived 五面阅读模型与三轴证据地图](product-surface-evidence-map.md) 现在把这条界线做成发布合同：正文必须先用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四个嵌套生命周期单位建立任务总线，再用 Bash 调度、上下文治理与 `/compact`、多通道遥测、按对象恢复、Artifact 结果未知和 native Voice 六个真实机制案例解释状态 owner，最后给出 C/Q/E/S/O 五面阅读模型；该模型是分析者归纳出的导航框架，不是源码原生模块或 Anthropic 官方“五层架构”。71 类机器清单只能放在折叠分类附录，并分别声明提取来源、所有权和证明层级；它只证明清单完整、顺序稳定与分类可复核，不证明所有 identifier 已完成 consumer tracing。当前环境变量参考的 1,124 行仍有 747 行 `Untraced/Inventory only`；361 个静态 Feature key 仍有 98 个待追、207 个 opaque codename。这些是明确的分析欠账，不允许改写成 Boundary，也不允许被清单覆盖数字掩盖。
 
 ## “全面”到底怎样判定
 
@@ -144,11 +146,11 @@
 
 ## 自动校验当前能证明什么
 
-validator 现在强制 58 行能力矩阵，以及 Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects、Artifact Watch、`/insights`、CLI 启动资源和复杂 Slash Command 十一个读者优先深度合同：正文必须达到最低规模，包含有序生命周期、gate/阈值、失败/恢复、用户影响、源码证据和明确 Boundary，并同时存在可编辑 `.dot` 与有效 `.svg`。它还精确核对 71/71 inventory、80/80 registration key、29/28/16/4/3 人工分类、77/3 静态 name/动态 expression、Release Notes、Storage、29 项人工维护的核心终端 reference、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。负向测试会实际删除或破坏注册行、能力绑定、topic claim、正文、DOT/SVG 结构，确认拒绝后逐字恢复。
+validator 现在强制 58 行能力矩阵，并对 15 个高风险能力应用 14 个 topic-depth 合同；其余能力仍主要依赖状态、文档规模、关键词、证据锚点和通用人类文档校验，不能宣传成“57 项都做了语义等价验证”。产品表面地图另有独立 reader-first 合同：必须保留 Agent Loop 四种生命周期单位总线、Bash/上下文治理与 compact/遥测/按对象恢复/Artifact/Voice 六个真实机制案例、Derived 五面阅读模型、`Untraced/Inventory only` 与 Boundary 决策树、三轴证据表、可编辑 DOT/SVG，以及 71 类机器清单分类附录的完整顺序。它还核对 80/80 registration key、29/28/16/4/3 人工分类、77/3 静态 name/动态 expression、Release Notes、Storage、29 项人工维护的核心终端 reference、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。负向测试会实际删除或破坏案例、归属、能力绑定、topic claim、正文、DOT/SVG 结构，确认拒绝后逐字恢复。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
-1. 每个集合继续区分 `Product`、`Dependency`、`Embedded docs`、`Heuristic`；
+1. 每个集合继续拆分提取来源、所有权和证明层级，尤其不能把 whole-bundle AST callsite 统一标成 Product；
 2. 每个强运行结论必须有 consumer Static 或 Probe，schema/help-only 只能标 `surface/declaration`；
 3. 后续版本若新增 Settings、CLI/SDK、Plugin/LSP surface，必须先补 consumer/lifecycle/Boundary，再允许保持 `Deep`；
 4. 服务端 entitlement、feature 实时值、cloud orchestration、第三方 IDE/MCP 和跨平台设备行为保持 Boundary；

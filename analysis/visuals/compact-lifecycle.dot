@@ -29,7 +29,7 @@ digraph compact_lifecycle {
   trigger [label="用户执行 /compact\n可附加总结要求", fillcolor="#fff3cd"];
   prehook [label="PreCompact\n允许、补充指令或阻断", fillcolor="#ffe0b2"];
   mode [label="检查预计算结果\n命中则复用，未命中则总结", fillcolor="#e3f2fd"];
-  groups [label="消息分组\n保持 tool_use / tool_result 合法", fillcolor="#bbdefb"];
+  groups [label="未命中：消息分组\n保持 tool_use / tool_result 合法", fillcolor="#bbdefb"];
   summarize [label="总结模型调用\n禁止工具，只生成文本", fillcolor="#d1c4e9"];
   parse [label="解析总结\n移除 <analysis>，保留 <summary>", fillcolor="#d1c4e9"];
   rebuild [label="重建工作上下文\n摘要 + 近期消息 + 精确附件", fillcolor="#c8e6c9"];
@@ -42,8 +42,8 @@ digraph compact_lifecycle {
 
   trigger -> prehook [label="启动"];
   prehook -> mode [label="放行并附加指令"];
-  mode -> summarize [label="未命中"];
-  mode -> groups [label="命中: preserve + messagesSince"];
+  mode -> rebuild [label="命中：直接采用预计算结果\npreserve UUID + messagesSince", color="#2e7d32", fontcolor="#2e7d32", penwidth=1.7];
+  mode -> groups [label="未命中"];
   groups -> summarize [label="选择待总结前缀"];
   summarize -> parse [label="返回双标签文本"];
   parse -> rebuild [label="提供语义摘要"];

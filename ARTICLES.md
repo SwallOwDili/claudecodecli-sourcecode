@@ -2,20 +2,21 @@
 
 这里是给人阅读的入口。机器清单、反汇编和 JSONL 用来证明结论，不应该挡在文章前面。
 
-## 先读这六篇
+## 先读这七篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 58 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到 Artifact Watch、`/insights`、启动资源、复杂 Slash Command、原生桥和准确性边界。
-2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
-3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
-4. [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md)：解释“先规划、后实施”怎样由 permission mode、计划文件、工具底线、问答与人工批准共同实现。
-5. [Structured Output 与 Schema 终态](analysis/structured-output-and-schema-contract.md)：解释 `--json-schema` 如何变成本地验证的强制收尾工具，以及失败、重试、fallback、tombstone 和最终结果选择。
-6. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
+1. [Derived 五面阅读模型与证据地图](analysis/product-surface-evidence-map.md)：先用 Agent Loop 的 user turn、model iteration、API attempt、tool batch 四个嵌套生命周期单位建立任务总线，再展开 Bash 调度、上下文治理与 `/compact`、多通道遥测、按对象恢复、Artifact 结果未知、native Voice 证据等级六个真实机制案例；C/Q/E/S/O 明确只是 Derived 阅读框架，不是源码原生模块或 Anthropic 官方架构名。
+2. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 58 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到 Artifact Watch、`/insights`、启动资源、复杂 Slash Command、原生桥和准确性边界。
+3. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
+4. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
+5. [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md)：解释“先规划、后实施”怎样由 permission mode、计划文件、工具底线、问答与人工批准共同实现。
+6. [Structured Output 与 Schema 终态](analysis/structured-output-and-schema-contract.md)：解释 `--json-schema` 如何变成本地验证的强制收尾工具，以及失败、重试、fallback、tombstone 和最终结果选择。
+7. [Auto Mode 分类器专题](analysis/auto-mode-classifier.md)：解释确定性权限前置层、可信规则合并、两阶段 XML verdict、fail-closed、PermissionDenied Hook 和 hash-bound 配置向导。
 
 ![Claude Code 任务在上下文、Agent Loop、工具控制、外部状态和恢复状态之间循环](analysis/visuals/system-lifecycle.svg)
 
 ## 本轮新增的全量参考
 
-1. [71 类证据归属地图](analysis/product-surface-evidence-map.md)：71/71 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
+1. [Derived 五面阅读模型与三轴证据地图](analysis/product-surface-evidence-map.md)：正文先讲 Agent Loop 四种生命周期单位，再用六个真实机制案例解释版本级技术特征；71 类机器 inventory 仅在折叠附录中按提取来源、所有权、证明层级和阅读面复核，只证明分类完整与顺序稳定，明确 `Untraced/Inventory only` 是尚未完成的客户端分析而不是 Boundary。
 2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 58 个产品能力面区分 Deep 与 Boundary；57 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
 3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
 4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
@@ -83,7 +84,7 @@
 
 | 你想弄清楚什么 | 对应文章 |
 | --- | --- |
-| 71 类机器清单分别属于产品、依赖、heuristic 还是证据底座 | [产品表面与证据归属地图](analysis/product-surface-evidence-map.md) |
+| Agent Loop 四种生命周期单位怎样构成任务总线，Bash、上下文治理/`compact`、遥测、按对象恢复、Artifact route 与 native Voice 六个案例又怎样体现本地裁决、局部恢复和证据边界；71 类机器清单能证明到哪 | [Derived 五面阅读模型与三轴证据地图](analysis/product-surface-evidence-map.md) |
 | 一次请求从输入到工具执行、持久化和遥测经历什么 | [技术机制总图](analysis/technical-mechanism-atlas.md) |
 | 当前分析到底覆盖了什么、还有哪些能力面不能称为全面 | [全面性审计与收口合同](analysis/completeness-audit.md) |
 | Artifact 评论为什么不能直接指挥 Agent，自动回复怎样被 plan、permission 和 breaker 阻止 | [Artifact Watch 评论自动响应](analysis/artifact-watch-comment-autoreact.md) |

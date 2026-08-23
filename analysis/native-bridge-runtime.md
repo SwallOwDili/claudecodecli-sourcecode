@@ -150,7 +150,7 @@ Accessibility 与 Screen Recording 有 check/request 两套调用。用户拒绝
 - forward playback 与 `microphoneAuthorizationStatus`；
 - 在 voice app state 中缓存 lazy-load Promise 和 module。
 
-静态证据保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。CPAL stream 需要专用音频线程；CLI 侧消费 16kHz mono signed 16-bit PCM。授权路径动态加载 AVFoundation 并调用 `authorizationStatusForMediaType:`。
+静态证据保留 `napi-2.16.17`、`cpal-0.15.3`、`coreaudio-rs-0.11.3`。这里必须把三层事实分开：原版 JS wrapper 只把 `startRecording` callback 收到的 bytes 原样上抛，本身不声明采样率转换（`reverse/javascript/cli.readable.js` 362451-362455）；SoX fallback 明确使用 `-r 16000 -e signed -b 16 -c 1`（362559-362580），Voice WebSocket query 也声明 `encoding=linear16`、`sample_rate=16000`、`channels=1`，这是可观察的 fallback/wire 消费合同；原版 native 内部是否以及怎样完成 16 kHz、单声道、signed 16-bit 重采样，当前静态证据没有恢复。授权路径动态加载 AVFoundation 并调用 `authorizationStatusForMediaType:`。
 
 ### 音频状态机
 
@@ -158,14 +158,14 @@ Accessibility 与 Screen Recording 有 check/request 两套调用。用户拒绝
 lazy load module
   -> query microphone authorization
   -> startRecording(callback)
-  -> native audio thread emits PCM/silence events
-  -> JS forwards into voice state
+  -> native callback emits audio bytes / SoX emits linear16 audio
+  -> JS forwards bytes into voice state and WebSocket queue
   -> stopRecording
 
 playback: startPlayback -> writePlaybackData* -> stopPlayback
 ```
 
-原版 probe 证实初始 `{recording:false, playing:false, mic:0}`，播放启动后 `isPlaying=true`，停止后立即 false。音频重采样、静音阈值和内部 buffer policy 属于兼容重建，不声明逐指令相同。
+原版 probe 证实初始 `{recording:false, playing:false, mic:0}`，播放启动后 `isPlaying=true`，停止后立即 false。重建版为匹配 SoX/wire 消费合同独立实现 16 kHz/mono/s16 转换、静音阈值和内部 buffer policy；这些是 `Derived / Compatible`，测试通过也不能升级成原始 native 源码事实。
 
 ## URL handler：Apple Event 与超时
 

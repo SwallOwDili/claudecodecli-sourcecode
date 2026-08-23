@@ -8,9 +8,9 @@
 
 ## 一分钟答案
 
-Claude Code 会让模型把较早的合法消息组写成一份工程交接摘要，同时保留至少一个近期合法消息组的内容与工具因果关系，再重新附加最近文件和当前运行状态。`2.1.235` 的 `/compact` slash-command 入口走 group-based compactor；如果已有可用的 precomputed result，则复用其 Summary、原保留组和预计算之后的新消息。最后，客户端写入一个 `compact_boundary`，告诉 transcript 和 resume：从这里开始，旧历史已经换成了新的表示。
+`2.1.235` 的 `/compact` 不是固定发起一次总结请求。`PreCompact` hook 放行后，客户端先检查 precomputed result：命中时不发送新的 summary request，直接复用已有 Summary、原保留组和预计算之后的 `messagesSince` 进入 finalize/rebuild；未命中时，才让模型把较早的合法消息组写成工程交接摘要，并在 prompt-too-long 时缩短待总结前缀重试。两条路径最终都会按各自结果重建有效上下文并写入 `compact_boundary`。
 
-![用户执行 compact 后，客户端依次总结、重建上下文并写入恢复边界](visuals/compact-lifecycle.svg)
+![用户执行 compact 后先检查预计算结果，命中直接重建，未命中才请求 Summary](visuals/compact-lifecycle.svg)
 
 一句话记忆：
 
@@ -18,7 +18,7 @@ Claude Code 会让模型把较早的合法消息组写成一份工程交接摘�
 Summary 管较早历史的语义，Preserved messages 管近期因果，Attachments 管精确信息，Boundary 管恢复关系。
 ```
 
-下面沿着一次普通的手动 `/compact`，按实际发生顺序展开。
+下面先沿着一次**未命中预计算结果的普通手动 `/compact`** 展开 summary miss 路径，再回到 precomputed hit、reactive 和 cold/full compact 的差异。
 
 ## 第一步：用户输入 `/compact`
 
@@ -38,11 +38,11 @@ Summary 管较早历史的语义，Preserved messages 管近期因果，Attachme
 - 给总结任务追加项目自定义要求；
 - 直接阻止 compact。
 
-只有 hook 放行后，客户端才会准备总结请求。
+Hook 放行后，客户端先检查是否存在通过 session、model、timestamp、boundary 与 preserved UUID 校验的 precomputed result。命中时直接进入 finalize/rebuild；只有未命中、结果失效或 custom instructions/Hook 追加使预计算结果不再适用时，才准备新的总结请求。
 
-## 第二步：客户端在旧历史末尾加入“交接文档任务”
+## 第二步：未命中预计算时，客户端才加入“交接文档任务”
 
-模型看到的不是一句简单的“请总结”。客户端构造了一条专门的虚拟用户消息，大意如下：
+在 miss 路径中，模型看到的不是一句简单的“请总结”。客户端构造一条专门的虚拟用户消息，大意如下：
 
 ```text
 CRITICAL：停止当前业务工作，只生成对话总结。
@@ -199,9 +199,9 @@ cold/full compact 的模型逻辑历史：Summary + Attachments/Hooks + compact 
 
 这就是用户感觉“压缩完还能接着干”的根本原因。
 
-## 如果总结失败，会发生什么
+## 需要新 summary request 时，如果总结失败会发生什么
 
-成功路径理解之后，再看恢复分支就简单了：客户端的目标始终是生成有效 Summary，同时不破坏原消息图。
+这一节只适用于 miss、reactive 或其他确实需要发起新 summary request 的路径。已经校验通过的 precomputed hit 不发送这次请求，因此也不会进入“本轮总结请求失败”的分支。
 
 ![Compact 失败后会缩短待总结前缀、剥离媒体、切换模型或停止重复自动压缩](visuals/compact-recovery.svg)
 
@@ -246,7 +246,7 @@ blocked_line    = model_input_ceiling - 3,000
 - 历史增长或缩减是否超限；
 - 所有保留 UUID 是否仍然存在。
 
-校验通过才直接换入预计算 Summary；否则丢弃它并重新总结。这样可以把等待前移，又不会拿过期交接文档覆盖已经变化的任务。
+校验通过时直接换入预计算 Summary，不发送新的 summary request；否则丢弃旧结果并进入普通总结路径。这样可以把等待前移，又不会拿过期交接文档覆盖已经变化的任务。
 
 持久 sidecar 只接受 `agentKey=main`。进程内 registry 则按 agent key 保存，fork/subagent 可以通过 `precomputeSourceKey` 借用另一个 Agent 的结果：借用 pending 项会等待，turn abort 时保留原 entry；借用成功不会消费源 entry。只有读取自己的 entry 才会从 registry 移除并清理对应 sidecar。这是“谁拥有、谁消费”的协议，不是所有 Agent 共用一个会被第一次读取删除的全局缓存。
 
@@ -267,9 +267,9 @@ blocked_line    = model_input_ceiling - 3,000
 ## 最后只记住五件事
 
 1. `/compact` 是客户端编排的一次历史表示切换，不是简单删除旧消息。
-2. Summary 保存远期语义，但它是有损的。
-3. 当前手动 `/compact` 保留至少一个合法后缀组；cold/full auto 或特定 SDK full compact 才返回空后缀。
-4. 文件、Plan、Skills、MCP 和 hooks 恢复精确工作状态。
+2. Precomputed hit 不发送新的 summary request；miss 才构造交接任务并处理总结失败。
+3. Summary 保存远期语义，但它是有损的；当前手动路径还保留合法后缀组。
+4. 文件、Plan、Skills、MCP 和 hooks 用受限附件补回精确信息；cold/full 路径不一定保留旧消息后缀。
 5. Compact boundary 让 transcript、resume 和 fork 知道怎样使用新历史；preserved 字段取决于实际 compact 路径。
 
 ## 可执行的事实校验合同

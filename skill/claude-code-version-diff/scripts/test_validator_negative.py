@@ -621,13 +621,13 @@ def main() -> None:
             "reader-first human document is missing 60-second section",
         ),
         (
-            "analysis/native-bridge-runtime.md",
+            "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                b"](visuals/native-bridge-lifecycle.svg)",
-                b"](visuals/native-bridge-lifecycle-missing.svg)",
+                "![一次用户任务包含模型迭代、API attempt 与工具批次，结果回灌后才决定是否继续](visuals/agent-loop-lifecycle.svg)".encode(),
+                "![Agent Loop 流程图](visuals/agent-loop-lifecycle.svg)".encode(),
             ),
-            "reader-first human document is missing lifecycle image",
+            "product surface Agent Loop visual must expose user task, model iteration",
         ),
         (
             "analysis/auto-mode-classifier.md",
@@ -815,10 +815,245 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `request-model-network` | `Derived projection`",
-                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `request-model-network` | `Product callsites`",
+                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `Template-prefix projection` | `Mixed` | `Candidate`",
+                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `Targeted AST` | `Product` | `Callsite`",
             ),
-            "product surface inventory api-path-templates.jsonl must be classified as Derived projection",
+            "product surface inventory api-path-templates.jsonl must use axes",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`environment-access-callsites.jsonl`](source-inventory/environment-access-callsites.jsonl) | `Whole-bundle AST` | `Mixed` | `Callsite`",
+                b"[`environment-access-callsites.jsonl`](source-inventory/environment-access-callsites.jsonl) | `Whole-bundle AST` | `Product` | `Callsite`",
+            ),
+            "product surface environment inventory environment-access-callsites.jsonl ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`dynamic-process-environment-callsites.jsonl`](source-inventory/dynamic-process-environment-callsites.jsonl) | `Whole-bundle AST` | `Mixed` | `Callsite`",
+                b"[`dynamic-process-environment-callsites.jsonl`](source-inventory/dynamic-process-environment-callsites.jsonl) | `Whole-bundle AST` | `Product` | `Callsite`",
+            ),
+            "product surface environment inventory dynamic-process-environment-callsites.jsonl ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`otel-environment-variables.txt`](source-inventory/otel-environment-variables.txt) | `Prefix-filtered environment union` | `Mixed` | `Candidate`",
+                b"[`otel-environment-variables.txt`](source-inventory/otel-environment-variables.txt) | `Prefix-filtered environment union` | `Product` | `Candidate`",
+            ),
+            "product surface environment inventory otel-environment-variables.txt ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`environment-schema.jsonl`](source-inventory/environment-schema.jsonl) | `Environment-builder extraction` | `Mixed` | `Declaration`",
+                b"[`environment-schema.jsonl`](source-inventory/environment-schema.jsonl) | `Environment-builder extraction` | `Product` | `Declaration`",
+            ),
+            "product surface environment inventory environment-schema.jsonl ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`observability-environment-defaults.jsonl`](source-inventory/observability-environment-defaults.jsonl) | `Observability-filtered environment callsites` | `Mixed` | `Callsite`",
+                b"[`observability-environment-defaults.jsonl`](source-inventory/observability-environment-defaults.jsonl) | `Observability-filtered environment callsites` | `Product` | `Callsite`",
+            ),
+            "product surface environment inventory observability-environment-defaults.jsonl ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`observability-environment-schema.jsonl`](source-inventory/observability-environment-schema.jsonl) | `Observability regex projection` | `Mixed` | `Declaration`",
+                b"[`observability-environment-schema.jsonl`](source-inventory/observability-environment-schema.jsonl) | `Observability regex projection` | `Product` | `Declaration`",
+            ),
+            "product surface environment inventory observability-environment-schema.jsonl ownership must be Mixed",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                "## 从六个案例归纳出的五个阅读面".encode(),
+                "## 运行结构概览".encode(),
+            ),
+            "product surface reader-first narrative must place",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "从六个案例归纳出的五个阅读面",
+                "这是 Derived 分析框架，不是源码目录图",
+                "这是源码原生架构，不是本文归纳模型",
+            ),
+            "product surface five-plane model must be labeled as a Derived reading model",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "从六个案例归纳出的五个阅读面",
+                "它不拥有真实文件、子进程和远端对象",
+                "它拥有真实文件、子进程和远端对象",
+            ),
+            "product surface state plane must own local records",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "关键不是流程很长，而是四个嵌套生命周期单位各算各的账",
+                "| API attempt |",
+                "| API request |",
+            ),
+            "product surface Agent Loop accounting must distinguish user turn",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "先分清两种工具：client `tool_use` 与 `server_tool_use`",
+                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **否** |",
+                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **是** |",
+            ),
+            "product surface execution semantics must distinguish client tool_use from server_tool_use",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例一：Bash",
+                "改写后不会重新计算 `isConcurrencySafe`",
+                "改写后会重新计算 `isConcurrencySafe`",
+            ),
+            "product surface Bash semantics must classify concurrency on the original input",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例二：上下文治理不是一个 `/compact` 按钮",
+                "hit  -> 不发送新的 summary request",
+                "hit  -> 仍发送新的 summary request",
+            ),
+            "product surface compact semantics must separate precomputed hit/finalize",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例五：Artifact 发布",
+                "不做 local-version equality",
+                "强制做 local-version equality",
+            ),
+            "product surface Artifact semantics must separate response-schema and target-slug validation",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例六：`audio-capture.node`",
+                "**Derived / Compatible**",
+                "**Observed**",
+            ),
+            "product surface Voice semantics must separate Observed wrapper/SoX evidence",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例三：遥测不是一个总开关",
+                "关闭其中一条，不代表其他通道同时关闭",
+                "关闭其中一条，代表其他通道同时关闭",
+            ),
+            "product surface telemetry semantics must distinguish first-party, Datadog",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "案例四：状态可续，是按对象恢复",
+                "reference 不是分布式事务句柄",
+                "reference 是分布式事务句柄",
+            ),
+            "product surface recovery semantics must separate message graph",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                "## 机器附录：71 类机器清单的证据分类与阅读路由".encode(),
+                "## 机器附录：71/71 精确归属".encode(),
+            ),
+            "product surface inventory appendix must say 71 classes are classified",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                "Untraced/Inventory only 不是 Boundary".encode(),
+                "Untraced 与 Boundary".encode(),
+            ),
+            "human analysis document analysis/product-surface-evidence-map.md does not cover 'Untraced/Inventory only 不是 Boundary'",
+        ),
+        (
+            "analysis/visuals/evidence-surface-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b'candidate -> untraced [label="',
+                b'candidate -> boundary [label="',
+            ),
+            "product surface evidence lifecycle is missing edge candidate -> untraced",
+        ),
+        (
+            "analysis/visuals/product-surface-runtime-planes.dot",
+            lambda data: replace_once(
+                data,
+                b'loop -> execute [label="',
+                b'loop -> state [label="',
+            ),
+            "product surface runtime-plane visual is missing edge loop -> execute",
+        ),
+        (
+            "analysis/visuals/product-surface-runtime-planes.dot",
+            lambda data: replace_once(
+                data,
+                b'remote -> server_tools [label="',
+                b'remote -> execute [label="',
+            ),
+            "product surface runtime-plane visual is missing edge remote -> server_tools",
+        ),
+        (
+            "analysis/visuals/product-surface-runtime-planes.dot",
+            lambda data: replace_once(
+                data,
+                b"\n}\n",
+                b'\n  observe -> request [label="controls retry"];\n}\n',
+            ),
+            "product surface runtime-plane visual must keep observability as an inbound-only sink",
+        ),
+        (
+            "analysis/visuals/product-surface-runtime-planes.svg",
+            lambda data: replace_once(
+                data,
+                b"<!-- Generated by graphviz version",
+                b"<!-- Stale render from graphviz version",
+            ),
+            "product surface runtime-plane visual rendered SVG differs from DOT regeneration",
+        ),
+        (
+            "analysis/visuals/telemetry-pipeline.dot",
+            lambda data: replace_once(
+                data,
+                b'privacy -> datadog [label="',
+                b'privacy -> first [label="',
+            ),
+            "product surface telemetry visual is missing edge privacy -> datadog",
         ),
         (
             "analysis/environment-variable-reference.md",

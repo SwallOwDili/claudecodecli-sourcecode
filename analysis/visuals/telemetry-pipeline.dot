@@ -5,18 +5,23 @@ digraph telemetry_pipeline {
 
   events [label="运行时信号\nquery / model / tool / permission / compact / error", fillcolor="#fff3cd"];
   enrich [label="关联与归一化\nIDs、token、cost、latency、environment", fillcolor="#e3f2fd"];
-  privacy [label="门控与内容控制\nprovider、policy、DNT、redaction、sampling", fillcolor="#ffe0b2"];
+  privacy [label="门控与内容控制\nprovider、policy、DNT\nsampling / redaction / content gates", fillcolor="#ffe0b2"];
   first [label="一方流水线\nqueue -> batch -> retry/persist", fillcolor="#d1c4e9"];
+  datadog [label="Datadog forwarding\nfeature + allowlist + field removal\nrate bound -> batch", fillcolor="#f8bbd0"];
   otel [label="用户配置 OTEL\nmetrics / logs / traces exporters", fillcolor="#c8e6c9"];
   local [label="本地诊断\ndebug / Perfetto / profile / stderr", fillcolor="#d7ccc8"];
   diagnose [label="可回答的问题\n慢在哪、为何重试、何时拒绝、花费多少", fillcolor="#b2dfdb"];
 
+  { rank=same; first; datadog; otel; local; }
+
   events -> enrich [label="生成结构化记录"];
   enrich -> privacy [label="应用字段与流量门"];
-  privacy -> first [label="允许一方发送"];
-  privacy -> otel [label="显式启用第三方出口"];
+  privacy -> first [label="允许一方发送\nbest-effort"];
+  privacy -> datadog [label="同一前置 sampling 后\n再走分支 gate"];
+  privacy -> otel [label="显式启用第三方出口\n按 signal/content 独立配置"];
   privacy -> local [label="写本地诊断"];
   first -> diagnose [label="聚合分析"];
+  datadog -> diagnose [label="受限转发"];
   otel -> diagnose [label="导出观测"];
   local -> diagnose [label="现场排障"];
 }

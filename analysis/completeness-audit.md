@@ -2,7 +2,9 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：**`2.1.235` 发布物中可归属于产品的 53 个客户端能力面已经按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 本轮除修正 29 项核心参考、80 个同工厂 AST 注册调用点和 Brief 主视图三组旧口径外，还把 Plan Mode 与 Structured Output 提升为独立能力面，并对 REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects 建立独立读者优先专题和机制证据。`Deep` 表示客户端 owner、调用顺序、失败恢复和证据边界已经讲清，不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
+当前结论：**`2.1.235` 发布物中可归属于产品的 57 个客户端能力面已经在“机制层”按完整生命周期收口为 `Deep`，服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。** 本轮除修正 29 项核心参考、80 个同工厂 AST 注册调用点和 Brief 主视图三组旧口径外，还把 Plan Mode、Structured Output、Artifact Watch、`/insights`、CLI 启动资源和复杂 Slash Command 提升为独立能力面，并对 REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects 建立独立读者优先专题和机制证据；Telemetry event catalog、API/Beta route ownership 与 Error/Diagnostic atlas 则把三个最容易被字符串清单误读的横切面绑定回现有能力 owner。
+
+这里必须区分两个层级：`Deep` 表示该能力的客户端 owner、调用顺序、gate、失败恢复、用户影响和证据边界已经讲清；它**不表示** 361 个 feature key、842 个 typed environment declaration、1,441 个一方事件名或全部错误字符串都恢复了原始业务命名和逐项 consumer 语义。可追到真实 consumer 的 identifier 才有 `Static consumer` 教学解释；存在 bundle named callsite 但尚未追清 consumer 的条目标 `Untraced/Inventory only`，codename 标 `Opaque codename / Inventory only`。`Boundary` 只保留给服务端状态、运行时动态名称、缺失源码或发布物之外的事实。同样，`Deep` 不表示每个远端账户、第三方 host 或平台设备都做过正向 Probe。
 
 ## “全面”到底怎样判定
 
@@ -39,9 +41,9 @@
 1. `analysis/unpack-manifest.json` 的 15 个实际 packed 文件；
 2. `analysis/cli-surface.txt` 的公开顶层 help token，以及 `analysis/cli-command-inventory.json` 的 90 个 Commander/manual/fast-path 路径、8 个内部入口和 65 组精确二进制 help/失败 Probe；
 3. `analysis/source-inventory/summary.json` 注册的 71 类确定性清单；
-4. 一方集合：29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 个静态 name、3 个动态 name expression）、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry；
+4. 一方集合：29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 个静态 name、3 个动态 name expression）、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry、1,441 个静态一方遥测事件、99 条 API path、53 个 Beta identifier、4,831 个错误构造调用点和 5,403 个 diagnostic 调用点；这些数量证明集合/调用点没有漏采，不自动证明逐 identifier 业务语义已经恢复；
 5. `analysis/release-notes.md` 的 `2.1.235` 19 条发布变化；
-6. `analysis/mechanism-evidence.jsonl` 与 exact-binary Probe 报告；
+6. `analysis/mechanism-evidence.jsonl` 的 299 条唯一 claim 与 exact-binary Probe 报告；
 7. 5 个 shipped `.node` 及其 7 个 Mach-O slice。
 
 `known-tool-catalog.txt` 中的 106 个 `mcp__github__*` 属于内嵌 MCP/文档能力面，不是 106 个 Claude Code 内置工具。Chart.js、Highlight.js、Mermaid 等是 Artifact 渲染链依赖；只有进入可达 Artifact consumer 后才能写成产品机制的一部分。
@@ -51,7 +53,7 @@
 | # | 能力面 | 权威产品 surface | 当前人类文档 | 当前状态 | 收口前还需要什么 |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | 发布物、提取与证据边界 | 15 packed files、bytecode、hash、manifest | README、`source-surface.md`、`technical-architecture.md` | Deep | 保持不可恢复源码边界，不把 compatible reconstruction 称为原始源码 |
-| 2 | 请求装配、模型、provider 与凭据选路 | 17 model entries、4 aliases、provider/credential branches | `models-auth-providers-request.md`、完整说明书 | Deep | 只负责每次请求如何选模型、endpoint 和 credential；账号/组织/subscription 生命周期见第 40 项 |
+| 2 | 请求装配、模型、provider、API/Beta 与凭据选路 | 17 model entries、4 aliases、99 API paths、53 Beta identifiers、provider/credential branches | `models-auth-providers-request.md`、`api-beta-route-ownership.md`、完整说明书 | Deep | 已逐项区分产品 consumer、发布物内 Gateway handler、SDK/依赖、prefix/allowlist 和内嵌参考文本；header/path 存在不证明 runtime 已发送或服务端已开放，账号/组织/subscription 生命周期见第 40 项 |
 | 3 | Agent Loop | loop state、stream parser、tool batch、terminal reason | `agent-loop.md`、完整说明书 | Deep | 保持并发、maxTurns、Stop hook、副作用边界回归 |
 | 4 | Context、Prompt Cache、Tool Search、compact | cache/compact constants、request fields、Probe | `context-governance-and-caching.md`、`compact-visual-guide.md` | Deep | 服务端 cache 命中和账单仍为 Boundary |
 | 5 | Session、transcript、fork、checkpoint、memory | message graph、32 storage namespaces 中相关对象 | `sessions-checkpoints-memory.md`、`storage-v5-reference.md` | Deep | 保持 transcript、storage backend 和外部副作用三层边界 |
@@ -59,13 +61,13 @@
 | 7 | 核心终端参考、条件工具与宿主注册表面 | `builtin-tool-identifiers.txt`、`tool-registrations.jsonl` | `builtin-tools-reference.md`、`tool-registration-and-host-surfaces.md`、`workflow-artifact-design.md`、`repl-programmatic-tool-runtime.md` | Deep | 29/29 人工维护核心参考与 80/80 同工厂 AST 调用点均精确覆盖；调用点按 29 Core、28 Conditional CLI、16 Hosted/product、4 Internal/eval、3 Dynamic factory 做证据驱动的人工归属，并明确直接调用点、工厂模板、静态调用展开、runtime enabled 与 request advertised 的区别；REPL 另下钻持久 VM、内层完整权限管线、动态工具、timeout/watchdog 与结果重放 |
 | 8 | 31 类 Hooks | `hook-events.txt`、hook transport/runner | `tools-permissions-hooks.md`、`hooks-event-reference.md` | Deep | 31/31 事件字段、时机、matcher、阻塞、timeout、载体和副作用已覆盖；外部 Hook 程序行为仍是 Boundary |
 | 9 | MCP、Tool Search 与动态刷新 | transports、generation、registry、OAuth | `mcp-agents-background.md`、`connectors-catalog-and-mcp-operators.md` | Deep | 已覆盖 request-time generation、Tool Search、live client refresh、kept-previous、concurrent sequence、wait 状态分类、resource list/read/dir 和 cache invalidation；refresh 不拨号、不热替换已发出的 request，第三方 MCP 语义保持 Boundary |
-| 10 | Custom Agent、subagent、team、task、mailbox | Task/SendMessage/worktree、protocol/telemetry | `mcp-agents-background.md` | Deep | Task panel、跨 session channel、durable owner 继续下钻 |
-| 11 | Retry、fallback、resume、rewind | error classifiers、counters、tombstones | `resilience-and-recovery.md`、`cloud-background-channels.md` | Deep | 保持远端服务重试与本地恢复边界 |
-| 12 | Telemetry、OTEL、Datadog、GrowthBook、诊断 | 1,441 first-party events、OTEL/Datadog schemas | `telemetry.md` | Deep | 新专题新增事件必须解释通道归属、内容控制与字段 |
+| 10 | Custom Agent、subagent、team、task、mailbox | Task/SendMessage/worktree、protocol/telemetry | `mcp-agents-background.md` | Deep | 已覆盖 child-loop isolation、Task registry/claim、panel 投影、mailbox delivery/ack/size、跨 session channel drain/redelivery、worktree 和 durable/ephemeral owner；远端 coordination service 与旧进程外实体是否仍存活保持 Boundary |
+| 11 | Error/Diagnostic、retry、fallback、resume、rewind | 4,831 error constructors、5,403 diagnostic callsites、error classifiers、counters、tombstones | `error-diagnostic-atlas.md`、`resilience-and-recovery.md`、`cloud-background-channels.md` | Deep | 已区分异常对象、abort/expected/permission/sandbox/auth 分类、局部恢复、tool result、stderr/TUI、LSP attachment、Hook/telemetry 观察面和外部副作用；远端服务重试与本地恢复保持独立边界 |
+| 12 | Telemetry、OTEL、Datadog、GrowthBook、诊断 | 1,441 first-party events、2,194 callsites、181 Datadog allowlist、26 OTEL events、8 metrics、10 spans | `telemetry.md`、`telemetry-event-catalog.md` | Deep | transport/queue/sampling/privacy/flush/retry 生命周期为机制层 Deep；场景语义索引已把 API、工具授权/执行、Permission UI、compact、session、MCP、后台任务、登录、错误终态和 transcript 恢复放回 owner、事件顺序与字段状态，随后 1,441 个静态 event 逐项保留 payload field/spread/function 和 callsite；Derived family（尤其 911 项 `tengu_other`）不是业务 owner，未追到 consumer 的事件含义仍是 Boundary，静态调用点与 allowlist 命中不证明运行时发送或服务端保留 |
 | 13 | Native bridge 与媒体底座 | 5 `.node`、7 slices、JS wrappers | `native-bridge-runtime.md`、`tui-input-accessibility-media-ide-chrome.md` | Deep | x86_64 compatible build 未执行；真实麦克风/屏幕/TCC 仍需平台 Probe |
 | 14 | Settings 来源、合并、policy、reload | 156 direct keys + 4 spreads | `settings-resolution-and-reload.md`、`settings-feature-flags-policy.md`、`settings-reference.md` | Deep | 156/156 已按 Probe、alias consumer、Static consumer、declaration 互斥分级；已覆盖进程 store、五层/admin tier、四类 merge、ConfigChange、程序写、consumer 刷新、remote/helper 恢复，实时管理员 payload 与外部 helper 行为保持 Boundary |
-| 15 | Feature flags 与 remote config | 361 keys、498 callsites、GrowthBook | `settings-feature-flags-policy.md`、`feature-flags-remote-config.md` | Deep | 已覆盖 enable、attributes、fresh/disk/default、payload、exposure、refresh、auth reset 与 override dead path；账号实时值保持 Boundary |
-| 16 | CLI 命令树、print、Agent SDK 输入输出 | `cli-surface.txt`、`cli-command-inventory.json`、input/output schemas | `cli-command-reference.md`、`cli-sdk-output-protocol.md` | Deep | 59 次显式 `.command` 注册、90 个 root/Commander/manual/fast-path 路径、8 个内部入口和 65 组 help/失败 Probe 已覆盖 alias、hidden/conditional gate、arguments/options、owner、副作用与失败；同时区分 TUI/text/JSON/stream-json、Query/worker/Remote/Managed Agents host，第三方/远端成功保持 Boundary |
+| 15 | Feature flags 与 remote config | 361 keys、498 callsites、GrowthBook | `settings-feature-flags-policy.md`、`feature-flags-remote-config.md`、`feature-flag-reference.md` | Deep | evaluation/cache/refresh/exposure/override 生命周期为机制层 Deep；361/361 key 与 498/498 callsite 穷举，但只有追到 consumer 的 key 给出 Static 语义，未追的描述性 key 与 codename 分别标 Untraced/Opaque Inventory only；账号实时 value/rule/rollout 保持 Boundary |
+| 16 | CLI 命令树、print、Agent SDK 输入输出 | `cli-surface.txt`、`cli-command-inventory.json`、input/output schemas | `cli-command-reference.md`、`cli-sdk-output-protocol.md` | Deep | 59 次显式 `.command` 注册、90 个 root/Commander/manual/fast-path 路径和 65 组 help/失败 Probe 已覆盖 alias、hidden/conditional gate、arguments/options、owner、副作用与失败；8 个内部入口另逐项绑定 input protocol、ordered lifecycle、success state、failure boundary、external side effects、dispatcher/handler source；第三方/远端成功保持 Boundary |
 | 17 | 89 个 SDK control subtype | `sdk-control-subtypes.txt` | `cli-sdk-output-protocol.md` | Deep | 已把 89 拆成 42 request、2 verdict、46 observation（`success` 重叠），逐项覆盖方向、字段、response、owner、失败、取消和副作用；schema-only 与 worker-only 分支保持证据分级 |
 | 18 | 44 个 output protocol event | `output-protocol-event-identifiers.txt` | `cli-sdk-output-protocol.md` | Deep | 已逐项区分 36 个 named-SSE parser event、6 个 webhook-only identifier、1 个 embedded-doc 合同和 1 个词法误报，并解释关联键、终态、reconcile、retry 与幂等边界 |
 | 19 | 103 个 slash command | `slash-command-identifiers.txt` | `slash-command-reference.md`、`plugins-skills-commands-lsp.md` | Deep | 103/103 已逐命令解释 type/twin、gate、owner、成功、失败和副作用；账号/host 远端成功仍按条目保留 Boundary |
@@ -103,7 +105,11 @@
 | 51 | Brief Mode 与用户可见输出 | `SendUserMessage`/`Brief` tool、`--brief`、`/brief`、default view、renderer、attachment lanes、turn-end sentinel | `brief-mode-and-user-visible-output.md`、完整说明书第 51 章 | Deep | 已覆盖 entitlement/enable/tool assembly、普通 text 与主视图投影、附件校验/部分交付、单次漏调补发、成本隐私与不可逆发送边界；账号实时 entitlement 和远端 viewer 服务保持 Boundary |
 | 52 | Plan Mode 与人工审批 | `EnterPlanMode`、permission context、plan attachment/file、`AskUserQuestion`、`ExitPlanMode`、team/AFK/SDK/remote approval | `plan-mode-and-human-approval.md`、完整说明书第 52 章 | Deep | 已覆盖进入专用批准、`prePlanMode`、5-turn/attachment reminder、plan file 写入例外、MCP/permission floor、200,000 字符 review withholding、批准/拒绝/mode 恢复、team lead、AFK partial answers、SDK park 与 Ultraplan；远端审批存储和计划质量保持 Boundary |
 | 53 | Structured Output 与 Schema 终态 | `--json-schema`、AJV/strict schema、`StructuredOutput` tool、attempt/attachment/tombstone/result | `structured-output-and-schema-contract.md`、完整说明书第 53 章 | Deep | 已覆盖 JSON/object guard、100k/10k/32 深度与节点预算、tool injection、wire strict/Foundry strip、本地 validation、默认 5 次修正、fallback tombstone、最后存活 attachment 和 `error_max_structured_output_retries`；服务端 constrained decoding 与业务真实性保持 Boundary |
-| 54 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
+| 54 | Artifact Watch 与评论自动响应 | watch baseline/digest、untrusted comment triage、read-only analyst、permission probe、ack/reply/edit/resolve | `artifact-watch-comment-autoreact.md`、完整说明书第 54 章 | Deep | 已覆盖 local/interactive/environment gate、5s coalesce、2s dwell、60/h cap、30s 内 3 次 loop breaker、3 次 denial breaker、只读 analyst、写前权限探针、ack 与完整管线竞态；远端 Artifact 服务与已发副作用保持 Boundary |
+| 55 | `/insights` 历史分析管线 | transcript parser、metadata/facet cache、long-session reduction、7+1 model analysis、HTML report | `insights-history-analysis-pipeline.md`、完整说明书第 55 章 | Deep | 已覆盖 200+200 metadata 刷新、50 facet、500/300 字符截断、30k/25k 分块、270,336 output-token 静态上限、0600 报告和 facet 不校验 transcript mtime 的准确性缺口；模型语义质量保持 Boundary |
+| 56 | CLI 启动文件、URL 插件与 Deep Link | `--file`、`--plugin-url`、`--handle-uri`、uploads、ZIP gate、plugin graph、cwd/prefill | `cli-startup-files-plugins-deeplinks.md`、完整说明书第 56 章 | Deep | 已覆盖 file 的 first-party/HIPAA/token gate、60s/3 attempts/5 concurrency、plugin 30s/256MiB 下载与 512MiB/1GiB/100k/50:1 ZIP gate、session cache/MCP/precedence、argv 注入拒绝、shell-safe 启动与 prefill 不自动提交；远端内容与 URL 供应链保持 Boundary |
+| 57 | 复杂 Slash Command 外部系统生命周期 | `/install-github-app`、`/team-onboarding`、`/privacy-settings`、`/web-setup`、`/terminal-setup` 及 URL handoff | `complex-slash-command-lifecycles.md`、`slash-command-reference.md`、完整说明书第 57 章 | Deep | 已覆盖命令专属 gate、现状发现、人工确认、GitHub/Claude/file/OS 副作用、部分成功、backup 恢复和手工撤销；浏览器打开不证明远端流程完成 |
+| 58 | 服务端、模型内部与构建前源码 | bundle 不携带 | 多篇边界说明 | Boundary | 不得用 header、event、字符串或当前官网替代实现证据 |
 
 ## 数量覆盖不能冒充机制覆盖
 
@@ -138,7 +144,7 @@
 
 ## 自动校验当前能证明什么
 
-validator 现在强制 54 行能力矩阵，以及 Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects 七个读者优先深度合同：正文必须达到最低规模，包含有序生命周期、gate/阈值、失败/恢复、用户影响、源码证据和明确 Boundary，并同时存在可编辑 `.dot` 与有效 `.svg`。它还精确核对 71/71 inventory、80/80 registration key、29/28/16/4/3 人工分类、77/3 静态 name/动态 expression、Release Notes、Storage、29 项人工维护的核心终端 reference、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。负向测试会实际删除或破坏注册行、能力绑定、topic claim、正文、DOT/SVG 结构，确认拒绝后逐字恢复。
+validator 现在强制 58 行能力矩阵，以及 Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP、ClaudeDesign/Projects、Artifact Watch、`/insights`、CLI 启动资源和复杂 Slash Command 十一个读者优先深度合同：正文必须达到最低规模，包含有序生命周期、gate/阈值、失败/恢复、用户影响、源码证据和明确 Boundary，并同时存在可编辑 `.dot` 与有效 `.svg`。它还精确核对 71/71 inventory、80/80 registration key、29/28/16/4/3 人工分类、77/3 静态 name/动态 expression、Release Notes、Storage、29 项人工维护的核心终端 reference、156 个 direct setting、89 个 SDK subtype、44 个 protocol event、103 个 slash command、31 个 Hook event 和 32 个 Claude storage namespace。负向测试会实际删除或破坏注册行、能力绑定、topic claim、正文、DOT/SVG 结构，确认拒绝后逐字恢复。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
@@ -156,4 +162,4 @@ validator 现在强制 54 行能力矩阵，以及 Plan Mode、Structured Output
 4. 对 changed branch 扩充 exact-binary Probe；未触发的 remote/third-party/cross-platform 行为保持 Boundary。
 5. 运行全量、负向、隐私、SVG、重建、Probe 与远端 fresh-checkout 验证后再推送。
 
-当前矩阵已达到 53 项 `Deep`、1 项 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。
+当前矩阵已达到 57 项机制层 `Deep`、1 项产品外 `Boundary`。这里的“全面”只指 `2.1.235` 发布物中可恢复的客户端产品面已经逐项收口；identifier 目录内部仍按 `Static consumer`、`Untraced/Inventory only`、`Opaque codename`、`Derived`、`Heuristic` 和 `Boundary` 分级。它不把 Anthropic 服务端、账号实时状态、第三方实现、原始 TypeScript/C++/Swift 仓库或 tree-shaking 删除内容包装成已恢复事实。

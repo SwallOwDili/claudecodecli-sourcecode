@@ -172,7 +172,7 @@
 | `fastModePerSessionOptIn` | `boolean`；默认 false | true 时不跨 session 保存开启状态，每个 session 从 off 开始。 | **Static consumer**：降低意外持续高成本/高速模式。 |
 | `promptSuggestionEnabled` | `boolean`；默认 true | turn 结束后预测下一 prompt，仍受 capability/host。 | **Static consumer**：会增加预测工作和 UI surface；false 关闭建议而非主模型。 |
 | `emojiCompletionEnabled` | `boolean`；默认 true | 控制 `:name:` typeahead 和 inline replacement。 | **Static consumer**：纯输入体验；关闭不改变已输入 Unicode。 |
-| `awaySummaryEnabled` | `boolean`；默认 true，internal | 离开 5+ 分钟后 recap；公共 SDK type 暂隐藏。 | **Static consumer**：可能触发额外摘要/展示；属于内部 surface，版本可变。 |
+| `awaySummaryEnabled` | `boolean`；默认 true，internal | 控制自动 Away Summary；本地 delay fallback 为 `180000ms`，远端 config 可覆盖但小于 `30000ms` 会被抬高，实际定时还受 prompt-cache 剩余寿命 `80%` 上限及 turn/cache/rate-limit/draft/background-work gates 约束。公共 SDK type 暂隐藏。 | **Static consumer 584454-584563**：成功时自动追加 `away_summary` system event；`/recap` 只复用生成器并返回文本，不写该 event。源码中的 `300000ms` 是“返回 session”遥测门槛，不是生成延迟。 |
 | `showClearContextOnPlanAccept` | `boolean`；默认 false | plan approval dialog 的可选操作。 | **Static consumer**：允许接受计划时清上下文；会牺牲旧历史换窗口空间。 |
 | `askUserQuestionTimeout` | `enum(60s/5m/10m/never)`；默认 never，invalid -> unset | 等待问题时按已选答案自动继续。 | **Static consumer**：超时会在无人完成全部选项时继续，自动化更顺但可能误解意图。 |
 | `dialogExpiry` | 同枚举；默认 5m，env 可覆盖，invalid -> unset | 只读 trusted source；远程 dialog 和 held cross-session 消息到期采用 no-action 默认，本地 prompt 不受影响。 | **Static consumer 332541、306333-306424**：到期 cancel/drop-with-denial，属于 fail-closed。 |

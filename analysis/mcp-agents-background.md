@@ -236,6 +236,18 @@ Agent team 需要共享任务状态，但不能让多个 teammate 同时无条�
 
 claim 解决的是归属竞争，不自动解决文件写冲突。两个不同 task 仍可能修改同一文件，因此 worktree 隔离、任务边界和主 Agent 合并策略仍然必要。
 
+### Task panel、跨 session channel 与 durable owner
+
+这三者是同一组状态的不同投影，不能混成一个“后台 Agent 已持久化”的结论：
+
+| 表面 | 直接 owner | 它能证明什么 | 它不能证明什么 |
+| --- | --- | --- | --- |
+| Task panel | 当前 session 的 task registry/view model | 当前进程或恢复视图知道 task id、owner、status、progress/terminal metadata | panel 里仍有一行，不证明旧 worker 进程或远端 job 仍在运行 |
+| 跨 session channel | channel queue、drain/ack 与 session reference | 未 drain 的事件可在 resume 后再次交付；drain 后才 ack | transcript 中出现过消息，不证明对端已经消费或外部副作用成功 |
+| Durable task metadata | Storage v5/daemon/remote service 各自持有的可查询记录 | 新进程可以重新枚举、查询或 reattach 到有 durable owner 的对象 | 只存在旧进程内 Promise/AbortController 的工作不会被 transcript 自动复活 |
+
+因此恢复顺序是：先恢复 transcript/task view，再按 task 类型询问真正 owner，最后把重新观察到的 progress/terminal event 送回当前队列。Task panel 是 UI 读模型，channel 是投递状态机，daemon/remote service 才可能是跨进程执行 owner。当前 bundle 可证明本地 registry、mailbox、drain/ack 和 supervisor 分支；远端 coordination service 的保留期限、去重和旧 job 生存状态仍是 `Boundary`。
+
 ## Team mailbox 与消息语义
 
 team mailbox 实现在 `reverse/javascript/cli.readable.js` 279171-279317。它支持面向 teammate/leader 的消息、广播、shutdown/request/response 等协作状态。SendMessage 的价值不只是聊天：它让 Agent 能传递发现、阻塞、计划审批和任务状态。

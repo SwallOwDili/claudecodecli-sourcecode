@@ -239,7 +239,7 @@
 - 第三方 OTEL metrics/logs/traces、protocol、content redaction、attribute limit；
 - Datadog allowlist、字段删除、tag、归一化和 peer rate bound；
 - GrowthBook experiment；
-- error reporting、secret scrubber、Perfetto、startup/query profiling、debug/diagnostic/frame/session logs。
+- error reporting、secret scrubber、Perfetto bridge/integration surface（recorder/file 未观察）、startup/query profiling、debug/diagnostic/frame/session logs。
 
 ## Install、update 和 doctor
 

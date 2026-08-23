@@ -58,6 +58,60 @@ RELEASE_NOTES_SECTION_SHA256 = (
 RELEASE_NOTES_ITEMS_SHA256 = (
     "4e63bcf44076b4482193e496be340699579bcb2360ded401b4f930d043255fff"
 )
+RELEASE_NOTES_ROW_SEMANTIC_MARKERS = {
+    7: (
+        ("mechanism", "notebook", ("notebook",)),
+        ("mechanism", "cell", ("cell",)),
+        ("mechanism", "read-failure", ("无法读", "读取失败", "read failure")),
+        ("mechanism", "persistent-grant", ("持久授权", "persistent grant")),
+        ("mechanism", "grant-narrowing", ("收缩", "缩限", "withheld")),
+    ),
+    9: (
+        (
+            "mechanism",
+            "background-updater",
+            ("background updater", "background auto-update"),
+        ),
+        ("mechanism", "update-installed", ("update installed",)),
+        ("mechanism", "restart", ("restart", "重启")),
+        ("mechanism", "old-bytes", ("旧 bytes", "old bytes")),
+    ),
+    10: (
+        ("mechanism", "open-tasks", ("open tasks",)),
+        ("mechanism", "resume-relaunch", ("resume/relaunch",)),
+        ("mechanism", "expanded", ("expanded",)),
+        ("mechanism", "collapsed", ("collapsed",)),
+        ("mechanism", "state-owner", ("重新绑定", "state owner", "ownership")),
+    ),
+    13: (
+        (
+            "mechanism",
+            "pathological-pattern",
+            ("病态 pattern", "pathological pattern"),
+        ),
+        ("mechanism", "fast-fail", ("fast-fail", "fail fast")),
+        ("mechanism", "match-cap", ("-m n",)),
+        ("mechanism", "context-flags", ("-a/-c",)),
+        (
+            "evidence",
+            "binary-corpus-boundary",
+            ("binary regression corpus", "二进制回归语料"),
+        ),
+        ("evidence", "boundary", ("boundary",)),
+    ),
+    19: (
+        ("mechanism", "vscode", ("vs code", "vscode")),
+        (
+            "mechanism",
+            "multi-panel",
+            ("多个 claude panel", "多 panel", "multi-panel"),
+        ),
+        ("mechanism", "focus", ("focus", "焦点")),
+        ("evidence", "extension", ("extension",)),
+        ("evidence", "boundary", ("boundary",)),
+        ("evidence", "probe-boundary", ("probe", "真实多 panel")),
+    ),
+}
 SOURCE_INVENTORY_MINIMUMS = {
     "environment-access-identifiers": 1,
     "first-party-events": 1,
@@ -106,8 +160,8 @@ HUMAN_ANALYSIS_DOCS = {
         "Evidence substrate",
     ),
     "analysis/completeness-audit.md": (
-        "54",
-        "53 个客户端能力面",
+        "58",
+        "57 个客户端能力面",
         "Deep",
         "Inventory only",
         "Boundary",
@@ -159,6 +213,39 @@ HUMAN_ANALYSIS_DOCS = {
         "validateFormats",
         "endsTurn",
         "error_max_structured_output_retries",
+        "Boundary",
+    ),
+    "analysis/artifact-watch-comment-autoreact.md": (
+        "--watch-artifact",
+        "permission probe",
+        "maxTurns=6",
+        "60",
+        "30 s",
+        "Boundary",
+    ),
+    "analysis/insights-history-analysis-pipeline.md": (
+        "270,336",
+        "500",
+        "300",
+        "30,000",
+        "transcript mtime",
+        "Boundary",
+    ),
+    "analysis/cli-startup-files-plugins-deeplinks.md": (
+        "--file",
+        "--plugin-url",
+        "--handle-uri",
+        "256 MiB",
+        "50:1",
+        "prefill",
+        "Boundary",
+    ),
+    "analysis/complex-slash-command-lifecycles.md": (
+        "/install-github-app",
+        "/team-onboarding",
+        "/privacy-settings",
+        "/web-setup",
+        "/terminal-setup",
         "Boundary",
     ),
     "analysis/claude-design-and-projects.md": (
@@ -216,6 +303,15 @@ HUMAN_ANALYSIS_DOCS = {
         "156",
         "merge",
         "Static consumer",
+    ),
+    "analysis/environment-variable-reference.md": (
+        "842/842",
+        "2161",
+        "80 个 declaration-only",
+        "137/137",
+        "145 个动态环境名称调用点",
+        "triBool",
+        "Opaque/Boundary",
     ),
     "analysis/cli-sdk-output-protocol.md": (
         "42 个 schema 化 control request",
@@ -278,6 +374,15 @@ HUMAN_ANALYSIS_DOCS = {
         "CLAUDE_INTERNAL_FC_OVERRIDES",
         "pendingExposures",
         "360",
+    ),
+    "analysis/feature-flag-reference.md": (
+        "361/361",
+        "455/455",
+        "444",
+        "assignment-resolved",
+        "43 个 truly dynamic unresolved",
+        "6 个静态 key / 12 个调用点",
+        "Opaque/Boundary",
     ),
     "analysis/tui-input-accessibility-media-ide-chrome.md": (
         "Screen reader",
@@ -534,6 +639,42 @@ HUMAN_ANALYSIS_DOCS = {
         "Datadog",
         "GrowthBook",
     ),
+    "analysis/telemetry-event-catalog.md": (
+        "TELEMETRY_EVENT_CATALOG_BEGIN",
+        "TELEMETRY_SCENARIO_SEMANTIC_INDEX",
+        "first-party-events:1441",
+        "dynamic-callsites:43",
+        "datadog-allowlist:181",
+        "otel-events:26",
+        "otel-metrics:8",
+        "tengu_api_query",
+        "tengu_tool_use_show_permission_request",
+        "tengu_reactive_compact_succeeded",
+        "tengu_transcript_writer_recovered",
+        "tengu_other` 不能当作",
+        "Boundary",
+    ),
+    "analysis/api-beta-route-ownership.md": (
+        "API_PATH_CATALOG_START",
+        "BETA_IDENTIFIER_CATALOG_START",
+        "99 条",
+        "53 个",
+        "fallback beta",
+        "bundled gateway handler",
+        "128",
+        "1 MiB",
+        "Boundary",
+    ),
+    "analysis/error-diagnostic-atlas.md": (
+        "ERROR_DIAGNOSTIC_METRICS_START",
+        "4,831",
+        "5,403",
+        "AbortError",
+        "tool_expected_error",
+        "10,485,760",
+        "4,000",
+        "Boundary",
+    ),
     "analysis/source-surface.md": (
         "Observed",
         "Derived",
@@ -548,12 +689,17 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/brief-mode-and-user-visible-output.md": (14000, 12),
     "analysis/plan-mode-and-human-approval.md": (10000, 10),
     "analysis/structured-output-and-schema-contract.md": (10000, 10),
+    "analysis/artifact-watch-comment-autoreact.md": (8500, 12),
+    "analysis/insights-history-analysis-pipeline.md": (8750, 14),
+    "analysis/cli-startup-files-plugins-deeplinks.md": (10500, 16),
+    "analysis/complex-slash-command-lifecycles.md": (11000, 20),
     "analysis/claude-design-and-projects.md": (18000, 12),
     "analysis/repl-programmatic-tool-runtime.md": (14000, 10),
     "analysis/end-conversation-risk-control.md": (14000, 10),
     "analysis/remote-routines-runner-and-notifications.md": (20000, 12),
     "analysis/connectors-catalog-and-mcp-operators.md": (18000, 12),
     "analysis/settings-reference.md": (18000, 10),
+    "analysis/environment-variable-reference.md": (100000, 10),
     "analysis/cli-sdk-output-protocol.md": (12000, 12),
     "analysis/cli-command-reference.md": (15000, 18),
     "analysis/plugins-skills-commands-lsp.md": (10000, 10),
@@ -562,6 +708,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/storage-v5-reference.md": (18000, 12),
     "analysis/workflow-artifact-design.md": (12000, 10),
     "analysis/feature-flags-remote-config.md": (18000, 12),
+    "analysis/feature-flag-reference.md": (80000, 10),
     "analysis/tui-input-accessibility-media-ide-chrome.md": (24000, 15),
     "analysis/cloud-background-channels.md": (24000, 15),
     "analysis/technical-mechanism-atlas.md": (6000, 8),
@@ -591,6 +738,9 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/background-model-tasks-and-memory-consolidation.md": (9000, 12),
     "analysis/advisor-dual-model-runtime.md": (6500, 10),
     "analysis/ultrareview-cloud-review.md": (9000, 12),
+    "analysis/telemetry-event-catalog.md": (1000000, 20),
+    "analysis/api-beta-route-ownership.md": (68000, 10),
+    "analysis/error-diagnostic-atlas.md": (15000, 16),
 }
 READER_FIRST_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": "evidence-surface-lifecycle",
@@ -599,6 +749,10 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/brief-mode-and-user-visible-output.md": "brief-user-output-lifecycle",
     "analysis/plan-mode-and-human-approval.md": "plan-mode-lifecycle",
     "analysis/structured-output-and-schema-contract.md": "structured-output-lifecycle",
+    "analysis/artifact-watch-comment-autoreact.md": "artifact-watch-autoreact-lifecycle",
+    "analysis/insights-history-analysis-pipeline.md": "insights-history-analysis-lifecycle",
+    "analysis/cli-startup-files-plugins-deeplinks.md": "cli-startup-assets-lifecycle",
+    "analysis/complex-slash-command-lifecycles.md": "complex-slash-commands-lifecycle",
     "analysis/claude-design-and-projects.md": "claude-design-projects-lifecycle",
     "analysis/repl-programmatic-tool-runtime.md": "repl-programmatic-tool-lifecycle",
     "analysis/end-conversation-risk-control.md": "end-conversation-risk-control",
@@ -629,6 +783,9 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/install-update-doctor-lifecycle.md": "release-lifecycle",
     "analysis/native-bridge-runtime.md": "native-bridge-lifecycle",
     "analysis/telemetry.md": "telemetry-pipeline",
+    "analysis/telemetry-event-catalog.md": "telemetry-event-catalog-lifecycle",
+    "analysis/api-beta-route-ownership.md": "api-beta-route-ownership-lifecycle",
+    "analysis/error-diagnostic-atlas.md": "error-diagnostic-atlas-lifecycle",
     "analysis/inventory-field-guide.md": "inventory-reading-lifecycle",
     "analysis/source-surface.md": "evidence-surface-lifecycle",
     "analysis/auto-mode-classifier.md": "auto-mode-classifier",
@@ -969,6 +1126,374 @@ TOPIC_DEPTH_CONTRACTS = {
         ),
         "minimum_lifecycle_steps": 13,
         "minimum_evidence_references": 6,
+    },
+    "artifact-watch": {
+        "document": "analysis/artifact-watch-comment-autoreact.md",
+        "visual_stem": "artifact-watch-autoreact-lifecycle",
+        "capability": 54,
+        "capability_markers": (r"Artifact Watch", r"评论自动响应"),
+        "lifecycle_anchors": (
+            ("local interactive watch gate", r"--watch-artifact"),
+            ("baseline and digest", r"baseline|baselined"),
+            ("untrusted triage", r"triage"),
+            ("read-only analyst", r"comment-thread-analyst|只读 analyst"),
+            ("permission probe", r"permission probe"),
+            ("acknowledgment and full work", r"acknowledgment"),
+        ),
+        "gate_markers": (
+            ("coalesce window", r"5(?:,000)?\s*(?:ms|秒|s)"),
+            ("confirm dwell", r"2(?:,000)?\s*(?:ms|秒|s)"),
+            ("hourly cap", r"60"),
+            ("loop breaker window", r"30\s*(?:s|秒)"),
+            ("breaker count", r"达到\s*`?3`?|>=\s*3"),
+        ),
+        "failure_markers": (
+            ("comment read failure", r"评论读取失败|Artifact read"),
+            ("triage fallback", r"Triage 异常|pipeline"),
+            ("permission refusal", r"Permission ask/deny|probe 非 `allow`"),
+            ("loop breaker", r"回复回路|breaker"),
+        ),
+        "visual_anchors": (
+            "外部 Artifact 评论",
+            "本地 watch 扫描",
+            "无工具 triage",
+            "单线程只读 analyst",
+            "写入前控制",
+            "受约束 composer",
+            "远端 Artifact 状态",
+        ),
+        "minimum_lifecycle_steps": 5,
+        "minimum_evidence_references": 8,
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"普通成功路径",
+            "gates and thresholds": r"Gate、默认值与断路器",
+            "user impact": r"Token、延迟、费用、隐私、安全和恢复影响",
+            "boundary": r"Static 与 Boundary",
+        },
+    },
+    "insights-pipeline": {
+        "document": "analysis/insights-history-analysis-pipeline.md",
+        "visual_stem": "insights-history-analysis-lifecycle",
+        "capability": 55,
+        "capability_markers": (r"/insights", r"历史分析"),
+        "lifecycle_anchors": (
+            ("transcript scan", r"扫描 transcript"),
+            ("metadata cache", r"metadata"),
+            ("bounded refresh", r"200"),
+            ("session text reduction", r"session text|500.{0,60}300"),
+            ("facet extraction", r"facet"),
+            ("seven plus one analysis", r"7\+1|7 个专题"),
+            ("HTML persistence", r"HTML"),
+        ),
+        "gate_markers": (
+            ("metadata refresh caps", r"200"),
+            ("facet cap", r"50"),
+            ("message truncation", r"500.{0,80}300"),
+            ("long session chunks", r"30,?000.{0,100}25,?000"),
+            ("facet output cap", r"4,?096"),
+            ("section output cap", r"8,?192"),
+        ),
+        "failure_markers": (
+            ("chunk summary fallback", r"2,?000"),
+            ("stale facet", r"facet.{0,120}(?:mtime|过期|陈旧)"),
+            ("partial section failure", r"section 为空|专题失败"),
+            ("report write failure", r"HTML 写入失败|写文件失败|report write"),
+        ),
+        "visual_anchors": (
+            "本地 transcripts",
+            "session metadata",
+            "模型输入缩减",
+            "facet cache",
+            "全局聚合",
+            "7 个并行专题 + 1 个总览",
+            "本地 HTML",
+            "陈旧语义风险",
+        ),
+        "minimum_lifecycle_steps": 6,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"完整成功路径",
+            "user impact": r"Token、延迟、费用、隐私、安全和恢复影响",
+            "boundary": r"Static 与 Boundary",
+        },
+    },
+    "cli-startup-assets": {
+        "document": "analysis/cli-startup-files-plugins-deeplinks.md",
+        "visual_stem": "cli-startup-assets-lifecycle",
+        "capability": 56,
+        "capability_markers": (r"CLI 启动", r"--file", r"Deep Link"),
+        "lifecycle_anchors": (
+            ("entry classification", r"识别入口"),
+            ("dedicated gates", r"专属 gate"),
+            ("download or decode", r"获取或解码"),
+            ("local state", r"本地状态"),
+            ("session mounting", r"挂载到会话"),
+            ("explicit model submission", r"显式提交才进入模型"),
+        ),
+        "gate_markers": (
+            ("file retry and timeout", r"3 次.{0,80}60s|60s.{0,80}3 次"),
+            ("file concurrency", r"并发 5|5 个文件并发"),
+            ("plugin download cap", r"256\s*MiB"),
+            ("zip total cap", r"1\s*GiB"),
+            ("zip file count", r"100,?000"),
+            ("zip ratio", r"50:1"),
+            ("deep link failure latch", r"24\s*h"),
+        ),
+        "failure_markers": (
+            ("file auth or missing", r"404/401/403|token 缺失"),
+            (
+                "zip rejection",
+                r"ZIP.{0,100}(?:拒绝|超限|超阈值|防护|bomb|path traversal)",
+            ),
+            ("cached plugin fallback", r"复用 session cache|cache"),
+            ("deep link injection rejection", r"argument injection|argv 注入"),
+        ),
+        "visual_anchors": (
+            "启动外部输入",
+            "入口校验",
+            "受限网络获取",
+            "本地资源",
+            "会话运行时",
+            "输入框状态",
+            "Messages 请求",
+        ),
+        "minimum_lifecycle_steps": 6,
+        "minimum_evidence_references": 10,
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"端到端状态机",
+            "gates and thresholds": r"Gate、默认值与状态归属",
+            "user impact": r"Token、延迟、费用、隐私、安全和恢复影响",
+            "boundary": r"Static 与 Boundary",
+        },
+    },
+    "complex-slash-commands": {
+        "document": "analysis/complex-slash-command-lifecycles.md",
+        "visual_stem": "complex-slash-commands-lifecycle",
+        "capability": 57,
+        "capability_markers": (r"复杂 Slash Command", r"/install-github-app"),
+        "lifecycle_anchors": (
+            ("entry gates", r"入口与可用性 gate"),
+            ("state discovery", r"现状发现"),
+            ("user confirmation", r"用户确认"),
+            ("side-effect commit", r"提交副作用"),
+            ("verification", r"验证与结果"),
+        ),
+        "gate_markers": (
+            ("GitHub setup", r"/install-github-app"),
+            ("onboarding scan days", r"30 天"),
+            ("transcript size cap", r"50\s*MiB"),
+            ("session descriptor cap", r"descriptor.{0,20}60|60 条"),
+            ("privacy retention copy", r"30\s*天.{0,80}5\s*年"),
+        ),
+        "failure_markers": (
+            ("GitHub partial failure", r"GitHub 流程中途失败|422"),
+            ("privacy refresh failure", r"privacy 写后重读失败"),
+            ("environment partial success", r"environment 创建失败"),
+            ("terminal backup restore", r"backup 恢复|Terminal\.app 写失败"),
+        ),
+        "visual_anchors": (
+            "复杂 slash command",
+            "入口 gate",
+            "发现当前状态",
+            "用户确认",
+            "提交副作用",
+            "重新读取或验证",
+            "外部持久状态",
+        ),
+        "minimum_lifecycle_steps": 5,
+        "minimum_evidence_references": 8,
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"共同生命周期",
+            "user impact": r"Token、延迟、费用、隐私、安全和恢复影响",
+            "boundary": r"Static 与 Boundary",
+        },
+    },
+    "telemetry-event-catalog": {
+        "document": "analysis/telemetry-event-catalog.md",
+        "visual_stem": "telemetry-event-catalog-lifecycle",
+        "capabilities": (12,),
+        "capability_markers_by_number": {
+            12: (r"Telemetry", r"OTEL", r"Datadog", r"诊断"),
+        },
+        "lifecycle_anchors": (
+            ("business callsite", r"H\(name, payload\)|Fv\(name, payload\)|Nd\(name, attributes\)"),
+            ("global sink", r"一方全局 sink"),
+            ("provider queue", r"一方 logger provider"),
+            ("sampling", r"共享流量门与远程采样"),
+            ("envelope", r"envelope builder"),
+            ("batch exporter", r"batch exporter"),
+            ("401 fallback", r"401"),
+            ("failed batch recovery", r"失败恢复"),
+            ("Datadog", r"Datadog forwarding"),
+            ("OTEL", r"OTEL `Nd`"),
+            ("shutdown", r"flush / shutdown"),
+        ),
+        "gate_markers": (
+            ("sink FIFO", r"1,000"),
+            ("pre-init queue", r"1,024"),
+            ("provider queue", r"8,192"),
+            ("Datadog allowlist", r"181"),
+            ("dynamic event callsites", r"43"),
+            ("scenario semantic index", r"TELEMETRY_SCENARIO_SEMANTIC_INDEX"),
+            ("API semantic chain", r"tengu_api_query.{0,160}tengu_api_retry"),
+            ("tool semantic chain", r"tengu_tool_use_show_permission_request"),
+            ("compact semantic chain", r"tengu_reactive_compact_succeeded"),
+            ("persistence semantic chain", r"tengu_transcript_writer_recovered"),
+        ),
+        "failure_markers": (
+            ("export attempts", r"8 attempts"),
+            ("backoff range", r"500 ms.{0,80}30 s"),
+            ("401 auth fallback", r"401"),
+            ("local failed batch", r"失败 batch|telemetry storage"),
+            ("flush timeout", r"flush timeout 5 s"),
+        ),
+        "visual_anchors": (
+            "业务调用点",
+            "一方全局 sink",
+            "一方 provider",
+            "共享流量门与采样",
+            "一方 batch exporter",
+            "Datadog 分支",
+            "管理员 OTEL 分支",
+            "服务端或 collector",
+        ),
+        "minimum_lifecycle_steps": 11,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"从事件产生到各出口的有序生命周期",
+            "gates and thresholds": r"隐私、采样、批处理、失败和服务端边界",
+            "failure and recovery": r"隐私、采样、批处理、失败和服务端边界",
+            "user impact": r"Token、成本、延迟、隐私和副作用",
+            "evidence": r"可读源码证据锚点",
+            "boundary": r"最终边界",
+        },
+    },
+    "api-beta-route-ownership": {
+        "document": "analysis/api-beta-route-ownership.md",
+        "visual_stem": "api-beta-route-ownership-lifecycle",
+        "capabilities": (2,),
+        "capability_markers_by_number": {
+            2: (r"API", r"Beta", r"请求装配"),
+        },
+        "lifecycle_anchors": (
+            ("caller selection", r"入口选择调用者"),
+            ("host and identity", r"host 与身份分流"),
+            ("path instantiation", r"路径实例化"),
+            ("beta computation", r"Beta descriptor 计算"),
+            ("provider rewrite", r"provider 过滤和改写"),
+            ("receiver ownership", r"判定接收者"),
+            ("request send or forward", r"发出或转发请求"),
+            ("failure interpretation", r"解释失败"),
+            ("remote boundary", r"远端 Boundary"),
+        ),
+        "gate_markers": (
+            ("custom beta allowlist", r"自定义 Beta.{0,160}allowlist"),
+            ("organization timeouts", r"5\s*s.{0,100}30\s*s"),
+            ("remote trigger timeout", r"20\s*s"),
+            ("fallback beta 400", r"fallback beta.{0,120}400|400.{0,120}fallback beta"),
+            ("gateway in-flight cap", r"128"),
+            ("gateway circuit breaker", r"5.{0,80}30\s*s"),
+            ("runner body cap", r"1\s*MiB"),
+        ),
+        "failure_markers": (
+            ("unsupported custom beta", r"自定义 beta 不在 allowlist"),
+            ("beta strip retry", r"fallback beta.{0,120}400"),
+            ("credential refresh", r"401.{0,80}刷新"),
+            ("capacity retry", r"429/529/5xx"),
+            ("abort uncertainty", r"abort/timeout.{0,160}未必"),
+        ),
+        "visual_anchors": (
+            "静态候选",
+            "客户端 consumer",
+            "Host + Auth",
+            "请求组装",
+            "Provider 过滤/改写",
+            "发布物内 handler",
+            "本地恢复",
+            "远端服务 Boundary",
+        ),
+        "minimum_lifecycle_steps": 9,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"请求生命周期",
+            "gates and thresholds": r"Gate、协议选择与精确阈值",
+            "failure and recovery": r"失败、恢复与用户影响",
+            "user impact": r"Token、延迟、成本、隐私与副作用",
+            "evidence": r"证据与边界",
+            "boundary": r"证据与边界",
+        },
+    },
+    "error-diagnostic-atlas": {
+        "document": "analysis/error-diagnostic-atlas.md",
+        "visual_stem": "error-diagnostic-atlas-lifecycle",
+        "capabilities": (11,),
+        "capability_markers_by_number": {
+            11: (r"Error", r"Diagnostic", r"错误", r"诊断"),
+        },
+        "lifecycle_anchors": (
+            ("exception construction", r"触发点构造异常"),
+            ("local cleanup", r"立即清理局部资源"),
+            ("control-flow classification", r"判断是否属于控制流"),
+            ("subsystem classification", r"按子系统分类"),
+            ("local recovery", r"执行局部恢复"),
+            ("user result", r"生成用户结果"),
+            ("observation lanes", r"复制到观察面"),
+            ("side-effect boundary", r"保留副作用边界"),
+        ),
+        "gate_markers": (
+            ("single unsandboxed retry", r"unsandboxed retry.{0,120}一次"),
+            ("LSP warning threshold", r"连续\s*3\s*次"),
+            ("debug drain rounds", r"3\s*轮"),
+            ("error ring cap", r"100\s*条"),
+            ("debug rotation cap", r"10,485,760\s*bytes"),
+            ("LSP attachment cap", r"4,000\s*字符"),
+        ),
+        "failure_markers": (
+            ("sandbox retry owner", r"sandbox violation"),
+            ("request retry owner", r"429/5xx/backoff"),
+            ("LSP failure threshold", r"3 次"),
+            ("debug drain", r"3 轮"),
+            ("ring eviction", r"100 条"),
+        ),
+        "visual_anchors": (
+            "触发点",
+            "局部 cleanup",
+            "语义分类",
+            "局部恢复器",
+            "产品结果",
+            "本地 debug T()",
+            "Hook / LSP diagnostics",
+            "1P / OTEL / Datadog",
+            "副作用 Boundary",
+        ),
+        "minimum_lifecycle_steps": 8,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"生命周期：错误不是终点",
+            "gates and thresholds": r"恢复预算与.*只试一次.*边界",
+            "failure and recovery": r"恢复预算与.*只试一次.*边界",
+            "user impact": r"Token、延迟、成本、隐私与副作用",
+            "evidence": r"证据与边界",
+            "boundary": r"证据与边界",
+        },
     },
 }
 EVIDENCE_CLASSES = {"Static", "Probe", "Public", "Boundary"}
@@ -1524,12 +2049,12 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "<!-- SOURCE_INVENTORY_COVERAGE_END -->",
     )
     rows = re.findall(
-        r"^\| \[`([^`]+)`\]\(source-inventory/([^)]+)\) \| `([^`]+)` \| `([^`]+)` \|",
+        r"^\| \[`([^`]+)`\]\(source-inventory/([^)]+)\) \| `([^`]+)` \| `([^`]+)` \| ([^|]+) \| ([^|]+) \|",
         block,
         re.MULTILINE,
     )
     actual = [row[0] for row in rows]
-    if actual != expected or any(label != target for label, target, _, _ in rows):
+    if actual != expected or any(label != target for label, target, *_ in rows):
         failures.append(
             "product surface inventory coverage mismatch: "
             f"expected={len(expected)}, actual={len(actual)}, "
@@ -1551,12 +2076,36 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "Mixed heuristic",
         "Dependency surface",
         "Evidence substrate",
+        "Derived projection",
+        "Manual reference",
+        "Mixed product/dependency",
     }
-    for label, _, domain, classification in rows:
+    for label, _, domain, classification, basis, authority in rows:
         if domain not in allowed_domains:
             failures.append(f"product surface inventory {label} has invalid domain")
         if classification not in allowed_classes:
             failures.append(f"product surface inventory {label} has invalid classification")
+        if not basis.strip():
+            failures.append(f"product surface inventory {label} has no extraction basis")
+        if not authority.strip():
+            failures.append(f"product surface inventory {label} has no consumer authority")
+
+    expected_classifications = {
+        "api-path-templates.jsonl": "Derived projection",
+        "builtin-tool-identifiers.txt": "Manual reference",
+        "direct-process-environment-accesses.txt": "Derived projection",
+        "environment-proxy-accesses.txt": "Derived projection",
+        "first-party-event-families.tsv": "Derived projection",
+        "runtime-requires.txt": "Mixed product/dependency",
+        "telemetry-endpoints.txt": "Mixed heuristic",
+    }
+    actual_classifications = {row[0]: row[3] for row in rows}
+    for label, classification in expected_classifications.items():
+        if actual_classifications.get(label) != classification:
+            failures.append(
+                f"product surface inventory {label} must be classified as "
+                f"{classification}"
+            )
 
     with tempfile.TemporaryDirectory(prefix="claude-product-surface-") as temporary:
         regenerated = Path(temporary) / "product-surface-evidence-map.md"
@@ -1575,6 +2124,236 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         elif regenerated.read_bytes() != path.read_bytes():
             failures.append(
                 "product surface evidence map differs from deterministic regeneration"
+            )
+
+
+def validate_generated_control_references(repo: Path, failures: list[str]) -> None:
+    generator = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "build_environment_feature_references.py"
+    )
+    if not generator.is_file():
+        failures.append("missing environment/feature reference generator")
+        return
+
+    process = subprocess.run(
+        [sys.executable, str(generator), str(repo), "--check"],
+        cwd=repo,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    if process.returncode != 0:
+        failures.append(
+            "environment/feature reference generation check failed: "
+            + process.stdout.strip()
+        )
+        return
+
+    expected = {
+        "analysis/environment-variable-reference.md": (
+            "ENVIRONMENT_VARIABLE_REFERENCE",
+            {
+                "environment_schema": 842,
+                "environment_callsites": 2548,
+                "typed_named_callsites": 2161,
+                "typed_used_names": 762,
+                "typed_declaration_only": 80,
+                "untyped_named_names": 137,
+                "untyped_named_callsites": 242,
+                "dynamic_environment_callsites": 145,
+            },
+        ),
+        "analysis/feature-flag-reference.md": (
+            "FEATURE_FLAG_REFERENCE",
+            {
+                "feature_keys": 361,
+                "feature_callsites": 498,
+                "feature_resolvable_static_callsites": 455,
+                "feature_direct_literal_callsites": 444,
+                "feature_resolved_nonliteral_callsites": 11,
+                "feature_unresolved_dynamic_callsites": 43,
+                "dynamic_config_static_keys": 6,
+                "dynamic_config_callsites": 12,
+            },
+        ),
+    }
+    consumer_contracts = {
+        "analysis/environment-variable-reference.md": {
+            "marker": "ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
+            "countField": "consumerContractCount",
+            "hashField": "consumerContractNamesSha256",
+            "minimumCount": 152,
+            "callsiteOnlyField": "callsiteOnlyNamedReadCount",
+            "expectedCallsiteOnly": 747,
+            "required": {
+                "ANTHROPIC_CONFIG_DIR",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW",
+                "CLAUDE_CODE_BRIEF",
+                "CLAUDE_CODE_CERT_STORE",
+                "CLAUDE_CODE_DISABLE_ADVISOR_TOOL",
+                "CLAUDE_CODE_ENABLE_AWAY_SUMMARY",
+                "CLAUDE_CODE_OAUTH_TOKEN",
+                "CLAUDE_CODE_PERFETTO_TRACE",
+                "CLAUDE_CODE_SESSION_LOG",
+                "DISABLE_BRIEF_MODE_STOP_HOOK",
+                "OTEL_LOG_RAW_API_BODIES",
+                "CLAUDE_PTY_HEARTBEAT_MS",
+                "CLAUDE_BG_CLAIM_AUTH",
+                "CLAUDE_BG_SOCKET_TOKENS_PATH",
+            },
+        },
+        "analysis/feature-flag-reference.md": {
+            "marker": "FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS",
+            "countField": "consumerContractCount",
+            "hashField": "consumerContractKeysSha256",
+            "minimumCount": 56,
+            "callsiteOnlyField": "callsiteOnlyStaticKeyCount",
+            "expectedCallsiteOnly": 305,
+            "required": {
+                "tengu_copper_thistle",
+                "tengu_flint_harbor_prompt",
+                "tengu_gb_refresh_interval_minutes",
+                "tengu_harbor_moth",
+                "tengu_hazel_osprey",
+                "tengu_hover_rest",
+                "tengu_kairos_brief",
+                "tengu_kairos_brief_config",
+                "tengu_remote_backend",
+                "tengu_sedge_lantern_config",
+                "tengu_slate_harbor",
+                "tengu_surreal_dali",
+                "tengu_umber_kestrel",
+            },
+        },
+    }
+    version = (repo / "VERSION").read_text(encoding="utf-8").strip()
+    for relative, (prefix, expected_metrics) in expected.items():
+        path = repo / relative
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        summary_text = text_between(
+            content,
+            f"<!-- BEGIN:{prefix}:MACHINE_SUMMARY",
+            f"END:{prefix}:MACHINE_SUMMARY -->",
+        ).strip()
+        try:
+            summary = json.loads(summary_text)
+        except json.JSONDecodeError as error:
+            failures.append(f"generated reference summary is invalid: {relative}: {error}")
+            continue
+        if summary.get("artifact") != relative:
+            failures.append(f"generated reference artifact mismatch: {relative}")
+        if summary.get("version") != version:
+            failures.append(f"generated reference version mismatch: {relative}")
+        metrics = summary.get("metrics")
+        if not isinstance(metrics, dict):
+            failures.append(f"generated reference metrics are missing: {relative}")
+            continue
+        for key, expected_value in expected_metrics.items():
+            if metrics.get(key) != expected_value:
+                failures.append(
+                    f"generated reference metric mismatch: {relative}: "
+                    f"{key} expected={expected_value}, actual={metrics.get(key)}"
+                )
+        contract = consumer_contracts.get(relative)
+        if contract is None:
+            continue
+        marker = str(contract["marker"])
+        contract_names = [
+            line.strip()
+            for line in text_between(
+                content,
+                f"<!-- BEGIN:{marker}",
+                f"END:{marker} -->",
+            ).splitlines()
+            if line.strip()
+        ]
+        if len(contract_names) != len(set(contract_names)):
+            failures.append(f"consumer contract marker contains duplicates: {relative}")
+        minimum_count = int(contract["minimumCount"])
+        if len(contract_names) < minimum_count:
+            failures.append(
+                f"consumer contract coverage regressed: {relative}: "
+                f"minimum={minimum_count}, actual={len(contract_names)}"
+            )
+        if summary.get(str(contract["countField"])) != len(contract_names):
+            failures.append(f"consumer contract count mismatch: {relative}")
+        observed_hash = hashlib.sha256(
+            "".join(f"{name}\n" for name in sorted(contract_names)).encode("utf-8")
+        ).hexdigest()
+        if summary.get(str(contract["hashField"])) != observed_hash:
+            failures.append(f"consumer contract hash mismatch: {relative}")
+        if summary.get(str(contract["callsiteOnlyField"])) != int(
+            contract["expectedCallsiteOnly"]
+        ):
+            failures.append(f"callsite-only coverage mismatch: {relative}")
+        missing_required = sorted(set(contract["required"]) - set(contract_names))
+        if missing_required:
+            failures.append(
+                f"required consumer contracts missing: {relative}: "
+                + ", ".join(missing_required)
+            )
+
+    telemetry_generator = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "build_telemetry_event_catalog.py"
+    )
+    telemetry_catalog = repo / "analysis/telemetry-event-catalog.md"
+    if not telemetry_generator.is_file():
+        failures.append("missing telemetry event catalog generator")
+    elif not telemetry_catalog.is_file():
+        failures.append("missing telemetry event catalog")
+    else:
+        with tempfile.TemporaryDirectory(
+            prefix="claude-telemetry-event-catalog-"
+        ) as temporary:
+            regenerated = Path(temporary) / "telemetry-event-catalog.md"
+            telemetry_process = subprocess.run(
+                [
+                    sys.executable,
+                    str(telemetry_generator),
+                    str(repo),
+                    "--output",
+                    str(regenerated),
+                ],
+                cwd=repo,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            if telemetry_process.returncode != 0:
+                failures.append(
+                    "telemetry event catalog regeneration failed: "
+                    + telemetry_process.stdout.strip()
+                )
+            elif regenerated.read_bytes() != telemetry_catalog.read_bytes():
+                failures.append(
+                    "telemetry event catalog differs from deterministic regeneration"
+                )
+
+    api_error_generator = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "build_api_error_references.py"
+    )
+    if not api_error_generator.is_file():
+        failures.append("missing API/error reference generator")
+    else:
+        api_error_process = subprocess.run(
+            [sys.executable, str(api_error_generator), str(repo), "--check"],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if api_error_process.returncode != 0:
+            failures.append(
+                "API/error reference generation check failed: "
+                + api_error_process.stdout.strip()
             )
 
 
@@ -1795,8 +2574,18 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
         r"www\.anthropic\.com/(?:engineering|research)/[A-Za-z0-9_./?#=&%-]+)"
     )
     referenced_urls: set[str] = set()
+    generated_bundle_references = {
+        "analysis/environment-variable-reference.md",
+        "analysis/feature-flag-reference.md",
+        "analysis/telemetry-event-catalog.md",
+    }
     for relative in candidate_paths(repo):
         if not relative.endswith(".md"):
+            continue
+        if relative in generated_bundle_references:
+            # These deterministic catalogs render literal bundle expressions.
+            # A URL inside such a row is shipped-artifact evidence, not an
+            # editorial citation or a current public-documentation claim.
             continue
         if relative.startswith("analysis/comparison-"):
             # Deterministic comparison reports quote inventory payloads from both
@@ -2389,22 +3178,46 @@ def validate_cli_command_tree(
         if not isinstance(entry, dict):
             failures.append(f"CLI internal entrypoint {index} is not an object")
             continue
-        for field in ("argv", "visibility", "owner", "source", "failureBoundary"):
+        for field in (
+            "argv",
+            "visibility",
+            "owner",
+            "source",
+            "handlerSource",
+            "inputProtocol",
+            "successState",
+            "failureBoundary",
+            "externalSideEffects",
+        ):
             if not isinstance(entry.get(field), str) or not entry[field]:
                 failures.append(f"CLI internal entrypoint {index} has invalid {field}")
+        lifecycle = entry.get("orderedLifecycle")
+        if (
+            not isinstance(lifecycle, list)
+            or len(lifecycle) < 3
+            or not all(isinstance(step, str) and step for step in lifecycle)
+        ):
+            failures.append(
+                f"CLI internal entrypoint {index} has invalid orderedLifecycle"
+            )
         if entry.get("visibility") != "internal":
             failures.append(f"CLI internal entrypoint {index} is not marked internal")
         argv = entry.get("argv")
         if isinstance(argv, str) and argv:
             internal_argvs.append(argv)
-        source_match = re.fullmatch(
-            r"reverse/javascript/cli\.readable\.js:([1-9][0-9]*)",
-            str(entry.get("source")),
-        )
-        if source_match is None:
-            failures.append(f"CLI internal entrypoint {index} has invalid source")
-        elif readable_line_count and int(source_match.group(1)) > readable_line_count:
-            failures.append(f"CLI internal entrypoint {index} source is out of range")
+        for source_field in ("source", "handlerSource"):
+            source_match = re.fullmatch(
+                r"reverse/javascript/cli\.readable\.js:([1-9][0-9]*)",
+                str(entry.get(source_field)),
+            )
+            if source_match is None:
+                failures.append(
+                    f"CLI internal entrypoint {index} has invalid {source_field}"
+                )
+            elif readable_line_count and int(source_match.group(1)) > readable_line_count:
+                failures.append(
+                    f"CLI internal entrypoint {index} {source_field} is out of range"
+                )
     required_internal_argvs = {
         "--handle-uri <uri>",
         "--claude-in-chrome-mcp",
@@ -2872,9 +3685,15 @@ def validate_topic_depth_contracts(
                 lifecycle,
                 re.MULTILINE | re.IGNORECASE,
             )
+            table_phase_rows = re.findall(
+                r"^\|\s*\d+\s*\|",
+                lifecycle,
+                re.MULTILINE,
+            )
             step_count = max(
                 len(numbered_steps),
                 len(phase_headings),
+                len(table_phase_rows),
                 len(lifecycle_phase_numbers),
             )
             if step_count < contract["minimum_lifecycle_steps"]:
@@ -3198,6 +4017,90 @@ def validate_release_notes(repo: Path, failures: list[str]) -> None:
     if hashlib.sha256(item_bytes).hexdigest() != RELEASE_NOTES_ITEMS_SHA256:
         failures.append("release notes upstream verbatim block mismatch")
 
+    mechanism = text_between(
+        content,
+        "## 逐项机制回填",
+        "## 这 19 条合起来说明了什么",
+    )
+    mechanism_rows: dict[int, list[str]] = {}
+    mechanism_order: list[int] = []
+    for line in mechanism.splitlines():
+        match = re.match(r"^\|\s*([0-9]+)\s*\|", line)
+        if match is None:
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        number = int(match.group(1))
+        mechanism_order.append(number)
+        mechanism_rows[number] = cells
+    if mechanism_order != list(range(1, 20)):
+        failures.append(
+            "release notes mechanism row coverage mismatch: "
+            f"expected=1..19, actual={mechanism_order}"
+        )
+        return
+
+    required_bindings = {
+        1: "tui-input-accessibility-media-ide-chrome.md",
+        2: "plugins-skills-commands-lsp.md",
+        3: "reverse/javascript/cli.readable.js",
+        4: "reverse/javascript/cli.readable.js",
+        5: "reverse/javascript/cli.readable.js",
+        6: "builtin-tools-reference.md",
+        7: "tools-permissions-hooks.md",
+        8: "tui-input-accessibility-media-ide-chrome.md",
+        9: "install-update-doctor-lifecycle.md",
+        10: "tui-input-accessibility-media-ide-chrome.md",
+        11: "cloud-background-channels.md",
+        12: "tui-input-accessibility-media-ide-chrome.md",
+        13: "Boundary",
+        14: "context-governance-and-caching.md",
+        15: "reverse/javascript/cli.readable.js",
+        16: "reverse/javascript/cli.readable.js",
+        17: "mcp-agents-background.md",
+        18: "cloud-background-channels.md",
+        19: "tui-input-accessibility-media-ide-chrome.md",
+    }
+    for number in range(1, 20):
+        cells = mechanism_rows[number]
+        if len(cells) != 5:
+            failures.append(
+                f"release notes mechanism row {number} has {len(cells)} cells; expected 5"
+            )
+            continue
+        for column, minimum in zip(cells[1:4], (12, 12, 8)):
+            if len(re.sub(r"[`*_]", "", column)) < minimum:
+                failures.append(
+                    f"release notes mechanism row {number} has shallow mechanism text"
+                )
+                break
+        evidence = cells[4]
+        if "Release" not in evidence:
+            failures.append(
+                f"release notes mechanism row {number} lacks Release evidence class"
+            )
+        if not any(level in evidence for level in ("Static", "Probe", "Boundary")):
+            failures.append(
+                f"release notes mechanism row {number} lacks Static/Probe/Boundary scope"
+            )
+        binding = required_bindings[number]
+        if binding not in evidence:
+            failures.append(
+                f"release notes mechanism row {number} lacks required binding {binding}"
+            )
+        semantic_texts = {
+            "mechanism": " ".join(cells[1:4]).casefold(),
+            "evidence": evidence.casefold(),
+        }
+        for scope, label, alternatives in RELEASE_NOTES_ROW_SEMANTIC_MARKERS.get(
+            number, ()
+        ):
+            haystack = semantic_texts[scope]
+            if not any(marker.casefold() in haystack for marker in alternatives):
+                failures.append(
+                    f"release notes mechanism row {number} lacks semantic marker "
+                    f"{label} in {scope}"
+                )
+
 
 def canonical_claude_storage_namespaces(source: bytes) -> list[str]:
     """Recover the product key-factory set independently of the inventory script."""
@@ -3494,19 +4397,35 @@ def validate_exhaustive_human_references(repo: Path, failures: list[str]) -> Non
     )
 
 
+def finish_expected_negative_failure(
+    failures: list[str], expected: str | None
+) -> bool:
+    if expected is None or not any(expected in failure for failure in failures):
+        return False
+    print("snapshot validation: FAIL")
+    for failure in failures:
+        print(f"- {failure}")
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
     parser.add_argument(
         "--negative-test-fast", action="store_true", help=argparse.SUPPRESS
     )
+    parser.add_argument(
+        "--negative-test-expect", help=argparse.SUPPRESS
+    )
     args = parser.parse_args()
 
     if (
-        args.negative_test_fast
+        (args.negative_test_fast or args.negative_test_expect is not None)
         and os.environ.get("CLAUDE_VALIDATOR_NEGATIVE_TEST") != "1"
     ):
-        parser.error("--negative-test-fast is reserved for test_validator_negative.py")
+        parser.error("negative-test options are reserved for test_validator_negative.py")
+    if args.negative_test_expect is not None and not args.negative_test_fast:
+        parser.error("--negative-test-expect requires --negative-test-fast")
 
     repo = Path(args.repo).resolve()
     failures: list[str] = []
@@ -3528,6 +4447,8 @@ def main() -> int:
 
     validate_human_snapshot_identity(repo, version, metadata, failures)
     validate_release_notes(repo, failures)
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
     readme_first_screen = readme.split("## 快照信息", 1)[0]
@@ -3571,6 +4492,8 @@ def main() -> int:
             )
 
     validate_reader_first_analysis(repo, failures)
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
     cli_command_rows, cli_help_cases = validate_cli_command_tree(
         repo, version, metadata, failures
     )
@@ -3581,6 +4504,8 @@ def main() -> int:
             "private capture data found in publishable files: "
             + ", ".join(private_capture_files)
         )
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
 
     if args.negative_test_fast:
         inventory_summary = json.loads(
@@ -3593,12 +4518,19 @@ def main() -> int:
     else:
         inventory_files = validate_source_inventory(repo, failures)
     validate_product_surface_map(repo, failures)
+    validate_generated_control_references(repo, failures)
     completeness_rows = validate_completeness_closure(repo, failures)
     validate_topic_depth_contracts(repo, completeness_rows, failures)
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
     validate_human_inventory_facts(repo, failures)
     validate_exhaustive_human_references(repo, failures)
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
     native_behavior_checks = validate_native_reconstruction_report(repo, failures)
+    if finish_expected_negative_failure(failures, args.negative_test_expect):
+        return 1
 
     risk_surface = repo / "analysis/risk-control-surface.txt"
     risk_entries = 0

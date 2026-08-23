@@ -19,17 +19,17 @@
 <!-- ledger -->
 <g id="node2" class="node">
 <title>ledger</title>
-<path fill="#c8e6c9" stroke="#263238" stroke-width="1.4" d="M185.89,-161.18C185.89,-161.18 42.11,-161.18 42.11,-161.18 36.11,-161.18 30.11,-155.18 30.11,-149.18 30.11,-149.18 30.11,-118.34 30.11,-118.34 30.11,-112.34 36.11,-106.34 42.11,-106.34 42.11,-106.34 185.89,-106.34 185.89,-106.34 191.89,-106.34 197.89,-112.34 197.89,-118.34 197.89,-118.34 197.89,-149.18 197.89,-149.18 197.89,-155.18 191.89,-161.18 185.89,-161.18"/>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-143.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">本地 Cost Ledger</text>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-128.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">per&#45;model token/cache/search</text>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-116.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">USD + duration + lines</text>
+<path fill="#c8e6c9" stroke="#263238" stroke-width="1.4" d="M187.89,-161.18C187.89,-161.18 44.11,-161.18 44.11,-161.18 38.11,-161.18 32.11,-155.18 32.11,-149.18 32.11,-149.18 32.11,-118.34 32.11,-118.34 32.11,-112.34 38.11,-106.34 44.11,-106.34 44.11,-106.34 187.89,-106.34 187.89,-106.34 193.89,-106.34 199.89,-112.34 199.89,-118.34 199.89,-118.34 199.89,-149.18 199.89,-149.18 199.89,-155.18 193.89,-161.18 187.89,-161.18"/>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-143.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">本地 Cost Ledger</text>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-128.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">per&#45;model token/cache/search</text>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-116.28" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">USD + duration + lines</text>
 </g>
 <!-- request&#45;&gt;ledger -->
 <g id="edge1" class="edge">
 <title>request&#45;&gt;ledger</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M69.77,-643.02C43.99,-613.78 0,-563.87 0,-563.87 0,-563.87 0,-563.87 0,-241.35 0,-241.35 44.85,-199.41 78.29,-168.15"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="80,-170.14 83.69,-163.1 76.41,-166.31 80,-170.14"/>
-<text xml:space="preserve" text-anchor="middle" x="21.38" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">usage 记账</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M69.77,-643.02C43.99,-613.78 0,-563.87 0,-563.87 0,-563.87 0,-563.87 0,-241.35 0,-241.35 45.64,-199.41 79.66,-168.15"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="81.42,-170.1 85.17,-163.09 77.87,-166.23 81.42,-170.1"/>
+<text xml:space="preserve" text-anchor="middle" x="20.62" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">usage 记账</text>
 </g>
 <!-- limits -->
 <g id="node3" class="node">
@@ -49,17 +49,17 @@
 <!-- usagecmd -->
 <g id="node11" class="node">
 <title>usagecmd</title>
-<path fill="#e8f5e9" stroke="#263238" stroke-width="1.4" d="M284.52,-57.84C284.52,-57.84 183.48,-57.84 183.48,-57.84 177.48,-57.84 171.48,-51.84 171.48,-45.84 171.48,-45.84 171.48,-12 171.48,-12 171.48,-6 177.48,0 183.48,0 183.48,0 284.52,0 284.52,0 290.52,0 296.52,-6 296.52,-12 296.52,-12 296.52,-45.84 296.52,-45.84 296.52,-51.84 290.52,-57.84 284.52,-57.84"/>
-<text xml:space="preserve" text-anchor="middle" x="234" y="-39.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">/usage /cost /stats</text>
-<text xml:space="preserve" text-anchor="middle" x="234" y="-27.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">成本 + plan limits</text>
-<text xml:space="preserve" text-anchor="middle" x="234" y="-12.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">本机 24h/7d 行为归因</text>
+<path fill="#e8f5e9" stroke="#263238" stroke-width="1.4" d="M282.52,-57.84C282.52,-57.84 181.48,-57.84 181.48,-57.84 175.48,-57.84 169.48,-51.84 169.48,-45.84 169.48,-45.84 169.48,-12 169.48,-12 169.48,-6 175.48,0 181.48,0 181.48,0 282.52,0 282.52,0 288.52,0 294.52,-6 294.52,-12 294.52,-12 294.52,-45.84 294.52,-45.84 294.52,-51.84 288.52,-57.84 282.52,-57.84"/>
+<text xml:space="preserve" text-anchor="middle" x="232" y="-39.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">/usage /cost /stats</text>
+<text xml:space="preserve" text-anchor="middle" x="232" y="-27.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">成本 + plan limits</text>
+<text xml:space="preserve" text-anchor="middle" x="232" y="-12.95" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">本机 24h/7d 行为归因</text>
 </g>
 <!-- ledger&#45;&gt;usagecmd -->
 <g id="edge4" class="edge">
 <title>ledger&#45;&gt;usagecmd</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M145.53,-105.74C160.34,-93.04 178.17,-77.77 193.93,-64.26"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="195.41,-66.45 199.4,-59.57 191.99,-62.46 195.41,-66.45"/>
-<text xml:space="preserve" text-anchor="middle" x="216.97" y="-79.27" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">session/model usage</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M146.48,-105.74C160.8,-93.04 178.03,-77.77 193.27,-64.26"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="194.65,-66.54 198.52,-59.6 191.17,-62.61 194.65,-66.54"/>
+<text xml:space="preserve" text-anchor="middle" x="216.85" y="-79.27" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">session/model usage</text>
 </g>
 <!-- hints -->
 <g id="node5" class="node">
@@ -108,8 +108,8 @@
 <!-- usageapi&#45;&gt;usagecmd -->
 <g id="edge5" class="edge">
 <title>usageapi&#45;&gt;usagecmd</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M320.85,-638.16C329.87,-628.5 338,-619.79 338,-619.79 338,-619.79 354,-563.87 354,-563.87 354,-563.87 354,-563.87 354,-132.76 354,-132.76 309.22,-94.39 274.37,-64.52"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="276.12,-62.56 268.72,-59.67 272.7,-66.55 276.12,-62.56"/>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M320.85,-638.16C329.87,-628.5 338,-619.79 338,-619.79 338,-619.79 354,-563.87 354,-563.87 354,-563.87 354,-563.87 354,-132.76 354,-132.76 308.1,-94.07 272.6,-64.15"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="274.71,-62.49 267.28,-59.66 271.32,-66.5 274.71,-62.49"/>
 <text xml:space="preserve" text-anchor="middle" x="374.25" y="-349.62" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">plan usage</text>
 </g>
 <!-- credits -->
@@ -123,9 +123,9 @@
 <!-- rejected&#45;&gt;credits -->
 <g id="edge8" class="edge">
 <title>rejected&#45;&gt;credits</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M198.2,-437.42C180.9,-425.55 162.75,-413.11 162.75,-413.11 162.75,-413.11 150.82,-401.39 137.54,-388.34"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="139.65,-386.74 132.46,-383.36 135.97,-390.49 139.65,-386.74"/>
-<text xml:space="preserve" text-anchor="middle" x="198.38" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">需要 credits/admin</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M198.9,-437.42C181.99,-425.55 164.25,-413.11 164.25,-413.11 164.25,-413.11 152.03,-401.39 138.41,-388.34"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="140.43,-386.64 133.2,-383.34 136.79,-390.43 140.43,-386.64"/>
+<text xml:space="preserve" text-anchor="middle" x="199.12" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">需要 credits/admin</text>
 </g>
 <!-- arm -->
 <g id="node8" class="node">
@@ -140,44 +140,44 @@
 <title>rejected&#45;&gt;arm</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M233.4,-437.52C236.36,-423.4 240.32,-404.46 243.74,-388.13"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="246.27,-388.82 245.24,-380.94 241.14,-387.75 246.27,-388.82"/>
-<text xml:space="preserve" text-anchor="middle" x="258.66" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">gate 满足</text>
+<text xml:space="preserve" text-anchor="middle" x="257.91" y="-405.04" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">gate 满足</text>
 </g>
 <!-- fire -->
 <g id="node9" class="node">
 <title>fire</title>
-<path fill="#a5d6a7" stroke="#263238" stroke-width="1.4" d="M168.27,-272.77C168.27,-272.77 59.73,-272.77 59.73,-272.77 53.73,-272.77 47.73,-266.77 47.73,-260.77 47.73,-260.77 47.73,-223.93 47.73,-223.93 47.73,-217.93 53.73,-211.93 59.73,-211.93 59.73,-211.93 168.27,-211.93 168.27,-211.93 174.27,-211.93 180.27,-217.93 180.27,-223.93 180.27,-223.93 180.27,-260.77 180.27,-260.77 180.27,-266.77 174.27,-272.77 168.27,-272.77"/>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-254.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">排入 meta continuation</text>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-239.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">正常 Agent Loop 续跑</text>
-<text xml:space="preserve" text-anchor="middle" x="114" y="-224.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">不要重复已完成工作</text>
+<path fill="#a5d6a7" stroke="#263238" stroke-width="1.4" d="M170.27,-272.77C170.27,-272.77 61.73,-272.77 61.73,-272.77 55.73,-272.77 49.73,-266.77 49.73,-260.77 49.73,-260.77 49.73,-223.93 49.73,-223.93 49.73,-217.93 55.73,-211.93 61.73,-211.93 61.73,-211.93 170.27,-211.93 170.27,-211.93 176.27,-211.93 182.27,-217.93 182.27,-223.93 182.27,-223.93 182.27,-260.77 182.27,-260.77 182.27,-266.77 176.27,-272.77 170.27,-272.77"/>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-254.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">排入 meta continuation</text>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-239.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">正常 Agent Loop 续跑</text>
+<text xml:space="preserve" text-anchor="middle" x="116" y="-224.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">不要重复已完成工作</text>
 </g>
 <!-- arm&#45;&gt;fire -->
 <g id="edge10" class="edge">
 <title>arm&#45;&gt;fire</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M207.59,-326.06C188.68,-315 170.75,-304.52 170.75,-304.52 170.75,-304.52 160.14,-293.08 148.09,-280.1"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="150.18,-278.48 143.15,-274.77 146.33,-282.06 150.18,-278.48"/>
-<text xml:space="preserve" text-anchor="middle" x="209.38" y="-296.45" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">reset 到点/提前恢复</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M210.56,-326.06C192.95,-315 176.25,-304.52 176.25,-304.52 176.25,-304.52 164.78,-292.87 151.84,-279.74"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="154.04,-278.23 146.91,-274.73 150.3,-281.91 154.04,-278.23"/>
+<text xml:space="preserve" text-anchor="middle" x="212.62" y="-296.45" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">reset 到点/提前恢复</text>
 </g>
 <!-- stale -->
 <g id="node10" class="node">
 <title>stale</title>
-<path fill="#ffcdd2" stroke="#263238" stroke-width="1.4" d="M297.89,-272.77C297.89,-272.77 214.11,-272.77 214.11,-272.77 208.11,-272.77 202.11,-266.77 202.11,-260.77 202.11,-260.77 202.11,-223.93 202.11,-223.93 202.11,-217.93 208.11,-211.93 214.11,-211.93 214.11,-211.93 297.89,-211.93 297.89,-211.93 303.89,-211.93 309.89,-217.93 309.89,-223.93 309.89,-223.93 309.89,-260.77 309.89,-260.77 309.89,-266.77 303.89,-272.77 297.89,-272.77"/>
-<text xml:space="preserve" text-anchor="middle" x="256" y="-254.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">睡眠/移交/退出</text>
-<text xml:space="preserve" text-anchor="middle" x="256" y="-239.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">stale 或 cancelled</text>
-<text xml:space="preserve" text-anchor="middle" x="256" y="-224.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">不自动执行</text>
+<path fill="#ffcdd2" stroke="#263238" stroke-width="1.4" d="M299.89,-272.77C299.89,-272.77 216.11,-272.77 216.11,-272.77 210.11,-272.77 204.11,-266.77 204.11,-260.77 204.11,-260.77 204.11,-223.93 204.11,-223.93 204.11,-217.93 210.11,-211.93 216.11,-211.93 216.11,-211.93 299.89,-211.93 299.89,-211.93 305.89,-211.93 311.89,-217.93 311.89,-223.93 311.89,-223.93 311.89,-260.77 311.89,-260.77 311.89,-266.77 305.89,-272.77 299.89,-272.77"/>
+<text xml:space="preserve" text-anchor="middle" x="258" y="-254.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">睡眠/移交/退出</text>
+<text xml:space="preserve" text-anchor="middle" x="258" y="-239.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">stale 或 cancelled</text>
+<text xml:space="preserve" text-anchor="middle" x="258" y="-224.88" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="10.50">不自动执行</text>
 </g>
 <!-- arm&#45;&gt;stale -->
 <g id="edge11" class="edge">
 <title>arm&#45;&gt;stale</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M252.18,-325.82C252.78,-312.92 253.52,-296.99 254.19,-282.58"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="256.79,-283.11 254.51,-275.5 251.54,-282.87 256.79,-283.11"/>
-<text xml:space="preserve" text-anchor="middle" x="291.9" y="-296.45" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">睡眠过久/移交/退出</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M252.66,-325.82C253.49,-312.92 254.53,-296.99 255.46,-282.58"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="258.05,-283.15 255.92,-275.5 252.81,-282.81 258.05,-283.15"/>
+<text xml:space="preserve" text-anchor="middle" x="289.96" y="-296.45" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">睡眠过久/移交/退出</text>
 </g>
 <!-- fire&#45;&gt;ledger -->
 <g id="edge12" class="edge">
 <title>fire&#45;&gt;ledger</title>
-<path fill="none" stroke="#455a64" stroke-width="1.4" d="M114,-211.38C114,-198.79 114,-184.04 114,-170.87"/>
-<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="116.63,-171.22 114,-163.72 111.38,-171.22 116.63,-171.22"/>
-<text xml:space="preserve" text-anchor="middle" x="145.5" y="-184.86" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">新请求继续记账</text>
+<path fill="none" stroke="#455a64" stroke-width="1.4" d="M116,-211.38C116,-198.79 116,-184.04 116,-170.87"/>
+<polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="118.63,-171.22 116,-163.72 113.38,-171.22 118.63,-171.22"/>
+<text xml:space="preserve" text-anchor="middle" x="144.88" y="-184.86" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">新请求继续记账</text>
 </g>
 </g>
 </svg>

@@ -225,7 +225,19 @@ Agent Loop 传给 `callModel` 的不只是 `messages`。同一调用还携带：
 
 工具结果用 `tool_use_id` 配对，不依赖完成顺序。并发工具可以先后产生 progress；最终所有未完成工具会在本轮结束前由 `getRemainingResults()` drain 完。
 
+这里还有一条容易漏掉的“上下文所有权”规则：每个工具都可以返回 `contextLayers`，执行器会先把 layer 收集到内部 tool record 的 `contextLayers`，但只把**非 concurrency-safe 工具**产生的 layer 合并回后续 `toolUseContext`。并发安全工具的 layer 不进入共享 context；当前 drain 接口向外只产出 `{message, newContext}`，也不会把这些 layer 作为独立结果字段传播。换句话说，`concurrency-safe` 不只是“允许同时跑”，还隐含“不得依赖修改共享 context 来影响 sibling”的纯度要求；需要改变后续工具上下文的工具必须走非并发安全路径。
+
+结果 drain 也不是简单等待整个批次结束。执行器按模型给出的工具顺序扫描：遇到仍在执行的 safe 工具不会停，后面已经完成的 safe result 可以先交付；遇到仍在执行的 unsafe 工具才停止扫描，形成真正的 drain 屏障。这样既保留了 safe 工具的低延迟，又保证 unsafe 工具之后的观察不会越过共享状态写入。
+
 证据：可读 JS 267124-267149、267204-267268。
+
+### 新输入什么时候打断，什么时候排队
+
+工具定义还可以声明 `interruptBehavior()`。没有声明、返回异常或无法解析时都按 `block` 处理。只有**当前所有 executing 工具**都返回 `cancel`，执行器才发出 `interruptible_tool_in_progress=true`；界面/SDK 据此决定新的用户提交是否中断当前 turn，否则新输入继续排队等待吸收。只要混入一个 block 工具，整个正在执行集合就不可被普通新提交打断。
+
+真正收到 `interrupt` 后，只有 `cancel` 工具会得到合成的 `user_interrupted` result；block 工具继续完成。`end_conversation` 是另一种 abort reason：除 EndConversation 工具自身外，其他工具会收到 conversation-ended 结果，避免“结束会话的工具把自己取消掉”。所以“用户一发新消息，所有工具立刻取消”并不是 2.1.235 的调度合同。
+
+证据：可读 JS 267156-267177；事件 schema 对 `interruptible_tool_in_progress` 的界面用途说明见 595960。
 
 ## 单个工具调用的执行管线
 
@@ -291,11 +303,22 @@ hook 结果、permission mode、规则、managed policy、sandbox、安全分类
 
 ### `max_tokens` 恢复
 
-达到输出上限不一定立刻结束。CLI 会保留可用 assistant 内容，并加入一条隐藏提示，要求模型直接从中断处继续，不要道歉或复述。这个恢复有独立计数器，不增加正常工具轮次；次数耗尽后才把错误输出交给上层。
+达到输出上限不一定立刻结束。本版常量 `DGS=3`，因此初次截断后最多再发起 **3 次**恢复请求；计数器 `maxOutputTokensRecoveryCount` 独立于正常 `turnCount`，工具成功进入下一轮时会重置。
+
+恢复分两条路径，不能统一写成“总会追加 continuation prompt”：
+
+| 路径 | 判定 | 下一次请求怎样构造 |
+| --- | --- | --- |
+| 普通续写 | 默认路径，或响应不满足完整 thinking 恢复条件 | 保留已有 assistant/error 视图，再追加隐藏提示，要求直接续写、不道歉、不复述 |
+| incomplete-thinking 恢复 | 响应恰好只有一个可恢复的 signed thinking block、`stop_reason=max_tokens`、模型兼容，且 `tengu_thinking_block_resumption` gate 开启 | 不追加普通续写提示；保留 trailing thinking，设置 `resumeIncompleteThinking=true`，后续 assistant 标记 `resumedFromIncompleteThinking` |
+
+第二条路径保护的是签名 thinking 连续性，不是应用层文本拼接；本地 feature override 在 2.1.235 不可达，因此静态代码能证明该分支合同，但不能把它写成所有用户当前都会命中的默认行为。3 次仍未恢复时，CLI 才把最后一个 `max_output_tokens` 错误交给上层。
 
 ### malformed tool use
 
-如果 API 的 stop reason 是 `tool_use`，但客户端没有得到任何完整可执行 block，CLI 会补一条隐藏纠错消息并重试一次。第二次仍失败才返回 `malformed_tool_use_exhausted`。这避免把半截 JSON 当成工具调用，也避免无限修复循环。
+如果 API 的 stop reason 是 `tool_use`，但客户端没有得到任何完整可执行 block，CLI 会重试一次；第二次仍失败才返回 `malformed_tool_use_exhausted`。第一次没有完整 block，因此不会执行工具。
+
+重试还有两种消息视图。`tengu_malformed_tool_use_clean_retry` 在本地默认是 false：legacy 路径保留首次 assistant，再追加 `RZs` 纠错消息；clean 路径先 tombstone 首次 assistant，只用原历史 `Te + AZs` 重试。两条路径的次数相同，但 transcript、wire history 和 UI 回撤不同，不能只写“补一句提示再试”。
 
 ### thinking-only nudge
 
@@ -426,14 +449,37 @@ custom/subagent wrapper `o8` 完成 Agent 定义、模型和工具继承后，�
 | `model_error` | 模型调用或循环 invariant 失败 | 是 |
 | `api_error` | 结构化 API 错误消息 | 是 |
 | `malformed_tool_use_exhausted` | tool-use 纠错重试仍失败 | 是 |
-| `budget_exhausted` | task budget 用尽 | 是 |
+| `budget_exhausted` | 客户端 `--max-budget-usd` / `maxBudgetUsd` 命中 | 是 |
 | `structured_output_retry_exhausted` | 结构化输出修复耗尽 | 是 |
 | `tool_deferred_unavailable` | deferred tool 无法恢复 | 是 |
 | `turn_setup_failed` | turn 初始化失败 | 是 |
 
 注意：内部分类把 `max_turns`、hook stop 和 defer 视为受控终止，不等同于运行时异常；SDK 最终协议仍可把 max turns 表示为用户可见 error subtype。这两个层级不冲突。
 
+`budget_exhausted` 与 `taskBudget` 不是同一个预算。前者由客户端累计美元成本检查 `maxBudgetUsd` 后生成，并映射成 `error_max_budget_usd`；后者来自 `--task-budget <tokens>`，进入 API 请求的 `output_config.task_budget`，客户端只在 compact 后维护 remaining token 估计。不能看到字段名里都有 budget 就把二者绑定。
+
 证据：可读 JS 270799-270845、463148。
+
+## `command_lifecycle`：队列命令的命运，不是回答完成度
+
+stream-json/SDK 消费者还会收到 `queued -> started -> terminal` 的 `command_lifecycle`。它描述的是带 UUID 的排队命令被 worker 如何处理，不是模型内容质量的 success boolean：
+
+| state | 准确含义 |
+| --- | --- |
+| `queued` | 入站命令进入 command queue |
+| `started` | 命令被吸收到某个 turn；内部生成的命令可以没有先前 queued |
+| `completed` | 消费该命令的 turn 以受控路径结束；不保证问题已经回答，也不保证 result frame 已送达 |
+| `cancelled` | 用户取消、interrupt sweep，或吸收它的 turn 因 abort/hard failure 结束 |
+| `discarded` | session teardown 时命令仍留在队列 |
+
+有四个集成陷阱必须保留：
+
+1. `max_turns`、`hook_stopped`、`tool_deferred`、`background_requested` 当前仍映射 `completed`，内容可能要到 continuation/resume 才真正回答。
+2. terminal 可能没有 `started`，例如控制 ACK、重复投递；内部命令也可能有 started/terminal 而没有 queued。
+3. generator 直接 throw 时可能只留下 `started`；wrapper 应在进程退出时为未终结 UUID 合成 `discarded`。
+4. exactly-one-terminal 只在单 worker 生命周期内成立。CCR 重投后，同一 UUID 可以在新 worker 再走一遍生命周期；`cancelled-over-completed` 是宁可重复、不愿丢消息的取舍，重发器不能只看 cancelled 就盲目重发。
+
+证据：schema 语义见可读 JS 595960；queued/started/discarded 生产点见 600470、601116、600000-600001；turn terminal 到 completed/cancelled 的映射见 271499-271502、270799-270835。
 
 ## 可观测性：如何判断循环卡在哪一层
 

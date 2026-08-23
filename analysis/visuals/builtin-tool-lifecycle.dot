@@ -14,8 +14,8 @@ digraph builtin_tool_lifecycle {
 
   request -> common [label="解析并裁决"];
   { rank=same; machine; denied; }
-  common -> machine;
-  common -> denied;
+  common -> machine [label="校验通过"];
+  common -> denied [label="校验或策略拒绝"];
   machine -> effect [label="执行专属动作"];
   effect -> persist [label="记录可恢复状态"];
   persist -> result [label="映射输出 schema"];

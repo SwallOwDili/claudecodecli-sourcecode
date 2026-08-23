@@ -185,7 +185,7 @@ Brief enforcement 位于主 loop 的 post-turn 阶段，触发条件同时包括
 
 - query source 是 `repl_main_thread*` 或 `sdk`；
 - `isBriefEnabled()` 为真；
-- 没有 `DISABLE_BRIEF_MODE_STOP_HOOK`；
+- `DISABLE_BRIEF_MODE_STOP_HOOK` 未设为 true；该变量只关闭“漏调 SendUserMessage 后注入 sentinel 并 re-entry”的 post-turn enforcement，不关闭 Brief entitlement、Brief 工具或已经完成的发送；
 - 当前不是 subagent (`agentId` 为空)；
 - 当前工具集合确实包含 canonical `SendUserMessage`。
 

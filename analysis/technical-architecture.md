@@ -306,7 +306,7 @@ Datadog 只转发 allowlist 事件并删除/归一化一部分字段；GrowthBoo
 
 ### 本地诊断
 
-还包括 debug log、diagnostics file、JSONL/SDK/PTY recording、startup/query profiling、Perfetto、frame timing、heap/CPU/process telemetry。看到本地 profile 标识不等于文件会自动上传。
+还包括 debug log、diagnostics file、JSONL/SDK/PTY recording、startup/query profiling、Perfetto bridge/integration surface（recorder/file 未观察）、frame timing、heap/CPU/process telemetry。看到本地 profile 标识不等于文件会自动上传。
 
 完整通道、默认值、privacy gate 和字段见 [`telemetry.md`](telemetry.md) 与 [`inventory-field-guide.md`](inventory-field-guide.md)。
 

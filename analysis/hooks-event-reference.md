@@ -120,7 +120,7 @@ JSON 必须通过 schema，并且 `hookSpecificOutput.hookEventName` 必须与�
 | `PreToolUse` | permission decision、reason、`updatedInput`、`additionalContext` | 改写后的工具输入重新过 schema，并由 permission 规则基于新值继续裁决；通用管线不自动重跑工具自定义 `validateInput`；defer 受运行模式和批次限制 |
 | `PermissionRequest` | allow/deny decision，allow 可带 `updatedInput` | 改写值仍过 schema/permission 复验，不是直接调用工具；通用管线同样不自动重跑 custom validation |
 | `PostToolUse` | `updatedToolOutput`、兼容 MCP output、`additionalContext` | 修改后的输出仍要过工具 output schema；失败时保留原始结果并附 Hook error |
-| `PermissionDenied` | `retry:true` | 只告诉模型可重试；被拒绝的本次工具没有执行 |
+| `PermissionDenied` | `retry:true` | 当前调用点只覆盖 auto-mode classifier denial；不自动重跑原工具，且 `noVerdict` 会抑制 retry nudge；被拒绝的本次工具没有执行 |
 | `UserPromptSubmit` | context、session title、suppress original prompt | blocking 时原 prompt 不进入后续业务处理 |
 | `SessionStart` | context、initial user message、title、watch paths、reload skills | 影响启动上下文和 watcher；不能据此推断所有插件已成功重载 |
 | `CwdChanged`/`FileChanged` | watch paths、system message、环境文件 | 已发生的 cwd/file event 不会被撤销 |
@@ -180,7 +180,7 @@ Hook 输出小于限制时直接返回；过长时会写入本地持久化文件
 | `InstructionsLoaded` | CLAUDE.md/rule 被加载；path、memory type、load reason、globs、trigger/parent path | load reason | observability-only，不支持 blocking | 能暴露指令文件图和路径；失败只记录，不能撤回已加载内容 |
 | `MessageDisplay` | assistant 文本按 completed lines 显示；turn/message/index/final/delta | 无 | `displayContent` 替换本次屏幕 delta | stored message 和模型上下文不变；delta 可能含敏感回答；失败显示原 delta |
 | `Notification` | 客户端发送 notification；message、title、type | notification type | 观察/外部通知，不改变业务状态 | command/HTTP 外发可能复制提示内容；失败通常只展示或记录 |
-| `PermissionDenied` | auto classifier 等拒绝工具后；tool、input、ID、reason | tool name | `retry:true` 允许模型考虑再试 | 工具尚未执行；reason/input 可能暴露命令和路径 |
+| `PermissionDenied` | `decisionReason.type=classifier` 且 classifier 为 `auto-mode` 的拒绝后；tool、input、ID、reason | tool name | `retry:true` 只在非 `noVerdict` 时追加 meta nudge，让下一次模型考虑再试；不会重跑原调用 | 工具尚未执行；rule/mode/hook/user-dialog deny 不走当前调用点；reason/input 可能暴露命令和路径 |
 | `PermissionRequest` | permission dialog 路径；tool、input、suggestions | tool name | 可直接给 allow/deny decision，allow 可带 updated input | 工具尚未执行；仍受后续校验/policy；Hook 不应把 ask 当作无限权限 |
 | `PostCompact` | summary 已生成并交换进会话；trigger、compact summary | manual/auto | 可向用户显示结果；不修改已完成 compact | summary 高敏感；失败不能恢复旧 prompt 表示，物理 transcript 是否保留由会话层决定 |
 | `PostToolBatch` | 一批 sibling tool 全 resolve、下一次模型请求前；`tool_calls[]` | 无 | 可注入一次 additional context；exit 2 以 `hook_stopped` 终止当前 loop，不自动重新请求模型 | 工具副作用均可能已发生；end-turn 工具路径会执行 Hook 但丢弃 blocking 决定；批量 input/response 体积与敏感度高 |

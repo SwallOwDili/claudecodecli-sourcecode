@@ -1,0 +1,25 @@
+digraph complex_slash_commands_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.3];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.6, fontcolor="#263238"];
+
+  command [label="复杂 slash command\nGitHub / onboarding / privacy / web / terminal", fillcolor="#e3f2fd"];
+  gates [label="入口 gate\n账号、feature、terminal、workspace", fillcolor="#fff3cd"];
+  discover [label="发现当前状态\ngh / transcripts / account / config", fillcolor="#e0f2f1"];
+  confirm [label="用户确认\nrepo、workflow、toggle、replace", fillcolor="#d1c4e9"];
+  commit [label="提交副作用\nAPI、文件、secret、OS 设置", fillcolor="#ffe0b2"];
+  verify [label="重新读取或验证\n显示成功、部分成功、失败", fillcolor="#c8e6c9"];
+  external [label="外部持久状态\nGitHub / Claude / workspace / terminal", fillcolor="#b2dfdb"];
+  recover [label="局部恢复\n重试、backup restore、手工撤销", fillcolor="#ffccbc"];
+
+  command -> gates [label="选择命令专属控制面"];
+  gates -> discover [label="允许读取现状"];
+  gates -> recover [label="条件不满足时给出修复"];
+  discover -> confirm [label="把现状和风险交给用户"];
+  confirm -> commit [label="确认后执行写入"];
+  confirm -> recover [label="取消或选择不修改"];
+  commit -> external [label="改变 owner 系统状态"];
+  commit -> verify [label="返回结果并重新读取"];
+  verify -> recover [label="部分失败时保留已完成步骤"];
+  verify -> external [label="确认最终可见状态"];
+}

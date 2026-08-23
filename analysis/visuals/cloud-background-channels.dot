@@ -97,5 +97,5 @@ digraph cloud_background_channels {
     color="#c62828",
     fontsize=9.2
   ];
-  boundary_note -> remote_bridge [style=dashed, arrowhead=none, color="#c62828"];
+  boundary_note -> remote_bridge [label="标注网络边界", style=dashed, arrowhead=none, color="#c62828"];
 }

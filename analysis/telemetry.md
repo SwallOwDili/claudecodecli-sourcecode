@@ -1,6 +1,6 @@
 # Claude Code CLI 2.1.235 遥测、日志与诊断能力
 
-本文只记录发布 bundle 中可以静态证实的客户端行为。它覆盖一方事件、OpenTelemetry、Datadog、GrowthBook、错误上报、Perfetto、启动/查询 profiling、本地 debug/diagnostic 日志，以及对应的门控、字段、队列、重试和隐私控制。
+本文只记录发布 bundle 中可以静态证实的客户端行为。它覆盖一方事件、OpenTelemetry、Datadog、GrowthBook、错误上报、Perfetto integration surface、启动/查询 profiling、本地 debug/diagnostic 日志，以及对应的门控、字段、队列、重试和隐私控制；“存在 Perfetto bridge”与“本版构造 recorder 并写出 trace 文件”明确分开。
 
 如果你先要理解这些通道在整个请求生命周期中的位置，读 [技术架构导读](technical-architecture.md)；如果你在问 `request_id`、`cache_read_input_tokens`、`comparisonKey` 或 payload spread 是什么意思，读 [机器清单字段指南](inventory-field-guide.md)。
 
@@ -12,14 +12,14 @@
 
 ![运行时信号经过关联、隐私门和采样后，分别进入一方事件、OTEL 与本地诊断通道](visuals/telemetry-pipeline.svg)
 
-贯穿场景：一次模型请求首 token 慢，随后 Bash 等待权限，工具完成后又触发 compact。查询级 ID 把模型、permission、tool 和 compact timing 串起来；token/cache 字段解释成本；permission/hook 事件解释等待；一方事件可能被共享流量门和采样阻断，管理员显式启用的 OTEL 按自己的 exporter/content 设置发送，本地 Perfetto/debug 则写到现场文件。
+贯穿场景：一次模型请求首 token 慢，随后 Bash 等待权限，工具完成后又触发 compact。查询级 ID 把模型、permission、tool 和 compact timing 串起来；token/cache 字段解释成本；permission/hook 事件解释等待；一方事件可能被共享流量门和采样阻断，管理员显式启用的 OTEL 按自己的 exporter/content 设置发送，本地 debug/profile 按各自 consumer 记录。Perfetto 在本版只确认 bridge 与 env 读取，不能并入“已写现场文件”的结论。
 
 | 通道 | 所有者/目的地 | 进入前的关键门 | 保留的主要语义 | 失败与隐私边界 |
 | --- | --- | --- | --- | --- |
 | 一方事件 | Anthropic event pipeline | provider、nonessential traffic、telemetry/policy、killswitch、sampling | 产品事件、环境、token/cost、错误和 timing | queue/batch/retry/persist；不是所有调用点都必然发送 |
 | Datadog 分支 | 一方受控日志出口 | first-party、feature、allowlist、字段删除 | allowlist 事件和归一化 tags | 181 项 allowlist 与 26 个删除字段限制转发面 |
 | 第三方 OTEL | 用户/管理员配置 exporter | `CLAUDE_CODE_ENABLE_TELEMETRY`、protocol/exporter、content controls | metrics、structured logs、traces | 与一方 telemetry 开关不是同一状态机 |
-| 本地诊断 | 本地文件、stderr、Perfetto/profile | 对应 debug/profile 环境与运行模式 | 启动、查询阶段、内存/CPU、frame、原始诊断 | 不等于远端发送，但仍需管理本地敏感材料 |
+| 本地诊断 | 本地文件、stderr、profile；另有 Perfetto bridge surface | 对应 debug/profile 环境与运行模式 | 启动、查询阶段、内存/CPU、frame、原始诊断；Perfetto 仅确认 bridge | 不等于远端发送；Perfetto recorder/file 在本版仍是 Boundary，本地敏感材料仍需分别管理 |
 | Error/GrowthBook | 专用上报或复用 transport | 登录、provider、feature、policy/compliance、独立关闭开关 | scrub 后异常或 experiment attributes | 各自有额外 gate，不能并入一个“遥测总开关” |
 
 下面先给出机器覆盖，再按通道解释 queue、sampling、batch、retry、storage、auth fallback、字段删除和 prompt 正文门；数量用于证明覆盖，不替代每条通道的运行语义。
@@ -55,7 +55,7 @@
 
 ## 静态覆盖审计
 
-v3 提取器使用仓库内置 Acorn `8.15.0` 将完整 `extracted/cli.js` 解析为 AST，而不是依赖全局正则猜测 JavaScript 边界。它排除同名函数声明后，记录每个目标调用的 offset/line/column、所在函数和词法 scope、全部参数、事件名表达式、静态值或模板形状，并在同级或祖先作用域查找最近赋值。
+format v5 提取器使用仓库内置 Acorn `8.15.0` 将完整 `extracted/cli.js` 解析为 AST，而不是依赖全局正则猜测 JavaScript 边界。它排除同名函数声明后，记录每个目标调用的 offset/line/column、所在函数和词法 scope、全部参数、事件名表达式、静态值或模板形状，并在同级或祖先作用域查找最近赋值。
 
 调用覆盖为：`H` 2,162、`Fv` 32、`Nd` 52、`et` 498、`CB` 12。`H` 的第一个参数包含 2,119 个直接字符串、3 个模板、24 个 identifier、9 个 conditional 和 7 个 member/call；`Fv` 的 32 个均为直接字符串。动态/未解析表达式没有被丢弃，而是连同原表达式、长度、SHA-256、作用域解析结果和 unresolved 状态写入 JSONL。
 
@@ -74,7 +74,7 @@ v3 提取器使用仓库内置 Acorn `8.15.0` 将完整 `extracted/cli.js` 解�
 | 第三方 OTEL traces | console、OTLP | OTEL 总开关和 enhanced telemetry beta | 10 类 span | 同文件 93980-94360、361450-361710 |
 | GrowthBook experiment | 复用一方批量 transport | GrowthBook/一方遥测门 | experiment/variation 和序列化 attributes | 同文件 77990-78060 |
 | 错误上报 | bundle 中的错误上报客户端 | 一方 provider、登录状态、版本、feature、组织 policy、`DISABLE_ERROR_REPORTING` | 异常、上下文、经过 scrub 的属性 | 同文件 73690-73880 |
-| Perfetto | 本地 trace 文件 | `CLAUDE_CODE_PERFETTO_TRACE` | interaction、LLM、tool 等 trace slice | 同文件 93980-94290 |
+| Perfetto integration surface | 本版只观察到 env 读取、初始化 debug 消息和一组在 owner 非空时才工作的 span bridge；owner `l4` 在发布物可见路径中保持 `null` | `CLAUDE_CODE_PERFETTO_TRACE` 被读取，但未观察到 recorder 构造 | interaction、LLM、tool 等 bridge API 的声明/调用点 | 同文件 93980-94290；实际本地 trace 文件创建属于 Boundary |
 | Profiling/diagnostics | 本地文件或 stderr/debug log | 对应 debug/profile 环境变量 | 启动 checkpoint、查询阶段、内存/CPU、frame timing、JSONL | 同文件 17097、267260-267390 |
 
 ## 共享隐私和流量门
@@ -260,12 +260,12 @@ interaction、LLM 和 tool span 同时可以关联 Perfetto span ID。LLM 完成
 - secret scrubber：内置 URL userinfo、JWT、Anthropic/OpenAI/GitHub/GitLab/AWS/GCP/Azure 等 credential-shaped pattern，用于日志/错误内容清理；
 - debug log：`CLAUDE_DEBUG`、`DEBUG`、`CLAUDE_CODE_DEBUG_LOG_LEVEL`、`CLAUDE_CODE_DEBUG_LOGS_DIR`；
 - diagnostics file：`CLAUDE_CODE_DIAGNOSTICS_FILE`；
-- session/SDK/transcript recording：`CLAUDE_CODE_SESSION_LOG`、`CLAUDE_CODE_JSONL_TRANSCRIPT`、`CLAUDE_CODE_TEE_SDK_STDOUT`、terminal/PTY recording；
+- session/SDK/transcript recording：`CLAUDE_CODE_JSONL_TRANSCRIPT`、`CLAUDE_CODE_TEE_SDK_STDOUT`、terminal/PTY recording；`CLAUDE_CODE_SESSION_LOG` 在本版可见 consumer 中只写入 concurrent-session PID metadata 的 `logPath`，未证明它自己启动 recorder；
 - frame/repaint timing：frame timing log、sample interval、debug repaints；
 - OTEL diagnostics：`CLAUDE_CODE_OTEL_DIAG_STDERR`；
 - startup profiling：`CLAUDE_CODE_PROFILE_STARTUP`；
 - query profiling：`CLAUDE_CODE_PROFILE_QUERY=1`，记录 context loading、autocompact、query setup、tool schemas、normalization、client creation、network TTFB、tool execution，并关联内存快照；
-- Perfetto：`CLAUDE_CODE_PERFETTO_TRACE` 和 write interval，输出本地 trace；
+- Perfetto integration：`CLAUDE_CODE_PERFETTO_TRACE` 被读取并写入初始化 debug 消息，bridge 在 `l4` 非空时才记录 span；本版未观察到 `l4` recorder 构造或本地 trace 文件输出，因此实际 recorder/文件属于 Boundary；
 - heap/process telemetry：RSS、heap、external、array buffers、CPU、uptime 等。
 
 消息面不是只保留去重后的 2,248 个 error literal 和 830 个 diagnostic literal：4,831 个 `Error`/`TypeError`/`RangeError` 调用、5,403 个 `T()` 调用，以及其中 1,526/4,438 个模板参数均带调用类型、位置、函数 scope、完整参数和稳定比较值。这样可以直接比较错误分支、插值参数和诊断上下文的版本变化。

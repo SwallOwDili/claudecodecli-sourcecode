@@ -17,18 +17,20 @@
 | 机制 | 主要触发 | 是否额外调用模型 | 工具能力 | 写入位置 | 会不会自动上传 |
 | --- | --- | --- | --- | --- | --- |
 | Auto Dream | 24h + 5 个新 session 等 gate | 是，fork agent | 只读探索 + memory 内 `.md` 写删；禁 MCP | 持久 memory 文件、task state | 否 |
-| Away Summary / `/recap` | 离开窗口、缓存仍新鲜或显式命令 | 是，单轮无工具 | 无工具 | session 的 `away_summary` system event | 否 |
+| 自动 Away Summary | 离开窗口、缓存仍新鲜且自动 gate 通过 | 是，单轮无工具 | 无工具 | 追加 session `away_summary` system event | 否 |
+| `/recap` | 用户显式执行命令 | 是，复用同一个单轮无工具生成器 | 无工具 | 只把 text/typed failure 返回给命令调用方，不写 `away_summary` 或 metadata | 否 |
 | Post-turn Summary | turn 结束且宿主 surface 需要 | 默认 heuristic；可选 LLM | 分类器无业务工具 | app/session summary fields | 只发给当前宿主协议 |
 | Prompt Suggestion | 至少 2 个 assistant turn 且多道 gate 通过 | 是，单轮无工具 | 无工具 | `promptSuggestion` UI/SDK event | 否 |
 | Feedback Draft | 主模型自然时机调用 `SendFeedback` | 工具调用来自主 Agent；写草稿本身不另起模型 | 仅写受控草稿 | 本地持久 draft，权限 `0600` | 否；必须用户审核发送 |
 
-这五者共享“发生在主回答之外”的表象，但 owner、输入、持久性、费用和隐私边界完全不同。把它们统称为 background summarizer，会掩盖最重要的区别：**Auto Dream 会改文件，Feedback Draft 可能在确认后出网，其余通常只影响会话呈现。**
+这些机制共享“发生在主回答之外”的表象，但 owner、输入、持久性、费用和隐私边界完全不同。把它们统称为 background summarizer，会掩盖最重要的区别：**Auto Dream 会改文件，Feedback Draft 可能在确认后出网，自动 Away Summary 会写一条展示 event，而 `/recap` 只返回当次命令结果。**
 
 ## 状态变化：离开并返回一次 session 后发生什么
 
 | Object | Before | Transformation | After | User-visible effect |
 | --- | --- | --- | --- | --- |
-| conversation transcript | 有多个真实用户 turn | Away model压成 `<40 words` recap | 追加一条 `away_summary` system event | 回来时快速知道刚才做到哪 |
+| conversation transcript | 有多个真实用户 turn | 自动 Away model 把现状压成 `<40 words` recap | 追加一条 `away_summary` system event | 回来时快速知道刚才做到哪 |
+| `/recap` command result | 用户显式请求即时 recap | 同一生成器返回 `ok/api-error/no-turn/aborted/failed` | wrapper 映射成 text 返回，不改 transcript/metadata | 当前调用方看到一次性短摘要或明确失败文案 |
 | post-turn state | 没有本轮状态 | heuristic 或 classifier 生成结构化字段 | `status_category/status_detail/needs_action` | 宿主可显示等待、阻塞或完成 |
 | prompt input | 空，无建议 | suggestion model 生成并通过长度/语气过滤 | 保存一条短建议 | 用户可一键继续下一步 |
 | project memory | 多个 session 后仍是旧整理结果 | Auto Dream 读取 session 与 memory，编辑 `.md` | 长期记忆内容被真实改写 | 后续 session 会读到新记忆 |
@@ -110,7 +112,7 @@ Away Summary 的目标是用 1-2 句告诉用户刚才做到哪里，不承担�
 
 ### 什么时候才会生成
 
-interactive session 默认启用，可由 `awaySummaryEnabled` 设置或 `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` 等初始化 gate 控制。远端配置的默认延迟是 `180000ms`，任何更小值都会被抬到 `30000ms`。
+interactive session 默认启用，可由 `awaySummaryEnabled` 设置或 `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` 等初始化 gate 控制。本地 delay fallback 是 `180000ms`；`tengu_sedge_lantern_config.delayMs` 可覆盖，但任何更小值都会被抬到 `30000ms`。实际等待取该 delay 与 prompt-cache 剩余寿命 `80%` 的较小值，因此它不是“固定离开 3 分钟必定生成”。
 
 生成前还要同时满足：
 
@@ -122,7 +124,7 @@ interactive session 默认启用，可由 `awaySummaryEnabled` 设置或 `CLAUDE
 6. 最近没有 StructuredOutput recap。
 7. 当前末尾还不是 `away_summary`。
 
-窗口重新聚焦或新 turn 到来时，正在生成的 recap 会 abort；如果生成结果对应的消息版本已经过期，也会被丢弃。`/recap` 复用同一生成器，但显式触发可以绕过部分“自动生成才需要”的 gate。
+窗口重新聚焦或新 turn 到来时，正在生成的自动 recap 会 abort；如果生成结果对应的消息版本已经过期，也会被丢弃。`/recap` 复用 `qYn` 生成器，并在缺少缓存参数时尝试从当前 session 重建参数，但它不经过自动 Away Summary 的 append 分支：wrapper 只返回 text/typed failure，不追加 `away_summary` system event，也不调用 metadata writer。
 
 源码中的 `5` 分钟 blur 阈值用于“用户返回 session”遥测条件，不是 recap 的生成硬阈值。把它写成“离开 5 分钟才生成”是不准确的。
 
@@ -217,7 +219,8 @@ Prompt Suggestion 试图在任务完成后给出“下一步可以问什么”�
 | 机制 | Token/延迟 | Cache / transcript | 隐私 | 不可逆副作用 |
 | --- | --- | --- | --- | --- |
 | Auto Dream | 额外 fork 模型与工具轮次，可能读取多个 session | `skipTranscript`; 可 `skipCacheWrite` | 会读取历史 session 和 memory | 写删持久 memory Markdown |
-| Away Summary | 一次无工具、单轮短输出 | `skipTranscript/skipCacheWrite` | recap 输入来自当前 session | 追加 session system recap；可被新 turn 取消 |
+| 自动 Away Summary | 一次无工具、单轮短输出 | `skipTranscript/skipCacheWrite` | recap 输入来自当前 session | 追加 session system recap；可被新 turn 取消 |
+| `/recap` | 同一单轮模型调用 | `skipTranscript/skipCacheWrite` | 必要时从当前 session 重建生成参数 | 只返回命令文本；没有 transcript/metadata 写入 |
 | Post-turn Summary | heuristic 几乎无模型成本；LLM 模式有额外请求 | 保存结构化状态，不是业务 transcript | 分类输入来自本轮消息 | 通常只是宿主状态变更 |
 | Prompt Suggestion | 额外模型请求；冷缓存 >10000 usage 时抑制 | `skipTranscript/skipCacheWrite` | suggestion model 读取必要会话上下文 | 通常只改变 UI/SDK suggestion state |
 | Feedback Draft | 主模型先产生工具调用；上传另有网络成本 | draft 持久化，transcript 附件可选 | 本地草稿可能含 session 证据；上传前校验和裁剪 | 用户确认后反馈出网；成功删除本地 draft |
@@ -242,7 +245,9 @@ Prompt Suggestion 试图在任务完成后给出“下一步可以问什么”�
 | Auto Dream 默认 `24h / 5 sessions / 10min scan` | 268533-268564 |
 | Prompt Suggestion 启用、抑制、生成与过滤 | 268566-268701 |
 | Post-turn Summary surface、heuristic/LLM、两次 JSON 尝试 | 269801-270170、270292-270366 |
-| Away Summary turn gate、cache gate、abort 与 `/recap` 复用 | 584410-584563 |
+| Away Summary / `/recap` 共用生成器与 CCR metadata sink | 367208-367253 |
+| `/recap` wrapper 的 text-only 返回 | 367349-367380 |
+| 自动 Away Summary turn/cache/delay/abort 与 event append | 584410-584563 |
 | Feedback Draft 本地持久化与 `SendFeedback` tool | 295584-296019 |
 | Feedback transcript 校验、裁剪、上传、删除/保留 | 462800-462910 |
 | SDK prompt suggestion 事件 | 601191-601217 |

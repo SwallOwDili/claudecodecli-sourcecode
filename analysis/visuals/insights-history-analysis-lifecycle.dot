@@ -1,0 +1,24 @@
+digraph insights_history_analysis_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.8, fontcolor="#263238"];
+
+  transcripts [label="本地 transcripts\n消息、工具、usage、路径", fillcolor="#e3f2fd"];
+  metadata [label="session metadata\nmtime + 确定性统计", fillcolor="#e0f2f1"];
+  compact [label="模型输入缩减\n500/300 截断 + 长会话分块", fillcolor="#fff3cd"];
+  facets [label="facet cache\n目标 / 结果 / 满意度 / 摩擦", fillcolor="#d1c4e9"];
+  aggregate [label="全局聚合\n计数 + facet 语义", fillcolor="#c8e6c9"];
+  sections [label="7 个并行专题 + 1 个总览\n每个最多 8192 output token", fillcolor="#ffe0b2"];
+  report [label="本地 HTML\n时间戳报告 + report.html", fillcolor="#b2dfdb"];
+  stale [label="陈旧语义风险\nfacet 不比较 transcript mtime", fillcolor="#ffccbc"];
+
+  transcripts -> metadata [label="解析并按 mtime 刷新"];
+  metadata -> compact [label="选择最多 50 个缺 facet 会话"];
+  compact -> facets [label="抽取 4096-token JSON facet"];
+  facets -> aggregate [label="提供语义分类"];
+  metadata -> aggregate [label="提供确定性统计"];
+  aggregate -> sections [label="组织全局分析输入"];
+  sections -> report [label="渲染并以 0600 写入"];
+  transcripts -> stale [label="旧 session 继续增长"];
+  stale -> facets [label="结构合法时仍复用旧 facet"];
+}

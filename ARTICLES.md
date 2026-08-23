@@ -4,7 +4,7 @@
 
 ## 先读这六篇
 
-1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 54 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到原生桥和准确性边界。
+1. [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)：单卷 58 章，从发布物、请求装配、Agent Loop、工具注册、Plan/Structured Output、Brief 输出、上下文、权限、多 Agent、恢复、遥测一直讲到 Artifact Watch、`/insights`、启动资源、复杂 Slash Command、原生桥和准确性边界。
 2. [Agent Loop 专题](analysis/agent-loop.md)：解释 Claude Code 为什么能连续读文件、改代码、执行测试、吸收工具结果并继续决策。
 3. [`/compact` 图文专题](analysis/compact-visual-guide.md)：用一个完整场景和三张图说明 Summary、近期消息、附件恢复、compact boundary 与失败恢复。
 4. [Plan Mode 与人工审批](analysis/plan-mode-and-human-approval.md)：解释“先规划、后实施”怎样由 permission mode、计划文件、工具底线、问答与人工批准共同实现。
@@ -16,7 +16,7 @@
 ## 本轮新增的全量参考
 
 1. [71 类证据归属地图](analysis/product-surface-evidence-map.md)：71/71 inventory 逐类区分产品结构、真实调用点、混合 heuristic、依赖 surface 和证据底座，并路由到人类机制与 Boundary。
-2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 54 个产品能力面区分 Deep 与 Boundary；53 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
+2. [全面性审计与收口合同](analysis/completeness-audit.md)：按 58 个产品能力面区分 Deep 与 Boundary；57 个客户端能力面逐项收口，1 个不可恢复面明确保留边界，不以文章篇幅或清单数量冒充全面。
 3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
 4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
 5. [29 项核心终端参考工具逐项说明](analysis/builtin-tools-reference.md)：维护集合 29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
@@ -25,6 +25,11 @@
 8. [完整 CLI 命令树](analysis/cli-command-reference.md)：恢复 90 个普通/隐藏/条件/fast-path/manual-parser 路径及 8 个内部入口，逐层解释 alias、arguments/options、gate、handler、副作用和失败，说明为什么顶层 `--help` 不是全貌。
 9. [CLI、SDK 与输出协议](analysis/cli-sdk-output-protocol.md)：讲清 text/JSON/stream-json、stdin/stdout envelope、control request/response、观察事件、structured output、session 与终态。
 10. [Plugins、Skills、Slash Commands 与 LSP](analysis/plugins-skills-commands-lsp.md)：讲清来源信任、安装与 enable、session registry、listing 预算、reload、MCP cache 和 language server 生命周期。
+11. [842 个 typed 环境变量](analysis/environment-variable-reference.md)：区分 842 个 schema 声明、2,161 个 typed named read、80 个 declaration-only、137 个非 typed 名称与 145 个动态调用点，不用名称猜 consumer。
+12. [361 个 Feature key](analysis/feature-flag-reference.md)：精确拆分 444 个 literal、11 个 assignment-resolved 和 43 个真正动态调用点，并保留 fallback、shape、consumer 与服务端 Boundary。
+13. [遥测排障场景与 1,441 个一方事件](analysis/telemetry-event-catalog.md)：先按 API、工具授权、Permission UI、compact、session、MCP、后台任务、登录、错误终态和 transcript 恢复解释事件顺序、owner、字段与状态变化，再逐事件保留 payload field、spread、function、Datadog/OTEL 资格和动态名称边界；911 项 `tengu_other` 是确定性投影兜底桶，不是低价值事件。
+14. [99 条 API 路径与 53 个 Beta 的所有权](analysis/api-beta-route-ownership.md)：逐项区分客户端 product consumer、发布物内 Gateway handler、SDK/依赖、prefix/allowlist 和内嵌参考文本，解释 header/path 出现为什么不等于 runtime 已发送或服务端已开放。
+15. [错误与诊断机制图谱](analysis/error-diagnostic-atlas.md)：把 4,831 个错误构造点、5,403 个 debug diagnostic 调用点、tool failure、abort、stderr/TUI、LSP attachment、Hook、telemetry 和外部副作用放回同一条恢复链。
 
 ## 七个不能只写成工具名的新专题
 
@@ -35,6 +40,13 @@
 5. [Remote Routines、Runner 与 Notifications](analysis/remote-routines-runner-and-notifications.md)：串起 8 类 RemoteTrigger、9 个 runner operator、spawn/requeue/health/log、通知的 100 项 pending、1000 drained ID、90k drain、ack 和最多两次 rearm。
 6. [Connectors、账号 Catalog 与 MCP Operators](analysis/connectors-catalog-and-mcp-operators.md)：讲清 search/list/suggest、Plugin/Skill OAuth scope expansion、suggestion card 与安装的区别，以及 refresh/wait/resource 对 live MCP 状态真正改变了什么。
 7. [ClaudeDesign 与 Projects](analysis/claude-design-and-projects.md)：讲清动态 operation catalog、project grant、预览/结果预算、Projects 五种方法、RAG 403 fallback、路径/inode TOCTOU 与远端知识配额。
+
+## 四个不能埋在参数和 Slash Command 表里的状态机
+
+1. [Artifact Watch 评论自动响应](analysis/artifact-watch-comment-autoreact.md)：讲清外部评论为什么先做 baseline/digest、无工具 triage 和只读 analyst，写前如何经过 plan/cap/breaker/permission probe，以及 ack、edit、reply、resolve 为什么不是一个可回滚事务。
+2. [`/insights` 历史分析管线](analysis/insights-history-analysis-pipeline.md)：讲清 metadata 与 facet 双缓存、500/300 字符截断、30k/25k 分块、50 个 facet、7+1 模型分析、270,336 output-token 静态上限，以及 facet 不比较 transcript mtime 导致的过期语义窗口。
+3. [CLI 启动文件、URL 插件与 Deep Link](analysis/cli-startup-files-plugins-deeplinks.md)：讲清 `--file` 下载落盘不等于进入模型，`--plugin-url` 为什么是会话级可执行能力，ZIP 防护与 URL 信任为什么是两层边界，以及 Deep Link 如何拒绝 argv 注入并只预填不提交。
+4. [复杂 Slash Command 生命周期](analysis/complex-slash-command-lifecycles.md)：逐条下钻 `/install-github-app`、`/team-onboarding`、`/privacy-settings`、`/web-setup`、`/terminal-setup`，区分 GitHub、Claude 服务端、workspace 和 OS 状态 owner，以及部分成功后需要在外部系统撤销的副作用。
 
 ## 本轮完成的产品表面深挖
 
@@ -74,6 +86,10 @@
 | 71 类机器清单分别属于产品、依赖、heuristic 还是证据底座 | [产品表面与证据归属地图](analysis/product-surface-evidence-map.md) |
 | 一次请求从输入到工具执行、持久化和遥测经历什么 | [技术机制总图](analysis/technical-mechanism-atlas.md) |
 | 当前分析到底覆盖了什么、还有哪些能力面不能称为全面 | [全面性审计与收口合同](analysis/completeness-audit.md) |
+| Artifact 评论为什么不能直接指挥 Agent，自动回复怎样被 plan、permission 和 breaker 阻止 | [Artifact Watch 评论自动响应](analysis/artifact-watch-comment-autoreact.md) |
+| `/insights` 为什么不是纯本地报表，facet cache 为什么可能长期过期 | [`/insights` 历史分析管线](analysis/insights-history-analysis-pipeline.md) |
+| `--file`、`--plugin-url` 和 Deep Link 分别改变本地文件、插件图还是输入框 | [CLI 启动文件、URL 插件与 Deep Link](analysis/cli-startup-files-plugins-deeplinks.md) |
+| GitHub App、onboarding、privacy、web setup 和 terminal setup 为什么不能共用一种撤销语义 | [复杂 Slash Command 生命周期](analysis/complex-slash-command-lifecycles.md) |
 | 为什么核心参考是 29 项，bundle 却有 80 个 `Yi({...})` 注册调用点 | [工具注册、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md) |
 | 29 项核心终端参考工具分别改变什么状态、哪些副作用不能 rewind | [核心终端工具逐项参考](analysis/builtin-tools-reference.md) |
 | Brief 模式为什么普通文字存在但主视图仍可能看不到，附件为什么桌面与手机结果不同 | [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md) |
@@ -118,11 +134,14 @@
 | MCP 工具何时刷新，子 Agent 和后台任务怎样回传结果 | [MCP、Agents 与后台协作](analysis/mcp-agents-background.md) |
 | Retry、fallback、reactive compact 和 file rewind 分别恢复哪一层 | [韧性与恢复](analysis/resilience-and-recovery.md) |
 | 模型别名、provider、凭据、base URL、beta 和 request body 怎样决定 | [模型、认证、Provider 与请求装配](analysis/models-auth-providers-request.md) |
+| 99 条 API path 和 53 个 Beta 哪些是产品 consumer、Gateway handler、SDK 或内嵌文本 | [API、Beta 与路由所有权](analysis/api-beta-route-ownership.md) |
 | 为什么 settings 或 feature flag 写了却不生效 | [Settings、Feature Flags 与 Managed Policy](analysis/settings-feature-flags-policy.md) |
 | TUI、IDE、Remote Control 和 Cloud Session 谁真正持有执行状态 | [TUI、IDE、Remote Control 与 Cloud Session](analysis/tui-ide-remote-cloud.md) |
 | 安装、更新、Doctor 和版本回退怎样验证真实二进制 | [安装、更新、Doctor 与版本生命周期](analysis/install-update-doctor-lifecycle.md) |
 | `.node` 模块怎样连接 JavaScript、N-API、Rust/Swift 和 macOS | [Native Bridge 与 JavaScript Runtime](analysis/native-bridge-runtime.md) |
 | 一方事件、OTEL、Datadog、错误上报和本地诊断记录什么 | [遥测、日志与诊断](analysis/telemetry.md) |
+| 一次 API、工具、compact、session 或 MCP 故障应该按什么事件顺序排查，1,441 个事件各有哪些字段和出口资格 | [遥测场景语义索引与逐事件证据](analysis/telemetry-event-catalog.md) |
+| `Error(...)`、debug log、tool failure、abort 和 LSP diagnostics 怎样进入恢复与用户结果 | [错误与诊断机制图谱](analysis/error-diagnostic-atlas.md) |
 | JSONL 中 `comparisonKey`、payload、schema 和 model 字段怎么读 | [机器清单字段阅读指南](analysis/inventory-field-guide.md) |
 | bundle 到底还能提取出哪些产品能力和证据 | [全量可提取能力面](analysis/source-surface.md) |
 

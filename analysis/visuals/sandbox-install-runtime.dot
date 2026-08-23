@@ -33,18 +33,18 @@ digraph SandboxInstallRuntime {
     { rank=same; srt; durable; ca; }
     { rank=same; readback; partial; json; }
 
-    cli -> gate;
+    cli -> gate [label="dispatch subcommand"];
     gate -> policy [label="install available"];
     gate -> json [label="unavailable", color="#c53030", constraint=false];
     policy -> srt [label="not locked"];
     policy -> json [label="locked", color="#c53030", constraint=false];
-    srt -> durable;
+    srt -> durable [label="install privileged state"];
     durable -> ca [label="configured"];
     durable -> readback [label="no CA step"];
-    ca -> readback;
+    ca -> readback [label="verify installed state"];
     readback -> json [label="complete"];
     readback -> partial [label="partial / conflict", color="#c53030"];
-    partial -> json;
+    partial -> json [label="report non-atomic result"];
   }
 
   subgraph cluster_runtime {
@@ -66,19 +66,19 @@ digraph SandboxInstallRuntime {
     cleanup [label="Session cleanup\nACL revoke + restore\nproxy/bridge shutdown", fillcolor="#f5f7fa"];
     recover [label="Unexpected ACL outcome:\nsrt-win acl recover", fillcolor="#fdecea", color="#c53030"];
 
-    settings -> deps;
+    settings -> deps [label="resolve effective policy"];
     deps -> lazy [label="yes"];
     deps -> required [label="no", color="#c53030"];
-    lazy -> init;
-    init -> fail;
+    lazy -> init [label="run shared initialization"];
+    init -> fail [label="evaluate outcome"];
     fail -> override [label="yes"];
     fail -> required [label="no", color="#c53030"];
     required -> hard [label="required", color="#c53030"];
     required -> degrade [label="optional", color="#c53030"];
     override -> wrap [label="stay sandboxed"];
     override -> spawn [label="approved bypass", color="#b7791f"];
-    wrap -> spawn;
-    spawn -> cleanup;
+    wrap -> spawn [label="launch wrapped command"];
+    spawn -> cleanup [label="command completes"];
     cleanup -> recover [label="ACE may remain", color="#c53030"];
   }
 

@@ -258,6 +258,7 @@
 <g id="edge16" class="edge">
 <title>boundary_note&#45;&gt;remote_bridge</title>
 <path fill="none" stroke="#c62828" stroke-width="1.35" stroke-dasharray="5,2" d="M215.4,-291.5C273.11,-303.65 342.41,-318.24 391.66,-328.6"/>
+<text xml:space="preserve" text-anchor="middle" x="300.66" y="-326.44" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.40" fill="#263238">标注网络边界</text>
 </g>
 </g>
 </svg>

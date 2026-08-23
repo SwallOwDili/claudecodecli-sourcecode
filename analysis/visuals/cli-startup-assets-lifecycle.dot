@@ -1,0 +1,24 @@
+digraph cli_startup_assets_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.3];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.6, fontcolor="#263238"];
+
+  inputs [label="启动外部输入\nfile id / plugin URL / deep link", fillcolor="#e3f2fd"];
+  gates [label="入口校验\nprovider / policy / argv / path", fillcolor="#fff3cd"];
+  downloads [label="受限网络获取\nFiles API 或 plugin ZIP", fillcolor="#d1c4e9"];
+  local [label="本地资源\nuploads 或临时解压树", fillcolor="#e0f2f1"];
+  runtime [label="会话运行时\n文件路径 + plugin graph + cwd", fillcolor="#c8e6c9"];
+  composer [label="输入框状态\nprefill 未提交", fillcolor="#b2dfdb"];
+  model [label="Messages 请求\n只有后续显式提交/读取才进入", fillcolor="#ffe0b2"];
+  rejected [label="局部失败\n重试、缓存复用、忽略或拒绝", fillcolor="#ffccbc"];
+
+  inputs -> gates [label="解析并绑定输入类型"];
+  gates -> downloads [label="允许 file/plugin 网络访问"];
+  gates -> composer [label="解码并预填 deep-link query"];
+  gates -> rejected [label="发现策略、注入或路径违规"];
+  downloads -> local [label="校验后落盘或解压"];
+  downloads -> rejected [label="超时、超限或校验失败"];
+  local -> runtime [label="挂载 session 资源"];
+  composer -> runtime [label="切换 cwd 并等待用户"];
+  runtime -> model [label="用户提交或工具显式读取"];
+}

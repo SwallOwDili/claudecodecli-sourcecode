@@ -2,13 +2,13 @@
 
 一个编码任务跑了很久：Claude 已经读过文件、改过代码、执行过测试，也记住了用户几轮纠正。上下文快满时，用户执行 `/compact`。
 
-接下来最关键的问题不是“删掉了多少条消息”，而是：**旧对话被替换成什么，哪些现场必须原样留下，下一次模型请求凭什么还能接着干活？**
+接下来最关键的问题不是“删掉了多少条消息”，而是：**旧对话被替换成什么，哪些近期内容和因果关系必须留下，下一次模型请求凭什么还能接着干活？**
 
 > 本文描述 Claude Code CLI `2.1.235`。结论来自该版本可读化 bundle 和同版本运行 Probe；源码定位统一放在文末，不打断主线。
 
 ## 一分钟答案
 
-Claude Code 会让模型把较早的合法消息组写成一份工程交接摘要，同时原样保留至少一个近期合法消息组，再重新附加最近文件和当前运行状态。`2.1.235` 的 `/compact` slash-command 入口走 group-based compactor；如果已有可用的 precomputed result，则复用其 Summary、原保留组和预计算之后的新消息。最后，客户端写入一个 `compact_boundary`，告诉 transcript 和 resume：从这里开始，旧历史已经换成了新的表示。
+Claude Code 会让模型把较早的合法消息组写成一份工程交接摘要，同时保留至少一个近期合法消息组的内容与工具因果关系，再重新附加最近文件和当前运行状态。`2.1.235` 的 `/compact` slash-command 入口走 group-based compactor；如果已有可用的 precomputed result，则复用其 Summary、原保留组和预计算之后的新消息。最后，客户端写入一个 `compact_boundary`，告诉 transcript 和 resume：从这里开始，旧历史已经换成了新的表示。
 
 ![用户执行 compact 后，客户端依次总结、重建上下文并写入恢复边界](visuals/compact-lifecycle.svg)
 
@@ -112,7 +112,7 @@ Summary 负责把很久以前的讨论压缩成可以交接的任务说明：目
 
 这里必须先区分 compact 入口，不能只看到某个底层函数的 `messagesToKeep` 就反推用户命令：
 
-| 路径 | 被总结的范围 | 原样保留的旧消息 | 返回结构 |
+| 路径 | 被总结的范围 | 保留的旧消息内容与因果关系 | 返回结构 |
 | --- | --- | --- | --- |
 | 当前 `/compact` slash command | 较早的合法 group | 至少最后 1 个合法 group；prompt-too-long 时自适应多保留 | `nFa -> vmi -> Smi`，最终 `messagesToKeep` 非空 |
 | manual precomputed hit | 预计算时选定的较早 group | 预计算 preserve UUID + 预计算之后的 `messagesSince` | `_Ev -> Smi` |
@@ -125,6 +125,8 @@ Summary 负责把很久以前的讨论压缩成可以交接的任务说明：目
 例如一个 `tool_result` 不能脱离对应的 `tool_use` 单独存在。否则下一次 API 请求虽然更短，却会变成结构不合法或因果不完整的历史。
 
 MessagesToKeep/MessagesToPreserve 因此负责保留完整因果组：刚才调用了什么工具、返回了什么、模型最后作出了什么判断。只有 cold/full auto 或特定 SDK full compact 走 `iyi()` 时才明确返回空的 `messagesToKeep`，其连续性主要依靠 Summary、重新生成的 Attachments、hooks 和下一条用户输入。
+
+“保留完整因果组”不等于 JavaScript 对象逐字段原封不动。进入 rebuilt context 前，客户端对保留区执行 `messagesToPreserve.map(tNt)`：非 assistant 消息不改；assistant 消息保留内容、UUID 和 `tool_use` 关系，但把四个 usage token 计数字段清零。可直接确认的效果是近期工作现场仍存在，而 rebuilt context 中这些 usage 字段不再保留旧值；代码没有在这里说明更高层计费意图。证据见可读 JS 232865、232883-232885。
 
 ### Attachments：恢复精确信息
 
@@ -206,7 +208,7 @@ cold/full compact 的模型逻辑历史：Summary + Attachments/Hooks + compact 
 | 问题 | 客户端怎样调整 | 最终结果 |
 | --- | --- | --- |
 | PreCompact hook 阻止 | 不绕过 hook，也不写成功 boundary | 保留原历史，等待用户处理 |
-| 总结请求 prompt-too-long | 增加原样保留的尾部消息组，缩短待总结前缀 | 自适应重试，耗尽后失败 |
+| 总结请求 prompt-too-long | 增加按内容和因果关系保留的尾部消息组，缩短待总结前缀 | 自适应重试，耗尽后失败 |
 | 媒体内容过大 | 首次命中时剥离非必要媒体 | 使用文本为主的输入重试 |
 | 当前总结模型不可用 | 选择策略允许的 fallback model | 用下一模型重新总结 |
 | 预计算结果已经过期 | 拒绝旧 sidecar | 重新执行普通总结 |
@@ -227,10 +229,10 @@ compact_line    = input_budget - 13,000
 precompute_line = min(input_budget - input_budget * precompute_fraction,
                       compact_line)
 warn_line       = compact_line - 20,000
-blocked_line    = input_budget - 3,000
+blocked_line    = model_input_ceiling - 3,000
 ```
 
-达到 warning line 时提醒，达到 compact line 时执行切换，接近 blocked line 时限制继续增长。具体数字会受模型窗口、配置和远程状态影响，不是固定百分比。
+前三条线使用配置后的 auto-compact effective window；`blocked_line` 使用模型原始输入 ceiling，独立于更小的 auto-compact window。达到 warning line 时提醒，达到 compact line 时执行切换，接近 blocked line 时限制继续增长。具体数字会受模型窗口、输出预留、配置和远程状态影响，不是固定百分比。
 
 ### Precomputed compact
 
@@ -245,6 +247,8 @@ blocked_line    = input_budget - 3,000
 - 所有保留 UUID 是否仍然存在。
 
 校验通过才直接换入预计算 Summary；否则丢弃它并重新总结。这样可以把等待前移，又不会拿过期交接文档覆盖已经变化的任务。
+
+持久 sidecar 只接受 `agentKey=main`。进程内 registry 则按 agent key 保存，fork/subagent 可以通过 `precomputeSourceKey` 借用另一个 Agent 的结果：借用 pending 项会等待，turn abort 时保留原 entry；借用成功不会消费源 entry。只有读取自己的 entry 才会从 registry 移除并清理对应 sidecar。这是“谁拥有、谁消费”的协议，不是所有 Agent 共用一个会被第一次读取删除的全局缓存。
 
 ### Reactive compact
 

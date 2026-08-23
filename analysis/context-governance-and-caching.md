@@ -226,7 +226,7 @@ Tool Search 的做法是：
 4. 被发现工具的完整 schema 追加到后续上下文；
 5. MCP 断开/重连通过 `deferred_tools_delta` 通知可用性变化。
 
-这不是把 schema 缓存在 API 外面，而是改变 schema 进入模型上下文的时机。成本收益来自“未使用工具零常驻 token”。
+这不是把 schema 缓存在 API 外面，而是改变完整 schema 进入模型上下文的时机。未发现工具不常驻完整 description/input schema，但它们的名字仍会出现在 deferred-tool reminder 中，`ToolSearch` 自身也要携带 prompt 和 schema；因此收益是显著减少未使用工具的 schema token，而不是降到零 token。
 
 ### 启用与回退
 
@@ -344,6 +344,8 @@ blocked_line = model_input_ceiling - 3k
 
 所以“200k 窗口”不表示会等到 200k 才总结。输出预算、API 安全余量、预计算等待和最终阻塞都要提前占位。
 
+`blocked_line` 与前三条线的来源必须分开理解。假设同一个 200k 模型被 `autoCompactWindow=140k` 限制，输出仍预留 20k：compact/precompute/warn 都改用 120k 的 effective input budget 计算，但 blocked 仍由模型输入 ceiling 180k 再减 3k，保持 177k。配置更小的 auto-compact window 会让总结更早发生，不会把底层模型硬阻塞线一起降到 117k。
+
 ### 预计算 compact
 
 预计算结果不是立即替换主历史。它先写进 session precompute 状态，并可持久化 `precompact.json` sidecar。sidecar 格式版本为 2，单文件上限 8,000,000 bytes；adapter 可用时写 Storage v5 sidecar key，否则写既有文件路径。复用时会校验：
@@ -357,15 +359,28 @@ blocked_line = model_input_ceiling - 3k
 
 具体拒绝线包括：创建超过 604,800,000ms（7 天）、当前历史比预计算点增长超过 150,000 token、缩减超过当时 token 的一半、boundary UUID 或任一 preserve UUID 缺失。通过后，达到真正 compact line 时直接 swap 已准备摘要，并把预计算之后的新消息作为 `messagesSince` 追加保留。校验失败会删除 sidecar、记录具体原因并重新走普通总结，不把旧 summary 硬塞进新历史。连续 3 次可计数失败后不再继续 re-arm。证据见 262324-262680。
 
+#### Main sidecar 与跨 Agent 借用
+
+持久 payload 的 schema 明确要求 `agentKey === "main"`，所以磁盘/Storage v5 sidecar 不是通用子 Agent 持久缓存。进程内 precompute registry 才按 `main` 或 agent ID 分槽。fork/subagent 的 `toolUseContext.precomputeSourceKey` 可以指定借用槽：
+
+- 借用项仍是 pending 时，当前 turn 等待它 settled；等待期间 turn abort 会返回 aborted，但保留源 entry；
+- 借用 ready 项成功 swap 后，源 entry 不被移除，原 owner 之后仍可消费；
+- 没有 borrow key 时读取自己的槽，读取后无论 ready/failed 都 remove，并在属于当前 session 时排队删除 sidecar；
+- 借用结果的 boundary UUID 不在当前消息图时只放弃本次应用，不错误消费源摘要。
+
+因此 precomputed compact 的状态不是“谁先读谁拿走”的全局 Promise，而是 owner 槽 + 可借用引用。它减少 fork/subagent 重复总结的延迟和 token，但要求当前消息图仍包含同一个 `precomputedAtUuid`，否则不能跨分支硬套摘要。证据见 262425、262487-262518、262601-262654。
+
 ### 四条 compact 路径不能混写
 
-| 路径 | 旧消息原样保留 | 证据锚点 |
+| 路径 | 旧消息内容与因果关系怎样保留 | 证据锚点 |
 | --- | --- | --- |
 | current manual `/compact` | 至少保留最后 1 个合法 group；必要时增大保留量 | 331301-331367、232845-232876、262247-262294 |
 | partial/message-selector | 保留选择器另一侧 `m`，写 preserved UUID | 263048-263087 |
 | reactive prompt-too-long | 按合法 group 保留 suffix | 262247-262294 |
 | precomputed swap | 保留预计算的 preserve UUID 与其后 `messagesSince` | 262425-262680 |
 | cold/full auto 或特定 SDK full compact | 无，返回 `messagesToKeep: []` | 263020-263036、263375-263414、290267 |
+
+这里的“保留”不是对象逐字段不变。`Smi()` 会对保留区执行 `messagesToPreserve.map(tNt)`：非 assistant 消息直接复用，assistant 消息保留内容、UUID 和工具因果关系，但把 `input_tokens`、`output_tokens`、`cache_creation_input_tokens`、`cache_read_input_tokens` 清零。可直接确认的结果是 rebuilt context 不再携带这些字段的旧计数；代码没有在这里给出更高层计费意图。证据见 232865、232883-232885。
 
 因此“compact 后固定保留最后 N 条消息”仍是错误模型：手动/reactive 是按合法 group 和 token 缺口选择，partial 按选择器，precomputed 还合并 `messagesSince`，cold/full 才没有后缀。连续性来自 Summary、条件性 preserved messages、重新生成的 attachments/hooks 和后续输入共同组成的表示。
 

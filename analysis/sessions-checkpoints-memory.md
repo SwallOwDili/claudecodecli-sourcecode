@@ -139,6 +139,21 @@ compact 成功后，本版会写入 `system/compact_boundary`。关键字段及�
 
 详见 [上下文治理与多层缓存](context-governance-and-caching.md) 的 compact threshold、precompute 和 cache breakpoint 分析。
 
+## Resume 不是把 JSONL 原样塞回模型
+
+2.1.235 在恢复前会做一轮明确的损坏修复和 interrupted-turn 重建：
+
+1. 丢弃 payload 缺失或 schema 不合法的 attachment，并记录数量。
+2. 对数组形态的 user/assistant content，text block 的 `text` 不是字符串时删除该 block，删空后整条 message 删除；字符串形态的合法旧消息不受这条数组修复影响。
+3. 清除不在当前 permission mode 集合中的旧值，并删除旧 `promptId`，避免历史字段污染新 turn。
+4. 先过滤 refusal fallback 已标记 `retractedMessageUuids` 的消息，再构建逻辑链，避免被撤回的 refusal 分支在 resume 后复活。
+5. `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` 开启且未命中 deferred/reply/stale gate 时，修复器会丢弃未闭合 tool turn 的 sibling blocks，记录 `supersededToolUseIds`，并让 shutdown unwind result 不错误解析成已完成 sibling。
+6. 若最后状态仍是 interrupted turn，追加隐藏 `Continue from where you left off.`；若逻辑尾部是 user message，还插入 interruption marker，明确告诉下一轮上次执行没有正常闭合。
+
+恢复还有一个 owner 规则：`CLAUDE_CODE_RESUME_SOURCE_ALIVE` 表示源进程仍存活且 session 身份匹配时，新进程不会恢复 `fileHistorySnapshots`。这避免两个活进程同时拥有同一文件历史；消息和 attribution/context-collapse 状态仍可加载，但 file rewind ownership 留给源进程。
+
+证据：可读 JS 323162-323244、323366-323371、323409-323423。
+
 ## File checkpoint 管的是文件，不是整个世界
 
 ### 建立 checkpoint
@@ -237,10 +252,11 @@ Agent Loop 的 abort/tombstone 只能阻止未完成工作并清理失败分支�
 | user/assistant 历史 | 可恢复 | message view、cache breakpoint |
 | tool result | 可恢复文本/结构 | 工具不重新执行，只把历史结果纳入消息图 |
 | compact boundary | 可恢复 | 当前 manual/reactive/partial/precomputed 恢复 preserved chain、logical parent、discovered tools；cold/full 路径没有 preserved chain |
+| interrupted turn | 条件修复 | 丢 sibling、记录 superseded tool IDs、追加 continue/interruption marker；过旧或已有 deferred/reply 时抑制自动续写 |
 | permission mode/settings | 部分来自当前启动配置 | 重新计算有效配置优先级 |
 | MCP connection | transcript 不保存活 socket | 重新连接、重新列工具、generation refresh |
 | shell/background process | 取决于是否有独立 durable task | 普通进程内句柄不能凭 JSONL 复活 |
-| file checkpoint | 本地历史仍在且可写时可恢复 | 校验目标 checkpoint 与当前文件状态 |
+| file checkpoint | 本地历史仍在且可写时可恢复；源进程仍活时不转交 snapshots | 校验目标 checkpoint、当前文件状态和唯一 owner |
 | prompt cache | 由 provider TTL 和前缀一致性决定 | resume 不保证命中 |
 | auto-memory | 从持久目录重新装入 | 重新筛选和注入相关内容 |
 

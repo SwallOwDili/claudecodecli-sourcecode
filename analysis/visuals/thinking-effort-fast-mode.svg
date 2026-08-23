@@ -76,21 +76,21 @@
 <title>thinking&#45;&gt;builder</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M137.29,-435.15C163.16,-420.4 195.58,-401.9 223.88,-385.76"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="225.08,-388.1 230.29,-382.1 222.48,-383.54 225.08,-388.1"/>
-<text xml:space="preserve" text-anchor="middle" x="222.89" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">选定请求形态</text>
+<text xml:space="preserve" text-anchor="middle" x="220.64" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">选定请求形态</text>
 </g>
 <!-- effort&#45;&gt;builder -->
 <g id="edge5" class="edge">
 <title>effort&#45;&gt;builder</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M289.89,-435.15C289.89,-421.85 289.89,-405.52 289.89,-390.6"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="292.52,-390.67 289.9,-383.17 287.27,-390.67 292.52,-390.67"/>
-<text xml:space="preserve" text-anchor="middle" x="318.39" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">选定有效 level</text>
+<text xml:space="preserve" text-anchor="middle" x="316.89" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">选定有效 level</text>
 </g>
 <!-- fastgate&#45;&gt;builder -->
 <g id="edge6" class="edge">
 <title>fastgate&#45;&gt;builder</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M422.41,-430.71C400.26,-416.91 374.07,-400.58 350.85,-386.1"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="352.33,-383.93 344.57,-382.19 349.55,-388.38 352.33,-383.93"/>
-<text xml:space="preserve" text-anchor="middle" x="427.98" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">允许时 speed=fast</text>
+<text xml:space="preserve" text-anchor="middle" x="426.85" y="-404.2" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">允许时 speed=fast</text>
 </g>
 <!-- compat -->
 <g id="node6" class="node">
@@ -106,7 +106,7 @@
 <title>builder&#45;&gt;compat</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M289.89,-313.29C289.89,-300.72 289.89,-286.2 289.89,-272.86"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="292.52,-273.03 289.9,-265.53 287.27,-273.03 292.52,-273.03"/>
-<text xml:space="preserve" text-anchor="middle" x="316.89" y="-286.61" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">最终字段校验</text>
+<text xml:space="preserve" text-anchor="middle" x="314.64" y="-286.61" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">最终字段校验</text>
 </g>
 <!-- api -->
 <g id="node7" class="node">
@@ -119,7 +119,7 @@
 <title>compat&#45;&gt;api</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M289.89,-195.43C289.89,-182.39 289.89,-167.61 289.89,-155.24"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="292.52,-155.54 289.9,-148.04 287.27,-155.54 292.52,-155.54"/>
-<text xml:space="preserve" text-anchor="middle" x="298.89" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">发送</text>
+<text xml:space="preserve" text-anchor="middle" x="298.14" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">发送</text>
 </g>
 <!-- effort400 -->
 <g id="node8" class="node">
@@ -171,14 +171,14 @@
 <title>effort400&#45;&gt;builder</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M435.01,-59.81C422.19,-121.63 392.89,-262.93 392.89,-262.93 392.89,-262.93 365.1,-285.38 338.38,-306.95"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="336.73,-304.9 332.55,-311.66 340.03,-308.99 336.73,-304.9"/>
-<text xml:space="preserve" text-anchor="middle" x="444.53" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">删除字段后重试</text>
+<text xml:space="preserve" text-anchor="middle" x="441.91" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">删除字段后重试</text>
 </g>
 <!-- fastlimit&#45;&gt;builder -->
 <g id="edge13" class="edge">
 <title>fastlimit&#45;&gt;builder</title>
 <path fill="none" stroke="#455a64" stroke-width="1.4" d="M141.27,-59.81C155.16,-121.63 186.89,-262.93 186.89,-262.93 186.89,-262.93 214.69,-285.38 241.41,-306.95"/>
 <polygon fill="#455a64" stroke="#455a64" stroke-width="1.4" points="239.76,-308.99 247.24,-311.66 243.06,-304.9 239.76,-308.99"/>
-<text xml:space="preserve" text-anchor="middle" x="203.81" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">清本次 fast 后重试</text>
+<text xml:space="preserve" text-anchor="middle" x="201.56" y="-169.02" font-family="Arial, PingFang SC, Microsoft YaHei" font-size="8.50" fill="#263238">清本次 fast 后重试</text>
 </g>
 </g>
 </svg>

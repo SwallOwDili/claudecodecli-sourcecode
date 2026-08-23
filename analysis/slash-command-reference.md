@@ -83,7 +83,7 @@ Slash command 不是一组同质“快捷键”。在 `2.1.235` 中，同一个 
 | `/import` | twin | 从其他 AI coding agent 导入可识别配置；受 feature、source trust、冲突和写权限约束。成功意味着本地配置写入，不保证所有 consumer 热刷新。 |
 | `/memory` | `local-jsx` | 打开 CLAUDE.md 和 memory settings 编辑面；分别处理项目指令文件与 automemory 配置。保存文件会影响未来 context 装配，当前已生成 request 不会倒改。 |
 | `/pause-memory` | `local`, disabled | 注册了暂停 automemory 的 handler，但本版 command object `isEnabled:false`；存在 identifier 只证明保留 surface/兼容代码，不能宣称菜单可用。 |
-| `/recap` | `local`, post-text | 立即生成一行 session recap，写入/返回当前 session recap state；它是短摘要，不替代 compact summary 或完整 transcript。 |
+| `/recap` | `local`, post-text | 立即复用 Away Summary 的单轮无工具生成器，并把一行 recap 作为命令文本返回；该 wrapper 不追加 `away_summary` system event，也不更新 session metadata。它是一次性短摘要，不替代 compact summary 或完整 transcript。 |
 | `/rename` | twin | 更新 conversation display name/session metadata；不改变 session ID、目录或远端 URL。写入失败时原名继续有效。 |
 | `/resume` | `local-jsx` | 按 ID/搜索选择旧 conversation，重建持久消息图与相关附件；进程内 socket、pending permission、watch 和已退出子进程不会复活。 |
 | `/rewind` | `local` | 打开 checkpoint 恢复，选择 code、conversation 或两者；详细边界见 [Session/Checkpoint/Memory](sessions-checkpoints-memory.md)。文件 checkpoint 不能回滚 Git、进程和远端系统。 |

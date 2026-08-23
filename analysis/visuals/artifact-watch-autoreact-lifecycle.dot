@@ -1,0 +1,25 @@
+digraph artifact_watch_autoreact_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.8, fontcolor="#263238"];
+
+  comment [label="外部 Artifact 评论\n不可信 viewer data", fillcolor="#e3f2fd"];
+  scan [label="本地 watch 扫描\nbaseline / seen / digest", fillcolor="#e0f2f1"];
+  triage [label="无工具 triage\nact 或 pipeline", fillcolor="#d1c4e9"];
+  analyst [label="单线程只读 analyst\ncomments + page data", fillcolor="#fff3cd"];
+  gates [label="写入前控制\nplan / cap / breaker / permission", fillcolor="#ffe0b2"];
+  compose [label="受约束 composer\nack / reply / edit patch", fillcolor="#c8e6c9"];
+  remote [label="远端 Artifact 状态\n评论 / 新版本 / resolve", fillcolor="#b2dfdb"];
+  stopped [label="暂停或降级\nnotify-only / deferred / declined", fillcolor="#ffccbc"];
+
+  comment -> scan [label="推送并归入目标线程"];
+  scan -> triage [label="确认是新的有效触发"];
+  triage -> analyst [label="把 act 请求交给只读分析"];
+  triage -> gates [label="把 discussion 送入回复路径"];
+  analyst -> gates [label="输出 analysis brief"];
+  gates -> compose [label="明确 allow 后授权"];
+  gates -> stopped [label="plan、ask、deny 或超限时阻止"];
+  compose -> remote [label="发布回复、编辑或 resolve"];
+  remote -> scan [label="返回新快照并去重"];
+  compose -> stopped [label="patch 失败时降级说明"];
+}

@@ -1,0 +1,29 @@
+digraph telemetry_event_catalog_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.30", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.2];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.6, fontcolor="#263238"];
+
+  callsite [label="业务调用点\nH / Fv / Nd", fillcolor="#e3f2fd"];
+  sink [label="一方全局 sink\nFIFO 1,000", fillcolor="#e0f2f1"];
+  provider [label="一方 provider\npre-init queue 1,024", fillcolor="#d1c4e9"];
+  sampling [label="共享流量门与采样\n按事件 sample_rate", fillcolor="#fff3cd"];
+  envelope [label="一方 envelope\n公共 metadata + payload", fillcolor="#c8e6c9"];
+  batch [label="一方 batch exporter\nqueue 8,192 / batch 200", fillcolor="#ffe0b2"];
+  recovery [label="失败持久化与恢复\n8 attempts / 500ms-30s", fillcolor="#ffccbc"];
+  datadog [label="Datadog 分支\n181 allowlist / 26 redactions", fillcolor="#f8bbd0"];
+  otel [label="管理员 OTEL 分支\n26 events / 8 metrics / 10 spans", fillcolor="#b2dfdb"];
+  boundary [label="服务端或 collector\n接受、保留与访问控制 Boundary", fillcolor="#d7ccc8"];
+
+  callsite -> sink [label="H/Fv 产生一方候选"];
+  sink -> provider [label="安装后 microtask 排空"];
+  provider -> sampling [label="初始化后顺序重放"];
+  sampling -> envelope [label="通过 gate 与采样"];
+  envelope -> batch [label="进入队列并批处理"];
+  batch -> boundary [label="发送 event batch"];
+  batch -> recovery [label="失败或部分成功时保留剩余"];
+  recovery -> batch [label="后续启动或扫描重试"];
+  sampling -> datadog [label="同时满足 first-party 与 allowlist"];
+  datadog -> boundary [label="Datadog client 尝试发送"];
+  callsite -> otel [label="Nd 经显式 OTEL gate"];
+  otel -> boundary [label="console / OTLP / Prometheus"];
+}

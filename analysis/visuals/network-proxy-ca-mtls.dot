@@ -45,9 +45,9 @@ digraph NetworkProxyCaMtls {
     unsupported [label="Not supported here:\ngRPC/HTTP2-only, WS upgrade,\nclient-mTLS, pinning, non-443, raw TCP", fillcolor="#fdecea", color="#c53030"];
 
     ccrgate -> secret [label="yes"];
-    secret -> relay;
-    relay -> limits;
-    limits -> tunnel;
+    secret -> relay [label="bootstrap local relay"];
+    relay -> limits [label="enforce relay bounds"];
+    limits -> tunnel [label="open bounded tunnel"];
     tunnel -> trust [label="CA distribution"];
     relay -> unsupported [style=dashed, label="protocol boundary", color="#c53030"];
   }
@@ -55,36 +55,36 @@ digraph NetworkProxyCaMtls {
   otlp [label="OTLP exporter\nindependent OTEL_* CA/cert/key\nproxy coverage requires probe", fillcolor="#fdecea", color="#c53030"];
   child [label="Tool / stdio MCP child env\nCCR proxy/CA may be injected\nOTEL_* is scrubbed", fillcolor="#f4ecfb", color="#805ad5"];
 
-  config -> proxy;
-  proxy -> valid;
+  config -> proxy [label="resolve precedence"];
+  proxy -> valid [label="validate selected URL"];
   valid -> noproxy [label="valid"];
   valid -> transports [label="none selected", color="#7b8794"];
   valid -> config [label="invalid: config error", color="#c53030"];
   noproxy -> transports [label="bypass"];
   noproxy -> auth [label="use proxy"];
-  auth -> transports;
+  auth -> transports [label="attach proxy credentials"];
 
-  config -> ca;
-  config -> mtls;
+  config -> ca [label="compose trust roots"];
+  config -> mtls [label="load identity pair"];
   mtls -> lastgood [style=dashed, label="reload failure"];
-  ca -> transports;
-  mtls -> transports;
+  ca -> transports [label="supply CA bundle"];
+  mtls -> transports [label="supply client identity"];
   lastgood -> transports [style=dashed, label="keep working pair"];
 
-  transports -> fetch;
-  transports -> axios;
-  transports -> ws;
-  transports -> aws;
-  transports -> mcp;
-  fetch -> target;
-  axios -> target;
-  ws -> target;
-  aws -> target;
-  mcp -> target;
+  transports -> fetch [label="configure fetch adapter"];
+  transports -> axios [label="configure axios/undici"];
+  transports -> ws [label="configure WebSocket"];
+  transports -> aws [label="configure AWS handler"];
+  transports -> mcp [label="configure MCP transports"];
+  fetch -> target [label="send request"];
+  axios -> target [label="send request"];
+  ws -> target [label="open connection"];
+  aws -> target [label="send provider request"];
+  mcp -> target [label="connect to MCP server"];
 
   config -> ccrgate [style=dashed, label="Remote only"];
-  trust -> child;
+  trust -> child [label="inject tool trust"];
   child -> relay [label="HTTPS_PROXY"];
-  tunnel -> target;
+  tunnel -> target [label="relay approved egress"];
   config -> otlp [style=dashed, label="separate exporter config"];
 }

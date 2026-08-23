@@ -1,0 +1,26 @@
+digraph ErrorDiagnosticAtlas {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.35", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#243447", fillcolor="#F7F9FB", margin="0.12,0.08"];
+  edge [fontname="Arial", fontsize=9, color="#52677D", arrowsize=0.7];
+
+  trigger [label="触发点\nError / TypeError / RangeError / custom", fillcolor="#FFF4D6"];
+  cleanup [label="局部 cleanup\nfd / timer / stream / temp"];
+  classify [label="语义分类\nabort / expected / auth / sandbox / retryable", fillcolor="#E8F3FF"];
+  recover [label="局部恢复器\nretry / fallback / last-known-good", fillcolor="#E9F7EF"];
+  product [label="产品结果\ntool_result / TUI / SDK / exit", fillcolor="#FFF0F0"];
+  debug [label="本地 debug T()\nlevel + filter + redaction + rotation"];
+  hook [label="Hook / LSP diagnostics\n阶段化观察与上下文附件"];
+  telemetry [label="1P / OTEL / Datadog\n受控字段与独立开关"];
+  boundary [label="副作用 Boundary\n进程 / 文件 / HTTP / Hook 外部动作", shape=box, style="rounded,dashed", fillcolor="#FFFFFF", color="#A33A3A"];
+
+  trigger -> cleanup [label="异常进入 finally / abort cleanup"];
+  cleanup -> classify [label="资源收敛后解释语义"];
+  classify -> recover [label="允许恢复"];
+  classify -> product [label="不可恢复/用户需处理"];
+  recover -> product [label="成功隐藏主错误或输出降级结果"];
+  classify -> debug [label="写本地诊断"];
+  classify -> hook [label="投递阶段观察"];
+  classify -> telemetry [label="复制受控字段"];
+  trigger -> boundary [label="错误可能发生在动作之后", color="#A33A3A"];
+  boundary -> product [label="失败不等于零副作用", color="#A33A3A"];
+}

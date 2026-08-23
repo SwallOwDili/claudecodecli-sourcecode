@@ -132,6 +132,10 @@ persist transcript/checkpoint/telemetry
 | refusal fallback | 模型拒绝，且策略/用户同意允许换模型 | 处理部分 refusal/text，再切换或结束 | 需要保留用户选择和拒绝原因 |
 | server mid-stream serving fallback | 流中服务模型变化 | 按 allowlist/supersedes 处理 block 和模型身份 | usage、文本归属和模型权限需重新确认 |
 
+这三行内部仍有 visible、silent、server 三条 refusal lane。visible lane 可以弹用户 dialog；缺少 dialog 能力、remote-controlled session 或设置关闭会改变可选路径。silent lane 使用一次性 fallback credit，并可在条件满足时 salvage 已显示的 partial text；server lane 先检查目标模型是否在 availableModels allowlist，拒绝时丢弃响应并保留原 session。只有 `swapSession=true` 的 server fallback 才改 `mainLoopModel/mainLoopModelForSession`；只有被 tombstone 的响应含 tool use 时才执行工具 sweep。不能把 server fallback 概括成“统一切 session、统一 abort 全部工具”。
+
+拒绝切换或用户取消时，客户端 tombstone provisional assistant/tool result，清空本次执行器并处理 credit forfeiture；接受 visible fallback 时才把 session model 改到目标模型。silent continuation 可能把 salvage text 与新模型首个 text block 拼接，并用 `supersedesUuids` 标记被替代消息。服务端目标不在 allowlist 时不会继续使用它，即使事件已经声明了 toModel。
+
 ### Tombstone 的准确含义
 
 tombstone 告诉 message graph/UI：“这段 provisional 消息不再是有效主分支的一部分”。它可以避免失败模型输出继续污染下一轮，但不具备以下能力：
@@ -148,13 +152,15 @@ tombstone 告诉 message graph/UI：“这段 provisional 消息不再是有效�
 
 ### `max_tokens` continuation
 
-模型达到输出上限后，CLI 可以保留已经产生的 assistant 内容，加入隐藏 continuation 提示，要求直接从中断处继续，不道歉、不复述。它使用独立 recovery count，不把每次续写都当正常工具轮次；耗尽后才向上层返回失败/截断结果。
+模型达到输出上限后，CLI 最多恢复 3 次。普通路径保留已经产生的 assistant/error 视图，加入隐藏 continuation 提示，要求直接从中断处继续、不道歉、不复述；独立 recovery count 不增加正常工具轮次。
+
+还有一条 feature-gated incomplete-thinking 路径：响应必须恰好是一个可恢复的 signed thinking block，stop reason 为 `max_tokens` 且模型兼容。命中后不追加普通 continuation prompt，而是保留 trailing thinking、设置 `resumeIncompleteThinking`，并给后续 assistant 标记 `resumedFromIncompleteThinking`。这条路径保护 signed thinking 协议连续性；本版 gate 的本地 override 不可达，所以应标为静态可达合同，不应声称精确二进制默认已触发。
 
 用户影响：长回答或长代码不一定在第一次 `max_tokens` 就结束，但多一次模型请求会增加延迟和输出 token。版本比较要记录 continuation 上限与拼接/去重语义。
 
 ### Malformed tool use
 
-API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 block 时，本版追加隐藏纠错消息并重试一次。第二次仍不一致才返回 `malformed_tool_use_exhausted`。
+API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 block 时，本版只重试一次。默认 false 的 `tengu_malformed_tool_use_clean_retry` 决定消息视图：legacy 保留首次 assistant 并追加纠错提示；clean 先 tombstone 首次 assistant，只用原历史加 clean prompt 重试。第二次仍不一致才返回 `malformed_tool_use_exhausted`。
 
 关键保障：第一次没有完整 block 就不执行工具，避免对半截参数产生副作用；纠错是有界的，避免模型永久重复错误协议。
 
@@ -162,7 +168,7 @@ API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 bloc
 
 当响应以 end turn/stop sequence 结束且只有 thinking、没有用户可见文本，CLI 会补一次提示要求给出可见答案。第二次仍无可见文本则接受结束。这个分支改善 UI 完整性，但不应无限消耗 turn。
 
-以上三条位于 Agent Loop 无工具结束判断中，见 `reverse/javascript/cli.readable.js` 272171-272264。
+以上三条位于 Agent Loop 无工具结束判断中，见 `reverse/javascript/cli.readable.js` 271474-271481、271983、272160-272264、409342、409739；恢复次数常量 `DGS=3` 见 272456。
 
 ## Context 恢复：请求太长时先缩小问题
 
@@ -279,6 +285,12 @@ Agent Loop 结束时需要把“为什么停止”交给 UI/SDK，而不是只�
 - 动态 loop wakeup 等专用结束分支。
 
 SDK 最终结果还会把 max turns 映射成 `error_max_turns`，并携带 `num_turns`、usage、cost、stop reason、terminal reason 和 permission denials。调用方可以据此决定展示、恢复、重排队或升级人工处理。
+
+### `command_lifecycle` 与 terminal reason 不是同一层
+
+带 UUID 的队列命令还有 `queued/started/completed/cancelled/discarded` 生命周期。hard error 或 abort 通常映射 `cancelled`；但 `max_turns`、`hook_stopped`、`tool_deferred`、`background_requested` 当前映射 `completed`。这里 completed 只表示“消费它的 turn 受控结束”，不保证内容已回答或 result frame 已送达。
+
+terminal 也可能没有 started，内部命令可能没有 queued；generator throw 甚至可能留下只有 started。exactly-one-terminal 只在单 worker 内成立，CCR 重投后同 UUID 可再次进入生命周期。可靠 SDK wrapper 需要跟踪本进程已见 UUID，并在进程退出时为没有 terminal 的项合成 discarded，而不是把 lifecycle 当严格三段事务日志。
 
 ### 为什么不能只看 exit code
 

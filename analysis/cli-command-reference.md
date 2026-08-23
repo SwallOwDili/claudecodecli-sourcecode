@@ -41,6 +41,58 @@
 
 这些 token 的 owner 是 OS protocol handler、Chrome/Computer Use bridge 或 background supervisor。它们需要父进程提供的环境、pipe、token 或 IPC，不是面向普通用户的命令。直接调用可能报错、等待 stdin 或启动长期 worker；清单把它们列出，是为了跨版本 diff 和故障诊断，不是推荐使用。
 
+#### 8 个内部入口不是同一种“隐藏命令”
+
+它们分别使用 URI、MCP stdio、Chrome native messaging、本地 socket、stdin JSON claim 和 PTY frame。把它们统一写成“父进程协议，直接调用会失败”会丢掉最关键的排障信息：父进程究竟要传什么、child 何时算 ready、EOF 是正常结束还是故障、退出码有没有被子任务占用，以及 child 退出后哪些外部状态已经无法撤销。
+
+##### `--handle-uri <uri>`：OS Deep Link -> 新终端 Claude 会话
+
+- **输入合同：** 下一 argv 必须是 `claude-cli://open`。`cwd` 必须是本机绝对路径，拒绝 UNC/network path、控制字符、双向/不可见字符，最长 4,096；`repo` 必须是 `owner/repo`；`q` 归一化换行后最长 5,000。
+- **有序生命周期：** 全 argv 安全筛查 -> 加载 config support -> 解析 action/字段 -> 用显式 `cwd`、本地 repo clone 或 home 决定工作目录 -> 读取可用的 repo last-fetch -> 选择 terminal -> 以 deep-link origin、repo 和编码后的 prefill 参数 detached spawn。
+- **成功与失败：** 终端进程成功 spawn 后 handler exit `0`；parse、quoting、terminal detection 或 spawn 失败 exit `1`。`q` 只是 prefill，不由这个入口自动提交。成功打开 terminal 后，后续模型/tool 副作用属于新 session。
+
+##### `--claude-in-chrome-mcp`：MCP stdio -> 浏览器扩展 bridge
+
+- **输入合同：** 父进程通过 stdin/stdout 传 MCP JSON-RPC；环境可提供 remote-session identity、bridge endpoint 和 `CLAUDE_CHROME_PERMISSION_MODE=ask|skip_all_permission_checks|follow_a_plan`。
+- **有序生命周期：** 初始化 config/auth/cleanup -> 解析 OAuth/account、local socket、proxy 与 bridge URL -> 构造 Chrome MCP server -> connect stdio -> stdin end/error 时关闭共享资源并 exit `0`。
+- **成功与失败：** “MCP server started”只证明 stdio server ready，不证明 extension 已连接。无效 permission mode 被警告后忽略；token account 与持久 account 不同会改用 token-derived account 并告警；socket/WebSocket/auth/bootstrap 失败可在启动或单次 tool call 暴露。已经完成的浏览器点击、输入和导航不会因 child cleanup 回滚。
+
+##### `--chrome-native-host`：Chrome native messaging <-> 本地 MCP socket
+
+- **输入合同：** Chrome 侧和 MCP socket 都使用 4-byte little-endian 长度 + UTF-8 JSON，单 frame 上限 1 MiB。Chrome 侧接受 `ping`、`get_status`、`tool_response`、`notification`；MCP client request 会被改写为 `tool_request` 交给扩展。
+- **有序生命周期：** 创建 mode `0700` socket directory -> 清理 PID 已不存在的 stale socket -> listen process socket -> 尝试 chmod `0600` -> 循环读 Chrome stdin -> 双向 fan-out -> stdin EOF/error 后关闭 client/listener 并删除 socket。
+- **成功与失败：** invalid JSON/schema 返回 error frame；zero/oversized length 终止该 read/connection；bind/listen 失败拒绝启动。chmod 失败只记录告警，不撤销已经 listening 的 socket。host 负责转发，不为 downstream 浏览器 action 提供事务回滚。
+
+##### `--computer-use-mcp`：MCP stdio -> 本机 Computer Use executor
+
+- **输入合同：** 父进程使用 MCP stdio；工具描述还会尝试在 1 秒内枚举本机 application，过滤 helper/agent/service、隐藏名和超长/异常名称。
+- **有序生命周期：** 初始化 native/config -> 建 executor/capabilities -> best-effort app enumeration -> 注册 `tools/list` -> connect stdio -> stdin end/error 后 cleanup exit `0`。
+- **成功与失败：** app enumeration timeout/failure 只让 tool description 缺少 app list，不让 server 整体失败；executor disabled 时 `tools/list` 返回空数组。native/TCC/OS permission 仍可在单次 tool call 失败。屏幕、点击、键入造成的真实应用状态不随 MCP child 退出恢复。
+
+##### `--daemon-worker <kind>`：stdin 配置 -> daemon 专用 worker
+
+- **输入合同：** `kind` 只能是 `heartbeat`、`scheduled`、`remoteControl`；stdin 一直读到 EOF，再把 JSON 中的 `config` 交给 kind-specific schema，`initialAccessToken` 可用于初始 auth。
+- **有序生命周期：** fast-path policy load -> kind/availability gate -> parse/validate stdin -> 安装 SIGTERM/SIGINT/parent-message abort -> 30 秒 parent watchdog -> seed auth/Storage v5 -> 运行 worker并逐行写 stdout。
+- **成功与失败：** unknown/unavailable kind、bad JSON、bad config exit `2`；HTTP `429` 输出 `rate limited (429)` 并 exit `75`；parent 消失会 abort，2 秒 grace 后 exit `0`。scheduled/Remote Control 已提交的远端工作、通知或 session 不会因 worker abort 自动撤销。
+
+##### `--bg-pty-host`：socket + PTY frame -> 真实 child process
+
+- **输入合同：** `--bg-pty-host <sock> <cols> <rows> -- <file> [args...]`；socket 承载 PTY bytes 与 auth、ping/pong、resize、kill control，auth 来自 `CLAUDE_BG_PTY_AUTH` 或一次性 token file。
+- **有序生命周期：** settings best-effort bootstrap -> 校验 argv/消费 auth -> 创建 Bun PTY 和 child -> listen socket -> 向新 client 重放 256 KiB ring -> auth 后才接收输入 -> heartbeat/orphan supervision -> child exit 后 drain -> 发 exit frame -> cleanup socket。
+- **成功与失败：** 单 client writable backlog 超过 1 MiB 会被断开；默认 heartbeat miss 3 次断开，parent 变化且无 client 默认 60 秒后杀 child；`SIGTERM` 5 秒后升级 `SIGKILL`。最终传播 child exit code。它执行的是真实命令，host 被杀不能撤销命令已做的文件、进程或网络副作用。
+
+##### `--bg-spare`：authenticated claim -> 预热后台 session
+
+- **输入合同：** argv[0] 是 claim socket；一条 newline-delimited JSON 提供 `cwd/env/argv/sessionId/auth`。auth 来自 `CLAUDE_BG_CLAIM_AUTH` 或一次性 token file；有 auth 时 frame 最大 8 MiB。
+- **有序生命周期：** 读取并从环境删除 claim secret -> 并行 import main -> listen claim socket -> 每 2 秒检查原 parent -> 接收一个 authenticated claim -> 删除 socket/handler -> 切 cwd、env、argv、session identity -> 在同一进程进入正常 main。
+- **成功与失败：** missing socket exit `2`；claim receive/auth/JSON failure exit `1`；claim 前 parent 被替换 exit `0`；post-claim init failure 记录分类后抛出。成功不是“空 worker ready”，而是该进程已经成为完整后台 Claude session。
+
+##### `--preload`：runtime-owned claim -> 预载 Remote session
+
+- **输入合同：** 可选 socket path，默认是 `$CLAUDE_REMOTE_HOME/.claude/remote/spare.sock` 这一 runtime-owned remote spare socket；一条 newline-delimited JSON claim 提供 `cwd/env/argv/sessionId`。本路径调用 `WUi` 时没有传 per-frame auth 参数，信任边界依赖父 runtime 和 socket 所在文件系统。
+- **有序生命周期：** 删除继承的 session/worker env -> 并行 import main -> 清理 stale socket -> listen 并写 mode `0600` PID file -> 接收一个 claim -> 删除 socket/PID -> 切 cwd/env/argv/session -> 进入正常 main。
+- **成功与失败：** signal cleanup exit `0`；claim receive/uncaught failure exit `1`；claim 后的模型、工具和持久化失败走普通 CLI 路径。preload 自己只优化进程冷启动，不提供 session/tool 副作用回滚。
+
 ### 2. Fast path
 
 随后程序在 Commander 之前识别：
@@ -287,6 +339,8 @@ Runner root 是长期 operator 进程，help 分为连接、runtime、runner lif
 - `observedChildren`：该局部 help 实际列出的 children；
 - `handlerOwner`、`sideEffects`、`failureBehavior`：命令族的 owner、状态变化和失败边界；
 - `evidence.static`、`evidence.probeCase`、`evidence.limitation`：源码位置、Probe case 与证据不能证明的部分。
+
+每个 `internalEntrypoints[]` 行则使用另一套协议字段：`inputProtocol`、`orderedLifecycle`、`successState`、`failureBoundary`、`externalSideEffects`，并同时保存 dispatcher `source` 和真实 handler `handlerSource`。validator 会拒绝缺字段、少于三步的 lifecycle 或越界源码位置，防止这些入口再次退化成同一句模板。
 
 `source.explicitCommanderRegistrationSpecs` 保留 bundle 中全部 `59` 次 `.command("...")` 参数，便于下一版本做集合 diff；`internalEntrypoints` 与普通 commands 分开，防止内部 worker protocol 被误写成用户功能。
 

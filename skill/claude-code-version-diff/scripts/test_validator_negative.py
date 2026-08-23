@@ -23,12 +23,15 @@ def run_validator(
     validator: Path,
     *,
     fast: bool = False,
+    expected: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     command = [sys.executable, str(validator), str(repo)]
     environment = os.environ.copy()
     if fast:
         command.append("--negative-test-fast")
         environment["CLAUDE_VALIDATOR_NEGATIVE_TEST"] = "1"
+    if expected is not None:
+        command.extend(["--negative-test-expect", expected])
     return subprocess.run(
         command,
         cwd=repo,
@@ -59,7 +62,12 @@ def expect_rejection(
         raise RuntimeError(f"negative mutation did not change {relative}")
     try:
         path.write_bytes(changed)
-        result = run_validator(repo, validator, fast=fast)
+        result = run_validator(
+            repo,
+            validator,
+            fast=fast,
+            expected=expected if fast else None,
+        )
         output = text_output(result)
         if result.returncode == 0:
             raise RuntimeError(f"validator accepted negative case for {relative}")
@@ -87,7 +95,7 @@ def expect_missing_rejection(
         raise RuntimeError(f"negative-test displacement already exists: {displaced}")
     try:
         path.replace(displaced)
-        result = run_validator(repo, validator, fast=True)
+        result = run_validator(repo, validator, fast=True, expected=expected)
         output = text_output(result)
         if result.returncode == 0:
             raise RuntimeError(f"validator accepted missing file for {relative}")
@@ -131,6 +139,35 @@ def replace_in_h2_section(
         )
     changed = section.replace(old, new) if replace_all else section.replace(old, new, 1)
     return (content[:heading] + changed + content[end:]).encode("utf-8")
+
+
+def replace_release_notes_mechanism_row(original: bytes, row_number: int) -> bytes:
+    content = original.decode("utf-8")
+    section_start = content.find("## 逐项机制回填")
+    section_end = content.find("## 这 19 条合起来说明了什么", section_start)
+    if section_start < 0 or section_end < 0:
+        raise RuntimeError("negative-test release notes mechanism table is missing")
+    section = content[section_start:section_end]
+    match = re.search(rf"(?m)^\|\s*{row_number}\s*\|[^\n]*$", section)
+    if match is None:
+        raise RuntimeError(
+            f"negative-test release notes mechanism row is missing: {row_number}"
+        )
+    cells = [cell.strip() for cell in match.group(0).strip().strip("|").split("|")]
+    if len(cells) != 5:
+        raise RuntimeError(
+            f"negative-test release notes mechanism row {row_number} is malformed"
+        )
+    cells[1:4] = [
+        "这是一段长度足够但与该版本机制无关的通用失败状态说明",
+        "这是一段长度足够但与该版本机制无关的通用状态变化说明",
+        "用户只得到一段长度足够但与该版本机制无关的通用结果说明",
+    ]
+    replacement = "| " + " | ".join(cells) + " |"
+    changed_section = section[: match.start()] + replacement + section[match.end() :]
+    return (content[:section_start] + changed_section + content[section_end:]).encode(
+        "utf-8"
+    )
 
 
 def remove_numbered_lifecycle(original: bytes, heading_prefix: str) -> bytes:
@@ -352,6 +389,18 @@ def remove_brief_alias(original: bytes) -> bytes:
     raise RuntimeError("negative-test SendUserMessage registration is missing")
 
 
+def remove_internal_entrypoint_protocol(original: bytes) -> bytes:
+    document = json.loads(original)
+    entrypoints = document.get("internalEntrypoints")
+    if not isinstance(entrypoints, list) or not entrypoints:
+        raise RuntimeError("negative-test internal entrypoint inventory is empty")
+    entry = entrypoints[0]
+    if not isinstance(entry, dict) or "inputProtocol" not in entry:
+        raise RuntimeError("negative-test internal entrypoint inputProtocol is missing")
+    del entry["inputProtocol"]
+    return (json.dumps(document, indent=2, ensure_ascii=True) + "\n").encode()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", nargs="?", default=".")
@@ -362,6 +411,11 @@ def main() -> None:
         help="resume at the 1-based negative-case number",
     )
     parser.add_argument(
+        "--end-case",
+        type=int,
+        help="stop after this 1-based negative-case number",
+    )
+    parser.add_argument(
         "--skip-baseline",
         action="store_true",
         help="skip the positive baseline when resuming a previously verified run",
@@ -369,6 +423,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.start_case < 1:
         parser.error("--start-case must be at least 1")
+    if args.end_case is not None and args.end_case < args.start_case:
+        parser.error("--end-case must be greater than or equal to --start-case")
     if args.skip_baseline and args.start_case == 1:
         parser.error("--skip-baseline requires --start-case greater than 1")
     repo = Path(args.repo).resolve()
@@ -458,6 +514,40 @@ def main() -> None:
                 b"prompt-cache invalidation",
             ),
             "release notes upstream verbatim block mismatch",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_once(
+                data,
+                b"mcp-agents-background.md",
+                b"mcp-agents-background-missing.md",
+            ),
+            "release notes mechanism row 17 lacks required binding mcp-agents-background.md",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_release_notes_mechanism_row(data, 7),
+            "release notes mechanism row 7 lacks semantic marker notebook in mechanism",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_release_notes_mechanism_row(data, 9),
+            "release notes mechanism row 9 lacks semantic marker background-updater in mechanism",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_release_notes_mechanism_row(data, 10),
+            "release notes mechanism row 10 lacks semantic marker open-tasks in mechanism",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_release_notes_mechanism_row(data, 13),
+            "release notes mechanism row 13 lacks semantic marker pathological-pattern in mechanism",
+        ),
+        (
+            "analysis/release-notes.md",
+            lambda data: replace_release_notes_mechanism_row(data, 19),
+            "release notes mechanism row 19 lacks semantic marker vscode in mechanism",
         ),
         (
             "analysis/runtime-probe-index.md",
@@ -703,6 +793,11 @@ def main() -> None:
             "human analysis document analysis/storage-v5-reference.md does not cover 'tornTailBytes'",
         ),
         (
+            "analysis/cli-command-inventory.json",
+            remove_internal_entrypoint_protocol,
+            "CLI internal entrypoint 1 has invalid inputProtocol",
+        ),
+        (
             "analysis/sessions-checkpoints-memory.md",
             lambda data: data.replace(b"SharedInode", b"SharedLinkGuardMissing"),
             "human analysis document analysis/sessions-checkpoints-memory.md does not cover 'SharedInode'",
@@ -717,6 +812,255 @@ def main() -> None:
             "product surface inventory coverage mismatch",
         ),
         (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: replace_once(
+                data,
+                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `request-model-network` | `Derived projection`",
+                b"[`api-path-templates.jsonl`](source-inventory/api-path-templates.jsonl) | `request-model-network` | `Product callsites`",
+            ),
+            "product surface inventory api-path-templates.jsonl must be classified as Derived projection",
+        ),
+        (
+            "analysis/environment-variable-reference.md",
+            lambda data: replace_once(data, b"str / none", b"bool / none"),
+            "environment/feature reference generation check failed",
+        ),
+        (
+            "analysis/environment-variable-reference.md",
+            lambda data: replace_once(
+                data,
+                b"\nAGENT_PROXY_AUTH_TOKEN\n",
+                b"\nAGENT_PROXY_AUTH_TOKEN_MISSING\n",
+            ),
+            "environment/feature reference generation check failed",
+        ),
+        (
+            "analysis/feature-flag-reference.md",
+            lambda data: replace_once(data, b"361/361", b"360/361"),
+            "environment/feature reference generation check failed",
+        ),
+        (
+            "analysis/feature-flag-reference.md",
+            lambda data: replace_once(
+                data,
+                "Opaque codename / Inventory only：codename 加 fallback/callsite".encode(),
+                "Opaque codename：codename 加 fallback/callsite".encode(),
+            ),
+            "environment/feature reference generation check failed",
+        ),
+        (
+            "analysis/artifact-watch-comment-autoreact.md",
+            lambda data: data.replace(b"--watch-artifact", b"--artifact-watch-disabled"),
+            "human analysis document analysis/artifact-watch-comment-autoreact.md does not cover '--watch-artifact'",
+        ),
+        (
+            "analysis/insights-history-analysis-pipeline.md",
+            lambda data: data.replace(b"270,336", b"270,335"),
+            "human analysis document analysis/insights-history-analysis-pipeline.md does not cover '270,336'",
+        ),
+        (
+            "analysis/cli-startup-files-plugins-deeplinks.md",
+            lambda data: data.replace(b"--file", b"--startup-file-missing"),
+            "human analysis document analysis/cli-startup-files-plugins-deeplinks.md does not cover '--file'",
+        ),
+        (
+            "analysis/complex-slash-command-lifecycles.md",
+            lambda data: data.replace(
+                b"/install-github-app", b"/github-setup-disabled"
+            ),
+            "human analysis document analysis/complex-slash-command-lifecycles.md does not cover '/install-github-app'",
+        ),
+        (
+            "analysis/telemetry-event-catalog.md",
+            lambda data: replace_once(
+                data,
+                b"first-party-events:1441",
+                b"first-party-events:1440",
+            ),
+            "telemetry event catalog differs from deterministic regeneration",
+        ),
+        (
+            "analysis/telemetry-event-catalog.md",
+            lambda data: replace_once(
+                data,
+                b"TELEMETRY_EVENT_CATALOG_BEGIN",
+                b"TELEMETRY_EVENT_CATALOG_BROKEN",
+            ),
+            "telemetry event catalog differs from deterministic regeneration",
+        ),
+        (
+            "analysis/telemetry-event-catalog.md",
+            lambda data: replace_once(
+                data,
+                b"TELEMETRY_SCENARIO_SEMANTIC_INDEX",
+                b"TELEMETRY_SCENARIO_INDEX_REMOVED",
+            ),
+            "telemetry event catalog differs from deterministic regeneration",
+        ),
+        (
+            "analysis/api-beta-route-ownership.md",
+            lambda data: replace_once(
+                data,
+                b"Bundled gateway admin handler",
+                b"Provider organization consumer",
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/api-beta-route-ownership.md",
+            lambda data: replace_once(
+                data,
+                b"<!-- API_PATH_CATALOG_START -->",
+                b"<!-- API_PATH_CATALOG_BROKEN -->",
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/api-beta-route-ownership.md",
+            lambda data: replace_once(
+                data,
+                b"<!-- BETA_IDENTIFIER_CATALOG_START -->",
+                b"<!-- BETA_IDENTIFIER_CATALOG_BROKEN -->",
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/error-diagnostic-atlas.md",
+            lambda data: replace_once(
+                data,
+                "五层状态归属".encode(),
+                "错误状态归属".encode(),
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/error-diagnostic-atlas.md",
+            lambda data: replace_once(
+                data,
+                "constructor callsites 共 **4,831**".encode(),
+                "constructor callsites 共 **4,830**".encode(),
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/error-diagnostic-atlas.md",
+            lambda data: replace_once(
+                data,
+                b"<!-- ERROR_DIAGNOSTIC_METRICS_START -->",
+                b"<!-- ERROR_DIAGNOSTIC_METRICS_BROKEN -->",
+            ),
+            "API/error reference generation check failed",
+        ),
+        (
+            "analysis/visuals/artifact-watch-autoreact-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: artifact-watch",
+        ),
+        (
+            "analysis/visuals/insights-history-analysis-lifecycle.svg",
+            lambda data: replace_once(data, b" viewBox=", b" data-viewBox="),
+            "deep topic rendered visual lacks SVG viewport: insights-pipeline",
+        ),
+        (
+            "analysis/visuals/cli-startup-assets-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b"digraph cli_startup_assets_lifecycle {",
+                b"digraph cli_startup_assets_lifecycle",
+            ),
+            "deep topic visual DOT structure is invalid: cli-startup-assets",
+        ),
+        (
+            "analysis/visuals/complex-slash-commands-lifecycle.svg",
+            lambda data: replace_once(data, b" viewBox=", b" data-viewBox="),
+            "deep topic rendered visual lacks SVG viewport: complex-slash-commands",
+        ),
+        (
+            "analysis/visuals/telemetry-event-catalog-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: telemetry-event-catalog",
+        ),
+        (
+            "analysis/visuals/api-beta-route-ownership-lifecycle.svg",
+            lambda data: replace_once(data, b" viewBox=", b" data-viewBox="),
+            "deep topic rendered visual lacks SVG viewport: api-beta-route-ownership",
+        ),
+        (
+            "analysis/visuals/error-diagnostic-atlas-lifecycle.dot",
+            remove_labeled_dot_edges,
+            "deep topic visual is too shallow: error-diagnostic-atlas",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                2,
+                b"api-beta-route-ownership.md",
+                b"api-beta-route-ownership-missing.md",
+            ),
+            "completeness capability 2 does not bind deep topic api-beta-route-ownership",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                11,
+                b"error-diagnostic-atlas.md",
+                b"error-diagnostic-atlas-missing.md",
+            ),
+            "completeness capability 11 does not bind deep topic error-diagnostic-atlas",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                12,
+                b"telemetry-event-catalog.md",
+                b"telemetry-event-catalog-missing.md",
+            ),
+            "completeness capability 12 does not bind deep topic telemetry-event-catalog",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                54,
+                b"artifact-watch-comment-autoreact.md",
+                b"artifact-watch-comment-autoreact-missing.md",
+            ),
+            "completeness capability 54 does not bind deep topic artifact-watch",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                55,
+                b"insights-history-analysis-pipeline.md",
+                b"insights-history-analysis-pipeline-missing.md",
+            ),
+            "completeness capability 55 does not bind deep topic insights-pipeline",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                56,
+                b"cli-startup-files-plugins-deeplinks.md",
+                b"cli-startup-files-plugins-deeplinks-missing.md",
+            ),
+            "completeness capability 56 does not bind deep topic cli-startup-assets",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                57,
+                b"complex-slash-command-lifecycles.md",
+                b"complex-slash-command-lifecycles-missing.md",
+            ),
+            "completeness capability 57 does not bind deep topic complex-slash-commands",
+        ),
+        (
             "analysis/completeness-audit.md",
             downgrade_first_capability,
             "completeness capability 1 is not closed: Documented",
@@ -724,7 +1068,7 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: remove_capability_row(data, 51),
-            "completeness capability coverage mismatch: expected=54, actual=53",
+            "completeness capability coverage mismatch: expected=58, actual=57",
         ),
         (
             "analysis/completeness-audit.md",
@@ -734,9 +1078,9 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: replace_capability_state(
-                data, 54, b"| Boundary |", b"| Deep |"
+                data, 58, b"| Boundary |", b"| Deep |"
             ),
-            "last completeness capability 54 must remain Boundary: Deep",
+            "last completeness capability 58 must remain Boundary: Deep",
         ),
         (
             "analysis/mechanism-evidence.jsonl",
@@ -1102,6 +1446,8 @@ def main() -> None:
     for case_number, (relative, mutate, expected) in enumerate(cases, 1):
         if case_number < args.start_case:
             continue
+        if args.end_case is not None and case_number > args.end_case:
+            break
         print(
             f"negative case {case_number}: {relative}",
             flush=True,
@@ -1158,6 +1504,34 @@ def main() -> None:
             "reader-first rendered visual is missing: analysis/visuals/structured-output-lifecycle.svg",
         ),
         (
+            "analysis/visuals/artifact-watch-autoreact-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/artifact-watch-autoreact-lifecycle.svg",
+        ),
+        (
+            "analysis/visuals/insights-history-analysis-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/insights-history-analysis-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/cli-startup-assets-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/cli-startup-assets-lifecycle.svg",
+        ),
+        (
+            "analysis/visuals/complex-slash-commands-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/complex-slash-commands-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/telemetry-event-catalog-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/telemetry-event-catalog-lifecycle.svg",
+        ),
+        (
+            "analysis/visuals/api-beta-route-ownership-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/api-beta-route-ownership-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/error-diagnostic-atlas-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/error-diagnostic-atlas-lifecycle.svg",
+        ),
+        (
             "analysis/claude-design-and-projects.md",
             "missing human analysis document: analysis/claude-design-and-projects.md",
         ),
@@ -1203,12 +1577,16 @@ def main() -> None:
         parser.error(
             f"--start-case exceeds available cases ({total_cases})"
         )
+    if args.end_case is not None and args.end_case > total_cases:
+        parser.error(f"--end-case exceeds available cases ({total_cases})")
     for case_number, (relative, expected) in enumerate(
         missing_cases,
         len(cases) + 1,
     ):
         if case_number < args.start_case:
             continue
+        if args.end_case is not None and case_number > args.end_case:
+            break
         print(
             f"negative case {case_number}: missing {relative}",
             flush=True,
@@ -1217,8 +1595,9 @@ def main() -> None:
         print(f"negative case {case_number}: PASS", flush=True)
 
     print("validator negative tests: PASS")
-    print(f"cases checked: {total_cases - args.start_case + 1}")
-    print(f"case range: {args.start_case}-{total_cases}")
+    end_case = args.end_case if args.end_case is not None else total_cases
+    print(f"cases checked: {end_case - args.start_case + 1}")
+    print(f"case range: {args.start_case}-{end_case}")
     print("restoration: PASS")
 
 

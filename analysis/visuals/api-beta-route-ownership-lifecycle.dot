@@ -1,0 +1,32 @@
+digraph ApiBetaRouteOwnership {
+  graph [rankdir=LR, bgcolor="transparent", pad="0.2", nodesep="0.35", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#243447", fillcolor="#F7F9FB", margin="0.12,0.08"];
+  edge [fontname="Arial", fontsize=9, color="#52677D", arrowsize=0.7];
+
+  candidate [label="静态候选\npath / beta identifier", fillcolor="#FFF4D6"];
+  caller [label="客户端 consumer\nAgent Loop / CCR / Design / Worker"];
+  host [label="Host + Auth\nfirst-party / provider / session JWT"];
+  assemble [label="请求组装\nmethod + body + header + timeout", fillcolor="#E8F3FF"];
+  provider [label="Provider 过滤/改写\nBedrock / Vertex / gateway"];
+  send [label="客户端 HTTP / SSE 发出", fillcolor="#E9F7EF"];
+  handler [label="发布物内 handler\nGateway / OTEL / runner", fillcolor="#E8F6F3"];
+  recover [label="本地恢复\nretry / beta strip / fallback", fillcolor="#FFF0F0"];
+  result [label="客户端结果\nresponse / tool_result / terminal"];
+  boundary [label="远端服务 Boundary\nIdP / Anthropic / Cloud / Collector", shape=box, style="rounded,dashed", fillcolor="#FFFFFF", color="#A33A3A"];
+  noise [label="SDK/依赖/内嵌参考文本\n只保留为声明证据", fillcolor="#F1F1F1"];
+
+  candidate -> caller [label="找到可达 consumer"];
+  candidate -> handler [label="找到 route handler"];
+  candidate -> noise [label="无产品 consumer"];
+  caller -> host [label="选择 host 与 auth"];
+  host -> assemble [label="注入身份并实例化 path"];
+  assemble -> provider [label="计算 beta 并构造 body"];
+  provider -> send [label="过滤 / 改写后发送"];
+  send -> handler [label="目标是自托管 Gateway"];
+  send -> boundary [label="目标是远端服务"];
+  handler -> boundary [label="转发 / 发现 / fanout"];
+  handler -> result [label="本地返回或拒绝"];
+  boundary -> recover [label="400/401/409/429/529/5xx/stream error", color="#A33A3A"];
+  recover -> assemble [label="重建请求", color="#A33A3A"];
+  boundary -> result [label="成功或终止结果"];
+}

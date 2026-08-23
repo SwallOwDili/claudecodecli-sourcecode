@@ -40,7 +40,7 @@ Advisor 不是任何 provider 的通用 Messages API 功能。2.1.235 的启用�
 - first-party provider/账号路径；
 - 客户端内部 capability 允许；
 - feature 或 experimental gate 打开；
-- 没有 `CLAUDE_CODE_DISABLE_ADVISOR_TOOL` 等显式禁用；
+- `CLAUDE_CODE_DISABLE_ADVISOR_TOOL` 未设为 true；它是最先检查的硬 disable gate，命中后不会继续读取 first-party、experimental 或 feature 条件；
 - catalog 中存在可用 advisor candidate。
 
 第三方 Bedrock、Vertex、Foundry 或任意兼容 gateway 即使能发送普通 Messages 请求，也不能仅凭本地 `--advisor` 获得同样的 server tool。first-party gate 是协议和服务能力边界，不是 UI 限制。

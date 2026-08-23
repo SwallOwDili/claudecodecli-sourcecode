@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 54 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md) 和 [Brief 用户可见输出](brief-mode-and-user-visible-output.md)。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [71 类证据归属地图](product-surface-evidence-map.md) 判断每类 inventory 是产品结构、真实调用点、混合 heuristic、依赖还是证据底座，再读 [全面性审计](completeness-audit.md) 判断 58 个能力面的证据深度；读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -240,6 +240,8 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 ### 7.4 Request attempt 不等于 Agent turn
 
 一次 Agent 模型轮次可能包含多个 HTTP attempt。实测 `CLAUDE_CODE_MAX_RETRIES=2` 时，受控 529 序列为 `529, 529, 200`，总请求数 3；受控 400 只请求 1 次。`maxTurns` 管新的模型决策轮次，不会因为网络 retry 自动消耗同样数量的 Agent turn。
+
+本版 inventory 中共有 99 条 API path 和 53 个日期后缀 Beta，但字符串存在不等于产品层调用：有些属于 Claude Code 直接 consumer，有些是发布物内 Enterprise Gateway handler，有些只是打包 SDK、prefix/allowlist 或内嵌迁移参考。Beta 还要经过 descriptor、模型/provider/feature/query-source/sticky gate、云 provider 改写和定向 400 strip，不能把 53 个标识写成“每次请求都会发送”。逐项 owner、method/path、consumer、失败与远端边界见 [API、Beta 与路由所有权](api-beta-route-ownership.md)。
 
 ## 8. Agent Loop：持续执行的核心状态机
 
@@ -935,12 +937,14 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 - debug log和 diagnostics file；
 - startup/query profiling；
-- Perfetto/frame timing；
+- Perfetto bridge/integration surface（recorder/file 未观察）与 frame timing；
 - heap/CPU/process telemetry；
 - JSONL/SDK/PTY recording；
 - crash/native module诊断。
 
 看到 recording或 profile标识不等于默认上传。需要分别检查创建 gate、文件路径、retention和发送 consumer。
+
+需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans；allowlist/静态调用点都不等于运行时已发送。需要从异常或日志文本下钻时，使用 [错误与诊断机制图谱](error-diagnostic-atlas.md)：它把 4,831 个错误构造点和 5,403 个 `T()` 调用点放回 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，避免把一条 message 当成完整行为。
 
 ## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
@@ -1225,8 +1229,8 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 284 条机制证据：213 Static、30 Probe、33 Public、8 Boundary；validator 逐条核对唯一 ID、topic、源码范围、anchors、Probe 字段与 Boundary；
-- 54个能力面：53项 Deep、1项 Boundary；
+- 299 条机制证据：228 Static、30 Probe、33 Public、8 Boundary；Static 细分为 190 runtime、16 consumer、12 constant、4 surface、6 declaration，299 个 claim ID 均唯一；validator 逐条核对 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 58 个能力面：57 项 Deep、1 项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 静态 name、3 动态 expression）、188 个 known-tool catalog 项；
@@ -1312,6 +1316,13 @@ Doctor分别检查：
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
 | 遥测、日志、隐私、诊断 | [telemetry.md](telemetry.md) |
+| API、工具、compact、session、MCP 等场景的事件顺序，以及 1,441 个一方事件、Datadog/OTEL 字段与动态事件名 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
+| 99 条 API path、53 个 Beta 和 Gateway/SDK owner | [api-beta-route-ownership.md](api-beta-route-ownership.md) |
+| Error、debug、tool failure、abort 与 LSP diagnostics | [error-diagnostic-atlas.md](error-diagnostic-atlas.md) |
+| Artifact Watch 评论自动响应 | [artifact-watch-comment-autoreact.md](artifact-watch-comment-autoreact.md) |
+| `/insights` 历史分析与 facet cache | [insights-history-analysis-pipeline.md](insights-history-analysis-pipeline.md) |
+| CLI 启动 file/plugin/deep-link 资源 | [cli-startup-files-plugins-deeplinks.md](cli-startup-files-plugins-deeplinks.md) |
+| 复杂 Slash Command 外部状态机 | [complex-slash-command-lifecycles.md](complex-slash-command-lifecycles.md) |
 | 所有机器字段怎样读 | [inventory-field-guide.md](inventory-field-guide.md) |
 | 公开资料与本版证据边界 | [public-claims-validation.md](public-claims-validation.md) |
 | 每条 Probe命令和原始结果 | [runtime-probe-index.md](runtime-probe-index.md) |
@@ -1560,7 +1571,39 @@ Agent Loop 在首次进入、compact 后和长期规划中持续注入 Plan atta
 
 客户端发布物能证明 schema 解析、AJV/strict、工具注入、attempt、attachment、tombstone 和终态；不能证明服务端 constrained decoding 的内部实现、某账号 gate 值或业务对象真实性。完整限制表、失败矩阵和 stdout 协议边界见 [Structured Output 与 Schema 合同](structured-output-and-schema-contract.md)。
 
-## 54. 最终准确性边界
+## 54. Artifact Watch：评论是不可信数据，不是直达执行器的指令
+
+`--watch-artifact` 不是远端无人值守 Agent。入口只允许当前环境的 Artifact id/URL，并拒绝 remote session、print/SDK、init-only 和重定向输出等没有本地交互 owner 的 host。首次扫描只建立 `seen`、`sentToClaudeAt`、`ownReplyIds`、digest 和 high-water baseline，不把旧评论当成新任务。字段退化时 digest 失效，新信号在当前 scan 结束后重扫，用来抑制并发重复回复。
+
+外部评论先进入无工具、无 thinking、无 prompt cache、128 output-token 的 triage；异常会降级到普通 `pipeline`，不会升级到编辑。只有 `act` 才启动最多 6 turns 的只读 analyst，且 permission wrapper 仅允许目标 Artifact/线程的 comments 与 page data 读取。真正写入前还会重检 plan mode、线程竞态、小时额度、loop breaker 和空 reply permission probe；`ask` 只通知，`deny` 终止，明确 `allow` 才进入 composer。
+
+默认 coalesce 为 5 秒、confirm dwell 为 2 秒，每 Artifact 每小时默认 60 个自动 turn；同线程 30 秒内连续 3 次自动回复打开 loop breaker，连续 3 次 pipeline denial 也会暂停。快速 acknowledgment 与完整回复/编辑是两个真实远端提交，中途失败不会撤回已发 ack；compact、resume、tombstone 和 rewind 也不能撤回已发评论、新 Artifact 版本或 resolve。详见 [Artifact Watch 评论自动响应](artifact-watch-comment-autoreact.md)。
+
+## 55. `/insights`：本地统计、模型 facet 和全局分析是三层成本
+
+`/insights` 先从本地 transcript 产生确定性 session metadata：消息、token、tool、语言、Git 动作、错误、时长和 transcript mtime。它把 metadata 写入 mode `0600` 的 cache，每次最多新建 200 份、刷新 200 份 stale 记录，因此大型历史不保证一次扫完。少于 2 条 user message 或不足 1 分钟的 session 不进入有效分析集。
+
+为给模型生成 facet，user/assistant 文本每段分别截到 500/300 字符；超过 30,000 字符的 session 按 25,000 字符分块，每块最多 500 output token 总结，失败则保留前 2,000 字符。冷缓存最多对 50 个无 facet session 各发一个最多 4,096 output-token 请求，再并行生成 7 个最多 8,192 token 的专题，最后再生成 1 个 8,192-token 总览。不计分块总结，一次冷缓存的静态最大 output-token 配额是 270,336，不是一个纯本地报表。
+
+最重要的准确性缺口是：metadata 会比较 transcript mtime，facet cache 只校验 JSON 结构与 session id，没有用 transcript mtime 使旧语义判断失效。用户继续修改旧 session 后，确定性计数可以更新，目标、outcome、满意度和 friction 却可能继续复用旧 facet。报告写时间戳 HTML 与 `report.html`，都是本地 `0600` 文件；模型分析质量与最终费用仍为 Boundary。详见 [`/insights` 历史分析管线](insights-history-analysis-pipeline.md)。
+
+## 56. CLI 启动资源：下载、加载与提交不是同一件事
+
+`--file` 把 `file_id:relative_path` 通过 Files API 下载到 session uploads。它要求 session access token、first-party provider 且拒绝 HIPAA 组织；单请求 60 秒、最多 3 次、500/1000 ms 退避、默认 5 文件并发。路径只做词法 normalize 与 `..` 拒绝，当前 consumer 没有证明逐级 symlink/realpath/O_NOFOLLOW 防护。resume 显式等待 download promise，新 session 路径在同一分支没有先等待；落盘成功也不会自动把 bytes 放进 Messages 请求。
+
+`--plugin-url` 下载的是当前 session 的可执行控制面，不是普通资料。managed sideload policy 在参数和加载期双重 gate；fetch 超时 30 秒，ZIP 下载上限 256 MiB，解压还限单文件 512 MiB、总量 1 GiB、100,000 个文件和 50:1 压缩比，并拒绝绝对路径与 `..` traversal。但这条具体网络链没有展示 HTTPS/host allowlist、loopback/link-local 拒绝或 redirect 复检；解压安全不能写成 URL 供应链安全。加载后 plugin 可带入 commands、skills、hooks、MCP 和 bin，临时 cache 在退出时清理。
+
+Deep Link handler 固定用 `--handle-uri <uri>`，后续多出 argv 会被当成 argument injection 拒绝。cwd/query 通用路径用 base64url 传递，terminal command 对 shell metacharacter 和 binary path 做安全构造；有效 cwd 会 `chdir` 并刷新 workspace/git cache，prefill 只进 composer，不自动提交。OS handler 注册是跨 session 持久副作用，uploads 与插件树又各有独立生命周期。详见 [CLI 启动文件、插件与 Deep Link](cli-startup-files-plugins-deeplinks.md)。
+
+## 57. 复杂 Slash Command：命令名称相似，状态 owner 和撤销语义完全不同
+
+`/install-github-app` 是多步 GitHub 写入状态机：检查 `gh`、auth、`repo/workflow` scopes、repo 权限与现有 workflow，再由用户确认 App、workflow、auth/secret，最后可能创建 secret、branch、commit 和 PR。后台 session 没有 attached terminal 时拒绝执行。中途失败不是事务回滚；已安装 App、写入 secret 或创建 branch/commit 需要在 GitHub owner 系统撤销。
+
+`/team-onboarding` 先在本地扫描最近 30 天 transcript，跳过超过 50 MiB 的文件，首条消息截到 200 字符，最多保留 60 个 session descriptor，再把降维数据交给只允许 `Edit(ONBOARDING.md)`、`Bash(ls *)` 和 share tool 的受限 agent。本地文档可用 Git 恢复，已分享链接和已复制内容不会随文件 rewind 失效。
+
+`/privacy-settings` 读写 Claude 服务端账号设置，domain exclusion 可强制 false；客户端文案把 off/on 保留期说明为 30 天/5 年，这是本版显示合同，不是对所有账号和服务端删除实现的独立证明。`/web-setup` 上传本地 GitHub token，可替换现有 GitHub App OAuth；默认 environment 创建失败只 warn，credential 可已保留。`/terminal-setup` 按 terminal/OS 分流，Terminal.app 与 Zed 的部分路径先 backup 再写，其他路径可能需要手工 undo；screen-reader 模式下不关 audible bell。`/install-slack-app`、`/stickers`、`/radio` 主要只是 browser handoff，打开 URL 不证明远端安装、购买或播放完成。详见 [复杂 Slash Command 生命周期](complex-slash-command-lifecycles.md)。
+
+## 58. 最终准确性边界
 
 这份说明书能够确定 `2.1.235` 客户端发布物中的调用链、状态、schema、请求装配、本地工具控制、持久化、恢复、遥测出口、原生合同和受控 Probe行为。
 

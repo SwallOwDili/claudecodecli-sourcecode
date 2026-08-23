@@ -146,6 +146,8 @@ PreToolUse 位于实际权限汇合之前，可以：
 
 拒绝不会执行工具。客户端构造同 `tool_use_id` 的 error result，记录 decision reason/source，并把它作为下一轮观察。模型可以改成只读方案、缩小路径、换工具或向用户解释阻塞。若直接丢掉 result，Anthropic message protocol 会留下孤立的 `tool_use`。
 
+`PermissionDenied` Hook 的实际调用面比事件名窄：当前通用工具管线只在 `decisionReason.type=classifier` 且 classifier 为 `auto-mode` 时运行它。普通 rule、mode、hook 或用户 dialog deny 不会经过这条调用点。Hook 返回 `retry:true` 也不会自动重跑原工具；只有 decision 没有 `noVerdict` 时，客户端才追加一条 meta nudge，让下一次模型决策知道可以重新考虑。`noVerdict=true` 会抑制该 nudge，即使 Hook 请求 retry。
+
 ## Hooks 与生命周期
 
 本版机器清单恢复出 31 个 hook event。与工具和循环最关键的包括：
@@ -254,6 +256,10 @@ bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim ma
 多个只读工具可能在模型仍流式输出时开始执行。每个工具独立完成 schema、PreToolUse 和 permission；一个工具等待用户审批时，已经获准的 sibling 是否继续取决于调度屏障与具体工具安全性。
 
 非并发安全工具形成顺序屏障：后续工具不能越过它。这个规则既保护共享文件状态，也让审批顺序更可理解。最终结果按 `tool_use_id` 配对，不依赖实际完成顺序；PostToolBatch 等全部 resolve 后再统一收尾。
+
+并发安全还约束 context ownership。工具产生的 `contextLayers` 只有在该工具是非 concurrency-safe 时才合并回共享执行器 context；safe 工具即使返回 layer，也不能靠它改变 sibling 的后续环境。结果扫描按模型顺序进行，但正在执行的 safe 工具不阻挡后面已完成的 safe result，正在执行的 unsafe 工具才形成 drain 屏障。
+
+新用户输入也不是无条件取消工具。默认 `interruptBehavior=block`，函数抛错同样回落 block；只有当前 executing 集合全部为 `cancel`，执行器才报告 `interruptible_tool_in_progress=true`，供界面决定 interrupt 还是 queue。收到普通 interrupt 后也只有 cancel 工具生成 user-interrupted 结果；EndConversation 对自身工具另有豁免。
 
 详见 [Agent Loop](agent-loop.md) 的 streaming executor 和 concurrency barrier。
 

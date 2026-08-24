@@ -2500,6 +2500,14 @@ def main() -> None:
             "analysis/visuals/compact-lifecycle.svg",
             "reader-first rendered visual is missing: analysis/visuals/compact-lifecycle.svg",
         ),
+        (
+            "analysis/visuals/request-execution-feedback.dot",
+            "README request execution visual source is missing",
+        ),
+        (
+            "analysis/visuals/request-execution-feedback.svg",
+            "README request execution rendered visual is missing",
+        ),
     ]
     total_cases = len(cases) + len(missing_cases)
     if args.start_case > total_cases:

@@ -1,0 +1,54 @@
+digraph request_execution_feedback {
+  graph [
+    rankdir=TB,
+    bgcolor="#ffffff",
+    pad="0.30",
+    nodesep="0.42",
+    ranksep="0.58",
+    splines=polyline,
+    fontname="Arial, PingFang SC, Microsoft YaHei"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#263238",
+    penwidth=1.4,
+    margin="0.18,0.12",
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=11
+  ];
+  edge [
+    color="#455a64",
+    penwidth=1.4,
+    arrowsize=0.75,
+    fontname="Arial, PingFang SC, Microsoft YaHei",
+    fontsize=9.5,
+    fontcolor="#263238"
+  ];
+
+  input [label="用户输入 / SDK 消息 / 排队消息", fillcolor="#fff3cd"];
+  assembly [label="Prompt Assembly\nsystem blocks + CLAUDE.md / Memory\n动态环境 + 历史 + 工具 schema", fillcolor="#e3f2fd"];
+  loop [label="Agent Loop\nAPI attempt / fallback / stream parser", fillcolor="#d1c4e9"];
+  text [label="assistant text\n本轮不再请求客户端工具", fillcolor="#d1c4e9"];
+  tooluse [label="完整 tool_use\n名称 + 输入 + tool_use_id", fillcolor="#ffe0b2"];
+  observable [label="用户可见结果\n文本 / terminal reason", fillcolor="#b2dfdb"];
+  control [label="工具控制管线\nschema -> Hook -> permission / policy\n-> sandbox -> tool.call", fillcolor="#ffe0b2"];
+  world [label="外部状态发生变化\n文件 / 进程 / MCP / 远端系统", fillcolor="#ffccbc"];
+  result [label="配对 tool_result\n携带同一 tool_use_id", fillcolor="#c8e6c9"];
+  cross [label="跨轮机制\nPrompt Cache | Tool Search | Compact\nTranscript | Telemetry", fillcolor="#eceff1", style="rounded,filled,dashed"];
+
+  { rank=same; text; tooluse; }
+  { rank=same; observable; control; }
+
+  input -> assembly [label="装入本轮请求"];
+  assembly -> loop [label="发送 Messages 请求"];
+  loop -> text [label="直接回答 / 结束"];
+  text -> observable [label="形成输出"];
+  loop -> tooluse [label="完成工具块"];
+  tooluse -> control [label="交给客户端裁决"];
+  control -> world [label="放行后执行"];
+  world -> result [label="返回观察结果"];
+  result -> loop [label="写入下一轮消息", constraint=false, color="#2e7d32", fontcolor="#2e7d32", penwidth=1.7];
+  cross -> assembly [label="缓存前缀 / 延迟 schema", style=dashed, color="#607d8b", fontcolor="#455a64"];
+  cross -> loop [label="压缩、持久化与观测", style=dashed, color="#607d8b", fontcolor="#455a64", constraint=false];
+}

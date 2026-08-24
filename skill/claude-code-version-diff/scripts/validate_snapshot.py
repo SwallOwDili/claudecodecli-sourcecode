@@ -5808,6 +5808,7 @@ def validate_readme_front_door(
         "article index": "[技术文章总入口](ARTICLES.md)",
         "request lifecycle": "## 先建立一个正确模型",
         "lifecycle visual": "analysis/visuals/system-lifecycle.svg",
+        "request execution visual": "analysis/visuals/request-execution-feedback.svg",
         "Agent Loop explanation": "### 1. Agent Loop",
         "context governance explanation": "### 2. 上下文治理",
         "local authority explanation": "### 3. 模型可以提议动作",
@@ -5821,6 +5822,17 @@ def validate_readme_front_door(
     for label, marker in required_markers.items():
         if marker not in readme:
             failures.append(f"README front door is missing {label}")
+
+    request_visual_dot = repo / "analysis/visuals/request-execution-feedback.dot"
+    request_visual_svg = repo / "analysis/visuals/request-execution-feedback.svg"
+    if not request_visual_dot.is_file():
+        failures.append("README request execution visual source is missing")
+    elif not re.search(r"->.*\[label=", request_visual_dot.read_text(encoding="utf-8")):
+        failures.append("README request execution visual lacks labeled transitions")
+    if not request_visual_svg.is_file():
+        failures.append("README request execution rendered visual is missing")
+    elif "<svg" not in request_visual_svg.read_text(encoding="utf-8"):
+        failures.append("README request execution rendered visual is invalid")
 
 
 def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:

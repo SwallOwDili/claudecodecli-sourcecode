@@ -14,31 +14,7 @@
 
 假设用户要求 Claude“读取配置，把端口从 `8080` 改成 `9090`，运行测试并修复失败”。真正发生的不是一次长文本生成，而是一组互相咬合的状态转换：
 
-```text
-用户输入 / SDK 消息 / 排队消息
-          |
-          v
-Prompt Assembly
-system blocks + CLAUDE.md/Memory + 动态环境 + 历史 + 工具 schema
-          |
-          v
-Agent Loop  ── API attempt / fallback / stream parser
-          |
-          +── assistant text
-          |
-          `── completed tool_use
-                    |
-                    v
-            schema -> Hook -> permission/policy -> sandbox -> tool.call
-                    |
-                    v
-              文件 / 进程 / 远端系统发生变化
-                    |
-                    v
-              tool_result 按 ID 回灌，模型进入下一轮
-
-横向控制：prompt cache / Tool Search / compact / transcript / telemetry
-```
+![一次请求经过上下文装配和 Agent Loop 后，文本直接结束或进入受控工具执行；tool_result 再按同一 ID 回到下一轮](analysis/visuals/request-execution-feedback.svg)
 
 这张图里最重要的分界是：**消息历史决定模型以后看到什么，外部状态记录世界已经发生什么。** compact、fallback、tombstone 或 resume 可以重建前者，却不会自动撤销已经完成的文件修改、Shell 命令或远端写入。
 

@@ -6,7 +6,7 @@
 >
 > **先看版本结论：** [2.1.235 状态边界修正](analysis/product-surface-evidence-map.md) · [技术文章总入口](ARTICLES.md) · [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md) · [全面性审计](analysis/completeness-audit.md)
 >
-> **外部系统与高风险状态机：** [Auto Mode](analysis/auto-mode-classifier.md) · [Plan Mode](analysis/plan-mode-and-human-approval.md) · [MCP / Agents](analysis/mcp-agents-background.md) · [Remote / Cloud](analysis/cloud-background-channels.md) · [Artifact](analysis/workflow-artifact-design.md) · [Native](analysis/native-bridge-runtime.md)
+> **外部系统与高风险状态机：** [Auto Mode](analysis/auto-mode-classifier.md) · [Plan Mode](analysis/plan-mode-and-human-approval.md) · [MCP / Agents](analysis/mcp-agents-background.md) · [Remote / Cloud](analysis/cloud-background-channels.md) · [Artifact](analysis/workflow-artifact-design.md) · [安装 / 自更新](analysis/install-update-doctor-lifecycle.md) · [Native Bridge](analysis/native-bridge-runtime.md)
 >
 > **逐项可检索参考：** [842/842 环境变量](analysis/environment-variable-reference.md) · [361/361 Feature key](analysis/feature-flag-reference.md) · [遥测排障场景与 1,441 个一方事件](analysis/telemetry-event-catalog.md) · [99 条 API 路径与 53 个 Beta](analysis/api-beta-route-ownership.md) · [Error/Diagnostic 684 条 exact owner](analysis/error-diagnostic-owner-index.md) · [错误与诊断机制图谱](analysis/error-diagnostic-atlas.md)
 
@@ -32,7 +32,7 @@
 | [`analysis/product-surface-inventory-index.md`](analysis/product-surface-inventory-index.md) | **机器证据索引，不是入门文章**：由同一生成器维护 71 类 inventory 的 canonical hash、提取来源、所有权、证明层级、阅读面和当前 consumer-tracing 欠账；避免把文件数、字段数和 claim 数堆进主文 |
 | [`analysis/compact-visual-guide.md`](analysis/compact-visual-guide.md) | **图文样板、最快理解一个复杂机制**：从真实场景、前后状态和三张图进入，再逐步展开 `/compact` 的 summary、消息分组、附件恢复、boundary、失败重试、版本差异和源码证据 |
 | [`analysis/claude-code-2.1.235-complete-guide.md`](analysis/claude-code-2.1.235-complete-guide.md) | **首选入口、单卷完整版**：用 58 章从发布物、请求装配、Agent Loop、工具注册/权限、Plan Mode、Structured Output、Brief 用户可见输出、上下文/cache/compact、会话恢复、多 Agent、遥测、Artifact Watch、`/insights`、启动资源和复杂 Slash Command 一直讲到最终边界 |
-| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性审计**：58 个能力面中 55 项 Deep、2 项 Documented、1 项 Boundary；IDE extension 与 updater 事务证据不足时不再用“全部 Deep”遮盖缺口 |
+| [`analysis/completeness-audit.md`](analysis/completeness-audit.md) | **全面性审计**：58 个能力面中 56 项 Deep、1 项 Documented、1 项 Boundary；Updater 已按目标版事务闭合，IDE 只保留 CLI bridge 的正向协议 Probe 缺口 |
 | [`analysis/prompt-assembly-and-system-reminders.md`](analysis/prompt-assembly-and-system-reminders.md) | **Prompt Assembly 与 System Reminder**：top-level system、user/system context、typed attachment、mid-conversation system、文件新鲜度、compact/resume重建和cache前缀怎样编译成一次真实请求 |
 | [`analysis/client-data-flow-and-privacy.md`](analysis/client-data-flow-and-privacy.md) | **全局数据流与隐私**：Messages、local transcript、Remote、1P/Datadog/Error、OTEL、Feedback/Survey、WebFetch、MCP/Hook、IDE/Chrome、Artifact/upload和Voice各自去了哪里、由谁同意、如何删除 |
 | [`analysis/plan-mode-and-human-approval.md`](analysis/plan-mode-and-human-approval.md) | **Plan Mode 与人工审批**：进入批准、`prePlanMode`、只读边界、计划文件、`AskUserQuestion`、`ExitPlanMode`、批准/拒绝、AFK、SDK park、team lead 与 Ultraplan 远端审批 |
@@ -90,7 +90,7 @@
 | [`analysis/models-auth-providers-request.md`](analysis/models-auth-providers-request.md) | provider 选择优先级、模型目录、OAuth/API key/cloud credentials、base URL gate 与 Messages 请求装配 |
 | [`analysis/settings-feature-flags-policy.md`](analysis/settings-feature-flags-policy.md) | user/project/local/flag/policy 五层配置、字段合并语义、feature gate 与 managed-only 风控 |
 | [`analysis/tui-ide-remote-cloud.md`](analysis/tui-ide-remote-cloud.md) | TUI/print/SDK、IDE 双向上下文、Remote Control 重连与附件边界、cloud/teleport ownership |
-| [`analysis/install-update-doctor-lifecycle.md`](analysis/install-update-doctor-lifecycle.md) | 真实版本文件、更新迁移、doctor 故障域、native 配套安装与 rollback 边界 |
+| [`analysis/install-update-doctor-lifecycle.md`](analysis/install-update-doctor-lifecycle.md) | **Native 安装与自更新完整状态机**：owner/channel/policy、manifest SHA-256、staging、原子版本发布、launcher ownership/symlink、部分成功、restart、version lock、清理、Doctor 与数据回退边界 |
 | [`analysis/native-bridge-runtime.md`](analysis/native-bridge-runtime.md) | 5 个 `.node` 的 JS consumer、N-API 合同、Rust/Swift/macOS framework、生命周期与副作用 |
 | [`analysis/telemetry.md`](analysis/telemetry.md) | 一方事件、OTEL、Datadog、GrowthBook、错误上报、本地日志、队列、重试和隐私门；包含 `OTEL_LOG_RAW_API_BODIES` 默认/inline/file 三模式精确二进制审计 |
 | [`analysis/telemetry-event-catalog.md`](analysis/telemetry-event-catalog.md) | **场景语义索引 + 全量逐事件证据**：先用 API、工具授权、Permission UI、compact、session、MCP、后台任务、登录、错误终态和 transcript 恢复解释事件顺序、owner、字段和成功/失败状态，再保留 1,441 个静态一方事件、43 个动态调用点、Datadog/OTEL/metric/span 的逐项证据与 Boundary |
@@ -126,7 +126,7 @@
 
 每个重要机制都按同一合同解释：它解决什么问题，拥有哪份状态，从哪里进入，调用链按什么顺序执行，受哪些 gate/优先级控制，默认值和阈值是什么，成功与失败各留下什么，什么时候失效，用户在质量、延迟、token、费用、隐私、安全和恢复上会感受到什么，以及哪些结论仍属于服务端或版本边界。公开资料只用于提出假设；本版本结论必须回到 `2.1.235` bundle 或同哈希二进制探针。31 个官方页面同时固化原始响应 hash、去噪正文 hash 与 40 条逐摘录 hash；刷新脚本还要求每条引用逐句存在于当次页面可见正文，见 [`analysis/public-sources/manifest.json`](analysis/public-sources/manifest.json)。
 
-当前结构化机制证据共 `347` 条：`246 Static`、`52 Probe`、`33 Public`、`16 Boundary`。Static 细分为 `206 runtime`、`18 consumer`、`12 constant`、`4 surface`、`6 declaration`，共覆盖 48 个 topic；347 个 claim ID 均唯一。每条记录都必须有 topic、证据等级和可复核形状；`surface`/`declaration` 只证明命令、schema 或用户提示存在，不能替代可达 runtime/consumer。Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/MCP、ClaudeDesign/Projects，以及 Artifact Watch、`/insights`、CLI 启动资源、复杂 Slash Command、遥测事件目录、API/Beta owner、错误图谱、raw-body OTEL、OTLP TLS owner、Embedded Grep、TUI 权限、Project 数据生命周期和双架构 native 都维持独立 topic 或 Probe 合同，不能退回“文章存在但没有 claim 级生命周期、失败恢复和 Boundary”的状态。
+当前结构化机制证据共 `356` 条：`254 Static`、`52 Probe`、`33 Public`、`17 Boundary`。Static 细分为 `214 runtime`、`18 consumer`、`12 constant`、`4 surface`、`6 declaration`，共覆盖 48 个 topic；356 个 claim ID 均唯一。每条记录都必须有 topic、证据等级和可复核形状；`surface`/`declaration` 只证明命令、schema 或用户提示存在，不能替代可达 runtime/consumer。Plan Mode、Structured Output、REPL、EndConversation、Remote/Runner/Notifications、Connector/MCP、ClaudeDesign/Projects、Native updater，以及 Artifact Watch、`/insights`、CLI 启动资源、复杂 Slash Command、遥测事件目录、API/Beta owner、错误图谱、raw-body OTEL、OTLP TLS owner、Embedded Grep、TUI 权限、Project 数据生命周期和双架构 native 都维持独立 topic 或 Probe 合同，不能退回“文章存在但没有 claim 级生命周期、失败恢复和 Boundary”的状态。
 
 19 份运行报告覆盖 Agent Loop/resume/compact、request/cache/hook/turn 控制、MCP/Subagent、Plugin Skill/LSP、settings/retry/fallback、OTEL raw-body与TLS effective owner、sandbox/rewind、doctor/Remote Control、Embedded Grep、TUI permission、Project purge/import、Messages proxy/CA/mTLS、Plugin Eval free ablation，以及 arm64 和 x86_64 两套 native 原版/兼容证据。报告分别保存 command、input、literal output、exit status、required checks 和边界，不能用总 PASS 代替逐项状态。逐项解释见 [`analysis/runtime-probe-index.md`](analysis/runtime-probe-index.md)，归一化原始结果位于 [`analysis/runtime-probes/`](analysis/runtime-probes/)。
 
@@ -613,7 +613,7 @@ python3 skill/claude-code-version-diff/scripts/validate_otlp_tls.py .
 python3 skill/claude-code-version-diff/scripts/test_otlp_tls_validator.py .
 ```
 
-验证校验器会拒绝隐私路径、伪引用、未归属 inventory、降回 `Documented` 的能力面、未索引 Probe 和失败 required check，并确认每次负向变更都恢复原哈希：
+验证校验器会拒绝隐私路径、伪引用、未归属 inventory、受 topic-depth 合同保护却降回 `Documented` 的能力面、没有具体缺失事实的 `Documented` 行、未索引 Probe 和失败 required check，并确认每次负向变更都恢复原哈希：
 
 ```bash
 python3 skill/claude-code-version-diff/scripts/test_validator_negative.py .
@@ -648,7 +648,7 @@ python3 skill/claude-code-version-diff/scripts/compare_versions.py \
 
 ## 验证结论
 
-快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希，以及产品运行时长文的三世界中心命题、Prompt Assembly、Agent Loop 四种嵌套生命周期单位、client/server tool 分流、Bash 改写前并发分类、权限 scope、compact 普通 miss 与 hit/miss、全局数据流、遥测 raw-body 三模式、OTLP TLS effective owner、按对象局部恢复、Artifact 响应合同、Voice 证据等级、Derived 阅读路由、折叠证据方法和独立机器证据索引；71 类清单只证明分类完整、顺序稳定与映射可复核，不代表所有 identifier 已完成 consumer tracing。校验器同时检查 347 条结构化机制证据、52 条 Probe 的人类索引、31 个官方来源、40 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、58 个能力面的 Deep/Documented/Boundary 状态、读者优先深度专题及其 DOT/SVG，以及遥测场景语义索引、1,441 个一方事件 catalog marker、正文与机制图合同。它还检查主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合、5 个原生源文件哈希，并精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外要求 arm64 23/23 与 x86_64 20/20 两份报告同时 PASS，x86 supplied compatible artifacts 5/5 完成 provenance/load/export contract，recipe 不作为同次 build attestation，且只对发布物确有 x86 slice 的两个模块声明行为对照。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+快照校验器检查分支/版本约定、15 个解包文件哈希、93 个归一化风控条目、71 类 source inventory 的确定性重生成、逐文件哈希，以及产品运行时长文的三世界中心命题、Prompt Assembly、Agent Loop 四种嵌套生命周期单位、client/server tool 分流、Bash 改写前并发分类、权限 scope、compact 普通 miss 与 hit/miss、全局数据流、遥测 raw-body 三模式、OTLP TLS effective owner、按对象局部恢复、Artifact 响应合同、Voice 证据等级、Native updater 10 阶段事务、Derived 阅读路由、折叠证据方法和独立机器证据索引；71 类清单只证明分类完整、顺序稳定与映射可复核，不代表所有 identifier 已完成 consumer tracing。校验器同时检查 356 条结构化机制证据、52 条 Probe 的人类索引、31 个官方来源、40 条逐句正文命中的固定摘录、固定 commit 的 19 条上游 Release Notes 原文、Acorn 版本、JSONL 比较字段、调用点覆盖、58 个能力面的 Deep/Documented/Boundary 状态、读者优先深度专题及其 DOT/SVG，以及遥测场景语义索引、1,441 个一方事件 catalog marker、正文与机制图合同。它还检查主源码 Bun banner、bundle 内版本号、深度逆向 manifest、完整 bytecode 解压哈希、可读版稳定标识符集合、5 个原生源文件哈希，并精确核对人工维护的 29 项核心终端参考、80 个同工厂 AST 注册调用点及 29/28/16/4/3 人工分类、156 个 direct setting、103 个 slash command、31 个 Hook event、32 个 Claude storage namespace、89 个 SDK subtype 和 44 个 protocol event。原生重建另外要求 arm64 23/23 与 x86_64 20/20 两份报告同时 PASS，x86 supplied compatible artifacts 5/5 完成 provenance/load/export contract，recipe 不作为同次 build attestation，且只对发布物确有 x86 slice 的两个模块声明行为对照。原始 `2.1.235` 发布程序在全部逆向和重建完成后 SHA-256 仍为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
 本分支只排除 298.8 MB 的原始签名可执行文件本体，因为其中可分离的 Bun packed 内容与 bytecode 已经逐项保存；需要验证实际运行行为时仍使用本机原始签名程序。
 

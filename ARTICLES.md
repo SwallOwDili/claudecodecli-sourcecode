@@ -12,8 +12,8 @@
 
 ## 本轮新增的全量参考
 
-1. [模型提案权、本地裁决与九条机制主线](analysis/product-surface-evidence-map.md)：正文只讲可执行的因果链与设计取舍，不再用文件数、字段数和完成度数字制造深度；71 类 inventory、347 条 claim 和仍未收口的 consumer 统一进入独立的 [机器证据索引](analysis/product-surface-inventory-index.md)。
-2. [全面性审计与收口合同](analysis/completeness-audit.md)：58个能力面中55项Deep、2项Documented、1项Boundary；IDE extension与updater事务证据不足时明确降级，不再用“全部Deep”掩盖缺口。
+1. [模型提案权、本地裁决与九条机制主线](analysis/product-surface-evidence-map.md)：正文只讲可执行的因果链与设计取舍，不再用文件数、字段数和完成度数字制造深度；71 类 inventory、356 条 claim 和仍未收口的 consumer 统一进入独立的 [机器证据索引](analysis/product-surface-inventory-index.md)。
+2. [全面性审计与收口合同](analysis/completeness-audit.md)：58个能力面中56项Deep、1项Documented、1项Boundary；Updater 已按目标版调用链闭合，IDE 只保留 CLI bridge 的正向协议 Probe 缺口。
 3. [80 个工具注册调用点、条件工具与宿主表面](analysis/tool-registration-and-host-surfaces.md)：解释人工维护的 29 项核心参考、80 个 `Yi({...})` AST 调用点、77/3 静态 name/动态表达式、工厂展开、五类人工归属和七道运行时 gate。
 4. [Brief 与用户可见输出](analysis/brief-mode-and-user-visible-output.md)：解释 `SendUserMessage`、`--brief`、`/brief`、chat/transcript projection、附件 upload lane、部分失败和 turn-end 单次补发。
 5. [29 项核心终端参考工具逐项说明](analysis/builtin-tools-reference.md)：维护集合 29/29 覆盖，并深入说明 Workflow、Cron、LSP、Task、Artifact、Worktree、文件工具和后台输出的状态与失败边界。
@@ -135,7 +135,7 @@
 | 99 条 API path 和 53 个 Beta 哪些是产品 consumer、Gateway handler、SDK 或内嵌文本 | [API、Beta 与路由所有权](analysis/api-beta-route-ownership.md) |
 | 为什么 settings 或 feature flag 写了却不生效 | [Settings、Feature Flags 与 Managed Policy](analysis/settings-feature-flags-policy.md) |
 | TUI、IDE、Remote Control 和 Cloud Session 谁真正持有执行状态 | [TUI、IDE、Remote Control 与 Cloud Session](analysis/tui-ide-remote-cloud.md) |
-| 安装、更新、Doctor 和版本回退怎样验证真实二进制 | [安装、更新、Doctor 与版本生命周期](analysis/install-update-doctor-lifecycle.md) |
+| Native updater 怎样选择版本、校验下载、原子发布、切 launcher，并处理部分成功与旧版本清理 | [Native 安装、自更新与 Doctor 生命周期](analysis/install-update-doctor-lifecycle.md) |
 | `.node` 模块怎样连接 JavaScript、N-API、Rust/Swift 和 macOS | [Native Bridge 与 JavaScript Runtime](analysis/native-bridge-runtime.md) |
 | 一方事件、OTEL、Datadog、错误上报和本地诊断记录什么 | [遥测、日志与诊断](analysis/telemetry.md) |
 | 一次 API、工具、compact、session 或 MCP 故障应该按什么事件顺序排查，1,441 个事件各有哪些字段和出口资格 | [遥测场景语义索引与逐事件证据](analysis/telemetry-event-catalog.md) |

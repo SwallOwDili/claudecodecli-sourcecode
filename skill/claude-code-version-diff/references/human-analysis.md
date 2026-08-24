@@ -319,7 +319,7 @@ Separate local TUI/print/SDK modes, IDE discovery and bidirectional context, loc
 
 ## Install, update, doctor, and release lifecycle chapter
 
-Trace the resolved real version file rather than trusting a launcher. Record version, size, hash, architecture, signature, install shape, migrations, auto-update/check gates, doctor fault domains, native-module release matching, and rollback compatibility. Distinguish disabling automatic installation, disabling checks/traffic, hiding commands, and externally managed deployment. State that binary rollback does not automatically downgrade settings or transcript schemas.
+Trace the resolved real version file rather than trusting a launcher. Start from installation-owner detection, then follow exact-version/channel resolution; minimum/maximum/canary/forced-downgrade precedence; release feed and manifest; platform selection; retry, stall and total download deadlines; checksum versus independent manifest authenticity; unique staging; same-directory temporary publish and rename; launcher ownership and activation; partial success; current-process versus next-launch behavior; durable result/restart notice; running-version locks; orphan and old-version cleanup; migrations; and doctor output fields. Distinguish disabling automatic installation, disabling checks/traffic, hiding commands, and externally managed deployment. State exactly which failures leave a validated version file without activating it, and that binary rollback does not automatically downgrade settings or transcript schemas.
 
 ## Native bridge runtime chapter
 
@@ -399,7 +399,7 @@ Before publication, verify:
 - slash commands, Hook events and Claude storage namespaces have exact marker coverage plus per-item lifecycle explanations;
 - Workflow/Artifact/Design, feature evaluation, TUI/media/IDE/Chrome and background/Channels/Cloud have dedicated owner/failure/boundary guides with editable diagrams;
 - TUI/IDE/remote/cloud distinguishes local state from remote ownership and reconnect behavior;
-- install/update/doctor distinguishes launcher, immutable version file, migration, update gates, and rollback compatibility;
+- install/update/doctor distinguishes the running process, version path, staging candidate and launcher; covers source/channel policy, manifest checksum, atomic publish, ownership refusal, partial success, locks/cleanup, migration, doctor and binary-versus-data rollback;
 - native bridge analysis joins JavaScript consumers to N-API contracts, lifetimes, side effects, and architecture limits, with a machine report separating arm64 runtime coverage from x86_64 static-only evidence;
 - inventory field guide explains unresolved dynamic data honestly;
 - telemetry distinguishes first-party, OTEL, Datadog, GrowthBook, error reporting, and local diagnostics;

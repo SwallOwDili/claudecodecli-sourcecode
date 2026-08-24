@@ -2,11 +2,11 @@
 
 > 这是一份确定性审计页，不是技术文章。先读 [状态边界与本地执行系统解剖](product-surface-evidence-map.md)，需要复核覆盖和跨版本差异时再回到这里。
 
-## 当前语义收口状态
+## 机器分类状态（不是项目待办）
 
-[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 347 条 claim，覆盖 48 个 topic：246 Static、52 Probe、33 Public、16 Boundary。
+[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 356 条 claim，覆盖 48 个 topic：254 Static、52 Probe、33 Public、17 Boundary。
 
-仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 502 个静态环境名称和 138 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 156 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 891 个 `tengu_other` caller-owner。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)已对 684/10234 个 callsite 建立 exact owner（Product 308、Dependency 376），仍有 9550 个；此外还有遥测运行 gate/动态 payload/远端 delivery和未触发 transport/remote/paid-judge Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。环境/Feature 本批分别新增 104/55 项结构化人工合同，生成器会按 lexical owner、调用点数量和 access mode 拒绝伪收口。
+机器索引当前把[环境变量参考](environment-variable-reference.md)中的 502 个静态名称和 138 个动态表达式、[Feature 参考](feature-flag-reference.md)中的 156 个 key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 891 个 caller-owner保留为未逐项扩展状态。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)对 684/10234 个 callsite 建立 exact owner（Product 308、Dependency 376），其余 9550 个仍保留原始定位。`Untraced/Inventory only` 不是服务端 Boundary，但这些数量也不代表 CLI 有同等数量未讲清的产品功能，更不是项目待办清单；只有能力审计指出某个具体 owner、状态或失败事实缺失时，才继续追对应行。环境/Feature 的 104/55 项结构化合同只用于防止已确认语义回退。
 
 ## 三轴怎样读
 

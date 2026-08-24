@@ -509,6 +509,11 @@ HUMAN_ANALYSIS_DOCS = {
         "doctor",
         "rollback",
         "SHA-256",
+        "manifest.json",
+        "activationRefused",
+        "last-update-result",
+        "120 秒",
+        "10 分钟",
     ),
     "analysis/native-bridge-runtime.md": (
         "N-API",
@@ -778,7 +783,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/models-auth-providers-request.md": (6000, 10),
     "analysis/settings-feature-flags-policy.md": (6000, 10),
     "analysis/tui-ide-remote-cloud.md": (6000, 10),
-    "analysis/install-update-doctor-lifecycle.md": (5000, 8),
+    "analysis/install-update-doctor-lifecycle.md": (15000, 12),
     "analysis/native-bridge-runtime.md": (6000, 10),
     "analysis/runtime-probe-index.md": (9000, 10),
     "analysis/auto-mode-classifier.md": (14000, 15),
@@ -864,6 +869,64 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/ultrareview-cloud-review.md": "ultrareview-cloud-review",
 }
 TOPIC_DEPTH_CONTRACTS = {
+    "install-update-doctor": {
+        "document": "analysis/install-update-doctor-lifecycle.md",
+        "visual_stem": "release-lifecycle",
+        "capability": 33,
+        "capability_markers": (r"Install", r"update", r"doctor"),
+        "lifecycle_anchors": (
+            ("installation owner selection", r"installationType"),
+            ("channel or exact version", r"channel"),
+            ("version policy", r"maxVersion"),
+            ("unique staging", r"staging"),
+            ("platform manifest", r"manifest\.json"),
+            ("download integrity", r"SHA-256"),
+            ("atomic version publish", r"rename"),
+            ("launcher activation", r"symlink"),
+            ("durable update result", r"last-update-result"),
+            ("version cleanup", r"cleanup"),
+        ),
+        "gate_markers": (
+            ("all-update kill switch", r"DISABLE_UPDATES"),
+            ("background updater kill switch", r"DISABLE_AUTOUPDATER"),
+            ("nonessential traffic gate", r"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"),
+            ("minimum version", r"minimumVersion"),
+            ("managed maximum version", r"requiredMaximumVersion"),
+            ("force reinstall", r"--force"),
+            ("check throttle", r"5\s*分钟"),
+            ("scheduler interval", r"30\s*分钟"),
+            ("manifest authenticity boundary", r"独立\s*GPG/Ed25519\s*签名"),
+        ),
+        "failure_markers": (
+            ("checksum retry and partial deletion", r"checksum mismatch.{0,240}(?:删除|重试)|(?:删除|重试).{0,240}checksum mismatch"),
+            ("publish cleanup", r"temp.{0,180}(?:删除|清理)"),
+            ("partial activation", r"activationFailed.{0,200}activationRefused"),
+            ("external launcher refusal", r"external launcher|外部 launcher"),
+            ("current process remains old", r"当前进程.{0,120}(?:旧|2\.1\.235)"),
+            ("data rollback boundary", r"settings.{0,160}transcript.{0,160}(?:rollback|回退|降级)"),
+        ),
+        "visual_anchors": (
+            "manifest.json",
+            "流式下载 + SHA",
+            "版本文件原子发布",
+            "launcher ownership",
+            "activationRefused / Failed",
+            "当前进程仍跑旧 bytes",
+            "version lock + cleanup",
+        ),
+        "minimum_lifecycle_steps": 10,
+        "minimum_evidence_references": 12,
+        "gate_scope": "document",
+        "section_patterns": {
+            "state ownership": r"60 秒看懂",
+            "ordered lifecycle": r"完整生命周期",
+            "gates and thresholds": r"Gate、优先级与精确阈值",
+            "failure and recovery": r"失败、部分成功与恢复",
+            "user impact": r"用户影响",
+            "evidence": r"证据与边界",
+            "boundary": r"证据与边界",
+        },
+    },
     "plan-mode": {
         "document": "analysis/plan-mode-and-human-approval.md",
         "visual_stem": "plan-mode-lifecycle",
@@ -1691,7 +1754,7 @@ MECHANISM_TOPIC_MINIMUMS = {
     "settings-policy": 5,
     "feature-flags-remote-config": 8,
     "tui-ide-remote-cloud": 5,
-    "install-update-doctor": 4,
+    "install-update-doctor": 14,
     "native-bridge": 6,
     "telemetry": 8,
     "risk-controls": 1,
@@ -1726,6 +1789,26 @@ MECHANISM_TOPIC_MINIMUMS = {
     "telemetry-event-catalog": 3,
     "api-beta-route-ownership": 3,
     "error-diagnostic-atlas": 3,
+}
+MECHANISM_TOPIC_REQUIRED_CLAIMS = {
+    "install-update-doctor": (
+        "native-update.installation-owner-selection",
+        "native-update.target-policy",
+        "native-update.download-integrity",
+        "native-update.atomic-version-publish",
+        "native-update.launcher-ownership-activation",
+        "native-update.partial-activation",
+        "native-update.version-lock-cleanup",
+        "native-update.result-and-restart-notice",
+        "boundary.native-update-manifest-authenticity",
+    ),
+}
+DOCUMENTED_CAPABILITY_MISSING_FACT_MARKERS = {
+    27: (
+        ("controlled IDE socket", r"受控\s*IDE socket"),
+        ("round-trip protocol fields", r"auth/context/selection/diagnostic"),
+        ("positive probe", r"正向.{0,40}Probe"),
+    ),
 }
 SOURCE_VIEW_PATHS = {
     "canonical-js": "extracted/cli.js",
@@ -3313,15 +3396,18 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         failures.append(
             "product surface inventory completeness statement does not match the mechanism evidence registry"
         )
-    for debt in (
-        "502 个静态环境名称",
-        "156 个 Feature key",
-        "138 个动态环境表达式",
-        "891 个 `tengu_other` caller-owner",
+    for classification_marker in (
+        "502 个静态名称",
+        "156 个 key",
+        "138 个动态表达式",
+        "891 个 caller-owner",
+        "机器分类状态（不是项目待办）",
+        "不代表 CLI 有同等数量未讲清的产品功能",
     ):
-        if debt not in inventory_content:
+        if classification_marker not in inventory_content:
             failures.append(
-                f"product surface inventory completeness debt is missing {debt!r}"
+                "product surface inventory machine-classification statement is missing "
+                f"{classification_marker!r}"
             )
 
     if (
@@ -4294,17 +4380,35 @@ def validate_completeness_closure(
             f"missing={missing}, ordered={row_order == expected_order}"
         )
 
-    documented_capabilities = {27, 33}
+    allowed_states = {"Deep", "Documented", "Inventory only", "Boundary"}
     for capability in range(1, expected_last_capability):
         if capability not in rows:
             continue
         state = rows[capability][4]
-        expected_state = "Documented" if capability in documented_capabilities else "Deep"
-        if state != expected_state:
+        if state not in allowed_states:
             failures.append(
-                f"completeness capability {capability} state mismatch: "
-                f"{state} != {expected_state}"
+                f"completeness capability {capability} has invalid state: {state}"
             )
+        if state == "Boundary":
+            failures.append(
+                f"completeness capability {capability} uses Boundary before the "
+                "release-external capability row"
+            )
+        if state in {"Documented", "Inventory only"}:
+            missing_fact = rows[capability][5] if len(rows[capability]) > 5 else ""
+            if re.search(r"尚缺|缺少|未闭合|未完成|还需|仍需", missing_fact) is None:
+                failures.append(
+                    f"completeness capability {capability} is {state} but does not "
+                    "name the exact missing in-scope fact"
+                )
+            for label, pattern in DOCUMENTED_CAPABILITY_MISSING_FACT_MARKERS.get(
+                capability, ()
+            ):
+                if re.search(pattern, missing_fact, re.IGNORECASE) is None:
+                    failures.append(
+                        f"completeness capability {capability} missing-fact contract "
+                        f"lacks {label}"
+                    )
     boundary_row = rows.get(expected_last_capability)
     if boundary_row is not None and boundary_row[4] != "Boundary":
         failures.append(
@@ -4545,6 +4649,34 @@ def validate_markdown_source_references(repo: Path, failures: list[str]) -> None
                         )
 
 
+def validate_mechanism_topic_minimums(repo: Path, failures: list[str]) -> None:
+    path = repo / "analysis/mechanism-evidence.jsonl"
+    if not path.is_file():
+        failures.append("missing analysis/mechanism-evidence.jsonl")
+        return
+    records = read_jsonl(path, failures)
+    topic_counts: dict[str, int] = {}
+    claim_ids: set[str] = set()
+    for record in records:
+        claim_id = record.get("claimId")
+        if isinstance(claim_id, str):
+            claim_ids.add(claim_id)
+        topic = record.get("topic")
+        if isinstance(topic, str):
+            topic_counts[topic] = topic_counts.get(topic, 0) + 1
+    for topic, minimum in MECHANISM_TOPIC_MINIMUMS.items():
+        if topic_counts.get(topic, 0) < minimum:
+            failures.append(
+                f"mechanism topic {topic!r} has {topic_counts.get(topic, 0)} claims; minimum is {minimum}"
+            )
+    for topic, required_claims in MECHANISM_TOPIC_REQUIRED_CLAIMS.items():
+        for claim_id in required_claims:
+            if claim_id not in claim_ids:
+                failures.append(
+                    f"mechanism topic {topic!r} is missing required claim: {claim_id}"
+                )
+
+
 def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
     path = repo / "analysis/mechanism-evidence.jsonl"
     if not path.is_file():
@@ -4744,6 +4876,12 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
             failures.append(
                 f"mechanism topic {topic!r} has {topic_counts.get(topic, 0)} claims; minimum is {minimum}"
             )
+    for topic, required_claims in MECHANISM_TOPIC_REQUIRED_CLAIMS.items():
+        for claim_id in required_claims:
+            if claim_id not in claim_ids:
+                failures.append(
+                    f"mechanism topic {topic!r} is missing required claim: {claim_id}"
+                )
     if len(records) < 90:
         failures.append(f"mechanism evidence has {len(records)} records; minimum is 90")
     probe_index_path = repo / "analysis/runtime-probe-index.md"
@@ -6587,6 +6725,17 @@ def main() -> int:
     validate_reader_first_analysis(repo, failures)
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
+    if args.negative_test_fast and args.negative_test_expect is not None:
+        expected = args.negative_test_expect
+        if expected.startswith(("completeness capability", "last completeness capability", "deep topic contract", "deep topic visual")):
+            completeness_rows = validate_completeness_closure(repo, failures)
+            validate_topic_depth_contracts(repo, completeness_rows, failures)
+            if finish_expected_negative_failure(failures, expected):
+                return 1
+        elif expected.startswith("mechanism topic"):
+            validate_mechanism_topic_minimums(repo, failures)
+            if finish_expected_negative_failure(failures, expected):
+                return 1
     cli_command_rows, cli_help_cases = validate_cli_command_tree(
         repo, version, metadata, failures
     )

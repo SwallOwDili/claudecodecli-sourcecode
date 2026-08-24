@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [2.1.235：不是 Agent Loop 重写，而是一次状态边界修正](product-surface-evidence-map.md)。要理解用户一句话怎样变成最终请求，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要判断内容留在本机还是发往模型、遥测、Remote、Feedback、MCP/Hook、Artifact或Voice，读 [全局数据流与隐私](client-data-flow-and-privacy.md)。精确的71类inventory、347条claim、三轴证据分类和未完成consumer tracing单独放在[机器证据索引](product-surface-inventory-index.md)。[全面性审计](completeness-audit.md)现在明确区分55项Deep、2项Documented与1项Boundary，不再把IDE extension和updater事务的证据缺口写成“全部Deep”。工具、Settings、CLI/SDK、Slash Command、Hook、Storage及高价值状态机继续由对应专题提供精确集合、生命周期和失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [2.1.235：不是 Agent Loop 重写，而是一次状态边界修正](product-surface-evidence-map.md)。要理解用户一句话怎样变成最终请求，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要判断内容留在本机还是发往模型、遥测、Remote、Feedback、MCP/Hook、Artifact或Voice，读 [全局数据流与隐私](client-data-flow-and-privacy.md)。精确的71类inventory、356条claim、三轴证据分类和未完成consumer tracing单独放在[机器证据索引](product-surface-inventory-index.md)。[全面性审计](completeness-audit.md)现在明确区分56项Deep、1项Documented与1项Boundary；Updater 已按目标版事务闭合，IDE 只保留 CLI bridge 的正向协议 Probe 缺口。工具、Settings、CLI/SDK、Slash Command、Hook、Storage及高价值状态机继续由对应专题提供精确集合、生命周期和失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1039,43 +1039,41 @@ ARM64 上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由
 
 ## 27. 安装、更新与 Doctor
 
-### 27.1 Native安装布局
+### 27.1 核心不是覆盖当前文件，而是分离三个状态
 
-Native安装将版本文件保存在 `~/.local/share/claude/versions/<version>`，入口符号链接指向当前版本。版本文件和内嵌 `.node` 必须成套，不能跨版本混装。
+Native 安装把正式版本放在 `$XDG_DATA_HOME/claude/versions/<version>`（默认 `~/.local/share/claude/versions/`），把下一次启动入口放在 `~/.local/bin/claude`。当前进程已经映射的 binary、磁盘中的新版本文件和 launcher 指向是三个对象：更新成功能改变后两者，不能热替换当前会话。页脚因此显示 `Restart to update`。
 
-### 27.2 两个更新开关
+### 27.2 三个入口先按实际 installation owner 分流
 
-- `DISABLE_AUTOUPDATER`：停止后台检查/安装，手动 update/install仍可存在；
-- `DISABLE_UPDATES`：阻断包括手动命令在内的更新路径。
+`claude install [target] [--force]`切到 Native；只有显式target为`stable/latest`时才保存channel，具体版本或未传target不走该写入。发布成功后再清理npm/local安装和shell alias。`claude update`先诊断当前运行方式，Native走内置updater，npm走package install，Homebrew/winget/apk交回相应package manager；TUI Native auto-updater每30分钟调度、受5分钟进程throttle约束。会话内隐藏`/update`只保存并重启会话，不下载binary。
 
-`DISABLE_UPGRADE_COMMAND`、`DISABLE_DOCTOR_COMMAND`只控制命令表面；`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`影响 update check/feature evaluation，但不等同管理员锁定全部更新。
+### 27.3 目标版本不是简单取最大 semver
 
-### 27.3 设置迁移
+具体版本和 stable/latest channel先解析为 target，再应用 `minimumVersion`、managed `requiredMaximumVersion`、remote `maxVersion`、canary与force-downgrade。`DISABLE_AUTOUPDATER`只停后台路径，`DISABLE_UPDATES`连手动install/update一起停止；`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`也通过后台gate生效。`--force`重装解析后的target（显式版本或默认channel）并跳过普通same-version/cap skip，但不绕过版本名、checksum、写权限或launcher ownership。
 
-旧 `autoUpdates:false`会迁移到 user settings的 `env.DISABLE_AUTOUPDATER=1`。成功后清理旧字段；失败时保留错误 telemetry和兼容状态，避免两个位置同时丢失。
+### 27.4 下载、校验与正式发布
 
-### 27.4 Doctor 的故障域
+目标版从 `downloads.claude.ai/claude-code-releases` 读取 channel、`<version>/manifest.json` 和 `<version>/<platform>/claude`。manifest按`darwin-arm64`等平台选择checksum；binary流在唯一`<version>.<pid>.<timestamp>` staging中写盘并计算SHA-256。checksum mismatch、120秒stall或连接中断会删除partial，binary最多3个attempt，单次总deadline为10分钟。
 
-Doctor分别检查：
+校验通过前，安装器会先用`wx`建立0字节正式路径占位；它不是有效安装，manifest失败后可暂留。校验后的候选再复制到versions目录旁的temp，chmod `0755`，rename覆盖正式版本路径；EBUSY按100/500/2000ms退避，连第一次最多4次。成功后才删除staging。这里证明binary与收到的manifest checksum一致以及名称切换原子；代码没有fsync，不能证明掉电耐久性，也不证明manifest独立签名、release backend策略或候选首次执行成功。
 
-- PATH、launcher、版本文件和旧 npm安装；
-- OS/arch、native dependencies和 sandbox；
-- update channel、写权限和 auto update gate；
-- settings parse/schema/source conflict；
-- workspace trust、MCP/helper/hook；
-- provider/endpoint/credential；
-- IDE、Remote Control和 feature evaluation。
+### 27.5 launcher ownership与部分成功
 
-隔离 probe中，doctor识别 native `2.1.235`、commit `ba01fa45e3d1`、`darwin-arm64`、bundled search、auto-update gate、损坏 settings和 Remote Control不可用原因。`DISABLE_UPDATES=1 claude update`输出管理员禁用提示并 exit 0；这里 exit 0表示策略被正常处理，不表示完成更新。
+POSIX只覆盖两种launcher：指入`claude/versions/`的Native symlink，或realpath落在`.js`/`node_modules`的npm shim。允许时先建临时symlink再rename；外部wrapper返回`activationRefused`。如果旧launcher仍可执行，新版本文件会保留，顶层仍可能返回success，所以`Successfully updated`不等于PATH入口已切换。入口切换失败且旧入口也无效时才抛`update_apply_native_symlink_failed`。
 
-### 27.5 安装回滚与会话回滚不是一回事
+### 27.6 version lock、残留清理与保留策略
 
-- 安装 rollback：入口指回旧的完整版本文件；
-- session resume/rewind：恢复消息或文件；
-- Git rollback：恢复代码库；
-- 外部系统 compensation：撤销 API/部署/消息。
+从versions目录运行的进程尝试获取lifetime PID lock，失败non-fatal。cleanup始终保护当前process path；launcher target只有解析为non-empty executable时才保护，其它进程也只在成功持锁时保护。剩余候选额外保留mtime最新2个（可能含0字节placeholder），再尝试删除更老候选。1小时只清staging与匹配orphan temp。`nJr()`是fire-and-forget，result/restart notice不等待cleanup；外部wrapper会使版本删除整体跳过。
 
-旧 binary还可能不理解新 settings/transcript schema，所以回切后必须验证配置和会话兼容，而不是只看 `--version`。
+### 27.7 Doctor只陈述它实际检查的范围
+
+Doctor handler不执行repair，但根命令前的共享preAction可能持久化settings migrations与`migrationVersion`；handler的macOS Keychain probe又会add测试项并发起未等待结果的delete。所以端到端`claude doctor`不是filesystem/settings只读。它输出installation type、version/commit/platform、path、install method、update state、ripgrep、多重安装、settings、关键环境变量、Keychain、sandbox warning和Remote Control摘要；不正向连接MCP、Provider或IDE，可修复checkup属于会话内`/doctor`。
+
+隔离Probe中，doctor识别native `2.1.235`、commit `ba01fa45e3d1`、`darwin-arm64`、bundled search、auto-update gate、损坏settings和Remote Control原因。`DISABLE_UPDATES=1 claude update`输出管理员禁用提示并exit 0；exit 0只表示policy分支正常处理。
+
+### 27.8 binary回退不等于数据rollback
+
+重新发布旧版本或把launcher指回旧binary不会反向迁移settings、transcript、Storage v5，也不会撤销远端副作用。完整阶段、失败矩阵、源码证据和Native Windows/npm分支差异见[Native安装、自更新与Doctor专题](install-update-doctor-lifecycle.md)。
 
 ## 28. `2.1.235` 的 19 条发布变化：逐项解释与证据强度
 
@@ -1243,8 +1241,8 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 347 条机制证据：246 Static、52 Probe、33 Public、16 Boundary；Static 细分为 206 runtime、18 consumer、12 constant、4 surface、6 declaration，347 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
-- 58个能力面：55项Deep、IDE/Updater 2项Documented、1项Boundary；
+- 356 条机制证据：254 Static、52 Probe、33 Public、17 Boundary；Static 细分为 214 runtime、18 consumer、12 constant、4 surface、6 declaration，356 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 58个能力面：56项Deep、IDE 1项Documented、1项Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 静态 name、3 动态 expression）、188 个 known-tool catalog 项；

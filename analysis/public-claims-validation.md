@@ -81,7 +81,7 @@
 | OTLP prompt 正文默认脱敏 | `Public` + `Static` + `Probe` | monitoring 文档；`<REDACTED>` 分支；本地 `/v1/logs` collector 双跑 | 默认导出事件但隐藏正文；显式开启后正文进入管理员配置的 collector |
 | sandbox 在 permission bypass 后仍执行文件/网络限制 | `Public` + `Static` + `Probe` | 两层官方说明、sandbox policy 分支、denyWrite 与零网络命中探针 | permission 与 OS sandbox 是独立控制层，不能用 bypassPermissions 推断子进程无限制 |
 | manual compact、fork、file rewind 分别改变不同状态 | `Public` + `Static` + `Probe` | compact boundary、message graph、checkpoint；同版本正向探针 | compact 改逻辑历史，fork 换 session ID，rewind 恢复被跟踪文件；都不回滚远端动作 |
-| doctor 是只读多故障域诊断，DISABLE_UPDATES 阻断手动更新 | `Public` + `Static` + `Probe` | setup 文档；update gate/doctor 分支；真实 literal output | 禁用 auto updater 与禁用全部 update 不是同一开关 |
+| 官网把 doctor 定义为只读诊断；目标版 handler不repair，但共享preAction可持久化migration，Keychain probe还会add并发起未等待结果的delete；`DISABLE_UPDATES`阻断手动更新 | `Public` + `Static` + `Probe` | setup文档；preAction/migration/Keychain/update gate/doctor分支；真实literal output | “只读”是产品意图，不是端到端filesystem/settings事实；禁用auto updater与禁用全部update也不同 |
 | Remote Control 执行留在本机、transcript 经服务端同步 | `Public` + `Static` + negative `Probe`；成功路径 `Boundary` | 官方连接/安全说明；本地 reconnect/attachment 代码；custom endpoint doctor 负向诊断 | 本版能证明客户端边界与不可用原因；未用真实账号触发成功连接和服务端 entitlement |
 | IDE 使用 loopback MCP、token 和 Read deny 过滤编辑器上下文 | `Public` + `Static` | 当前 IDE 协议文档与本版 IDE bridge/tool/permission 分支 | 没有在本探针环境启动真实 VS Code extension，故不升级为成功 IDE Probe |
 | Prompt Cache 不是局部优化，而是稳定前缀约束整个 Harness | `Public` + `Static` | 官方给出 system/tools -> CLAUDE.md -> session context -> messages 与 reminder/Plan/Tool Search/cache-safe compact；本版对应 system boundary、typed attachment、固定工具状态转换、`defer_loading` 与 parent-prefix compact | 官方设计解释不能替代本版 scope/TTL/gate/hit；详见 Prompt Assembly 和 Context 专题 |

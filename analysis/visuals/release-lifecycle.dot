@@ -1,21 +1,40 @@
 digraph release_lifecycle {
-  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.48", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.28", nodesep="0.28", ranksep="0.46", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
   node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.16,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
   edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
 
-  entry [label="PATH 入口\nlauncher / symlink", fillcolor="#fff3cd"];
-  resolved [label="真实版本文件\nversion / size / hash / signature", fillcolor="#e3f2fd"];
-  run [label="运行时装载\nBun payload + matched native modules", fillcolor="#d1c4e9"];
-  check [label="更新检查\nchannel / policy / traffic gates", fillcolor="#ffe0b2"];
-  install [label="新版本安装\ndownload / verify / atomic switch", fillcolor="#c8e6c9"];
-  doctor [label="Doctor\n按故障域诊断入口、权限、网络、配置", fillcolor="#b2dfdb"];
-  rollback [label="回退\n切回旧二进制并验证兼容边界", fillcolor="#d7ccc8"];
+  entry [label="入口与版本目标\ninstall / update / background", fillcolor="#fff3cd"];
+  placeholder [label="0-byte versions placeholder\n路径存在 != 已安装", fillcolor="#f5f5f5"];
+  manifest [label="manifest.json\nplatform + checksum", fillcolor="#e3f2fd"];
+  staging [label="唯一 staging\n流式下载 + SHA-256", fillcolor="#e3f2fd"];
+  reject [label="manifest / download / publish 失败\n删 partial/temp；placeholder 可留", fillcolor="#ffcdd2"];
+  publish [label="版本文件原子发布\ncopy -> temp -> rename", fillcolor="#c8e6c9"];
+  ownership [label="launcher ownership\ninstaller / npm / external", fillcolor="#ffe0b2"];
+  activate [label="owned launcher 激活\ntemp symlink -> rename", fillcolor="#c8e6c9"];
+  preserve [label="activationRefused / Failed\n新版本保留，旧入口可继续", fillcolor="#ffebee"];
+  running [label="当前进程仍跑旧 bytes\n下一次启动使用入口结果", fillcolor="#d1c4e9"];
+  outcome [label="last result + restart notice\n不证明 launcher 已激活", fillcolor="#e8eaf6"];
+  cleanup [label="version lock + cleanup\n保护在用版本，清 staging/temp", fillcolor="#d7ccc8"];
+  doctor [label="Doctor 诊断\n入口 / 冲突 / partial success", fillcolor="#b2dfdb"];
 
-  entry -> resolved [label="解析"];
-  resolved -> run [label="启动精确字节"];
-  run -> check [label="按 gate 查询更新"];
-  check -> install [label="允许且有新版本"];
-  install -> entry [label="切换当前入口"];
-  doctor -> resolved [label="核对实际版本"];
-  rollback -> entry [label="重新指向旧版本"];
+  entry -> placeholder [label="解析 channel / policy"];
+  placeholder -> manifest [label="查询 manifest"];
+  manifest -> staging [label="选择 artifact 并下载"];
+  manifest -> reject [label="fetch / platform 失败"];
+  staging -> reject [label="checksum / stall / deadline"];
+  staging -> publish [label="checksum 通过后发布"];
+  publish -> reject [label="copy / chmod / rename 失败"];
+  publish -> ownership [label="检查入口归属"];
+  ownership -> activate [label="允许覆盖"];
+  ownership -> preserve [label="拒绝覆盖"];
+  activate -> running [label="下次启动选择 target"];
+  preserve -> running [label="wrapper 继续决定版本"];
+  activate -> outcome [label="wasUpdated"];
+  preserve -> outcome [label="也可能 top-level success"];
+  activate -> cleanup [label="fire-and-forget sweep"];
+  preserve -> cleanup [label="版本删除可能跳过"];
+  running -> doctor [label="当前进程视角"];
+  outcome -> doctor [label="结果不等于激活"];
+  cleanup -> doctor [label="核对入口和残留"];
+  reject -> doctor [label="报告具体失败"];
 }

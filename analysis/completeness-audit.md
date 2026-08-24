@@ -2,9 +2,9 @@
 
 本文不负责证明“文章很多”，而是回答一个更严格的问题：Claude Code CLI `2.1.235` 发布物中能够归属于产品的每一块能力，是否已经有足够准确、可读、可复核的人类说明。
 
-当前结论：57 个客户端能力面中，55 项达到机制层 `Deep`，IDE/VS Code 与 Install/Update/Doctor 两项降为 `Documented`；服务端、账号实时状态、第三方实现和构建前源码单列为 `Boundary`。IDE目前只恢复了CLI bridge、鉴权、snapshot和Read deny，缺extension panel/Quick Pick的目标版源码与真实VS Code Probe；Updater目前只证明版本布局、gate、notice、doctor和兼容边界，没有证明下载、完整性校验、candidate发布、入口切换与失败回退组成的真实事务。继续写成“57项全部Deep”会把这两个客观缺口藏起来。
+当前结论：57 个客户端能力面中，56 项达到机制层 `Deep`，IDE/VS Code 保持 `Documented`；发布物中不存在的服务端实现、账号实时状态、第三方行为和构建前源码单列为 `Boundary`。Install/Update/Doctor 已从通用说明补到目标版真实调用链：安装 owner、channel/policy、manifest、SHA-256、唯一 staging、同目录原子发布、launcher ownership、partial activation、restart notice、version lock、清理与数据回退边界均有源码合同。IDE 行只评价 CLI 发布物内的 bridge；当前未闭合的是目标二进制与受控 IDE socket 的正向协议往返，不再把另一个发布物的 extension panel 当成 CLI 欠账。
 
-本轮还补齐此前最明显的两个横向解释： [Prompt Assembly](prompt-assembly-and-system-reminders.md) 把top-level system、user/system context、typed attachment、mid-conversation system、文件新鲜度与compact/resume重建串成最终request；[全局数据流与隐私](client-data-flow-and-privacy.md)把Messages、local transcript、Remote、1P/OTEL、Feedback、WebFetch、MCP/Hook、IDE/Chrome、Artifact/upload与Voice按owner、目的地、consent和delete边界统一说明。这里的 `Deep` 仍只表示能力级 owner、生命周期、gate、失败恢复和边界已讲清，**不等于所有 identifier、字段和分支都完成逐项 consumer 追踪，也不等于 validator 已对55项逐一建立同等强度的深度合同。**
+本轮还补齐此前最明显的两个横向解释： [Prompt Assembly](prompt-assembly-and-system-reminders.md) 把top-level system、user/system context、typed attachment、mid-conversation system、文件新鲜度与compact/resume重建串成最终request；[全局数据流与隐私](client-data-flow-and-privacy.md)把Messages、local transcript、Remote、1P/OTEL、Feedback、WebFetch、MCP/Hook、IDE/Chrome、Artifact/upload与Voice按owner、目的地、consent和delete边界统一说明。这里的 `Deep` 仍只表示能力级 owner、生命周期、gate、失败恢复和边界已讲清，**不等于所有 identifier、字段和分支都完成逐项 consumer 追踪，也不等于 validator 已对56项逐一建立同等强度的深度合同。**
 
 这里必须区分三个层级：`Deep` 表示能力级 owner、调用顺序、gate、失败恢复、用户影响和证据边界已讲清；`Static immediate consumer` 表示某个 identifier 已绑定 lexical function、read/write/delete 或 immediate role/operator/target，但全部 caller、二次 gate、状态变化和失败恢复还没有人工收口；`Static consumer` 教学解释才表示该逐项机制已完成。`Boundary` 只保留给服务端状态、最终运行时动态名称、第三方内部、缺失源码或发布物之外的事实；不得用 Boundary 掩盖可继续追的客户端欠账。
 
@@ -47,7 +47,7 @@
 3. `analysis/source-inventory/summary.json` 注册的 71 类确定性清单；
 4. 一方集合：29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 个静态 name、3 个动态 name expression）、156 个 direct root setting、103 个静态 slash command、31 个 hook event、89 个 SDK control subtype、44 个 output protocol event、32 个 Claude storage namespace、17 个 baked model entry、1,441 个静态一方遥测事件、99 条 API path、53 个 Beta identifier、4,831 个错误构造调用点和 5,403 个 diagnostic 调用点；这些数量证明集合/调用点没有漏采，不自动证明逐 identifier 业务语义已经恢复；
 5. `analysis/release-notes.md` 的 `2.1.235` 19 条发布变化；
-6. `analysis/mechanism-evidence.jsonl` 的 347 条唯一 claim、48 个 topic 与 52 条 exact-binary Probe 结论；
+6. `analysis/mechanism-evidence.jsonl` 的 356 条唯一 claim、48 个 topic 与 52 条 exact-binary Probe 结论；
 7. 5 个 shipped `.node` 及其 7 个 Mach-O slice。
 
 `known-tool-catalog.txt` 中的 106 个 `mcp__github__*` 属于内嵌 MCP/文档能力面，不是 106 个 Claude Code 内置工具。Chart.js、Highlight.js、Mermaid 等是 Artifact 渲染链依赖；只有进入可达 Artifact consumer 后才能写成产品机制的一部分。
@@ -82,13 +82,13 @@
 | 24 | Chrome bridge 与 WebBrowser | CLI/command/tool/bridge lifecycle | `tui-input-accessibility-media-ide-chrome.md` | Deep | 已覆盖 socket/token/pairing/permission timer/tool call/断线/迟到副作用；真实扩展与页面兼容仍需 Probe |
 | 25 | TUI 输入、keybindings、渲染与可访问性 | settings/events/release branches | `tui-input-accessibility-media-ide-chrome.md` | Deep | renderer/composer/Vim/highlight/permission comment/screen reader/native cursor 与竞态已覆盖 |
 | 26 | Voice/audio/image/spellcheck | native module、commands/settings、policy gates | `tui-input-accessibility-media-ide-chrome.md`、`native-bridge-runtime.md` | Deep | capture/STT/retry/circuit breaker、paste/image/native processor/spellcheck 生命周期已覆盖；真实设备/TCC 为 Boundary |
-| 27 | IDE/VS Code | discovery/socket/context/diff/panel/focus | `tui-input-accessibility-media-ide-chrome.md`、`prompt-assembly-and-system-reminders.md` | Documented | CLI侧discovery/auth/selection/focus/diagnostics/断线与进入Prompt Assembly的snapshot已覆盖；没有目标版extension panel/Quick Pick源码和真实VS Code正向Probe，不能把CLI bridge说成完整IDE runtime |
+| 27 | IDE/VS Code | discovery/socket/context/diff/panel/focus | `tui-input-accessibility-media-ide-chrome.md`、`prompt-assembly-and-system-reminders.md` | Documented | CLI侧 discovery/auth/selection/focus/diagnostics/断线与进入 Prompt Assembly 的 snapshot 已覆盖；尚缺目标二进制对受控 IDE socket 的正向 auth/context/selection/diagnostic 往返 Probe，动态重连与迟到事件因此只保留 Static 结论 |
 | 28 | Git/worktree/background shell/task | worktree tools、process/task registries | `cloud-background-channels.md` | Deep | checkout owner、后台写保护、task/output/stop、supervisor 和不可逆副作用已覆盖 |
 | 29 | Cron、loops、remote routines、channels、主动通知 | Cron tools、RemoteTrigger、scheduled event、commands/settings | `cloud-background-channels.md`、`builtin-tools-reference.md`、`remote-routines-runner-and-notifications.md` | Deep | session/durable schedule、fixed/dynamic loop、Monitor、Push、Channel gate/queue/reconnect 已覆盖；另覆盖 RemoteTrigger 八 action、run/log pagination/condensation，以及通知 100 pending、1000 drained ID、90k drain、87,488 单条、ack/backpressure 与两次 rearm |
 | 30 | Remote Control 与 cloud session | CLI/SDK/API/status/daemon | `cloud-background-channels.md`、`tui-ide-remote-cloud.md` | Deep | 本地/远端 owner、重连、附件、create/attach/teleport 已覆盖；登录账户正向服务 Probe 保持 Boundary |
 | 31 | CCR、BYOC、自托管 runner、cloud workflow | env/schema/API/tools | `cloud-background-channels.md`、`remote-routines-runner-and-notifications.md` | Deep | bundle/runner/lease/watchdog/token/stage root/capacity/drain 与 Git proxy 边界已覆盖；另下钻九个 operator tool、OAuth-only preflight、20 秒 API、detached spawn/PID、assignment-conflict requeue、2 秒 loopback health/metrics、65,536-byte log tail 与 redaction；实际服务调度为 Boundary |
 | 32 | Storage v5 与本地状态目录 | 32 Claude namespaces | `storage-v5-reference.md` | Deep | 32/32 key、scope、write discipline、consumer、敏感度和缺失 consumer 已覆盖；另下钻 transcript legacy/V5 压实、torn tail、shared inode 与并发尾追加；本版自建 backend 不可达 |
-| 33 | Install、update、doctor、migration | CLI/install layout/update gates/diagnostics | `install-update-doctor-lifecycle.md` | Documented | 已证明真实版本文件、PATH入口、update gate/restart notice、migration与doctor；尚未证明下载源、完整性/签名、candidate暂存、入口原子切换、失败残留和程序化rollback的完整事务，现有文字不得用“可靠updater应该”冒充目标实现 |
+| 33 | Install、update、doctor、migration | CLI/install layout/update gates/diagnostics | `install-update-doctor-lifecycle.md` | Deep | 已覆盖 owner分流、channel/policy、manifest/platform/SHA-256、binary最多3 attempts、唯一staging、0字节占位、temp+rename、launcher ownership、partial activation、result/restart与共享preAction migration；1小时只清staging/orphan temp，lifetime/cleanup lock不序列化updater，额外2个是候选文件且cleanup不阻塞result。HTTP headers、manifest签名、fsync、release backend、首次执行与数据降级不在证明内 |
 | 34 | `2.1.235` 19 条 release changes | release notes + matching source evidence | 完整说明书第 28 章及 LSP/cloud/TUI 专题 | Deep | 19 条均已回填专属生命周期；跨版本归因仍区分 2.1.234 与 2.1.235 |
 | 35 | 本地风控、企业治理与全局数据流 | risk surface、sandbox/policy/credentials/trust、Messages/transcript/telemetry/extension destinations | 风控 README、`client-data-flow-and-privacy.md`、工具/settings/遥测专题、`end-conversation-risk-control.md` | Deep | 已覆盖权限、路径/网络/凭据/trust/policy/sandbox、Prompt Assembly authority与EndConversation；另把核心推理、本地持久化、1P/OTEL、Feedback、Remote、Web/MCP/Hook/IDE/Artifact/Voice拆成独立owner。服务端abuse score、retention/training/delete和模型语义遵循保持Boundary |
 | 36 | Auto Mode 两阶段权限分类 | deterministic permission pipeline、trusted rule sources、classifier request/verdict、Hook | `auto-mode-classifier.md`、完整说明书第 36 章 | Deep | 权限前置层、fast path、`$defaults`、Stage 1/2、fail-closed、fallback、setup/hash 与用户影响已覆盖；模型内部 safeguard 和真实线上质量保持 Boundary |
@@ -148,7 +148,7 @@
 
 ## 自动校验当前能证明什么
 
-validator 现在强制 58 行能力矩阵，并明确要求 55 项 `Deep`、IDE/Updater 2项 `Documented`、产品外1项 `Boundary`；它对15个高风险能力应用14个topic-depth合同，并对47个mechanism topic强制claim数量、证据类型、源码范围与anchors。Artifact Watch、`/insights`、CLI启动资源、复杂Slash Command、Telemetry catalog、API/Beta owner与Error atlas也有独立topic最低证据。它还要求2,548/2,548个环境access与498/498个Feature callsite都有lexical context、immediate consumer与有效范围；但其余大量能力面仍未拥有同等强度的topic-depth/Probe合同，不能宣传成“55项都做了语义等价验证”。
+validator 现在强制 58 行能力矩阵，并明确要求 56 项 `Deep`、IDE 1项 `Documented`、产品外1项 `Boundary`；它以17个topic-depth合同约束18个高风险能力，其中 updater 合同单独要求10阶段顺序、8类gate、6类失败恢复、12处源码证据和真实DOT/SVG锚点。mechanism registry 另对48个topic强制claim数量、证据类型、源码范围与anchors。它还要求2,548/2,548个环境access与498/498个Feature callsite都有lexical context、immediate consumer与有效范围；但其余能力面没有同等强度的topic-depth/Probe合同，不能宣传成“56项都做了语义等价验证”。
 
 它仍不能把“集合完整”自动升级成“机制全面”。继续收口还需要：
 
@@ -166,4 +166,4 @@ validator 现在强制 58 行能力矩阵，并明确要求 55 项 `Deep`、IDE/
 4. 对 changed branch 扩充 exact-binary Probe；未触发的 remote/third-party/cross-platform 行为保持 Boundary。
 5. 运行全量、负向、隐私、SVG、重建、Probe 与远端 fresh-checkout 验证后再推送。
 
-当前矩阵显示55项机制层 `Deep`、2项 `Documented`、1项产品外 `Boundary`。明确剩余工作包括：目标版IDE extension/Quick Pick与真实VS Code Probe；Updater下载、校验、candidate、切换与rollback事务；环境名称与Feature key人工语义收口；仍含运行参数的动态环境表达式；891个`tengu_other`事件caller-owner；9,550个Error/Diagnostic callsite owner（以及304个Product caller的catch和全部308个Product caller的user-surface）；遥测运行gate/动态payload/远端delivery；未覆盖的高风险正向Probe与其余能力面的同等强度深度合同。精确数量由生成参考和机器摘要读取；Anthropic服务端、账号实时状态、第三方实现、原始TypeScript/C++/Swift仓库或tree-shaking删除内容仍保持Boundary。
+当前矩阵显示56项机制层 `Deep`、1项 `Documented`、1项产品外 `Boundary`。唯一的能力级待闭合项是 CLI 侧 IDE bridge 的目标二进制正向协议往返；逐 identifier 机器清单继续作为检索和交叉版本证据，不再把“还有多少未人工归属的调用点”冒充产品完成度。后续版本只在真实行为变化时重开对应机制合同；服务端决策、账号实时状态、第三方程序行为、原始TypeScript/C++/Swift仓库或tree-shaking删除内容仍按各自证据范围陈述。

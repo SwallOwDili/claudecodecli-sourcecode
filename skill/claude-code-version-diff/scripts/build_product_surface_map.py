@@ -146,6 +146,7 @@ MECHANISM_LANES = [
             "settings-feature-flags-policy.md",
             "environment-variable-reference.md",
             "feature-flag-reference.md",
+            "install-update-doctor-lifecycle.md",
         ],
     },
     {
@@ -930,6 +931,7 @@ x86_64/Rosetta 报告证明 supplied compatible artifacts 是独立 regular x86_
 - Plugin 加载成功怎样升级为可比较的增益证据：读 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
 - Artifact timeout、API path 和错误分别归谁：读 [Workflow/Artifact](workflow-artifact-design.md)、[API/Beta owner](api-beta-route-ownership.md) 与 [错误图谱](error-diagnostic-atlas.md)。
 - 遥测正文、raw body、sampling 和 exporter 怎样分开：读 [Telemetry](telemetry.md) 与 [事件场景索引](telemetry-event-catalog.md)。
+- Native updater 的版本选择、manifest 校验、staging、原子发布、launcher 切换和失败清理分别归谁：读 [安装、自更新与 Doctor](install-update-doctor-lifecycle.md)。
 - `.node`、Voice、compatible reconstruction 到底证明什么：读 [Native Bridge](native-bridge-runtime.md) 与 [重建报告](../reconstructed/README.md)。
 - 版本仍有哪些客户端语义未追完：读 [全面性审计](completeness-audit.md) 与 [机器证据索引](product-surface-inventory-index.md)。
 """.replace("__VERSION__", version)
@@ -987,7 +989,7 @@ x86_64/Rosetta 报告证明 supplied compatible artifacts 是独立 regular x86_
 - 工具：`candidate -> factory -> enable/host gate -> request tools[] -> client tool_use -> execution -> tool_result`；`server_tool_use` 单列。
 - 错误/恢复：`string/template -> callsite -> typed classifier -> retry/fallback/tombstone -> user surface -> post-effect boundary`。
 
-只有 schema 是 Declaration；AST callsite 仍要判 whole-bundle ownership。consumer 尚未追完叫 `Untraced/Inventory only`，这是可继续逆向的客户端待办，不是 Boundary。server/runtime value、第三方内部、其他平台状态和构建前删除源码才属于 Boundary。
+只有 schema 是 Declaration；AST callsite 仍要判 whole-bundle ownership。consumer 尚未追完叫 `Untraced/Inventory only`；这只描述该证据行当前能证明到哪一层，不是 Boundary，也不自动构成产品功能缺口或项目待办。只有具体功能仍缺 owner、状态变化或失败事实时，才沿相关行继续追。server/runtime value、第三方内部、其他平台状态和构建前删除源码才属于 Boundary。
 
 ### 三轴证据坐标
 
@@ -1004,7 +1006,7 @@ x86_64/Rosetta 报告证明 supplied compatible artifacts 是独立 regular x86_
 <details>
 <summary><strong>证据、完成度与机器清单在哪里</strong></summary>
 
-精确 inventory 文件集合、canonical hash、提取来源、ownership、proof level、C/Q/E/S/O 路由和当前语义欠账集中在 [机器证据索引](product-surface-inventory-index.md)。逐能力的 `Deep / Inventory only / Boundary` 在 [全面性审计](completeness-audit.md)。机器清单防漏，机制 registry 约束强结论，人工 consumer tracing 才说明行为被理解。
+精确 inventory 文件集合、canonical hash、提取来源、ownership、proof level、C/Q/E/S/O 路由和机器分类状态集中在 [机器证据索引](product-surface-inventory-index.md)。逐能力的 `Deep / Documented / Inventory only / Boundary` 在 [全面性审计](completeness-audit.md)。机器清单负责防漏，不把每个未逐项扩展的 callsite 变成项目待办；机制 registry 与具体功能调用链才约束行为结论。
 
 **最终边界：** bundle 能证明 shipped bytes、可达分支、默认值、状态字段和本地协议；exact-binary Probe 只证明受控输入触发的路径；服务端实时配置、账号 entitlement、模型内部判断、远端持久化、第三方实现和缺失的原始 TypeScript/Rust/Swift 源码仍是 Boundary。`Untraced/Inventory only` 不得为了宣称完成而改写成 Boundary。
 
@@ -1059,11 +1061,11 @@ def build_inventory_index(repo: Path) -> str:
         "",
         "> 这是一份确定性审计页，不是技术文章。先读 [状态边界与本地执行系统解剖](product-surface-evidence-map.md)，需要复核覆盖和跨版本差异时再回到这里。",
         "",
-        "## 当前语义收口状态",
+        "## 机器分类状态（不是项目待办）",
         "",
         f"[`summary.json`](source-inventory/summary.json) 注册 {len(inventory_names)} 类 inventory；canonical source SHA-256 为 `{summary['canonicalSource']['sha256']}`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 {len(evidence_records)} 条 claim，覆盖 {len({record['topic'] for record in evidence_records})} 个 topic：{evidence_class_counts['Static']} Static、{evidence_class_counts['Probe']} Probe、{evidence_class_counts['Public']} Public、{evidence_class_counts['Boundary']} Boundary。",
         "",
-        f"仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 {environment_summary['semanticFollowupStaticNameCount']} 个静态环境名称和 {environment_summary['unresolvedDynamicCallsiteCount']} 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 {feature_summary['callsiteOnlyStaticKeyCount']} 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 {telemetry_projection['unresolved']} 个 `tengu_other` caller-owner。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)已对 {error_owner_summary.get('mappedCallsites', 0)}/{error_owner_total} 个 callsite 建立 exact owner（Product {error_owner_classification.get('Product', 0)}、Dependency {error_owner_classification.get('Dependency', 0)}），仍有 {error_owner_classification.get('Unresolved', 0)} 个；此外还有遥测运行 gate/动态 payload/远端 delivery和未触发 transport/remote/paid-judge Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。环境/Feature 本批分别新增 {environment_summary['structuredConsumerContractCount']}/{feature_summary['structuredConsumerContractCount']} 项结构化人工合同，生成器会按 lexical owner、调用点数量和 access mode 拒绝伪收口。",
+        f"机器索引当前把[环境变量参考](environment-variable-reference.md)中的 {environment_summary['semanticFollowupStaticNameCount']} 个静态名称和 {environment_summary['unresolvedDynamicCallsiteCount']} 个动态表达式、[Feature 参考](feature-flag-reference.md)中的 {feature_summary['callsiteOnlyStaticKeyCount']} 个 key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 {telemetry_projection['unresolved']} 个 caller-owner保留为未逐项扩展状态。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)对 {error_owner_summary.get('mappedCallsites', 0)}/{error_owner_total} 个 callsite 建立 exact owner（Product {error_owner_classification.get('Product', 0)}、Dependency {error_owner_classification.get('Dependency', 0)}），其余 {error_owner_classification.get('Unresolved', 0)} 个仍保留原始定位。`Untraced/Inventory only` 不是服务端 Boundary，但这些数量也不代表 CLI 有同等数量未讲清的产品功能，更不是项目待办清单；只有能力审计指出某个具体 owner、状态或失败事实缺失时，才继续追对应行。环境/Feature 的 {environment_summary['structuredConsumerContractCount']}/{feature_summary['structuredConsumerContractCount']} 项结构化合同只用于防止已确认语义回退。",
         "",
         "## 三轴怎样读",
         "",

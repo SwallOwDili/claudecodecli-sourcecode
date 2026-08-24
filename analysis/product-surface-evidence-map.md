@@ -335,6 +335,7 @@ x86_64/Rosetta 报告证明 supplied compatible artifacts 是独立 regular x86_
 - Plugin 加载成功怎样升级为可比较的增益证据：读 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
 - Artifact timeout、API path 和错误分别归谁：读 [Workflow/Artifact](workflow-artifact-design.md)、[API/Beta owner](api-beta-route-ownership.md) 与 [错误图谱](error-diagnostic-atlas.md)。
 - 遥测正文、raw body、sampling 和 exporter 怎样分开：读 [Telemetry](telemetry.md) 与 [事件场景索引](telemetry-event-catalog.md)。
+- Native updater 的版本选择、manifest 校验、staging、原子发布、launcher 切换和失败清理分别归谁：读 [安装、自更新与 Doctor](install-update-doctor-lifecycle.md)。
 - `.node`、Voice、compatible reconstruction 到底证明什么：读 [Native Bridge](native-bridge-runtime.md) 与 [重建报告](../reconstructed/README.md)。
 - 版本仍有哪些客户端语义未追完：读 [全面性审计](completeness-audit.md) 与 [机器证据索引](product-surface-inventory-index.md)。
 
@@ -349,7 +350,7 @@ C/Q/E/S/O 是本文从最终决定权归纳的 Derived 阅读框架，不是源�
 
 | ID | Derived 阅读面 | owner 与决定权 | 专题入口 |
 | --- | --- | --- | --- |
-| `C` | **控制面** | CLI 入口、Settings store、managed policy、workspace trust、环境变量和 Feature Evaluation。约束 provider、permission mode、能力上限和候选功能；写入配置不等于所有 consumer 已热更新 | [settings-resolution-and-reload.md](settings-resolution-and-reload.md)、[settings-feature-flags-policy.md](settings-feature-flags-policy.md)、[environment-variable-reference.md](environment-variable-reference.md)、[feature-flag-reference.md](feature-flag-reference.md) |
+| `C` | **控制面** | CLI 入口、Settings store、managed policy、workspace trust、环境变量和 Feature Evaluation。约束 provider、permission mode、能力上限和候选功能；写入配置不等于所有 consumer 已热更新 | [settings-resolution-and-reload.md](settings-resolution-and-reload.md)、[settings-feature-flags-policy.md](settings-feature-flags-policy.md)、[environment-variable-reference.md](environment-variable-reference.md)、[feature-flag-reference.md](feature-flag-reference.md)、[install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | `Q` | **请求与上下文面** | model/provider/auth 选择、system/messages、cache、compact、thinking/effort 与请求时 tools[] 装配。决定某一次 API attempt 真正发送什么；一个用户 turn 可以包含多次 attempt 和多轮模型调用 | [models-auth-providers-request.md](models-auth-providers-request.md)、[context-governance-and-caching.md](context-governance-and-caching.md)、[technical-architecture.md](technical-architecture.md) |
 | `E` | **本地 Agent Loop 与执行面** | client tool_use parser、工具 registry、Hook、permission/policy、sandbox、tool.call 与 result mapper。模型提出 client tool_use；客户端决定是否执行、怎样调度，以及如何用同一 tool_use_id 回灌 tool_result。server_tool_use 不进入这条本地管线 | [agent-loop.md](agent-loop.md)、[tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md)、[tools-permissions-hooks.md](tools-permissions-hooks.md)、[cli-sdk-output-protocol.md](cli-sdk-output-protocol.md) |
 | `S` | **本地状态面** | message graph、JSONL transcript、compact boundary、checkpoint、Storage、Memory、后台任务状态、remote ID/reference 与补偿线索。决定什么能 resume/rewind、什么只能通过引用继续或补偿；它不拥有真实文件、子进程和远端对象 | [sessions-checkpoints-memory.md](sessions-checkpoints-memory.md)、[storage-v5-reference.md](storage-v5-reference.md)、[resilience-and-recovery.md](resilience-and-recovery.md)、[cloud-background-channels.md](cloud-background-channels.md) |
@@ -382,7 +383,7 @@ C/Q/E/S/O 是本文从最终决定权归纳的 Derived 阅读框架，不是源�
 - 工具：`candidate -> factory -> enable/host gate -> request tools[] -> client tool_use -> execution -> tool_result`；`server_tool_use` 单列。
 - 错误/恢复：`string/template -> callsite -> typed classifier -> retry/fallback/tombstone -> user surface -> post-effect boundary`。
 
-只有 schema 是 Declaration；AST callsite 仍要判 whole-bundle ownership。consumer 尚未追完叫 `Untraced/Inventory only`，这是可继续逆向的客户端待办，不是 Boundary。server/runtime value、第三方内部、其他平台状态和构建前删除源码才属于 Boundary。
+只有 schema 是 Declaration；AST callsite 仍要判 whole-bundle ownership。consumer 尚未追完叫 `Untraced/Inventory only`；这只描述该证据行当前能证明到哪一层，不是 Boundary，也不自动构成产品功能缺口或项目待办。只有具体功能仍缺 owner、状态变化或失败事实时，才沿相关行继续追。server/runtime value、第三方内部、其他平台状态和构建前删除源码才属于 Boundary。
 
 ### 三轴证据坐标
 
@@ -399,7 +400,7 @@ C/Q/E/S/O 是本文从最终决定权归纳的 Derived 阅读框架，不是源�
 <details>
 <summary><strong>证据、完成度与机器清单在哪里</strong></summary>
 
-精确 inventory 文件集合、canonical hash、提取来源、ownership、proof level、C/Q/E/S/O 路由和当前语义欠账集中在 [机器证据索引](product-surface-inventory-index.md)。逐能力的 `Deep / Inventory only / Boundary` 在 [全面性审计](completeness-audit.md)。机器清单防漏，机制 registry 约束强结论，人工 consumer tracing 才说明行为被理解。
+精确 inventory 文件集合、canonical hash、提取来源、ownership、proof level、C/Q/E/S/O 路由和机器分类状态集中在 [机器证据索引](product-surface-inventory-index.md)。逐能力的 `Deep / Documented / Inventory only / Boundary` 在 [全面性审计](completeness-audit.md)。机器清单负责防漏，不把每个未逐项扩展的 callsite 变成项目待办；机制 registry 与具体功能调用链才约束行为结论。
 
 **最终边界：** bundle 能证明 shipped bytes、可达分支、默认值、状态字段和本地协议；exact-binary Probe 只证明受控输入触发的路径；服务端实时配置、账号 entitlement、模型内部判断、远端持久化、第三方实现和缺失的原始 TypeScript/Rust/Swift 源码仍是 Boundary。`Untraced/Inventory only` 不得为了宣称完成而改写成 Boundary。
 

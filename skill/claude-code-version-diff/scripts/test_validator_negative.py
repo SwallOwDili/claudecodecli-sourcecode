@@ -388,6 +388,22 @@ def truncate_mechanism_topic_claims(
     return b"".join(remaining)
 
 
+def remove_mechanism_claim(original: bytes, claim_id: str) -> bytes:
+    lines = original.splitlines(keepends=True)
+    remaining: list[bytes] = []
+    removed = 0
+    for line in lines:
+        if line.strip() and json.loads(line).get("claimId") == claim_id:
+            removed += 1
+            continue
+        remaining.append(line)
+    if removed != 1:
+        raise RuntimeError(
+            f"negative-test mechanism claim {claim_id!r} count is {removed}, expected 1"
+        )
+    return b"".join(remaining)
+
+
 def encode_jsonl_record(record: dict) -> bytes:
     return (
         json.dumps(
@@ -1721,32 +1737,32 @@ def main() -> None:
         ),
         (
             "analysis/completeness-audit.md",
-            downgrade_first_capability,
-            "completeness capability 1 state mismatch: Documented != Deep",
-        ),
-        (
-            "analysis/completeness-audit.md",
             lambda data: remove_capability_row(data, 51),
             "completeness capability coverage mismatch: expected=58, actual=57",
         ),
         (
             "analysis/completeness-audit.md",
-            lambda data: downgrade_capability(data, 51),
-            "completeness capability 51 state mismatch: Documented != Deep",
+            lambda data: replace_in_capability_row(
+                data, 27, "尚缺".encode(), "已经".encode()
+            ),
+            "completeness capability 27 is Documented but does not name the exact missing in-scope fact",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_in_capability_row(
+                data,
+                27,
+                "尚缺目标二进制对受控 IDE socket 的正向 auth/context/selection/diagnostic 往返 Probe".encode(),
+                "尚缺一些细节".encode(),
+            ),
+            "completeness capability 27 missing-fact contract lacks controlled IDE socket",
         ),
         (
             "analysis/completeness-audit.md",
             lambda data: replace_capability_state(
-                data, 27, b"| Documented |", b"| Deep |"
+                data, 33, b"| Deep |", b"| Documented |"
             ),
-            "completeness capability 27 state mismatch: Deep != Documented",
-        ),
-        (
-            "analysis/completeness-audit.md",
-            lambda data: replace_capability_state(
-                data, 33, b"| Documented |", b"| Deep |"
-            ),
-            "completeness capability 33 state mismatch: Deep != Documented",
+            "deep topic contract install-update-doctor is not Deep in completeness capability 33: Documented",
         ),
         (
             "analysis/completeness-audit.md",
@@ -1759,6 +1775,27 @@ def main() -> None:
             "analysis/mechanism-evidence.jsonl",
             lambda data: truncate_mechanism_topic_claims(data, "auth-account", 2),
             "mechanism topic 'auth-account' has 2 claims; minimum is 3",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: truncate_mechanism_topic_claims(
+                data, "install-update-doctor", 13
+            ),
+            "mechanism topic 'install-update-doctor' has 13 claims; minimum is 14",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: remove_mechanism_claim(
+                data, "native-update.download-integrity"
+            ),
+            "mechanism topic 'install-update-doctor' is missing required claim: native-update.download-integrity",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: remove_mechanism_claim(
+                data, "boundary.native-update-manifest-authenticity"
+            ),
+            "mechanism topic 'install-update-doctor' is missing required claim: boundary.native-update-manifest-authenticity",
         ),
         (
             "analysis/mechanism-evidence.jsonl",
@@ -1812,6 +1849,57 @@ def main() -> None:
                 data, "connector-catalog-mcp", 5
             ),
             "mechanism topic 'connector-catalog-mcp' has 5 claims; minimum is 6",
+        ),
+        (
+            "analysis/install-update-doctor-lifecycle.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "完整生命周期",
+                "manifest.json",
+                "release-index.json",
+                replace_all=True,
+            ),
+            "deep topic contract install-update-doctor lifecycle is missing platform manifest",
+        ),
+        (
+            "analysis/install-update-doctor-lifecycle.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "失败、部分成功与恢复",
+                "activationFailed",
+                "activationFailure",
+                replace_all=True,
+            ),
+            "deep topic contract install-update-doctor failure/recovery is missing partial activation",
+        ),
+        (
+            "analysis/install-update-doctor-lifecycle.md",
+            lambda data: replace_in_h2_section(
+                data,
+                "证据与边界",
+                "reverse/javascript/cli.readable.js",
+                "reverse/javascript/cli.missing.js",
+                replace_all=True,
+            ),
+            "deep topic contract install-update-doctor has 0 source references; minimum is 12",
+        ),
+        (
+            "analysis/install-update-doctor-lifecycle.md",
+            lambda data: replace_once(
+                data,
+                "独立 GPG/Ed25519 签名".encode(),
+                "额外完整性字段".encode(),
+            ),
+            "deep topic contract install-update-doctor gates are missing manifest authenticity boundary",
+        ),
+        (
+            "analysis/visuals/release-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b"activationRefused / Failed",
+                b"activation outcome",
+            ),
+            "deep topic visual install-update-doctor is missing state anchor: activationRefused / Failed",
         ),
         (
             "analysis/plan-mode-and-human-approval.md",

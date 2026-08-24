@@ -180,7 +180,7 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 2. Snapshot validator exits zero and reports source inventory files checked, deterministic product-surface mapping, evidence-appropriate Deep/Documented/Boundary capability states, and capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
 4. README links every required human document; the validator confirms each document is substantive and covers its required mechanism/field families.
-5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification and a capability downgraded from `Deep`.
+5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification, a contracted capability downgraded from `Deep`, and a `Documented` row that no longer names its exact missing fact.
 6. Deep-reverse validator exits zero when `reverse/` exists.
 7. Git branch name equals `VERSION`.
 8. Native release builds, original/reconstructed contracts, and paired behavior probes exit zero when `reconstructed/` exists.

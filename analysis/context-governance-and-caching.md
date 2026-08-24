@@ -110,6 +110,24 @@ CLI 选项 `--exclude-dynamic-system-prompt-sections` 会把 cwd、env info、me
 
 进程缓存只解决第一部分，tool search 才解决第二部分。
 
+## 一个先于所有缓存细节的结论：稳定前缀塑造了 Harness
+
+官方 2026-04-30 的 [Prompt caching is everything](https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything) 给出了一个很重要的设计解释：Claude Code 不是在功能完成后“顺手加了缓存”，而是反过来让 prefix matching 约束整个 Harness 的形状。官方将顺序概括为 stable system/tools -> CLAUDE.md -> session context -> conversation messages，并明确把动态更新放进下一条 user/tool-result 的 `<system-reminder>`，而不是回头修改稳定 system 前缀。
+
+`2.1.235` 的本地实现能把这条公开设计落到具体机制：
+
+| 产品设计 | 如果直接实现会怎样 | 本版实际选择 | Cache 之外的收益 |
+| --- | --- | --- | --- |
+| 模式切换 | Plan Mode 进入时删除写工具 | tools 保持，使用 Enter/ExitPlanMode、permission mode 与 reminder 表达状态 | 模型也能主动进入 Plan；工具身份不漂移 |
+| MCP 工具过多 | 按当前需求增删完整 schema | 以 `defer_loading` + Tool Search 延迟完整 schema | 降低工具选择噪声和常驻 token |
+| 日期、文件、IDE、任务变化 | 重写 top-level system prompt | 生成 attachment，追加到当前消息尾部 | 变化有类型、owner、去重和恢复语义 |
+| Compact | 用另一套 “summarize” system/no-tools 请求全量历史 | 尽量复用 parent 的 system/context/tools/history，只在尾部加 summary request | fork 能继承同一消息合法性和 provider 配置 |
+| LSP 断开/重连 | 从 tool list 删除再加入 | 2.1.235 起尽量保持已出现 LSP tool 的请求表面稳定 | 修复本版 release note 中的 whole-cache invalidation |
+
+这条主线也解释了为什么 Prompt Assembly 必须单独讲：`<system-reminder>` 不是随手拼的一段提示词，而是**把变化放到稳定前缀之后**的更新协议；它还承担 origin、tool-pair、compact/resume 和文件新鲜度语义。完整调用顺序见 [Prompt Assembly 专题](prompt-assembly-and-system-reminders.md)。
+
+公开文章解释的是团队的设计原则，不是 `2.1.235` 逐字段合同。实际 block scope、TTL、Tool Search gate、compact reserve 和运行效果仍以本 bundle 与 Probe 为准。
+
 ## 多层缓存逐层解释
 
 “多层缓存”在这个版本里不能只写成一句营销词。下面每层缓存的对象、命中、失效和成本都不同。
@@ -188,6 +206,87 @@ CLI 选项 `--exclude-dynamic-system-prompt-sections` 会把 cwd、env info、me
 5. 其余情况按 query source allowlist，默认包含 `repl_main_thread*`、`sdk`、`auto_mode`、`memdir_relevance`。
 
 全局关闭和分模型关闭由 `WCi()` 处理：`DISABLE_PROMPT_CACHING` 以及 Haiku/Sonnet/Opus/Fable/Mythos 家族开关都能阻止 marker 写入。
+
+### 缓存失效不是玄学：Desktop/Cowork 怎样定位一次 break
+
+先写清适用边界：下面的自动归因器只在 Cowork 或 `CLAUDE_CODE_ENTRYPOINT=claude-desktop` 打开。Prompt Cache 本身适用于 CLI，但普通 terminal CLI 不能声称会自动产出这套 `tengu_prompt_cache_break` 归因。[gate：readable L232410-L232416](../reverse/javascript/cli.readable.js#L232410)
+
+它不是看到 system/tools 有变化就立即宣布 cache miss，而是“结构候选 + 响应 usage”两阶段判断：
+
+```mermaid
+flowchart LR
+    A[归因器观察的 request 子集] --> B[请求前结构 fingerprint]
+    B --> C[保存 system/tools/model/beta/message prefix 候选变化]
+    C --> D[成功 streaming response usage]
+    D --> E{cache_read 下降超过 5% 且少至少 2000?}
+    E -->|否| F[不认定显著 break]
+    E -->|是| G{有本地结构变化?}
+    G -->|是| H[列出 model/system/tools/TTL/beta/message 等候选]
+    G -->|否| I[按 >1h / >5m / <5m 推断 TTL 或 server-side]
+    H --> J[event + debug warning]
+    I --> J
+```
+
+#### 第一步：归因器只 fingerprint 非 deferred 活跃子集
+
+Tool Search、provider 与 capability gate 已经运行完，归因器拿到最终system blocks、**主动过滤后的非deferred tool schemas**、betas、TTL、fast/auto/overage/effort、extra body和规范化messages。它另外记录`anyDeferLoading`。[tracker调用点：L409430-L409446](../reverse/javascript/cli.readable.js#L409430)
+
+这不是完整request fingerprint：真实body仍由完整active tool数组序列化，可能包含带`defer_loading:true`的schema。某个deferred schema内容改变但“是否存在deferred schema”仍为true时，这套本地tracker可能既不列`toolSchemasChanged`，也不列presence flip，最后只能落到TTL/server-side/unknown候选。这个盲区必须保留，不能把归因器写成服务端cache key的复刻。
+
+`cJp()` 为当前归因槽保存：[L232613-L232654](../reverse/javascript/cli.readable.js#L232613)
+
+- system 与 tools 的整体结构 hash；
+- 每个 system block 的 hash、长度；
+- 每个 tool schema 的 hash和工具名；
+- 独立的 `cacheControlHash`，避免把内容变化和 marker scope/TTL 混写；
+- model、fast、global cache strategy、betas、auto mode、overage、effort、extra body；
+- wire message 的轻量 shape fingerprint。
+
+这里的 `systemHash/toolsHash` 是 Bun 32-bit 结构 hash，用于相邻调用比较，不是 SHA-256 完整性证明，也不是“日志中保存了完整 prompt”。system 内容比较会排除 billing header，`cache_control` 又被拆到独立 hash，减少假归因。
+
+#### 第二步：普通追加消息不算历史突变
+
+下一请求会比较：
+
+| 字段 | 人话含义 |
+| --- | --- |
+| `systemPromptChanged` | 去掉 marker/计费头后的 system 内容变了 |
+| `toolSchemasChanged` | 非 deferred 有效 schema 数组变了；再拆 added/removed/changed tools |
+| `cacheControlChanged` | 内容未必变，但 breakpoint scope 或 TTL 变了 |
+| `globalCacheStrategyChanged` | `none/tool_based/system_prompt` 策略切换 |
+| `deferLoadingPresenceChanged` | 是否存在 deferred schema 翻转；不等于逐个工具变化 |
+| `messagesHistoryChanged` | 旧可复用 message prefix 被改写或截短 |
+| `firstChangedMessageIndex` | 旧前缀从哪一项开始不同 |
+
+message 比较用旧数组逐项找第一个不同，因此正常在尾部增加一轮不会被标成 history mutation；compact、rewind、fallback salvage 或错误修链改了旧前缀才会。候选变化只先放进 `pendingChanges`，不等于服务端已经 miss。[比较：L232629-L232651](../reverse/javascript/cli.readable.js#L232629)
+
+#### 第三步：只有 cache-read 真下降才认定 break
+
+成功streaming response的usage到手后，`uJp()`才比较`cache_read_input_tokens`；non-streaming fallback没有同一客户端调用点。第一个样本只建立baseline；Haiku、预期的cache deletion和没有可比状态的路径跳过。当前值必须同时满足：
+
+```text
+cacheReadTokens < previousCacheReadTokens * 0.95
+previousCacheReadTokens - cacheReadTokens >= 2000
+```
+
+否则不记显著 break。[判定：L232656-L232681](../reverse/javascript/cli.readable.js#L232656)
+
+达到门槛后，先列本地候选：model、system、tools、fast、global strategy、cache control、betas、auto、overage、cache diagnosis、effort、extra body、defer presence、message mutation。全部稳定时才根据距最后 assistant 的时间做排除式提示：
+
+- `> 1h`：possible 1h TTL expiry；
+- `> 5m`：possible 5min TTL expiry；
+- `< 5m`：likely server-side；
+- 无有效时间：unknown cause。
+
+这些仍是客户端候选，不是服务端判决。服务端返回的 `diagnostics.cache_miss_reason` 走另一条 `tengu_prompt_cache_diagnosis_received` 事件，不能与本地推断合并。[归因与事件：L232682-L232728](../reverse/javascript/cli.readable.js#L232682)
+
+主线程/SDK按固定query source分槽；`compact`归一到`repl_main_thread`，Agent调用则优先用agent ID分槽。进程内最多保留10个槽；只有固定source key能写入不超过4MiB的`cache-break-state-<session-hash>.json`，agent-ID槽不会跨进程恢复，并在Agent结束时清理。`baselineFromDisk`会让旧model/removed list更保守，避免拿不完整的跨进程状态制造精确diff。[状态与key：L232423-L232483](../reverse/javascript/cli.readable.js#L232423)
+
+#### 用户真正能从中判断什么
+
+同一会话突然TTFT变慢、`cache_creation_input_tokens`上升，不一定是“上下文变长”：切模型、effort、beta、Auto Mode、非deferred MCP schema、TTL或旧消息mutation都能被这套owner直接点名；deferred schema变化则可能落入tracker盲区。反过来，本地结构完全稳定也不证明服务端一定命中；`likely server-side`只是排除已观测本地变化与明显TTL后的分类。
+
+compact 成功会清空旧 cache-read baseline；context-hint microcompaction 会设置 `cacheDeletionsPending`，让下一次预期下降不被误报为异常。见 [L232730-L232749](../reverse/javascript/cli.readable.js#L232730)。
 
 ### 成本算例：100k Sonnet 4.6 稳定前缀
 

@@ -884,6 +884,8 @@ direct route 是 POST、60 秒 timeout，随后做 response schema 与目标 slu
 
 OTEL bootstrap 分别构造 metrics/logs/traces exporter（[L361612-L361670](../reverse/javascript/cli.readable.js#L361612)）。`OTEL_LOG_USER_PROMPTS` 默认把正文变成 `<REDACTED>`；exact Probe 证明显式开启后 marker 才进入 collector。`OTEL_LOG_RAW_API_BODIES` 又是独立门：未设时无 body event；设置为 `1` 时完整受控 request/response marker 可进入 collector，即使 `OTEL_LOG_USER_PROMPTS` 没开；`file:<dir>` 时正文写本地 JSON，event 只带 `body_ref`。file 模式把风险从 collector 移到本地明文，不是无条件“更隐私”。见 [raw-body Probe](runtime-probes/telemetry-otlp.json) 与 [Telemetry](telemetry.md)。
 
+OTLP HTTP logs 还有一处反直觉 precedence：Claude先用 `n1i()` 注入 `httpAgentOptions=Kol(endpoint)`（[L361719-L361737](../reverse/javascript/cli.readable.js#L361719)），OTLP merge再优先采用 programmatic agent而不是 library的 environment agent（[L345748-L345764](../reverse/javascript/cli.readable.js#L345748)）。exact [OTLP TLS Probe](runtime-probes/otlp-tls.json) 因而观察到：OTLP专用 CA/client变量没有成为有效 HTTP agent，`NODE_EXTRA_CA_CERTS`、`CLAUDE_CODE_CLIENT_CERT/KEY` 和通用 proxy才控制实际 handshake；exporter失败仍不改变 Agent success。
+
 `tengu_other` 是本仓库前缀分类的兜底，不是客户端统一模块。caller-owner 只接受 event、exact caller identity 与 comparison fingerprint 同时命中；旧的巨大行区间曾把 EndConversation、heap dump、update refused 错归邻近业务。该研究纠错不改变 runtime，但防止排障去找错 owner。完整剩余边界见 [Telemetry 场景索引](telemetry-event-catalog.md)。
 
 </details>

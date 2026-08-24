@@ -226,7 +226,9 @@ Anthropic 官方文档把 Agent Loop 描述为“收集上下文、采取行动�
 
 | 你想回答的问题 | 先读 | 再读 |
 | --- | --- | --- |
-| 当前 54 个能力面哪些已深入、哪些属于不可恢复边界 | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 当前58个能力面哪些是Deep、哪些仍是Documented或外部Boundary | [全面性审计](completeness-audit.md) | [全量能力面](source-surface.md) |
+| 用户一句话怎样与system、CLAUDE.md/Memory、attachment、IDE/Hook/MCP、文件变化和tools组成最终request | [Prompt Assembly](prompt-assembly-and-system-reminders.md) | [上下文治理与多层缓存](context-governance-and-caching.md) |
+| 代码、prompt、transcript、telemetry、Feedback、Remote、Web/MCP/Hook、Artifact/upload和Voice分别去了哪里 | [全局数据流与隐私](client-data-flow-and-privacy.md) | [遥测、日志与诊断](telemetry.md) |
 | 为什么核心参考只有 29 项，bundle 却定义了 80 个 `Yi({...})` 注册调用点 | [工具注册与宿主表面](tool-registration-and-host-surfaces.md) | [核心终端工具逐项参考](builtin-tools-reference.md) |
 | 29 项核心终端参考工具分别改变什么状态、怎样失败和恢复 | [核心终端工具逐项参考](builtin-tools-reference.md) | [工具、权限与 Hooks](tools-permissions-hooks.md) |
 | Brief 模式为什么普通文字存在但主视图仍空，附件为何只在桌面可见 | [Brief 用户可见输出](brief-mode-and-user-visible-output.md) | [Agent Loop](agent-loop.md) |

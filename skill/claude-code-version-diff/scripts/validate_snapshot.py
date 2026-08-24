@@ -16,6 +16,7 @@ from collections import Counter
 from pathlib import Path
 
 from validate_network_proxy_tls import validate_network_proxy_tls_report
+from validate_otlp_tls import validate_otlp_tls_report
 from validate_plugin_evaluation import validate_plugin_evaluation_report
 from validate_project_data_lifecycle import validate_project_data_lifecycle_report
 
@@ -657,9 +658,9 @@ HUMAN_ANALYSIS_DOCS = {
         "OpenTelemetry",
         "Datadog",
         "GrowthBook",
-        "11 `Single-owner`",
+        "19 `Single-owner`",
         "1 `Cross-owner`",
-        "899 个 event / 1,218 个 callsite",
+        "891 个 event / 1,157 个 callsite",
         "tengu_copper_lantern",
         "tengu_fast_mode_toggled",
         "状态变化",
@@ -679,15 +680,18 @@ HUMAN_ANALYSIS_DOCS = {
         "tengu_transcript_writer_recovered",
         "tengu_other` 不能当作",
         "caller-owner-target-events:911",
-        "caller-owner-single:11",
+        "caller-owner-single:19",
         "caller-owner-cross:1",
-        "caller-owner-unresolved:899",
-        "caller-owner-allowlist-entries:79",
-        "caller-owner-unresolved-callsites:1218",
+        "caller-owner-unresolved:891",
+        "caller-owner-allowlist-entries:140",
+        "caller-owner-unresolved-callsites:1157",
         "tengu_copper_lantern",
         "tengu_fast_mode_toggled",
         "tengu_install_github_app_step_completed",
         "tengu_official_marketplace_auto_install",
+        "tengu_streaming_error",
+        "tengu_claudeai_mcp_eligibility",
+        "tengu_resume_parked_permission",
         "观测到的状态变化",
         "Boundary",
     ),
@@ -708,7 +712,7 @@ HUMAN_ANALYSIS_DOCS = {
         "5,403",
         "Product exact caller",
         "Dependency exact package/function",
-        "9,676",
+        "9,550",
         "error-diagnostic-owner-index.md",
         "AbortError",
         "tool_expected_error",
@@ -720,7 +724,7 @@ HUMAN_ANALYSIS_DOCS = {
         "10,234",
         "Product exact caller",
         "Dependency exact package/function",
-        "9,676",
+        "9,550",
         "catchOwner",
         "retryOwner",
         "toolResultOwner",
@@ -1593,7 +1597,7 @@ TOPIC_DEPTH_CONTRACTS = {
             "mTLS material",
             "Transport adapters",
             "Remote CCR agent proxy",
-            "OTLP exporter",
+            "OTLP HTTP logs",
         ),
         "minimum_lifecycle_steps": 8,
         "minimum_evidence_references": 8,
@@ -3310,10 +3314,10 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface inventory completeness statement does not match the mechanism evidence registry"
         )
     for debt in (
-        "562 个静态环境名称",
-        "186 个 Feature key",
+        "502 个静态环境名称",
+        "156 个 Feature key",
         "138 个动态环境表达式",
-        "899 个 `tengu_other` caller-owner",
+        "891 个 `tengu_other` caller-owner",
     ):
         if debt not in inventory_content:
             failures.append(
@@ -3857,21 +3861,21 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
             "countField": "consumerContractCount",
             "hashField": "consumerContractNamesSha256",
-            "minimumCount": 351,
+            "minimumCount": 411,
             "callsiteOnlyField": "callsiteOnlyNamedReadCount",
-            "expectedCallsiteOnly": 548,
+            "expectedCallsiteOnly": 488,
             "structuredMarker": "ENVIRONMENT_VARIABLE_REFERENCE:STRUCTURED_CONTRACT_NAMES",
             "structuredCountField": "structuredConsumerContractCount",
             "structuredHashField": "structuredConsumerContractNamesSha256",
-            "expectedStructuredCount": 44,
+            "expectedStructuredCount": 104,
             "summaryCounts": {
                 "lexicalContextCallsiteCount": 2548,
                 "consumerContextCallsiteCount": 2548,
                 "accessModeCallsiteCount": 2548,
-                "directConsumerContractCount": 351,
+                "directConsumerContractCount": 411,
                 "resolvedDynamicOnlyConsumerContractCount": 0,
-                "semanticFollowupStaticNameCount": 562,
-                "structuredConsumerContractCallsiteCount": 45,
+                "semanticFollowupStaticNameCount": 502,
+                "structuredConsumerContractCallsiteCount": 122,
                 "resolvedDynamicCallsiteCount": 7,
                 "unresolvedDynamicCallsiteCount": 138,
                 "resolvedDynamicOnlyTypedNameCount": 0,
@@ -3914,6 +3918,16 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "MCP_CONNECT_TIMEOUT_MS",
                 "SELF_HOSTED_RUNNER_BASE_DIR",
                 "SELF_HOSTED_RUNNER_CONFINE_REPO_SETTINGS",
+                "SELF_HOSTED_RUNNER_ENVIRONMENT_SECRET",
+                "SELF_HOSTED_RUNNER_RETIRE_AT",
+                "CLAUDE_RUNNER_ACTIVITY_FD",
+                "CLAUDE_CODE_FORCE_SESSION_PERSISTENCE",
+                "CLAUDE_CODE_RESUME_FROM_SESSION",
+                "CLAUDE_CODE_TRANSCRIPT_LOCAL_GC",
+                "CLAUDE_CODE_REMOTE_SESSION_ORIGIN",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS",
+                "CLAUDE_CODE_OAUTH_401_WAIT_MS",
+                "CLAUDE_CODE_API_BASE_URL",
             },
             "requiredNoStaticConsumer": {
                 "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
@@ -3928,17 +3942,17 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS",
             "countField": "consumerContractCount",
             "hashField": "consumerContractKeysSha256",
-            "minimumCount": 175,
+            "minimumCount": 205,
             "callsiteOnlyField": "callsiteOnlyStaticKeyCount",
-            "expectedCallsiteOnly": 186,
+            "expectedCallsiteOnly": 156,
             "structuredMarker": "FEATURE_FLAG_REFERENCE:STRUCTURED_CONTRACT_KEYS",
             "structuredCountField": "structuredConsumerContractCount",
             "structuredHashField": "structuredConsumerContractKeysSha256",
-            "expectedStructuredCount": 25,
+            "expectedStructuredCount": 55,
             "summaryCounts": {
                 "lexicalContextCallsiteCount": 498,
                 "consumerContextCallsiteCount": 498,
-                "structuredConsumerContractCallsiteCount": 27,
+                "structuredConsumerContractCallsiteCount": 58,
             },
             "required": {
                 "tengu_amber_packet",
@@ -3964,6 +3978,36 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "tengu_surreal_dali",
                 "tengu_ptc_enabled",
                 "tengu_umber_kestrel",
+                "tengu_artifact_hljs_highlight",
+                "tengu_artifact_mermaid_diagrams",
+                "tengu_flint_harbor_share",
+                "tengu_pr_footer_surface_suffix",
+                "tengu_fleetview_pr_batch",
+                "tengu_fleet_past_sessions",
+                "tengu_rename_full_session_fork",
+                "tengu_ultraplan_prompt_identifier",
+                "tengu_lapis_anchor",
+                "tengu_lapis_anchor_budget",
+                "tengu_lapis_anchor_user_turn",
+                "tengu_moss_anchor",
+                "tengu_edit_minimalanchor_jrn",
+                "tengu_alder_compass",
+                "tengu_cedar_plume",
+                "tengu_kestrel_arch",
+                "tengu_maple_rung",
+                "tengu_chrome_install_upsell",
+                "tengu_cobalt_harbor_notice",
+                "tengu_harbor_willow",
+                "tengu_cobalt_wren",
+                "tengu_pewter_owl_model",
+                "tengu_c4e_slash_upsell",
+                "tengu_startup_notice",
+                "tengu_gleaming_fair",
+                "tengu_quartz_thimble",
+                "tengu_saffron_credits_only_tiers",
+                "tengu_cedar_transom",
+                "tengu_larch_pavise",
+                "tengu_harbor_kite_mode_emit",
             },
         },
     }
@@ -4250,13 +4294,16 @@ def validate_completeness_closure(
             f"missing={missing}, ordered={row_order == expected_order}"
         )
 
+    documented_capabilities = {27, 33}
     for capability in range(1, expected_last_capability):
         if capability not in rows:
             continue
         state = rows[capability][4]
-        if state != "Deep":
+        expected_state = "Documented" if capability in documented_capabilities else "Deep"
+        if state != expected_state:
             failures.append(
-                f"completeness capability {capability} is not closed: {state}"
+                f"completeness capability {capability} state mismatch: "
+                f"{state} != {expected_state}"
             )
     boundary_row = rows.get(expected_last_capability)
     if boundary_row is not None and boundary_row[4] != "Boundary":
@@ -4433,7 +4480,8 @@ def validate_public_sources(repo: Path, failures: list[str]) -> tuple[dict[str, 
     declared_urls = {source.get("url") for source in sources.values()}
     official_url = re.compile(
         r"https://(?:code\.claude\.com/docs/[A-Za-z0-9_./?#=&%-]+|"
-        r"www\.anthropic\.com/(?:engineering|research)/[A-Za-z0-9_./?#=&%-]+)"
+        r"www\.anthropic\.com/(?:engineering|research)/[A-Za-z0-9_./?#=&%-]+|"
+        r"claude\.com/blog/[A-Za-z0-9_./?#=&%-]+)"
     )
     referenced_urls: set[str] = set()
     generated_bundle_references = {
@@ -6596,6 +6644,29 @@ def main() -> int:
                 "network proxy/TLS validator forgery test failed: "
                 + network_test_process.stdout.strip()
             )
+    otlp_tls_checks = validate_otlp_tls_report(
+        repo, version, metadata, failures
+    )
+    otlp_tls_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_otlp_tls_validator.py"
+    )
+    if not otlp_tls_test.is_file():
+        failures.append("missing OTLP TLS validator forgery test")
+    elif not args.negative_test_fast:
+        otlp_test_process = subprocess.run(
+            [sys.executable, str(otlp_tls_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if otlp_test_process.returncode != 0:
+            failures.append(
+                "OTLP TLS validator forgery test failed: "
+                + otlp_test_process.stdout.strip()
+            )
     plugin_evaluation_checks = validate_plugin_evaluation_report(
         repo, version, metadata, failures
     )
@@ -6715,6 +6786,7 @@ def main() -> int:
     print(f"CLI exact-binary help cases checked: {cli_help_cases}")
     print(f"mechanism evidence records checked: {mechanism_evidence}")
     print(f"network proxy/TLS checks recorded: {network_proxy_tls_checks}")
+    print(f"OTLP TLS checks recorded: {otlp_tls_checks}")
     print(f"Plugin Evaluation checks recorded: {plugin_evaluation_checks}")
     print(f"project data lifecycle checks recorded: {project_data_lifecycle_checks}")
     print(f"native behavior checks recorded: {native_behavior_checks}")

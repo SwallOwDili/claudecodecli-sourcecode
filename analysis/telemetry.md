@@ -201,13 +201,26 @@ metrics exporter 支持 `console`、`otlp`、`prometheus`；logs 支持 `console
 - `http/json`
 - `http/protobuf`
 
-global 与 signal-specific 的 endpoint、headers、protocol、certificate、client certificate/key、compression、timeout 均能从环境读取。完整 77 项见 `otel-environment-variables.txt`。
+global 与 signal-specific 的 endpoint、headers、protocol、certificate、client certificate/key、compression、timeout 均能被 bundled OTLP library 从环境读取。完整 77 项见 `otel-environment-variables.txt`。但“library 读取”不等于它生成的 TLS agent最终生效：2.1.235 在 HTTP exporter options中另写 programmatic agent。
 
 如果用户没有显式设置 `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`，Claude Code 在 bootstrap 阶段把它设为 `delta`。显式配置不会被覆盖。
 
 默认 force-flush timeout 为 5,000 ms，shutdown timeout 为 2,000 ms，可分别由 `CLAUDE_CODE_OTEL_FLUSH_TIMEOUT_MS`、`CLAUDE_CODE_OTEL_SHUTDOWN_TIMEOUT_MS` 调整。
 
 traces 除总开关/exporter 外还需要 enhanced telemetry beta。内部 beta tracing 还存在 `BETA_TRACING_ENDPOINT` 委托出口，分别拼接 `/v1/traces` 和 `/v1/logs`。
+
+### HTTP logs 的有效 CA、mTLS 与 proxy owner
+
+Claude 的 `n1i("logs")` 把 `httpAgentOptions=Kol(endpoint)` 交给 exporter；OTLP merge再按 `programmatic agentFactory ?? environment agentFactory ?? default` 选择。因此 HTTP logs不是由 `OTEL_EXPORTER_OTLP_*_CERTIFICATE/CLIENT_*` 单独决定，effective agent沿用 Claude通用网络配置。
+
+exact-binary [`otlp-tls.json`](runtime-probes/otlp-tls.json) 用有效 Node HTTPS/mTLS夹具做了15臂对照：
+
+- `NODE_EXTRA_CA_CERTS` 能让自签 collector收到 JSON POST；signal/common OTLP certificate变量在 JSON、protobuf、TLS 1.2、IP SAN和 precedence对照中都未形成 HTTP request；
+- `OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE/KEY` 没有向 mTLS collector出示证书；`CLAUDE_CODE_CLIENT_CERT/KEY` 则让 server观察 `authorized=true` 与 CN=`Claude OTLP Probe Client`；
+- 外部形态的 `collector.invalid` 经 CONNECT proxy成功，小写 `https_proxy` 覆盖冲突的大写值；
+- 所有 exporter TLS失败都没有改变 Agent result：CLI仍 success、exit 0，说明 observability failure不反向接管业务循环。
+
+这不是建议关闭 TLS。报告中的 `NODE_TLS_REJECT_UNAUTHORIZED=0` 只用于证明 transport在绕开校验时可通，专属 validator要求它被明确保留为诊断边界。正向配置应使用本版实际拥有 agent 的通用 CA/mTLS设置。该结论只覆盖 HTTP logs；OTLP gRPC、metrics、traces、collector retention和远端 delivery仍需独立证据。完整 precedence和30项检查见 [网络栈专题](network-proxy-ca-and-mtls.md)。
 
 ### Metrics
 
@@ -266,19 +279,23 @@ interaction、LLM 和 tool span 同时可以关联 Perfetto span ID。LLM 完成
 
 ## `tengu_other` 不是 owner：只有 exact caller 才能逐项落位
 
-事件名前缀 family 只是确定性导航。原目录有 911 个 unique event / 1,297 个固定 callsite 落入 `tengu_other`，这不表示它们共享一个“其他功能”。当前生成器把每个 `H`/`Fv` caller 同时绑定 event、词法 function、consumer parent/role、payload keys、canonical position、同哈希 readable line 和证据指纹，但 owner 只接受 79 条 exact caller allowlist，行号区间只供阅读、不参与分类。当前逐项收口 12 个事件：11 `Single-owner`、1 `Cross-owner`；其余 899 个 event / 1,218 个 callsite 保持 `Unresolved`。
+事件名前缀 family 只是确定性导航。原目录有 911 个 unique event / 1,297 个固定 callsite 落入 `tengu_other`，这不表示它们共享一个“其他功能”。当前生成器把每个 `H`/`Fv` caller 同时绑定 event、词法 function、consumer parent/role、payload keys、canonical position、同哈希 readable line 和证据指纹，但 owner 只接受 140 条 exact caller allowlist，行号区间只供阅读、不参与分类。当前逐项收口 20 个事件：19 `Single-owner`、1 `Cross-owner`；其余 891 个 event / 1,157 个 callsite 保持 `Unresolved`。
 
-新增的 54 个 caller 不是按名字批量归类，而是 6 个调用点全集都能闭合的状态机：GitHub App 安装向导 14 个 milestone caller 与相邻 React state updater 一一对应；GitHub Actions setup 的 8 个 caller 都位于 repo/default branch/SHA/branch/workflow/secret/unexpected-error 失败出口；官方 Marketplace 的 8 个 caller覆盖 policy skip、GCS 成功、git fallback、retry/backoff 与 xcrun shim 终态；remote stage file 的 9 个 caller覆盖 unsupported/no-op/gated/mkdir/write/atomic rename 终态；File History rewind 的 9 个 caller都在 dry-run 丢弃或 symlink/hardlink/parent identity/backup guard 拒绝路径；transcript 文件压实的 6 个 caller都在 torn tail、plan abort、source race 和 I/O failure 出口。每条映射不仅绑定 owner/scenario，还经 rule 绑定“观测到的状态变化”和 Boundary，并与 allowlist 一起进入完整 SHA-256。
+上一批新增的 54 个 caller 不是按名字批量归类，而是 6 个调用点全集都能闭合的状态机：GitHub App 安装向导 14 个 milestone caller 与相邻 React state updater 一一对应；GitHub Actions setup 的 8 个 caller 都位于 repo/default branch/SHA/branch/workflow/secret/unexpected-error 失败出口；官方 Marketplace 的 8 个 caller覆盖 policy skip、GCS 成功、git fallback、retry/backoff 与 xcrun shim 终态；remote stage file 的 9 个 caller覆盖 unsupported/no-op/gated/mkdir/write/atomic rename 终态；File History rewind 的 9 个 caller都在 dry-run 丢弃或 symlink/hardlink/parent identity/backup guard 拒绝路径；transcript 文件压实的 6 个 caller都在 torn tail、plan abort、source race 和 I/O failure 出口。每条映射不仅绑定 owner/scenario，还经 rule 绑定“观测到的状态变化”和 Boundary，并与 allowlist 一起进入完整 SHA-256。
 
 对应的可读源码区域分别是 [GitHub Actions 远端写入与失败链 L490523-L490588](../reverse/javascript/cli.readable.js#L490523)、[GitHub App 向导状态机 L490640-L491065](../reverse/javascript/cli.readable.js#L490640)、[Marketplace 持久状态与退避 L583864-L583920](../reverse/javascript/cli.readable.js#L583864)、[remote stage file 的发布边界 L599443-L599508](../reverse/javascript/cli.readable.js#L599443)、[File History rewind guard L194721-L195057](../reverse/javascript/cli.readable.js#L194721) 和 [transcript file/V5 compaction L401330-L401498](../reverse/javascript/cli.readable.js#L401330)。导航区间只帮助读者复核这些因果链；分类器不读取区间。
 
-高频不等于可以批量认领。`tengu_feedback_survey_event` 的 13 个 caller 分布在多种 survey/feedback surface，`tengu_left_arrow_blocked` 的 10 个 caller跨输入编辑、inflight guard 与不同 TUI 路径，`tengu_git_operation` 的 10 个 caller同时观察 shell 命令和 MCP tool name；本批没有为这些 caller 完成统一状态 owner 或明确 Cross-owner 的逐项证明，所以继续保持 `Unresolved`。`tengu_review_remote_precondition_recovery` 虽有 12 个 caller邻近 remote-review gate，仍有另一个独立入口未在本批完成 owner/continuation trace，也没有继承现有 `remote-review` 导航区间。
+本批再新增 61 个 exact caller，完整覆盖 8 个事件组：13 个 remote-review recovery caller、8 个 Plan exit choice、8 个 assistant stream parser mismatch、8 个 claude.ai MCP eligibility gate、6 个 MCP resource @-mention failure、6 个 quota auto-resume cancellation、6 个 resumed parked-permission outcome 和 6 个 Ultraplan launch failure。它们分别改变 remote-review continuation、permission/context mode、stream parser state、connector config、input attachment、auto-continuation episode、resume control/transcript 和 remote-plan launch latch；不能把这 61 条读成同一种“失败日志”。
+
+对应源码区域是 [remote review recovery L363040-L363284](../reverse/javascript/cli.readable.js#L363040) 与独立的 [/ultrareview continuation L508795-L508825](../reverse/javascript/cli.readable.js#L508795)、[Plan exit L526995-L527104](../reverse/javascript/cli.readable.js#L526995)、[stream parser L409843-L409906](../reverse/javascript/cli.readable.js#L409843)、[claude.ai MCP eligibility L273560-L273620](../reverse/javascript/cli.readable.js#L273560)、[MCP @-mention L322427-L322451](../reverse/javascript/cli.readable.js#L322427)、[quota auto-resume L332089-L332328](../reverse/javascript/cli.readable.js#L332089)、[parked permission resume L601499-L601591](../reverse/javascript/cli.readable.js#L601499) 与 [Ultraplan launch L363964-L364016](../reverse/javascript/cli.readable.js#L363964)。其中 review recovery 的最后一个 caller 是单独 exact identity 命中，不从前 12 个 caller 的导航区间继承 owner。
+
+高频不等于可以批量认领。`tengu_feedback_survey_event` 的 13 个 caller 仍分布在多种 survey/feedback surface，`tengu_left_arrow_blocked` 的 10 个 caller 仍跨输入编辑、inflight guard 与不同 TUI 路径，`tengu_git_operation` 的 10 个 caller 仍同时观察 shell 命令和 MCP tool name；这三组没有完成统一状态 owner 或明确 Cross-owner 的逐项证明，所以继续保持 `Unresolved`。
 
 这六组的状态语义也不同，不能只读成“某功能打了一条日志”。GitHub setup 失败时远端 branch、workflow 或 secret 可能已经部分写入，事件不提供事务回滚；Marketplace 多数分支先持久化 attempted/installed/fail reason/retry time，但 xcrun-shim 分支只返回分类结果；stage file 成功分支以临时文件 rename 发布，no-op 和失败分支则不产生同一目标状态；File History 单文件拒绝不会回滚同轮已经恢复或删除的其他文件；transcript 压实失败会保留原 transcript 为权威源并尽力删临时文件，但不证明 cleanup 或下一次压实成功。这些差异就是 caller owner 必须携带状态变化和 Boundary 的原因。
 
 规则不使用事件前缀推断 owner。`tengu_copper_lantern` 的 codename 和空 payload 没有业务语义；它之所以归入 `remote-runtime / daemon supervisor`，是因为唯一 caller 位于 service recall、worker drain、service uninstall 和 daemon exit 的窄区间。相反，`tengu_fast_mode_toggled` 的 caller 分布在 identity/model access、remote review、usage picker 和 terminal message UI，因此保留 `Cross-owner`，不强行塞进一个模块。
 
-这一步只解决已进入 exact allowlist 的 caller 归属，不是“事件一定执行或送达”。EndConversation、heap dump、update refused 等未逐项映射的邻近 caller 明确保留 Unresolved，不会继承某个宽导航区间的 owner；运行 gate、sampling、payload spread 的实际值、collector 接收与服务端 retention 仍需各自证据。79 条 allowlist、899 项折叠 Unresolved 证据、状态变化、Boundary 和 caller 指纹见 [遥测事件目录](telemetry-event-catalog.md#tengu_other-callerowner-场景投影)。
+这一步只解决已进入 exact allowlist 的 caller 归属，不是“事件一定执行或送达”。EndConversation、heap dump、update refused 等邻近 caller 明确保留 Unresolved，不会继承宽导航区间；`tengu_streaming_fallback_to_non_streaming` 即使与已映射 parser event 共用 `named:vAm`，也不会从同名函数继承 owner。运行 gate、sampling、payload spread 的实际值、collector 接收与服务端 retention 仍需各自证据。140 条 allowlist、891 项折叠 Unresolved 证据、状态变化、Boundary 和 caller 指纹见 [遥测事件目录](telemetry-event-catalog.md#tengu_other-callerowner-场景投影)。
 
 ## 错误上报、debug 和本地诊断
 

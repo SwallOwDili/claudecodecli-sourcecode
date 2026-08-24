@@ -72,6 +72,11 @@ def main() -> int:
     validate_env()
     validate_feature()
 
+    if "tengu_ant_yolo_equiv_strip_config" in module.FEATURE_MANUAL_CONTRACTS:
+        raise AssertionError("dormant exported predicate must remain Semantic follow-up")
+    if "tengu_moss_anchor" not in module.FEATURE_MANUAL_CONTRACTS:
+        raise AssertionError("reachable noninteractive Auto-default contract is missing")
+
     env_contract = module.ENV_MANUAL_CONTRACTS["CODESPACES"]
     mutate_and_reject(
         env_contract,
@@ -130,7 +135,8 @@ def main() -> int:
     print(
         "environment/feature manual contracts: PASS "
         f"({len(module.ENV_MANUAL_CONTRACTS)} environment, "
-        f"{len(module.FEATURE_MANUAL_CONTRACTS)} feature, 7 negative mutations rejected)"
+        f"{len(module.FEATURE_MANUAL_CONTRACTS)} feature, "
+        "7 negative mutations rejected, dormant-export guard passed)"
     )
     return 0
 

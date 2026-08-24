@@ -9,11 +9,13 @@
 | 状态 | Error constructor | Diagnostic | 合计 | 能证明什么 |
 | --- | ---: | ---: | ---: | --- |
 | Product exact caller | 54 | 254 | 308 | exact lexical caller 属于已审阅的客户端机制；catch/retry/tool-result/user-surface 仍逐字段判定 |
-| Dependency exact package/function | 250 | 0 | 250 | constructor 位于精确依赖 package/function；不自动继承产品恢复语义 |
-| Unresolved | 4,527 | 5,149 | 9,676 | 只有 lexical/immediate consumer inventory，尚无经过复核的 owner |
+| Dependency exact package/function | 376 | 0 | 376 | constructor 位于精确依赖 package/function；不自动继承产品恢复语义 |
+| Unresolved | 4,401 | 5,149 | 9,550 | 只有 lexical/immediate consumer inventory，尚无经过复核的 owner |
 | **全量** | **4,831** | **5,403** | **10,234** | 每条 canonical callsite 恰好出现一次 |
 
 这不是把 `Unresolved` 换成漂亮标签。当前只收口高置信第一批；剩余记录继续作为可量化的 semantic debt。特别是 diagnostic 的 `T()` 名称在压缩 bundle 中可能与依赖局部符号碰撞，未审阅 scope 不按“看起来像日志”归 Product。
+
+Product flow 继续独立 fail closed：catchOwner 仅 **4** 条、retryOwner **99** 条、toolResultOwner **13** 条、userSurfaceOwner **0** 条获得 exact rule。owner 已解析不会自动抬高四个 flow 字段。
 
 ## 四个 Product 后续 owner 字段怎样读
 
@@ -34,10 +36,13 @@
 | AWS credential source/profile guards | Dependency: @aws-sdk/credential-providers | 4 | credential provider profile resolver | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
 | AWS endpoint provider precondition | Dependency: @aws-sdk/util-endpoint | 1 | endpoint configuration resolver | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
 | Ajv compiler internal invariants | Dependency: ajv | 33 | schema compiler and removeSchema | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
+| JWS/JWT/JWK algorithm, key-type and claims validation | Dependency: jose | 51 | JWS/JWT/JWK validation functions | The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced. |
 | MCP trust, policy and local config guards | Product: mcp/config-policy | 30 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
 | MCPB, plugin, connector and policy compilation | Product: mcp/config-policy | 41 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
+| OAuth2Client token, certificate and refresh-handler guards | Dependency: google-auth-library | 27 | OAuth2Client auth URL, refresh, ID-token and signed-JWT validators | The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced. |
 | OTLP protobuf object/array verification | Dependency: protobufjs OpenTelemetry OTLP generated codec | 102 | generated verify/fromObject field guards | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
 | OpenTelemetry global API registration guards | Dependency: @opentelemetry/api | 2 | global API register/version check | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
+| PostToolUse cancellation/timeout catch | Product: tool/hooks-permission | 2 | catchOwner=PostToolUse outer catch boundary | No exact runtime Probe proves that this branch executed in the inspected session. |
 | PreTool and permission hook entry diagnostics | Product: tool/hooks-permission | 2 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
 | REPL sandbox violation one-shot relaxation | Product: sandbox/enforcement | 1 | retryOwner=single unsandboxed retry gate | No exact runtime Probe proves that this branch executed in the inspected session. |
 | Smithy CBOR precision and undefined-value guards | Dependency: @smithy/core/cbor | 2 | CBOR serializer | The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message. |
@@ -55,11 +60,14 @@
 | claude.ai MCP connector bounded fetch | Product: mcp/config-policy | 13 | retryOwner=claude.ai connector bounded fetch budget | No exact runtime Probe proves that this branch executed in the inspected session. |
 | deferred tool resume re-entry | Product: tool/hooks-permission | 3 | toolResultOwner=deferred tool resume owner | No exact runtime Probe proves that this branch executed in the inspected session. |
 | end-turn hook decisions after tool result | Product: tool/hooks-permission | 4 | toolResultOwner=tool pipeline end-turn owner | No exact runtime Probe proves that this branch executed in the inspected session. |
-| hook runner cancellation and failure diagnostics | Product: tool/hooks-permission | 5 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
+| gRPC service config, retry, hedging and load-balancing validation | Dependency: @grpc/grpc-js | 42 | service-config parser and retry/hedging policy validators | The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced. |
+| hook deny/interrupt decision diagnostic | Product: tool/hooks-permission | 1 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
 | manual compact and context-hint diagnostics | Product: context/compact | 4 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
 | manual compact fallback and autocompact breakers | Product: context/compact | 8 | retryOwner=model fallback, circuit breaker and rapid-refill owner | No exact runtime Probe proves that this branch executed in the inspected session. |
 | manual compact model policy gate | Product: context/compact | 6 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
+| permission hook async failure/cancellation catch | Product: tool/hooks-permission | 2 | catchOwner=permission request hook async catch boundary | No exact runtime Probe proves that this branch executed in the inspected session. |
 | precomputed compact sidecar lifecycle | Product: context/compact | 16 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
+| protobuf wire reader bounds and encoding guards | Dependency: protobufjs/minimal | 6 | Reader index/varint/wire-type guards | The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced. |
 | reactive compact bounded retry ladder | Product: context/compact | 4 | retryOwner=reactive compact media-strip and prompt-gap ladder | No exact runtime Probe proves that this branch executed in the inspected session. |
 | reactive compact hook and response diagnostics | Product: context/compact | 3 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
 | reactive compact response validation | Product: context/compact | 2 | exact lexical caller only | No exact runtime Probe proves that this branch executed in the inspected session. |
@@ -109,10 +117,10 @@ OpenTelemetry protobuf、Ajv、Zod、Smithy 和 Anthropic/MCP SDK 的 constructo
 
 - [`error-diagnostic-owner-projection.jsonl`](error-diagnostic-owner-projection.jsonl)：10,234 条互斥投影，每个 callsite 一行；
 - [`error-diagnostic-owner-summary.json`](error-diagnostic-owner-summary.json)：覆盖、owner/scenario、flow 证据与全部 artifact hash；
-- [`error-diagnostic-owner-rules.json`](error-diagnostic-owner-rules.json)：43 条 reviewed rules 和逐 callsite exact allowlist；
+- [`error-diagnostic-owner-rules.json`](error-diagnostic-owner-rules.json)：49 条 reviewed rules 和逐 callsite exact allowlist；
 - 原始清单：[`error-message-callsites.jsonl`](source-inventory/error-message-callsites.jsonl) 与 [`diagnostic-message-callsites.jsonl`](source-inventory/diagnostic-message-callsites.jsonl)。
 
-当前明确欠账是 **9,676 / 10,234 callsites Unresolved**。后续应按风险优先追 request terminal、tool failure、auth、filesystem write、remote side effect 和 process supervisor 的 caller/catch/user surface；不能用宽行区间或关键词批量填平。
+当前明确欠账是 **9,550 / 10,234 callsites Unresolved**。后续应按风险优先追 request terminal、tool failure、auth、filesystem write、remote side effect 和 process supervisor 的 caller/catch/user surface；不能用宽行区间或关键词批量填平。
 
 **Static：** 所有映射限定 2.1.235 canonical bundle 与当前 source-inventory hash。
 

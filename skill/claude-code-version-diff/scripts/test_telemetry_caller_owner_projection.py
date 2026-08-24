@@ -98,10 +98,13 @@ def main() -> int:
         "tengu_copper_lantern` | `Single-owner` | `remote-runtime`",
         "tengu_install_github_app_step_completed` | `Single-owner` | `workflow-product`",
         "tengu_official_marketplace_auto_install` | `Single-owner` | `plugin-runtime`",
+        "tengu_streaming_error` | `Single-owner` | `model-request`",
+        "tengu_claudeai_mcp_eligibility` | `Single-owner` | `mcp-runtime`",
+        "tengu_resume_parked_permission` | `Single-owner` | `workspace-state`",
         "观测到的状态变化",
         "部分远端副作用已回滚",
         f"| `Unresolved` | {module.EXPECTED_CALLER_OWNER_STATUS['Unresolved']} |",
-        "完整 Unresolved caller 证据（899 events / 1,218 callsites）",
+        "完整 Unresolved caller 证据（891 events / 1,157 callsites）",
     )
     for value in required:
         if value not in first:
@@ -145,6 +148,38 @@ def main() -> int:
             ["workspace-state"],
             6,
         ),
+        "tengu_review_remote_precondition_recovery": (
+            "Single-owner",
+            ["workflow-product"],
+            13,
+        ),
+        "tengu_plan_exit": ("Single-owner", ["workflow-product"], 8),
+        "tengu_streaming_error": ("Single-owner", ["model-request"], 8),
+        "tengu_claudeai_mcp_eligibility": (
+            "Single-owner",
+            ["mcp-runtime"],
+            8,
+        ),
+        "tengu_at_mention_mcp_resource_error": (
+            "Single-owner",
+            ["input-context"],
+            6,
+        ),
+        "tengu_quota_auto_resume_cancelled": (
+            "Single-owner",
+            ["model-request"],
+            6,
+        ),
+        "tengu_resume_parked_permission": (
+            "Single-owner",
+            ["workspace-state"],
+            6,
+        ),
+        "tengu_ultraplan_create_failed": (
+            "Single-owner",
+            ["workflow-product"],
+            6,
+        ),
     }
     for event, (status, owners, callsites) in expected_resolved.items():
         item = projection[event]
@@ -172,6 +207,7 @@ def main() -> int:
         "tengu_end_conversation_tool_call",
         "tengu_heap_dump",
         "tengu_update_refused",
+        "tengu_streaming_fallback_to_non_streaming",
     )
     for event in counterexamples:
         item = projection[event]
@@ -183,8 +219,8 @@ def main() -> int:
     status = collections.Counter(item["status"] for item in projection.values())
     if dict(status) != {
         "Cross-owner": 1,
-        "Single-owner": 11,
-        "Unresolved": 899,
+        "Single-owner": 19,
+        "Unresolved": 891,
     }:
         fail(f"exclusive status counts changed: {dict(status)}")
     mapped_callsites = sum(
@@ -279,7 +315,7 @@ def main() -> int:
 
     try:
         changed_semantics = dict(original_semantics)
-        changed_semantics.pop("remote-stage-file")
+        changed_semantics.pop("ultraplan-launch")
         module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics
         module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = (
             module.caller_owner_allowlist_sha256(original_allowlist)
@@ -291,9 +327,9 @@ def main() -> int:
 
     try:
         changed_semantics = dict(original_semantics)
-        changed_semantics["remote-stage-file"] = module.CallerOwnerSemantics(
+        changed_semantics["assistant-stream-parser"] = module.CallerOwnerSemantics(
             "",
-            original_semantics["remote-stage-file"].boundary,
+            original_semantics["assistant-stream-parser"].boundary,
         )
         module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics
         module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = (
@@ -306,8 +342,8 @@ def main() -> int:
 
     try:
         changed_semantics = dict(original_semantics)
-        changed_semantics["file-history-rewind"] = module.CallerOwnerSemantics(
-            original_semantics["file-history-rewind"].state_change,
+        changed_semantics["resume-parked-permission"] = module.CallerOwnerSemantics(
+            original_semantics["resume-parked-permission"].state_change,
             "tampered Boundary",
         )
         module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics

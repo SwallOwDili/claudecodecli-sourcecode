@@ -2,7 +2,7 @@
 
 本页回答一个经常被忽略的问题：网上或官方文档描述的是“Claude Code 当前应该怎么工作”，而这个仓库归档的是一个确定的旧发布物。公开资料可以帮助我们提出正确问题，但只有在 `2.1.235` bundle 中找到可达分支，或用同一版本二进制触发出结果，才能把结论写成本版本事实。
 
-调研刷新：2026-08-21。公开网页会继续更新。本次不再只保存 URL：26 个响应的 HTTP 状态、字节数、原始响应 SHA-256、去噪正文 SHA-256、33 条逐摘录 SHA-256、逐句正文命中状态和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。刷新脚本会拒绝任何不能在当次可见正文逐句找到的“引用”。这些哈希证明“当时读到的响应”和“可读语义是否变化”，不把当前文档发布日期倒推成本版本发布日期。
+调研刷新：2026-08-24。公开网页会继续更新。本次不再只保存 URL：31 个响应的 HTTP 状态、字节数、原始响应 SHA-256、去噪正文 SHA-256、40 条逐摘录 SHA-256、逐句正文命中状态和固定摘录分别保存在 [public-sources/manifest.json](public-sources/manifest.json) 与 [public-source-excerpts.md](public-source-excerpts.md)。刷新脚本会拒绝任何不能在当次可见正文逐句找到的“引用”。这些哈希证明“当时读到的响应”和“可读语义是否变化”，不把当前文档发布日期倒推成本版本发布日期。
 
 ## 证据标签
 
@@ -41,6 +41,7 @@
 - [IDE integrations](https://code.claude.com/docs/en/ide-integrations)
 - [Setup](https://code.claude.com/docs/en/setup)
 - [Troubleshooting](https://code.claude.com/docs/en/troubleshooting)
+- [Data usage](https://code.claude.com/docs/en/data-usage)
 
 ### Anthropic Engineering
 
@@ -48,6 +49,10 @@
 - [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 - [Writing effective tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)
 - [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)
+- [Prompt caching is everything](https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything)
+- [How we built Claude Code auto mode](https://www.anthropic.com/engineering/claude-code-auto-mode)
+- [Advanced tool use](https://www.anthropic.com/engineering/advanced-tool-use)
+- [Claude Code sandboxing](https://www.anthropic.com/engineering/claude-code-sandboxing)
 
 ## 总体验证矩阵
 
@@ -79,6 +84,11 @@
 | doctor 是只读多故障域诊断，DISABLE_UPDATES 阻断手动更新 | `Public` + `Static` + `Probe` | setup 文档；update gate/doctor 分支；真实 literal output | 禁用 auto updater 与禁用全部 update 不是同一开关 |
 | Remote Control 执行留在本机、transcript 经服务端同步 | `Public` + `Static` + negative `Probe`；成功路径 `Boundary` | 官方连接/安全说明；本地 reconnect/attachment 代码；custom endpoint doctor 负向诊断 | 本版能证明客户端边界与不可用原因；未用真实账号触发成功连接和服务端 entitlement |
 | IDE 使用 loopback MCP、token 和 Read deny 过滤编辑器上下文 | `Public` + `Static` | 当前 IDE 协议文档与本版 IDE bridge/tool/permission 分支 | 没有在本探针环境启动真实 VS Code extension，故不升级为成功 IDE Probe |
+| Prompt Cache 不是局部优化，而是稳定前缀约束整个 Harness | `Public` + `Static` | 官方给出 system/tools -> CLAUDE.md -> session context -> messages 与 reminder/Plan/Tool Search/cache-safe compact；本版对应 system boundary、typed attachment、固定工具状态转换、`defer_loading` 与 parent-prefix compact | 官方设计解释不能替代本版 scope/TTL/gate/hit；详见 Prompt Assembly 和 Context 专题 |
+| Auto Mode 同时防 overeager、mistake、prompt injection 与 model misalignment，但不是人工审批等价物 | `Public` + `Static` + `Boundary` | 官方两层 probe/classifier、输入裁剪和评测；本版确定性权限前置、Stage 1/2 XML、fail-closed、denial counters | `0.4% FPR / 17% / 5.7% FNR` 是官方内部数据，不是本机统计；server-side probe 仍是 Boundary |
+| Tool Search 在大工具目录中可显著减少常驻 schema，但多一步搜索有延迟 | `Public` + `Static` | 官方 58 tools≈55K、示例 77K->8.7K；本版有 schema token estimate、auto threshold、defer/discover/generation | 85% 是官方示例，不是本workspace固定节省；实际收益看本轮 tools 与 usage |
+| 有效 sandbox 要同时限制 filesystem 与 network | `Public` + `Static` + `Probe` | 官方 bubblewrap/Seatbelt + 外部Unix-socket proxy设计；本版两层配置与 bypassPermissions下文件/网络零副作用Probe | 官方84%少弹窗是内部统计；跨平台内核等价性仍是Boundary |
+| 模型请求、本地transcript、一方事件、OTEL、Feedback与Remote是独立数据流 | `Public` + `Static` + `Probe` | 当前Data usage提出目的地问题；本版逐条证明request builder、30天本地cleanup、独立telemetry gates、Feedback二次确认、Remote同步 | 当前retention/ZDR/training/delete政策不能由旧binary证明；详见全局数据流专题 |
 
 ## Agent Loop：从公开四步到客户端状态机
 

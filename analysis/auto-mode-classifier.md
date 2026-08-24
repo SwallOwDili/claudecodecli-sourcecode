@@ -300,6 +300,37 @@ apply 路径有以下写前约束 [329188-329237](../reverse/javascript/cli.read
 
 隐私方面，classifier transcript 会包含对话、工具输入、用户配置的 environment 和选择性本地事实；`/auto-mode-setup` 还可读取项目、近期 sessions、shell history 命令词和其他仓库信息。因此环境规则应避免塞入不必要的秘密，企业部署也应把 classifier endpoint、日志和 retention 当作真实的数据处理面，而不是“纯本地权限判断”。
 
+## 官方威胁模型与评测：为什么 Auto Mode 仍不是人工审批等价物
+
+Anthropic 2026-03-25 的 [How we built Claude Code auto mode](https://www.anthropic.com/engineering/claude-code-auto-mode) 早于目标版本，提供了客户端静态代码无法恢复的设计背景。这里严格把它标为 `Public`：它解释威胁模型和当时内部评测，**不等于 `2.1.235` 本机 Probe，也不证明当前账号的服务端 probe/classifier 配置。**
+
+官方描述的是两条防线：
+
+```text
+工具输出 -> 服务端 prompt-injection probe -> 主 Agent context
+用户消息 + Agent tool calls -> transcript classifier -> tool permission verdict
+```
+
+- 输入侧 probe扫描文件读取、WebFetch、shell和外部工具结果；发现疑似劫持内容时，在结果进入Agent context前增加警告。
+- 输出侧classifier只看用户消息与Agent tool call；剥离assistant自我解释和tool result。这样Agent不能用自己的“这很安全”说辞说服审批器，恶意tool output也不会直接进入同一个审批判断。
+- 子Agent递归经过同一管线；官方还描述delegation前可拒绝、结果返回后只警告的handoff检查。
+
+这与本地 `2.1.235` 的“确定性权限前置层 -> 客户端classifier builder -> 两阶段XML verdict -> permission mapping”并不矛盾，但证据owner不同：本仓库可以确认本地输入裁剪、Stage 1/2、XML parser、denial counters和tool gate；服务端injection probe的实现与真实上线配置仍是Boundary。
+
+官方评测公开了三组数据：
+
+| Dataset | 样本 | Full pipeline 结果 | 应怎样理解 |
+| --- | ---: | ---: | --- |
+| Anthropic内部正常流量 | 10,000 | `0.4% FPR` | 仍会误挡少量正常动作 |
+| 真实overeager动作 | 52 | `17% FNR` | 对“善意但越权”的漏判并不低 |
+| 合成data-exfil任务 | 1,000 | `5.7% FNR` | 对明确外传仍不是零漏判 |
+
+Stage 1单独更偏向低漏判，完整Stage 2显著降低误报，但代价是漏掉更多危险动作。这组数字的价值不是宣传“安全率”，而是给使用边界定量：Auto Mode更适合替代用户已经形成的无脑批准习惯，不适合替代高风险生产基础设施的认真人工review。
+
+官方还说明连续拒绝会升级到人工介入；本版client确实记录 `consecutiveDenials/totalDenials` 并把不同失败种类映射到permission surface。是否采用“连续3次或累计20次”的远端/产品策略仍必须按本地config consumer和运行时值判断，不能只靠文章数字覆盖目标bundle。
+
+这组Public事实也强化了本文的核心结论：fail-closed只说明没有可靠allow，不说明动作一定危险；即使得到allow，permission之后仍有sandbox、credential和外部owner边界。
+
 ## 9. 能确认与不能确认的边界
 
 ### Static：2.1.235 客户端可以确认

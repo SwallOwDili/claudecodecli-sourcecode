@@ -1,23 +1,23 @@
 {
   "artifacts": {
     "analysis/error-diagnostic-owner-index.md": {
-      "sha256": "1b08d7864f630acfd27d8522c0ce988afb98d381884fc2e17f472cceb48ad029",
-      "size": 16817
+      "sha256": "162232d698d294bbc965f07eba3eaa498e3fae1fc4ee2ddbcf5562143d895d63",
+      "size": 18627
     },
     "analysis/error-diagnostic-owner-projection.jsonl": {
       "lines": 10234,
-      "sha256": "519d49a74a709e18b00d71e61d4800251b18059dd761558846d2db5a45865f4b",
-      "size": 9942671
+      "sha256": "2d50bffccb8db9108c1d3ee1ca7b6ff792ea866fd63abd542f79075079745dfe",
+      "size": 9967476
     },
     "analysis/error-diagnostic-owner-rules.json": {
-      "sha256": "14458a4ef341de632f0e859060e917c4cd7d199bdced6d8ca7424d1dc97a40bd",
-      "size": 109607
+      "sha256": "58454341fe4b5135e5cd1908ec07a437485e9b75827841dd17bb2d566a90a749",
+      "size": 129025
     }
   },
   "classification": {
-    "Dependency": 250,
+    "Dependency": 376,
     "Product": 308,
-    "Unresolved": 9676
+    "Unresolved": 9550
   },
   "classificationByStream": {
     "Diagnostic callsite": {
@@ -26,9 +26,9 @@
       "Unresolved": 5149
     },
     "Error constructor": {
-      "Dependency": 250,
+      "Dependency": 376,
       "Product": 54,
-      "Unresolved": 4527
+      "Unresolved": 4401
     }
   },
   "classificationContract": {
@@ -38,7 +38,7 @@
     "reviewSelectorsClassify": false,
     "unresolvedIsSemanticDebt": true
   },
-  "mappedCallsites": 558,
+  "mappedCallsites": 684,
   "ownerCounts": {
     "@anthropic-ai/sdk": {
       "Error constructor": 1
@@ -51,6 +51,9 @@
     },
     "@aws-sdk/util-endpoint": {
       "Error constructor": 1
+    },
+    "@grpc/grpc-js": {
+      "Error constructor": 42
     },
     "@modelcontextprotocol/sdk": {
       "Error constructor": 28
@@ -98,6 +101,12 @@
       "Diagnostic callsite": 35,
       "Error constructor": 8
     },
+    "google-auth-library": {
+      "Error constructor": 27
+    },
+    "jose": {
+      "Error constructor": 51
+    },
     "mcp/config-policy": {
       "Diagnostic callsite": 54,
       "Error constructor": 30
@@ -107,6 +116,9 @@
     },
     "protobufjs OpenTelemetry OTLP generated codec": {
       "Error constructor": 102
+    },
+    "protobufjs/minimal": {
+      "Error constructor": 6
     },
     "sandbox/enforcement": {
       "Diagnostic callsite": 54,
@@ -130,14 +142,15 @@
     }
   },
   "productFlowEvidence": {
-    "catchOwner:Unresolved": 308,
+    "catchOwner:Resolved exact rule": 4,
+    "catchOwner:Unresolved": 304,
     "retryOwner:Resolved exact rule": 99,
     "retryOwner:Unresolved": 209,
     "toolResultOwner:Resolved exact rule": 13,
     "toolResultOwner:Unresolved": 295,
     "userSurfaceOwner:Unresolved": 308
   },
-  "reviewedRuleCount": 43,
+  "reviewedRuleCount": 49,
   "scenarioCounts": {
     "AWS SDK credential and protocol invariants": {
       "Error constructor": 30
@@ -151,17 +164,26 @@
     "Ajv compiler internal invariants": {
       "Error constructor": 33
     },
+    "JWS/JWT/JWK algorithm, key-type and claims validation": {
+      "Error constructor": 51
+    },
     "MCP trust, policy and local config guards": {
       "Error constructor": 30
     },
     "MCPB, plugin, connector and policy compilation": {
       "Diagnostic callsite": 41
     },
+    "OAuth2Client token, certificate and refresh-handler guards": {
+      "Error constructor": 27
+    },
     "OTLP protobuf object/array verification": {
       "Error constructor": 102
     },
     "OpenTelemetry global API registration guards": {
       "Error constructor": 2
+    },
+    "PostToolUse cancellation/timeout catch": {
+      "Diagnostic callsite": 2
     },
     "PreTool and permission hook entry diagnostics": {
       "Diagnostic callsite": 2
@@ -214,8 +236,11 @@
     "end-turn hook decisions after tool result": {
       "Diagnostic callsite": 4
     },
-    "hook runner cancellation and failure diagnostics": {
-      "Diagnostic callsite": 5
+    "gRPC service config, retry, hedging and load-balancing validation": {
+      "Error constructor": 42
+    },
+    "hook deny/interrupt decision diagnostic": {
+      "Diagnostic callsite": 1
     },
     "manual compact and context-hint diagnostics": {
       "Diagnostic callsite": 4
@@ -226,8 +251,14 @@
     "manual compact model policy gate": {
       "Error constructor": 6
     },
+    "permission hook async failure/cancellation catch": {
+      "Diagnostic callsite": 2
+    },
     "precomputed compact sidecar lifecycle": {
       "Diagnostic callsite": 16
+    },
+    "protobuf wire reader bounds and encoding guards": {
+      "Error constructor": 6
     },
     "reactive compact bounded retry ladder": {
       "Diagnostic callsite": 4
@@ -290,5 +321,5 @@
   },
   "sourceVersion": "2.1.235",
   "totalCallsites": 10234,
-  "unresolvedCallsites": 9676
+  "unresolvedCallsites": 9550
 }

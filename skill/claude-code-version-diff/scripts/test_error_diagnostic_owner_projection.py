@@ -81,11 +81,27 @@ def main() -> int:
     if len({row["identity"] for row in projection}) != 10_234:
         fail("projection identities are not one-to-one")
     mapped = [row for row in projection if row["ownerClass"] != "Unresolved"]
-    if len(mapped) != 558:
+    if len(mapped) != 684:
         fail(f"mapped callsite count changed: {len(mapped)}")
     product = [row for row in projection if row["ownerClass"] == "Product"]
-    if any(row["productFlow"]["catchOwner"]["status"] != "Unresolved" for row in product):
-        fail("unproven Product catch owner was introduced")
+    catch_resolved_rows = [
+        row
+        for row in product
+        if row["productFlow"]["catchOwner"]["status"] == "Resolved exact rule"
+    ]
+    expected_catch_rules = {
+        "product-permission-hook-catch-diagnostic",
+        "product-post-tool-hook-catch-diagnostic",
+    }
+    if (
+        len(catch_resolved_rows) != 4
+        or {row["ruleId"] for row in catch_resolved_rows} != expected_catch_rules
+    ):
+        fail(
+            "Product catch evidence changed: "
+            f"count={len(catch_resolved_rows)}, "
+            f"rules={sorted({row['ruleId'] for row in catch_resolved_rows})}"
+        )
     if any(row["productFlow"]["userSurfaceOwner"]["status"] != "Unresolved" for row in product):
         fail("unproven Product user-surface owner was introduced")
     retry_resolved = sum(
@@ -197,6 +213,20 @@ def main() -> int:
                 lambda: module.validate_rules(root, module.load_inputs(root)),
                 "reviewed owner rule digest changed",
             )
+
+            temporary_rules.write_bytes(original_rules)
+            flow_tamper = json.loads(original_rules)
+            catch_rule = next(
+                rule
+                for rule in flow_tamper["rules"]
+                if rule["ruleId"] == "product-permission-hook-catch-diagnostic"
+            )
+            catch_rule["productFlow"]["catchOwner"] = "wide-range-guessed-catch"
+            write_rules(temporary_rules, flow_tamper)
+            expect_failure(
+                lambda: module.validate_rules(root, module.load_inputs(root)),
+                "reviewed owner rule digest changed",
+            )
         finally:
             module.RULES_PATH = original_rules_path
             module.EXPECTED_RULES_SHA256 = original_digest
@@ -210,10 +240,10 @@ def main() -> int:
             {
                 "version": module.EXPECTED_VERSION,
                 "totalCallsites": 10_234,
-                "mappedCallsites": 558,
+                "mappedCallsites": 684,
                 "classification": module.EXPECTED_OWNER_COUNTS,
                 "productFlowResolved": {
-                    "catch": 0,
+                    "catch": len(catch_resolved_rows),
                     "retry": retry_resolved,
                     "toolResult": tool_result_resolved,
                     "userSurface": 0,
@@ -225,6 +255,7 @@ def main() -> int:
                 "identityDeletionRejected": True,
                 "fabricatedIdentityRejected": True,
                 "ownerTamperRejected": True,
+                "catchFlowTamperRejected": True,
                 "deterministic": True,
                 "restored": True,
             },

@@ -150,13 +150,28 @@ tombstone 告诉 message graph/UI：“这段 provisional 消息不再是有效�
 
 ## 模型输出层的三条自修复路径
 
+### 先理解 withholding：错误发生了，但用户出口可以暂时扣住
+
+`2.1.235` 对 prompt-too-long 和 max-output 使用一条容易被忽略的控制语义：底层先生成 internal assistant error/sentinel，Agent Loop 把它放进内部候选消息用于恢复判断，但暂时不向 outward stream yield。恢复成功时，用户看到 compact boundary、summary 或续写后的结果，而不是中间错误；恢复预算耗尽时，最后一个错误才 surface。
+
+这不等于“错误在系统里完全消失”：
+
+- prompt-too-long 的低层 API error 可抑制普通CLI/Teleport首错，但OTEL `api_error`和span failure仍可记录；只有底层确实发生多次attempt时才另有`api_retries_exhausted`，且最终是否到collector仍受exporter/content gate控制；
+- compact progress、hook 和 boundary 仍可进入 UI/SDK；
+- max-output 前已经流出的普通 text 不会被这条 sentinel 自动收回；
+- 最终失败仍形成 typed terminal reason。
+
+因此准确说法是：**用户可见错误被延迟，观测和内部状态没有被抹掉。** 过滤点见 `reverse/javascript/cli.readable.js:272019-272038`，prompt-too-long 的观测分流见 232158-232183。
+
 ### `max_tokens` continuation
 
-模型达到输出上限后，CLI 最多恢复 3 次。普通路径保留已经产生的 assistant/error 视图，加入隐藏 continuation 提示，要求直接从中断处继续、不道歉、不复述；独立 recovery count 不增加正常工具轮次。
+模型流正常结束但 `stop_reason=max_tokens` 或 `model_context_window_exceeded` 时，transport 生成 internal `apiError=max_output_tokens` sentinel。CLI 最多恢复 3 次。普通路径保留已经产生的 assistant/error 视图，加入隐藏 continuation 提示，要求直接从中断处继续、不道歉、不复述；独立 recovery count 不增加正常工具轮次。
 
 还有一条 feature-gated incomplete-thinking 路径：响应必须恰好是一个可恢复的 signed thinking block，stop reason 为 `max_tokens` 且模型兼容。命中后不追加普通 continuation prompt，而是保留 trailing thinking、设置 `resumeIncompleteThinking`，并给后续 assistant 标记 `resumedFromIncompleteThinking`。这条路径保护 signed thinking 协议连续性；本版 gate 的本地 override 不可达，所以应标为静态可达合同，不应声称精确二进制默认已触发。
 
-用户影响：长回答或长代码不一定在第一次 `max_tokens` 就结束，但多一次模型请求会增加延迟和输出 token。版本比较要记录 continuation 上限与拼接/去重语义。
+这里有一个必须明确纠正的社区误读：**这个恢复分支不会把 `max_tokens` 从 8K 自动提升到 64K。** recovery state 把 `maxOutputTokensOverride` 留为 `undefined`；每次请求重新按 model config、remote config 和 env 解析并夹在上限内。恢复的是输出连续性，不是自动扩大模型预算。证据见 272215-272224、409474、410242-410245。
+
+用户影响：长回答或长代码不一定在第一次 `max_tokens` 就结束，但每次恢复都会增加请求、延迟和 token；前面已经流出的文字仍可能被用户看到。3 次仍截断时才 yield 最后的 sentinel，并以 API error terminal 结束。版本比较要记录 continuation 上限、是否 signed-thinking 恢复、消息拼接/去重和实际 `max_tokens` 解析，不能只搜索“64K”常量。
 
 ### Malformed tool use
 
@@ -172,9 +187,24 @@ API 返回 `stop_reason=tool_use`，但客户端没有得到完整可执行 bloc
 
 ## Context 恢复：请求太长时先缩小问题
 
+### Prompt-too-long：先扣住 context-overflow error，再决定能不能压缩
+
+主模型调用显式传入`promptTooLongIsHandled:true`。常见400/413，以及任何命中PTL/context-overflow文本或typed marker的error，都会统一映射成internal assistant error`Prompt is too long`；变量名`isWithheld413`不能被解释成只处理HTTP 413。证据见271834-271842、323913-323918、324195-324263。
+
+Agent Loop 不会对所有 PTL 无条件 compact。收到被扣住的错误后，它按下面顺序决定：
+
+1. **Rapid-refill breaker**：若已经连续 3 次在上次 compact 后不足 3 个 turn 又触顶，直接 surface thrashing 文案，避免继续烧 summary 请求。
+2. **能否压缩**：合法 message group 少于 2 时，压缩没有意义；客户端还会比较 conversation estimate 是否占请求至少 80%，告诉用户主要是历史本身，还是 system/tools/attachments。
+3. **恢复资格**：auto-compact 未禁用、不是 compact 自己、不是被排除的辅助 query（已有可复用 precomputed swap 是例外）、远端 gate允许、未 abort、此前未尝试。
+4. **先 precomputed，后 reactive**：检查准备好的 swap；否则运行 PreCompact Hook并发起一次 reactive summary。
+5. **成功**：outward stream只发boundary、summary、attachments/hooks；preserved messages留在重建后的active history，不向外重复发一遍。随后transition=`precomputed_compact_swap`或`reactive_compact_retry`，同一个逻辑turn重新请求。
+6. **失败**：除rapid-refill breaker外，Hook block、summary API失败、gate不满足或此前已经尝试时不再无限重试，最终yield原错误；若有compact error detail，再追加`automatic compaction failed: ...`。Breaker则surface新的thrashing文案并以`rapid_refill_breaker`终止。
+
+核心判断位于216020-216054、216268-216277、232809-232820、261884-261890、272185-272213。成功路径中用户可能看见compact progress/boundary，但看不到最初的PTL assistant error；普通恢复失败得到context/compact终态，rapid-refill则得到专用thrashing终态。
+
 ### Precompute 与 reactive compact
 
-正常路径会在到达 blocked line 前预计算 compact；如果模型请求仍因 context/image 过长失败，Agent Loop 可以做一次 reactive compact 后重建请求。`hasAttemptedReactiveCompact` 防止同一轮无限压缩重试。
+正常路径会在到达 blocked line 前预计算 compact；如果模型请求仍因 context/image 过长失败，Agent Loop可以做一次 reactive compact后重建请求。`hasAttemptedReactiveCompact` 防止同一轮无限压缩重试。这里的“一次”是当前 PTL恢复预算，不代表 summary内部为处理自身 PTL所做的有界 group-drop retry。
 
 compact 恢复的是“下一次请求能装下并继续”。它不能保证摘要包含所有被替换细节，所以 summary prompt、重新生成的 attachments、tool discoveries 和 logical parent 是可靠性的组成部分。当前 `/compact`、reactive、partial 和 precomputed 路径还保留合法消息组；cold/full auto 或特定 SDK full compact 才返回 `messagesToKeep: []`。
 

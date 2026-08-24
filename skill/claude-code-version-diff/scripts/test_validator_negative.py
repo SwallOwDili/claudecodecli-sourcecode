@@ -683,6 +683,15 @@ def main() -> None:
             "required probe check failed: rawInlineContainsRequestMarker",
         ),
         (
+            "analysis/runtime-probes/otlp-tls.json",
+            lambda data: replace_once(
+                data,
+                b'"mtlsClientAuthorized": true',
+                b'"mtlsClientAuthorized": false',
+            ),
+            "OTLP TLS probe: required check failed: mtlsClientAuthorized",
+        ),
+        (
             "analysis/runtime-probes/tui-regressions.json",
             lambda data: replace_once(
                 data,
@@ -1444,7 +1453,7 @@ def main() -> None:
             "analysis/source-inventory/environment-access-callsites.jsonl",
             lambda data: replace_once(
                 data,
-                b'"resolvedFiniteValues":["OTEL_ATTRIBUTE_COUNT_LIMIT"',
+                b'"resolvedFiniteValues":["OTEL_METRICS_INCLUDE_ACCOUNT_UUID"',
                 b'"resolvedFiniteValues":["invalid-name!"',
             ),
             "resolved dynamic environment row has invalid finite names",
@@ -1453,7 +1462,7 @@ def main() -> None:
             "analysis/source-inventory/environment-access-callsites.jsonl",
             lambda data: replace_once(
                 data,
-                b'"primaryReason":"runtime-function-call"',
+                b'"primaryReason":"assignment-does-not-dominate-function-executions"',
                 b'"primaryReason":"invented-reason"',
             ),
             "unresolved dynamic environment row has invalid reason evidence",
@@ -1713,7 +1722,7 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             downgrade_first_capability,
-            "completeness capability 1 is not closed: Documented",
+            "completeness capability 1 state mismatch: Documented != Deep",
         ),
         (
             "analysis/completeness-audit.md",
@@ -1723,7 +1732,21 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: downgrade_capability(data, 51),
-            "completeness capability 51 is not closed: Documented",
+            "completeness capability 51 state mismatch: Documented != Deep",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_capability_state(
+                data, 27, b"| Documented |", b"| Deep |"
+            ),
+            "completeness capability 27 state mismatch: Deep != Documented",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_capability_state(
+                data, 33, b"| Documented |", b"| Deep |"
+            ),
+            "completeness capability 33 state mismatch: Deep != Documented",
         ),
         (
             "analysis/completeness-audit.md",
@@ -2136,6 +2159,18 @@ def main() -> None:
         (
             "skill/claude-code-version-diff/scripts/test_network_proxy_tls_validator.py",
             "missing network proxy/TLS validator forgery test",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/probe_otlp_tls.mjs",
+            "OTLP TLS probe: missing probe script",
+        ),
+        (
+            "analysis/runtime-probes/otlp-tls.json",
+            "OTLP TLS probe: missing report",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_otlp_tls_validator.py",
+            "missing OTLP TLS validator forgery test",
         ),
         (
             "analysis/runtime-probes/native-reconstruction-x86.json",

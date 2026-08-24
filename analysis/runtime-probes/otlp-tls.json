@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-24T04:55:10.072Z",
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1",
+    "opensslVersion": "OpenSSL 3.6.3 9 Jun 2026 (Library: OpenSSL 3.6.3 9 Jun 2026)"
+  },
+  "commands": {
+    "noCa": "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json $CLAUDE_TARGET --print OTLP_TLS_NO_CA_MARKER --tools ''",
+    "signalOtlpCa": "OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE=$CA $CLAUDE_TARGET --print OTLP_TLS_SIGNAL_OTLP_CA_MARKER --tools ''",
+    "commonOtlpCa": "OTEL_EXPORTER_OTLP_CERTIFICATE=$CA $CLAUDE_TARGET --print OTLP_TLS_COMMON_OTLP_CA_MARKER --tools ''",
+    "signalOtlpCaProtobuf": "OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE=$CA OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf $CLAUDE_TARGET --print OTLP_TLS_SIGNAL_OTLP_CA_PROTOBUF_MARKER --tools ''",
+    "signalOtlpCaTls12": "OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE=$CA $CLAUDE_TARGET --print OTLP_TLS_SIGNAL_OTLP_CA_TLS12_MARKER --tools ''",
+    "nodeExtraCa": "NODE_EXTRA_CA_CERTS=$CA $CLAUDE_TARGET --print OTLP_TLS_NODE_EXTRA_CA_MARKER --tools ''",
+    "signalOtlpCaIp": "OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE=$CA $CLAUDE_TARGET --print OTLP_TLS_SIGNAL_OTLP_CA_IP_MARKER --tools ''",
+    "tlsVerificationDisabled": "NODE_TLS_REJECT_UNAUTHORIZED=0 $CLAUDE_TARGET --print OTLP_TLS_TLS_VERIFICATION_DISABLED_MARKER --tools ''",
+    "signalOtlpCaWithWrongCommon": "OTEL_EXPORTER_OTLP_CERTIFICATE=$WRONG_CA OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE=$CA $CLAUDE_TARGET --print OTLP_TLS_SIGNAL_OTLP_CA_WITH_WRONG_COMMON_MARKER --tools ''",
+    "mtlsMissingClient": "NODE_EXTRA_CA_CERTS=$CA $CLAUDE_TARGET --print OTLP_TLS_MTLS_MISSING_CLIENT_MARKER --tools ''",
+    "mtlsOtelClient": "NODE_EXTRA_CA_CERTS=$CA OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE=$CERT OTEL_EXPORTER_OTLP_LOGS_CLIENT_KEY=$KEY $CLAUDE_TARGET --print OTLP_TLS_MTLS_OTEL_CLIENT_MARKER --tools ''",
+    "mtlsClaudeCertOnly": "NODE_EXTRA_CA_CERTS=$CA CLAUDE_CODE_CLIENT_CERT=$CERT $CLAUDE_TARGET --print OTLP_TLS_MTLS_CLAUDE_CERT_ONLY_MARKER --tools ''",
+    "mtlsClaudeClient": "NODE_EXTRA_CA_CERTS=$CA CLAUDE_CODE_CLIENT_CERT=$CERT CLAUDE_CODE_CLIENT_KEY=$KEY $CLAUDE_TARGET --print OTLP_TLS_MTLS_CLAUDE_CLIENT_MARKER --tools ''",
+    "mtlsOtelClientProtobuf": "NODE_EXTRA_CA_CERTS=$CA OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE=$CERT OTEL_EXPORTER_OTLP_LOGS_CLIENT_KEY=$KEY OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf $CLAUDE_TARGET --print OTLP_TLS_MTLS_OTEL_CLIENT_PROTOBUF_MARKER --tools ''",
+    "proxyPrecedence": "NODE_EXTRA_CA_CERTS=$CA https_proxy=$LOWERCASE HTTPS_PROXY=$UPPERCASE NO_PROXY=127.0.0.1 $CLAUDE_TARGET --print OTLP_TLS_PROXY_PRECEDENCE_MARKER --tools ''"
+  },
+  "input": {
+    "messagesBaseUrl": "http://127.0.0.1:$MESSAGES_PORT",
+    "tlsCollector": "https://localhost:$TLS_PORT/v1/logs",
+    "mtlsCollector": "https://localhost:$MTLS_PORT/v1/logs",
+    "tls12Collector": "https://localhost:$TLS12_PORT/v1/logs",
+    "proxiedCollector": "https://collector.invalid:$TLS_PORT/v1/logs",
+    "lowercaseProxy": "http://127.0.0.1:$LOWERCASE_PROXY_PORT",
+    "uppercaseProxy": "http://127.0.0.1:$UPPERCASE_PROXY_PORT",
+    "markers": {
+      "noCa": "OTLP_TLS_NO_CA_MARKER",
+      "signalOtlpCa": "OTLP_TLS_SIGNAL_OTLP_CA_MARKER",
+      "commonOtlpCa": "OTLP_TLS_COMMON_OTLP_CA_MARKER",
+      "signalOtlpCaProtobuf": "OTLP_TLS_SIGNAL_OTLP_CA_PROTOBUF_MARKER",
+      "signalOtlpCaTls12": "OTLP_TLS_SIGNAL_OTLP_CA_TLS12_MARKER",
+      "nodeExtraCa": "OTLP_TLS_NODE_EXTRA_CA_MARKER",
+      "signalOtlpCaIp": "OTLP_TLS_SIGNAL_OTLP_CA_IP_MARKER",
+      "tlsVerificationDisabled": "OTLP_TLS_TLS_VERIFICATION_DISABLED_MARKER",
+      "signalOtlpCaWithWrongCommon": "OTLP_TLS_SIGNAL_OTLP_CA_WITH_WRONG_COMMON_MARKER",
+      "mtlsMissingClient": "OTLP_TLS_MTLS_MISSING_CLIENT_MARKER",
+      "mtlsOtelClient": "OTLP_TLS_MTLS_OTEL_CLIENT_MARKER",
+      "mtlsClaudeCertOnly": "OTLP_TLS_MTLS_CLAUDE_CERT_ONLY_MARKER",
+      "mtlsClaudeClient": "OTLP_TLS_MTLS_CLAUDE_CLIENT_MARKER",
+      "mtlsOtelClientProtobuf": "OTLP_TLS_MTLS_OTEL_CLIENT_PROTOBUF_MARKER",
+      "proxyPrecedence": "OTLP_TLS_PROXY_PRECEDENCE_MARKER"
+    },
+    "tls": {
+      "serverCommonName": "localhost / collector.invalid",
+      "clientCommonName": "Claude OTLP Probe Client",
+      "generatedForProbeOnly": true
+    }
+  },
+  "literalOutput": {
+    "version": "2.1.235 (Claude Code)",
+    "noCa": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "signalOtlpCa": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "commonOtlpCa": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "signalOtlpCaProtobuf": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "signalOtlpCaTls12": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "nodeExtraCa": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "signalOtlpCaIp": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "tlsVerificationDisabled": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "signalOtlpCaWithWrongCommon": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "mtlsMissingClient": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "mtlsOtelClient": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "mtlsClaudeCertOnly": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "mtlsClaudeClient": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "mtlsOtelClientProtobuf": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    },
+    "proxyPrecedence": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "OTLP_TLS_MODEL_OK",
+      "stderrClass": "empty"
+    }
+  },
+  "exitStatus": {
+    "version": 0,
+    "noCa": 0,
+    "signalOtlpCa": 0,
+    "commonOtlpCa": 0,
+    "signalOtlpCaProtobuf": 0,
+    "signalOtlpCaTls12": 0,
+    "nodeExtraCa": 0,
+    "signalOtlpCaIp": 0,
+    "tlsVerificationDisabled": 0,
+    "signalOtlpCaWithWrongCommon": 0,
+    "mtlsMissingClient": 0,
+    "mtlsOtelClient": 0,
+    "mtlsClaudeCertOnly": 0,
+    "mtlsClaudeClient": 0,
+    "mtlsOtelClientProtobuf": 0,
+    "proxyPrecedence": 0
+  },
+  "observed": {
+    "runs": {
+      "noCa": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "signalOtlpCa": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "commonOtlpCa": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "signalOtlpCaProtobuf": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "signalOtlpCaTls12": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ECONNRESET"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "nodeExtraCa": {
+        "collectorRequests": [
+          {
+            "method": "POST",
+            "path": "/v1/logs",
+            "contentType": "application/json",
+            "clientAuthorized": false,
+            "clientAuthorizationError": null,
+            "clientCommonName": null
+          }
+        ],
+        "tlsErrorCodes": [],
+        "tlsErrorClasses": [],
+        "collectorProxyConnects": []
+      },
+      "signalOtlpCaIp": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "tlsVerificationDisabled": {
+        "collectorRequests": [
+          {
+            "method": "POST",
+            "path": "/v1/logs",
+            "contentType": "application/json",
+            "clientAuthorized": false,
+            "clientAuthorizationError": null,
+            "clientCommonName": null
+          }
+        ],
+        "tlsErrorCodes": [],
+        "tlsErrorClasses": [],
+        "collectorProxyConnects": []
+      },
+      "signalOtlpCaWithWrongCommon": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC"
+        ],
+        "tlsErrorClasses": [
+          "tls-other"
+        ],
+        "collectorProxyConnects": []
+      },
+      "mtlsMissingClient": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_PEER_DID_NOT_RETURN_A_CERTIFICATE"
+        ],
+        "tlsErrorClasses": [
+          "client-certificate-required"
+        ],
+        "collectorProxyConnects": []
+      },
+      "mtlsOtelClient": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_PEER_DID_NOT_RETURN_A_CERTIFICATE"
+        ],
+        "tlsErrorClasses": [
+          "client-certificate-required"
+        ],
+        "collectorProxyConnects": []
+      },
+      "mtlsClaudeCertOnly": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_PEER_DID_NOT_RETURN_A_CERTIFICATE"
+        ],
+        "tlsErrorClasses": [
+          "client-certificate-required"
+        ],
+        "collectorProxyConnects": []
+      },
+      "mtlsClaudeClient": {
+        "collectorRequests": [
+          {
+            "method": "POST",
+            "path": "/v1/logs",
+            "contentType": "application/json",
+            "clientAuthorized": true,
+            "clientAuthorizationError": null,
+            "clientCommonName": "Claude OTLP Probe Client"
+          }
+        ],
+        "tlsErrorCodes": [],
+        "tlsErrorClasses": [],
+        "collectorProxyConnects": []
+      },
+      "mtlsOtelClientProtobuf": {
+        "collectorRequests": [],
+        "tlsErrorCodes": [
+          "ERR_SSL_PEER_DID_NOT_RETURN_A_CERTIFICATE"
+        ],
+        "tlsErrorClasses": [
+          "client-certificate-required"
+        ],
+        "collectorProxyConnects": []
+      },
+      "proxyPrecedence": {
+        "collectorRequests": [
+          {
+            "method": "POST",
+            "path": "/v1/logs",
+            "contentType": "application/json",
+            "clientAuthorized": false,
+            "clientAuthorizationError": null,
+            "clientCommonName": null
+          }
+        ],
+        "tlsErrorCodes": [],
+        "tlsErrorClasses": [],
+        "collectorProxyConnects": [
+          {
+            "proxy": "lowercase",
+            "kind": "connect",
+            "authority": "collector.invalid:$TLS_PORT"
+          }
+        ]
+      }
+    },
+    "fixtureSanity": {
+      "tlsStatus": 200,
+      "tls12Status": 200,
+      "mtlsStatus": 200
+    },
+    "messagesMarkersObserved": {
+      "noCa": true,
+      "signalOtlpCa": true,
+      "commonOtlpCa": true,
+      "signalOtlpCaProtobuf": true,
+      "signalOtlpCaTls12": true,
+      "nodeExtraCa": true,
+      "signalOtlpCaIp": true,
+      "tlsVerificationDisabled": true,
+      "signalOtlpCaWithWrongCommon": true,
+      "mtlsMissingClient": true,
+      "mtlsOtelClient": true,
+      "mtlsClaudeCertOnly": true,
+      "mtlsClaudeClient": true,
+      "mtlsOtelClientProtobuf": true,
+      "proxyPrecedence": true
+    },
+    "tlsFixtureSetupExitStatuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "fixtureSanityPasses": true,
+    "everyRunReachedMessagesApi": true,
+    "allAgentRunsSucceed": true,
+    "noCaProducesNoHttpRequest": true,
+    "noCaTlsHandshakeErrorObserved": true,
+    "signalCaExportFailsBeforeHttp": true,
+    "commonOtlpCaExportFailsBeforeHttp": true,
+    "protobufSignalCaExportFailsBeforeHttp": true,
+    "tls12SignalCaExportFailsBeforeHttp": true,
+    "nodeExtraCaAllowsExport": true,
+    "ipSanSignalCaExportFailsBeforeHttp": true,
+    "disabledVerificationAllowsExport": true,
+    "signalSpecificCaDoesNotRestoreExport": true,
+    "missingClientCertificateRejectsExport": true,
+    "missingClientCertificateTlsErrorObserved": true,
+    "certWithoutKeyRejectsExport": true,
+    "certWithoutKeyTlsErrorObserved": true,
+    "otelClientPairNotForwarded": true,
+    "mtlsExportObserved": true,
+    "mtlsClientAuthorized": true,
+    "mtlsClientCommonNameObserved": true,
+    "protobufOtelClientPairNotForwarded": true,
+    "proxyRunExportObserved": true,
+    "collectorEndpointUsesLowercaseProxy": true,
+    "collectorEndpointNotSentToUppercaseProxy": true,
+    "otlpHttpJsonUsesGenericHttpsProxy": true,
+    "successfulExportsUseJsonContentType": true,
+    "telemetryTransportFailureDoesNotFailAgentTask": true
+  },
+  "boundaries": [
+    "This probe covers the exact 2.1.235 OTLP HTTP logs exporter; positive exports use HTTP/JSON and protobuf arms are negative precedence controls.",
+    "It does not prove OTLP gRPC, metrics, traces, collector retention, or remote delivery semantics.",
+    "The proxy observation covers a local CONNECT proxy and generic HTTP(S)_PROXY variables, not CCR policy relay or exporter behavior in another runtime.",
+    "All certificates are local one-day test fixtures and do not prove enterprise issuance, rotation, revocation, or key protection.",
+    "NODE_TLS_REJECT_UNAUTHORIZED=0 is a diagnostic control only and is not a remediation or supported security posture."
+  ],
+  "pass": true
+}

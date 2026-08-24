@@ -52,7 +52,7 @@ digraph NetworkProxyCaMtls {
     relay -> unsupported [style=dashed, label="protocol boundary", color="#c53030"];
   }
 
-  otlp [label="OTLP exporter\nindependent OTEL_* CA/cert/key\nproxy coverage requires probe", fillcolor="#fdecea", color="#c53030"];
+  otlp [label="OTLP HTTP logs\nn1i() -> Kol() programmatic agent\nwins over OTEL env agent", fillcolor="#e8f1fb", color="#3273a8"];
   child [label="Tool / stdio MCP child env\nCCR proxy/CA may be injected\nOTEL_* is scrubbed", fillcolor="#f4ecfb", color="#805ad5"];
 
   config -> proxy [label="resolve precedence"];
@@ -81,10 +81,12 @@ digraph NetworkProxyCaMtls {
   ws -> target [label="open connection"];
   aws -> target [label="send provider request"];
   mcp -> target [label="connect to MCP server"];
+  transports -> otlp [label="effective proxy / CA / mTLS"];
+  otlp -> target [label="POST /v1/logs"];
 
   config -> ccrgate [style=dashed, label="Remote only"];
   trust -> child [label="inject tool trust"];
   child -> relay [label="HTTPS_PROXY"];
   tunnel -> target [label="relay approved egress"];
-  config -> otlp [style=dashed, label="separate exporter config"];
+  config -> otlp [style=dashed, label="OTEL cert vars parsed\nbut lower-priority agent"];
 }

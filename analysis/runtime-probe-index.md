@@ -229,7 +229,17 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 - `https_proxy=proxy.invalid:8080` 缺 scheme 时 exit `1`，API server 零 marker，证明配置在受控请求前 fail closed。
 - 加入 `CLAUDE_CODE_CLIENT_CERT/KEY` 后 result 为 `MTLS_OK`，exit `0`，server 观察到 authorized client CN=`Claude Probe Client`。
 
-这 14 项检查只证明主 Messages HTTPS transport；不证明 Axios、undici、WebSocket、AWS、MCP、OTLP、子进程或 CCR relay。22 个专属伪造用例会拒绝改写版本/SHA、check、命令 marker、exit/result、API/proxy 命中、mTLS peer、TLS setup 或 Boundary。
+这 14 项检查只证明主 Messages HTTPS transport；不证明 Axios、undici、WebSocket、AWS、MCP、子进程或 CCR relay。OTLP HTTP logs由下一组独立报告验证。22 个专属伪造用例会拒绝改写版本/SHA、check、命令 marker、exit/result、API/proxy 命中、mTLS peer、TLS setup 或 Boundary。
+
+## OTLP HTTP logs 的 effective network owner
+
+`otlp-tls.json` 先用 Node客户端证明普通 HTTPS、TLS 1.2和强制 mTLS三种 collector都返回 200，再让精确 `2.1.235` 二进制跑 15 个隔离进程。每个进程都先完成受控 Messages请求并返回 `OTLP_TLS_MODEL_OK`、exit 0，因此 collector零命中不能被“业务请求没运行”解释。
+
+最重要的结果是配置 owner 与变量表面不同。设置 signal/common `OTEL_EXPORTER_OTLP_*_CERTIFICATE` 后，collector仍零 HTTP并记录 TLS错误；换成 `NODE_EXTRA_CA_CERTS` 后收到一次 `POST /v1/logs`。OTLP client cert/key pair同样没有进入 mTLS handshake，而 `CLAUDE_CODE_CLIENT_CERT/KEY` 让 server观察到 authorized CN=`Claude OTLP Probe Client`；只给 Claude client cert不给 key时仍被 server拒绝。
+
+Proxy臂把 `collector.invalid` 的 CONNECT定向到本地 collector，同时设置冲突的小写/大写 proxy。小写 proxy收到一次规范化 `CONNECT collector.invalid:$TLS_PORT`，大写零命中，collector POST成功。由此可见 OTLP HTTP logs实际使用 Claude注入的通用 `Kol()` agent，而不是 bundled OTLP library较低优先级的 environment agent。
+
+30 个 required checks全部通过，26 个专属伪造分别攻击 signal CA假成功、global CA成功删除、OTLP client假发送、Claude mTLS authorization/CN、proxy owner、literal result与 Boundary，均被拒绝。`NODE_TLS_REJECT_UNAUTHORIZED=0` 只是一条诊断对照，不能作为修复。报告不覆盖 OTLP gRPC、metrics、traces、collector retention/remote delivery或 CCR relay。
 
 ## Plugin Evaluation 免费两臂 Smoke
 
@@ -261,6 +271,10 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.network-proxy-routing` | `network-proxy-tls.json` | 小写 proxy 优先、NO_PROXY 绕过、非法 proxy 在 API 命中前拒绝 |
 | `probe.network-extra-ca` | `network-proxy-tls.json` | 自签失败 exit 1，加入 extra CA 后 Messages 请求成功 exit 0 |
 | `probe.network-mtls-client-identity` | `network-proxy-tls.json` | client cert/key 进入 TLS handshake，server 观察授权 CN |
+| `probe.telemetry-otlp-effective-ca-owner` | `otlp-tls.json` | OTLP专用 CA零 HTTP；`NODE_EXTRA_CA_CERTS` 使 JSON collector成功 |
+| `probe.telemetry-otlp-effective-mtls-owner` | `otlp-tls.json` | OTLP client pair未发送；Claude global pair产生授权 CN |
+| `probe.telemetry-otlp-proxy-routing` | `otlp-tls.json` | 外部 collector经小写 CONNECT proxy成功，大写值未使用 |
+| `probe.telemetry-otlp-failure-isolation` | `otlp-tls.json` | exporter TLS失败不改变 Agent success envelope或 exit 0 |
 | `probe.plugin-evaluation-free-ablation` | `plugin-evaluation.json` | with/without 各 1 run，免费 grader 都得 1，Delta 0；with 请求独有 plugin hook context |
 | `probe.project-purge-dry-run` | `project-data-lifecycle.json` | purge 计划 5 项但不改 planned/excluded domain bytes；bootstrap 文件单列 |
 | `probe.project-purge-positive` | `project-data-lifecycle.json` | 独立 `--all -y` 删除 5 个 owned target，保留 shell snapshot/backup 原字节并单列 bootstrap |

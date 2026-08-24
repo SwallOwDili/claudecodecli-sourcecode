@@ -217,6 +217,12 @@ Stop/SubagentStop 返回 blocking error 时，CLI 把 assistant output 和 hook 
 
 strict 模式无匹配时会 fail closed。域名 allow 不自动等于所有 socket/本地服务都允许，这些维度有独立规则。
 
+官方 [Sandboxing engineering](https://www.anthropic.com/engineering/claude-code-sandboxing) 解释了为什么文件和网络必须同时成立：只有文件隔离时，进程仍可能把可读secret外传；只有网络隔离时，恶意进程可能通过修改宿主配置、socket或其他可执行路径逃出预期边界。两条边界共同约束“能读取什么”和“能把内容送到哪里”。
+
+官方公开架构使用Linux bubblewrap或macOS Seatbelt做OS级进程/文件限制，并让sandbox内网络经过连接到外部代理的Unix domain socket，由代理执行domain policy和新域确认。这个设计解释的是跨版本安全模型；`2.1.235` 具体平台路径、weaker fallback、Mach/socket规则与Windows实现仍由本地bundle决定。
+
+文章披露的“内部使用中permission prompt减少84%”只是Anthropic内部统计，不是本版性能保证。它不能替代当前workspace的命令类型、domain policy、deny路径和真实approval数据。
+
 ### 凭据
 
 bundle 中可以看到 env/file credential 的 deny/mask、JWT decode、claim masking、host injection、AWS pair 与 SigV4 等控制面。它们的目的不是替代 secret manager，而是减少把本地凭据原文暴露给工具进程、网络目标或模型上下文的概率。

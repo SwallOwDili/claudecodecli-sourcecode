@@ -162,6 +162,67 @@ CALLER_OWNER_ALLOWLIST = (
     CallerOwnerMapping("transcript-compact-failed-04", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_404, "named:performCompactTranscript", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:4", "fe95f2292eaeedda", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
     CallerOwnerMapping("transcript-compact-failed-05", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_417, "named:performCompactTranscript", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:5", "282fc20b4aa18dde", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
     CallerOwnerMapping("transcript-compact-failed-06", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_425, "named:n", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:6", "018f87d97b41c90c", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("review-recovery-01", "remote-review", "tengu_review_remote_precondition_recovery", 363_045, "named:L", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:1", "a2c4414504f6c712", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-02", "remote-review", "tengu_review_remote_precondition_recovery", 363_068, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:2", "b747fa5486e73a79", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-03", "remote-review", "tengu_review_remote_precondition_recovery", 363_076, "named:v1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:3", "e5bd2ed8cebbab25", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-04", "remote-review", "tengu_review_remote_precondition_recovery", 363_079, "named:v1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:4", "419beee1a2dbec24", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-05", "remote-review", "tengu_review_remote_precondition_recovery", 363_087, "named:g", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:5", "986a47bb63036008", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-06", "remote-review", "tengu_review_remote_precondition_recovery", 363_090, "named:g", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:6", "934cb3bff64a2e30", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-07", "remote-review", "tengu_review_remote_precondition_recovery", 363_107, "named:v1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:a769562921e0dbc9c408:1", "1d65ccbb5306d360", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-08", "remote-review", "tengu_review_remote_precondition_recovery", 363_112, "named:v1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:7e5df53824d2ae370cc1:1", "f5564ae73cfb0e91", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-09", "remote-review", "tengu_review_remote_precondition_recovery", 363_205, "named:w1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:7", "abb9214a3410f99e", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-10", "remote-review", "tengu_review_remote_precondition_recovery", 363_234, "named:w1i", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:8", "0c2c4522d5f6ec4a", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-11", "remote-review", "tengu_review_remote_precondition_recovery", 363_247, "named:w1i", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:9", "ac019144bf16b368", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-12", "remote-review", "tengu_review_remote_precondition_recovery", 363_284, "named:Tpr", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:10", "db6a18a11945ab46", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 363_040, 363_284),
+    CallerOwnerMapping("review-recovery-13", "remote-review", "tengu_review_remote_precondition_recovery", 508_801, "named:d", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:70bdc84b9dcc7a4ffa83:11", "244b3153c28c3040", "workflow-product", "remote review and Ultraplan", "remote review precondition recovery offer, acceptance and outcome", 508_795, 508_825),
+    CallerOwnerMapping("plan-exit-01", "plan-mode-exit", "tengu_plan_exit", 527_024, "named:pwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:502d7745036b6c550fdd:1", "acd011364c7a668e", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-02", "plan-mode-exit", "tengu_plan_exit", 527_043, "named:pwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b35f05615da547cb2d3f:1", "53d8226133a20a21", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-03", "plan-mode-exit", "tengu_plan_exit", 527_057, "named:pwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b35f05615da547cb2d3f:2", "155a3d1500100036", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-04", "plan-mode-exit", "tengu_plan_exit", 527_067, "named:pwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b35f05615da547cb2d3f:3", "17c653a842fb47d5", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-05", "plan-mode-exit", "tengu_plan_exit", 527_074, "named:pwr", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:502d7745036b6c550fdd:2", "fa341edbfb0ae8a2", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-06", "plan-mode-exit", "tengu_plan_exit", 527_087, "named:nSE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:502d7745036b6c550fdd:3", "0bb52198d88834de", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-07", "plan-mode-exit", "tengu_plan_exit", 527_097, "named:fwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:502d7745036b6c550fdd:4", "0e6205e45af298ba", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("plan-exit-08", "plan-mode-exit", "tengu_plan_exit", 527_101, "named:fwr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:502d7745036b6c550fdd:5", "2ad122bfd0486bf2", "workflow-product", "plan mode and human approval", "plan exit choice, context retention, permission mode and Ultraplan handoff", 526_995, 527_104),
+    CallerOwnerMapping("streaming-error-01", "assistant-stream-parser", "tengu_streaming_error", 409_871, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:f25fbe8b1954aa25ccd3:1", "4037e7ea5c6f4508", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-02", "assistant-stream-parser", "tengu_streaming_error", 409_876, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:4820e4ed30684eef2ddf:1", "5eba3363ee2408fd", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-03", "assistant-stream-parser", "tengu_streaming_error", 409_877, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:26a0b70a8cc6ff03b4c6:1", "312ae9a3523c51ff", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-04", "assistant-stream-parser", "tengu_streaming_error", 409_881, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:4820e4ed30684eef2ddf:2", "093c323a8b7b7273", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-05", "assistant-stream-parser", "tengu_streaming_error", 409_885, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:4820e4ed30684eef2ddf:3", "0f28ad107b8f03da", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-06", "assistant-stream-parser", "tengu_streaming_error", 409_890, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:4820e4ed30684eef2ddf:4", "2529b6aa08d1800b", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-07", "assistant-stream-parser", "tengu_streaming_error", 409_899, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:f25fbe8b1954aa25ccd3:2", "05209f546869a5ac", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("streaming-error-08", "assistant-stream-parser", "tengu_streaming_error", 409_900, "named:vAm", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:43df11fdfc40dbb90345:1", "2787f0e607560b65", "model-request", "assistant stream parser", "content-block state, delta type and stop validation", 409_843, 409_906),
+    CallerOwnerMapping("claudeai-mcp-eligibility-01", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_565, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:1", "0015222b5386774f", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-02", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_566, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:2", "78f68e06234b86b5", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-03", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_567, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:3", "51687ca911ac2005", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-04", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_569, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:4", "9eb399e0ea5abdb5", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-05", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_574, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:5", "2e32fe273241288f", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-06", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_577, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:6", "85d016779c21a8f8", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-07", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_611, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:01d072726398eac9b159:7", "f9faa0080e6f7b0f", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("claudeai-mcp-eligibility-08", "claudeai-mcp-eligibility", "tengu_claudeai_mcp_eligibility", 273_614, "named:w8S", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fb4cf2f60248abf1a5a0:1", "ac323289a7ff2e9e", "mcp-runtime", "claude.ai connector discovery", "safe-mode, provider, auth, scope and remote-config fetch gates", 273_560, 273_620),
+    CallerOwnerMapping("mcp-mention-error-01", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_434, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:1", "bb2c0a501c39379f", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("mcp-mention-error-02", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_436, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:2", "544c6d2dd24c23b7", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("mcp-mention-error-03", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_438, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:3", "0d8420cb73a5dac1", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("mcp-mention-error-04", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_440, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:4", "3d136181e5a2c6f7", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("mcp-mention-error-05", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_446, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:5", "2f6aafdc349ab854", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("mcp-mention-error-06", "mcp-resource-at-mention", "tengu_at_mention_mcp_resource_error", 322_449, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6303ea7e3c8c00f38f83:6", "06179dd39bb371f0", "input-context", "input and MCP resource mentions", "mention parsing, connector lookup, resource lookup and read failure", 322_427, 322_451),
+    CallerOwnerMapping("quota-auto-resume-cancel-01", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_156, "named:Hxi", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:1", "addcfe7c5c028fa2", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("quota-auto-resume-cancel-02", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_209, "named:a8r", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:2", "6335e66cc6f3e7f1", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("quota-auto-resume-cancel-03", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_261, "named:f4f", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:3", "9b87ab0383298853", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("quota-auto-resume-cancel-04", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_267, "named:o0v", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:4", "f713c2667471c908", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("quota-auto-resume-cancel-05", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_300, "named:m4f", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:5", "55f81e8be2618d89", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("quota-auto-resume-cancel-06", "quota-auto-resume", "tengu_quota_auto_resume_cancelled", 332_328, "named:s0v", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:b9c60ade77485e952de7:6", "3034658c66f7f8d6", "model-request", "quota and automatic continuation", "auto-resume cancellation, disablement, horizon and continuation cleanup", 332_089, 332_328),
+    CallerOwnerMapping("resume-parked-permission-01", "resume-parked-permission", "tengu_resume_parked_permission", 601_531, "named:kl", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:dc24b05109b242555748:1", "afc2b59940cc077a", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("resume-parked-permission-02", "resume-parked-permission", "tengu_resume_parked_permission", 601_542, "named:hd", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:37338e94261cc40dc3ac:1", "c50ab3b90aec7100", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("resume-parked-permission-03", "resume-parked-permission", "tengu_resume_parked_permission", 601_547, "named:hd", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:37338e94261cc40dc3ac:2", "f5b8a5dba71a6323", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("resume-parked-permission-04", "resume-parked-permission", "tengu_resume_parked_permission", 601_560, "named:hd", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:37338e94261cc40dc3ac:3", "0e9f349433c071af", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("resume-parked-permission-05", "resume-parked-permission", "tengu_resume_parked_permission", 601_587, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:469d1e270da8d78c9b20:1", "84f6c2fb89290554", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("resume-parked-permission-06", "resume-parked-permission", "tengu_resume_parked_permission", 601_588, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe17325b9611f9cc20b1:1", "f09495ecfa69fd07", "workspace-state", "session resume and parked permission", "persisted response, hold, supersede, retire, re-ask and late-answer handling", 601_499, 601_591),
+    CallerOwnerMapping("ultraplan-create-failed-01", "ultraplan-launch", "tengu_ultraplan_create_failed", 363_966, "named:mKr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:8c218c175b6b5f9db12e:1", "34209160d65523b7", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
+    CallerOwnerMapping("ultraplan-create-failed-02", "ultraplan-launch", "tengu_ultraplan_create_failed", 363_968, "named:mKr", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:8c218c175b6b5f9db12e:2", "f3e1a7b838c6e8aa", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
+    CallerOwnerMapping("ultraplan-create-failed-03", "ultraplan-launch", "tengu_ultraplan_create_failed", 363_978, "named:Gzv", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:18d454b6651e6fee44fd:1", "e40bd6a016b4818a", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
+    CallerOwnerMapping("ultraplan-create-failed-04", "ultraplan-launch", "tengu_ultraplan_create_failed", 363_992, "named:Gzv", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:8c218c175b6b5f9db12e:3", "baa465ac53dbc975", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
+    CallerOwnerMapping("ultraplan-create-failed-05", "ultraplan-launch", "tengu_ultraplan_create_failed", 364_003, "named:Gzv", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:ccf893f203bd0b53a262:1", "c501fe5fcb78aa51", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
+    CallerOwnerMapping("ultraplan-create-failed-06", "ultraplan-launch", "tengu_ultraplan_create_failed", 364_016, "named:Vzv", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:8c218c175b6b5f9db12e:4", "904ed4c3069e0579", "workflow-product", "remote plan and Ultraplan", "policy, duplicate, precondition, remote-create and orphan-cleanup failure", 363_964, 364_016),
 )
 
 CALLER_OWNER_RULE_SEMANTICS = {
@@ -221,33 +282,74 @@ CALLER_OWNER_RULE_SEMANTICS = {
         "file/V5 transcript compaction 在 torn tail、invalid plan、source race 或 I/O error 时放弃 publish；文件路径未发布 replacement 时还会尝试清理临时文件。",
         "映射不证明源 transcript 其余部分健康、没有 concurrent append、cleanup 成功，或后续 compaction 已恢复。",
     ),
+    "plan-mode-exit": CallerOwnerSemantics(
+        "ExitPlanMode UI 消费精确选择，并据此拒绝退出、切换 permission mode、保留或清空上下文、恢复 Auto Mode，或把 plan 交给 Ultraplan。",
+        "事件只证明本地选择与状态转移；不证明计划已经实施、Artifact 发布成功、远端 Ultraplan 已启动，或后续工具获得授权。",
+    ),
+    "assistant-stream-parser": CallerOwnerSemantics(
+        "assistant SSE parser 在 delta/stop 与当前 content block 或 partial message 不一致时抛错，不把不合法 fragment 继续 yield 给 Agent Loop。",
+        "静态 caller 不证明上游真实发送过该坏序列、retry/fallback 的后续结果或遥测送达；错误前已经 yield 的 block 与外部副作用仍可能存在。",
+    ),
+    "claudeai-mcp-eligibility": CallerOwnerSemantics(
+        "claude.ai connector owner 按 safe mode、provider、auth precedence、OAuth scope 和 fetch 结果返回空配置或规范化 server map；fetch failure 还清空缓存 promise 以允许后续重试。",
+        "eligibility 事件不证明账号实时 scope、远端配置完整性、MCP transport 已连接、schema 已进入请求，或任何 connector tool 已执行。",
+    ),
+    "mcp-resource-at-mention": CallerOwnerSemantics(
+        "输入展开器在 mention 语法、connector、resource、reader 或实际 read 任一环节失败时丢弃该 MCP resource attachment，并留下失败观察。",
+        "caller 不证明用户界面一定展示错误、远端 resource 内容、后续输入是否仍提交，或遥测送达；该读取也不拥有 MCP 下游状态。",
+    ),
+    "quota-auto-resume": CallerOwnerSemantics(
+        "quota auto-resume owner 记录取消原因，并在适用分支把 episode 退回 idle、清理 pending continuation/claim/dedupe，或发出 disabled、horizon-exceeded、continuation-dropped 状态。",
+        "事件不证明服务端 quota 已重置、continuation 曾送模或账号计费状态；某些 idle 分支只记录取消观察而没有新的 phase 转移。",
+    ),
+    "resume-parked-permission": CallerOwnerSemantics(
+        "resume owner 将继承的 parked permission 分流为 held、superseded、retired unanswered、fallback re-ask、consumed persisted 或 late answer discarded，并按分支修 transcript/control state。",
+        "这些分支不会重放被中断工具，也不证明 transcript 写入、用户答复或外部副作用可回滚；迟到 response 可以被明确丢弃。",
+    ),
+    "ultraplan-launch": CallerOwnerSemantics(
+        "Ultraplan launch owner 在 policy、重复 launch、precondition、remote create/null 或 unexpected error 上形成具名失败，清除 launching latch，并在已有 session ID 时尝试归档 orphan。",
+        "caller 不证明远端 session 从未创建或已经归档、task registry 没有残留、cloud 状态最终一致，或 task-notification 已送达。",
+    ),
 }
 
 EXPECTED_CALLER_OWNER_EVENTS = 911
 EXPECTED_CALLER_OWNER_CALLSITES = 1_297
-EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES = 79
-EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = "43d545d8f0c85d69f5f1fefc0663e1153dece9e392b07520616107aa8d2f3aac"
+EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES = 140
+EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = "00c4b68fb5a2eb40d639fcf0c4ac38d3b06580bdd93ee4281593ecfd19c6cd8a"
 EXPECTED_CALLER_OWNER_STATUS = {
-    "Single-owner": 11,
+    "Single-owner": 19,
     "Cross-owner": 1,
     "Partially resolved": 0,
-    "Unresolved": 899,
+    "Unresolved": 891,
 }
 EXPECTED_CALLER_OWNER_BUCKETS = {
-    "Unresolved": (899, 1_218),
+    "Unresolved": (891, 1_157),
     "identity-account": (1, 2),
-    "model-request": (1, 1),
+    "input-context": (1, 6),
+    "mcp-runtime": (1, 8),
+    "model-request": (3, 15),
     "plugin-runtime": (1, 8),
     "remote-runtime": (2, 10),
     "terminal-host": (1, 1),
     "tool-runtime": (1, 1),
-    "workflow-product": (4, 40),
-    "workspace-state": (3, 16),
+    "workflow-product": (7, 67),
+    "workspace-state": (4, 22),
 }
 CALLER_OWNER_REPRESENTATIVES = {
-    "Unresolved": ("tengu_end_conversation_tool_call", "tengu_heap_dump", "tengu_update_refused"),
+    "Unresolved": (
+        "tengu_end_conversation_tool_call",
+        "tengu_heap_dump",
+        "tengu_update_refused",
+        "tengu_streaming_fallback_to_non_streaming",
+    ),
     "identity-account": ("tengu_fast_mode_toggled",),
-    "model-request": ("tengu_reactive_compact_succeeded",),
+    "input-context": ("tengu_at_mention_mcp_resource_error",),
+    "mcp-runtime": ("tengu_claudeai_mcp_eligibility",),
+    "model-request": (
+        "tengu_reactive_compact_succeeded",
+        "tengu_streaming_error",
+        "tengu_quota_auto_resume_cancelled",
+    ),
     "plugin-runtime": ("tengu_official_marketplace_auto_install",),
     "remote-runtime": ("tengu_copper_lantern", "tengu_stage_file_completed"),
     "terminal-host": ("tengu_fast_mode_toggled",),
@@ -257,11 +359,15 @@ CALLER_OWNER_REPRESENTATIVES = {
         "tengu_fast_mode_toggled",
         "tengu_install_github_app_step_completed",
         "tengu_setup_github_actions_failed",
+        "tengu_review_remote_precondition_recovery",
+        "tengu_plan_exit",
+        "tengu_ultraplan_create_failed",
     ),
     "workspace-state": (
         "tengu_transcript_write_failed",
         "tengu_file_history_rewind_restore_file_failed",
         "tengu_transcript_compact_failed",
+        "tengu_resume_parked_permission",
     ),
 }
 
@@ -1487,6 +1593,14 @@ def render_caller_owner_projection(
         "tengu_stage_file_completed",
         "tengu_file_history_rewind_restore_file_failed",
         "tengu_transcript_compact_failed",
+        "tengu_review_remote_precondition_recovery",
+        "tengu_plan_exit",
+        "tengu_streaming_error",
+        "tengu_claudeai_mcp_eligibility",
+        "tengu_at_mention_mcp_resource_error",
+        "tengu_quota_auto_resume_cancelled",
+        "tengu_resume_parked_permission",
+        "tengu_ultraplan_create_failed",
     )
     for event in representative_events:
         require(event in projection, f"caller-owner representative missing: {event}")
@@ -1539,6 +1653,7 @@ def render_caller_owner_projection(
         "tengu_end_conversation_tool_call",
         "tengu_heap_dump",
         "tengu_update_refused",
+        "tengu_streaming_fallback_to_non_streaming",
     )
     lines.extend(
         [
@@ -1547,9 +1662,9 @@ def render_caller_owner_projection(
             "",
             f"当前明确欠账是 **{len(unresolved_events)} 个 Unresolved events / {unresolved_callsite_count:,} 个 callsites**。`Unresolved` 不是低价值事件，而是当前没有逐 caller 复核结果承担语义归属。即便调用点恰好落在某个已解释机制附近，也不会自动继承邻近 owner。",
             "",
-            "**高频仍不等于可批量认领。** `tengu_feedback_survey_event` 的 13 个 caller 分布在多种 survey/feedback surface；`tengu_left_arrow_blocked` 的 10 个 caller 跨输入编辑、inflight guard 与不同 TUI 路径；`tengu_git_operation` 的 10 个 caller 同时观察 shell command 与 MCP tool name。`tengu_review_remote_precondition_recovery` 虽有 12 个 caller 邻近 remote-review gate，另一个 caller 位于独立入口；在完整 owner/continuation trace 完成前，它也不会继承 `remote-review` 的导航区间。",
+            "**高频仍不等于可批量认领。** 本批只有在逐 caller 复核后才收口 `tengu_review_remote_precondition_recovery`：前 12 个 caller 位于 remote-review gate/recovery 链，最后 1 个 caller 则以独立 exact identity 绑定 `/ultrareview` 的 branch/no-merge-base continuation；它不是从前一段导航区间继承 owner。相反，`tengu_feedback_survey_event` 的 13 个 caller 仍分布在多种 survey/feedback surface，`tengu_left_arrow_blocked` 的 10 个 caller 仍跨输入编辑、inflight guard 与不同 TUI 路径，`tengu_git_operation` 的 10 个 caller 仍同时观察 shell command 与 MCP tool name；这三组继续保持 `Unresolved`。",
             "",
-            "下列三个反例原先会被宽行区间误归属；现在即使把 allowlist 的导航区间扩大到覆盖它们，event/function/consumer/comparison identity 不匹配，仍必须保持 `Unresolved`：",
+            "下列四个反例仍必须保持 `Unresolved`：前三个证明宽行区间不能赋 owner；`tengu_streaming_fallback_to_non_streaming` 则与已映射 parser event 共享 `named:vAm`，但 event/line/consumer/comparison identity 不同，证明同名函数也不能赋 owner。即使把 allowlist 导航区间扩大到全文件，它们仍不会命中：",
             "",
             "| regression counterexample | callsites | functions | readable lines | result |",
             "| --- | ---: | --- | --- | --- |",

@@ -4,9 +4,9 @@
 
 ## 当前语义收口状态
 
-[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 339 条 claim，覆盖 48 个 topic：243 Static、48 Probe、33 Public、15 Boundary。
+[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 347 条 claim，覆盖 48 个 topic：246 Static、52 Probe、33 Public、16 Boundary。
 
-仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 562 个静态环境名称和 138 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 186 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 899 个 `tengu_other` caller-owner。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)已对 558/10234 个 callsite 建立 exact owner（Product 308、Dependency 250），仍有 9676 个；此外还有遥测运行 gate/动态 payload/远端 delivery和未触发 transport/remote/paid-judge Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。环境/Feature 本批分别新增 44/25 项结构化人工合同，生成器会按 lexical owner、调用点数量和 access mode 拒绝伪收口。
+仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 502 个静态环境名称和 138 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 156 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 891 个 `tengu_other` caller-owner。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)已对 684/10234 个 callsite 建立 exact owner（Product 308、Dependency 376），仍有 9550 个；此外还有遥测运行 gate/动态 payload/远端 delivery和未触发 transport/remote/paid-judge Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。环境/Feature 本批分别新增 104/55 项结构化人工合同，生成器会按 lexical owner、调用点数量和 access mode 拒绝伪收口。
 
 ## 三轴怎样读
 

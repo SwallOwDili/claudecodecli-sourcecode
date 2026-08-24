@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再从 workspace trust/settings/provider 的能力编译进入 Agent Loop 四种时钟、Bash 分层风控、上下文治理、Telemetry、Resume 消息图、MCP/Skills/子 Agent、Artifact 结果未知与 native Voice；最后归纳逐请求编译能力、权力不对称、四时钟因果反馈、事实/表示分离、按对象恢复、隔离扩展和观测出口边界。C/Q/E/S/O 只是分析者归纳的阅读索引，不是源码原生模块或 Anthropic 官方架构。精确的 71 类 inventory、339 条 claim、三轴证据分类和未完成 consumer tracing 单独放在 [机器证据索引](product-surface-inventory-index.md)，不再压住正文。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md)、[错误与诊断机制图谱](error-diagnostic-atlas.md)和[10,234 条 callsite 精确 owner 索引](error-diagnostic-owner-index.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [2.1.235：不是 Agent Loop 重写，而是一次状态边界修正](product-surface-evidence-map.md)。要理解用户一句话怎样变成最终请求，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要判断内容留在本机还是发往模型、遥测、Remote、Feedback、MCP/Hook、Artifact或Voice，读 [全局数据流与隐私](client-data-flow-and-privacy.md)。精确的71类inventory、347条claim、三轴证据分类和未完成consumer tracing单独放在[机器证据索引](product-surface-inventory-index.md)。[全面性审计](completeness-audit.md)现在明确区分55项Deep、2项Documented与1项Boundary，不再把IDE extension和updater事务的证据缺口写成“全部Deep”。工具、Settings、CLI/SDK、Slash Command、Hook、Storage及高价值状态机继续由对应专题提供精确集合、生命周期和失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -207,6 +207,12 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 | `cache_control` | prompt cache marker/TTL/scope | breakpoint、provider、disable switch |
 
 字段存在于 bundle 不代表每次请求都会发送。请求 builder 会根据 provider、base URL、认证来源、model capability、query source、feature/client data 和错误 latch 选择。
+
+### 6.7 Prompt Assembly 的真正顺序
+
+上面六节列出了对象，但不能替代调用顺序。目标版实际先构造top-level system、userContext、systemContext和本轮tools，再从transcript message graph选择有效链；每轮还把文件变化、Memory、Skill、MCP/Agent目录、Plan/Auto、IDE/LSP、task/queue和Hook结果并行生成为typed attachment。发送前attachment才被渲染成`isMeta` user reminder，支持时可提升为mid-conversation `role:"system"`；role/tool pair normalizer和cache marker随后才运行。
+
+`<system-reminder>`因此是动态状态的发送编码，不是内部唯一存储格式，也不等于所有内容都获得API system authority。`readFileState`还把Read/Edit/Write和外部文件变化接到这条链；compact会按5个文件、单文件约5k token、总50k等预算重建文件/Skill/task/MCP/Hook附件。完整顺序、失败降级和证据行号见 [Prompt Assembly专题](prompt-assembly-and-system-reminders.md)。
 
 ## 7. Model、Provider、认证和请求路由
 
@@ -852,7 +858,9 @@ Root schema记录字段类型、description、enum和嵌套对象，但每个字
 
 ### 23.3 Feature flag 的证据等级
 
-本版机器清单有 361 个静态 feature key、498 个 `et()` 调用点、6 个静态 GrowthBook config key 和 12 个 `CB()` 调用点。名称只能说明存在读取调用，不能直接证明默认值、账户 rollout或用户已获得功能。可靠结论需要同时满足 reader 类型、consumer branch、默认/fallback、policy/provider/surface/protocol gate 和运行证据。
+本版机器清单有 361 个静态 feature key、498 个 `et()` 调用点、6 个静态 GrowthBook config key 和 12 个 `CB()` 调用点。全部 Feature callsite 已绑定 lexical function 与 immediate AST consumer；其中 205 个 key 完成人工 consumer 收口，55 项结构化合同进一步锁定 58 个精确调用点，剩余 156 个仍是 Semantic follow-up。环境侧同样不是“有字段就算懂”：411 个静态名称完成 consumer 合同，104 项结构化合同锁定 122 个调用点，502 个继续待追。
+
+名称、parser 和 export 仍不能直接证明用户行为。一个典型反例是 `tengu_ant_yolo_equiv_strip_config`：`lKS` 能解析 `enabled/includeEntrypoints/excludeEntrypoints` 并被导出，但 `2.1.235` bundle 内没有 caller，Auto Mode 初始化处也没有消费该 predicate，因此它没有被晋级为 Static consumer。可靠结论需要同时满足 reader 类型、可达 consumer branch、默认/fallback、policy/provider/surface/protocol gate 和运行证据。
 
 在线 feature evaluation 还依赖一方事件通道：`DISABLE_GROWTHBOOK`、非一方 provider、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`、`DISABLE_TELEMETRY` 或 `DO_NOT_TRACK` 可以让在线求值关闭。显式 `CLAUDE_CODE_GB_DISK_CACHE_WHEN_TELEMETRY_OFF` 只允许一方 provider 在关闭在线流量时读旧磁盘值，不会让它变 fresh。
 
@@ -944,7 +952,13 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 看到 recording或 profile标识不等于默认上传。需要分别检查创建 gate、文件路径、retention和发送 consumer。
 
-需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans。原 family `tengu_other` 的 911 event / 1,297 callsite 当前只接受 79 条 exact caller identity，完整收口 11 Single-owner、1 Cross-owner；899 event / 1,218 callsite 保留 Unresolved。每条命中还绑定局部状态变化与 Boundary；这是 Derived 客户端 owner 投影，仍不等于分支运行、采样命中、外部副作用完成或远端送达。需要从异常或日志文本下钻时，先用 [错误与诊断机制图谱](error-diagnostic-atlas.md)理解 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，再进入 [Error/Diagnostic 精确 owner 索引](error-diagnostic-owner-index.md)：全 10,234 条互斥投影中只收口 308 Product caller 与 250 Dependency package/function，9,676 保持 Unresolved；Product 的 catch/user-surface 当前仍全部未解析，避免把一条 message 或 lexical scope 当成完整行为。
+需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans。原 family `tengu_other` 的 911 event / 1,297 callsite 当前只接受 140 条 exact caller identity，完整收口 19 Single-owner、1 Cross-owner；891 event / 1,157 callsite 保留 Unresolved。每条命中还绑定局部状态变化与 Boundary；这是 Derived 客户端 owner 投影，仍不等于分支运行、采样命中、外部副作用完成或远端送达。需要从异常或日志文本下钻时，先用 [错误与诊断机制图谱](error-diagnostic-atlas.md)理解 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，再进入 [Error/Diagnostic 精确 owner 索引](error-diagnostic-owner-index.md)：全 10,234 条互斥投影中只收口 308 Product caller 与 376 Dependency package/function，9,550 保持 Unresolved；Product flow 当前只有 4 条 catch、99 条 retry、13 条 tool-result 获得 exact owner，user-surface 仍为 0，避免把一个 lexical scope 当成完整恢复链。
+
+### 24.10 Telemetry隐私不等于全局数据流
+
+关闭一方telemetry、关闭管理员OTEL、不写本地transcript、不共享Feedback transcript是四个独立动作；它们都不会关闭核心Messages推理。Remote Control同步、WebFetch hostname preflight、MCP/Hook、IDE/Chrome、Artifact/file upload和Voice又各有目的地与consent。
+
+`/compact`、`/clear`、rewind和tombstone只改变客户端持有的消息/文件表示，不是外部删除协议。按`DATA / OWNER / DESTINATION / DEFAULT / CONTENT GATE / CONSENT / RETENTION / DELETE`逐条查看见 [全局数据流与隐私](client-data-flow-and-privacy.md)。
 
 ## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
@@ -1229,8 +1243,8 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 339 条机制证据：243 Static、48 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，339 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
-- 58 个能力面：57 项 Deep、1 项 Boundary；
+- 347 条机制证据：246 Static、52 Probe、33 Public、16 Boundary；Static 细分为 206 runtime、18 consumer、12 constant、4 surface、6 declaration，347 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 58个能力面：55项Deep、IDE/Updater 2项Documented、1项Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
 - 29 项人工维护的核心终端 tool reference、80 个同工厂 AST 注册调用点（77 静态 name、3 动态 expression）、188 个 known-tool catalog 项；
@@ -1239,7 +1253,7 @@ Doctor分别检查：
 
 ### 33.2 精确二进制 Probe
 
-11份运行报告覆盖，其中 10 份绑定精确 CLI 二进制，1 份用于原生模块原版/兼容对照：
+19份运行报告覆盖命令、协议、持久化、网络和原生行为；每份都绑定版本、输入、literal output、exit status、required checks 与 Boundary：
 
 - Agent Loop工具闭环、resume、manual compact、fork；
 - bearer/API-key request shape和 prompt cache开关；
@@ -1250,6 +1264,12 @@ Doctor分别检查：
 - 子 Agent隔离和两阶段结果回传；
 - settings层级、529/400 retry、model fallback；
 - OTLP prompt脱敏；
+- OTLP HTTP logs 的有效 CA/mTLS/proxy owner，以及 exporter TLS失败与 Agent result隔离；
+- Messages proxy/NO_PROXY/CA/mTLS；
+- Plugin Evaluation免费 with/without两臂；
+- Embedded Grep病态 pattern、`-m` context和工具错误回灌；
+- TUI permission comment与快速 Arrow+Enter scope；
+- Project purge/import/manifest mismatch；
 - filesystem/network sandbox；
 - file checkpoint rewind；
 - doctor/update gate和 Remote Control负向边界；
@@ -1261,6 +1281,7 @@ Doctor分别检查：
 - 真实 Anthropic服务端 prompt-cache命中与账单；
 - Bedrock、Vertex、Foundry等真实云凭据闭环；
 - 登录账户的 Remote Control和 cloud orchestration；
+- OTLP gRPC、metrics、traces和远端 collector retention/delivery；
 - 除已覆盖的 Shift+Tab 和快速 Arrow+Enter 外，其余多行 highlight、Vim panel 与 VS Code release fix 的自动视觉/宿主回归；
 - CLI退出后的真实 background supervisor耐久。
 
@@ -1271,6 +1292,8 @@ Doctor分别检查：
 | 想解决的问题 | 深入文档 |
 | --- | --- |
 | 为什么模型只有提案权、本地 runtime 怎样逐请求编译能力、裁决并记因果；Agent Loop、Bash 风控、`compact`、resume、MCP/子 Agent、Artifact、Telemetry 与 native Voice 怎样共同暴露版本技术性格 | [product-surface-evidence-map.md](product-surface-evidence-map.md) |
+| top-level system、CLAUDE.md/Memory、typed attachment、`system-reminder`、文件变化、Hook/IDE/MCP和cache marker怎样组成一次真实请求 | [prompt-assembly-and-system-reminders.md](prompt-assembly-and-system-reminders.md) |
+| Messages、local transcript、Remote、1P/OTEL、Feedback、WebFetch、MCP/Hook、IDE/Chrome、Artifact/upload和Voice分别去了哪里、如何同意和删除 | [client-data-flow-and-privacy.md](client-data-flow-and-privacy.md) |
 | 为什么 29 项核心参考之外还有 80 个注册调用点，工厂怎样展开，哪些会进入真实请求 | [tool-registration-and-host-surfaces.md](tool-registration-and-host-surfaces.md) |
 | Brief 模式的主用户输出、附件和漏调修复怎样工作 | [brief-mode-and-user-visible-output.md](brief-mode-and-user-visible-output.md) |
 | Plan Mode 怎样阻止实施、保存计划并把批准/拒绝回灌 Agent Loop | [plan-mode-and-human-approval.md](plan-mode-and-human-approval.md) |
@@ -1314,7 +1337,7 @@ Doctor分别检查：
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
 | 遥测、日志、隐私、诊断 | [telemetry.md](telemetry.md) |
-| API、工具、compact、session、MCP 等场景的事件顺序，1,441 个一方事件、Datadog/OTEL 字段、动态事件名，以及 `tengu_other` 79 条 exact / 899 项 Unresolved caller-owner 投影 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
+| API、工具、compact、session、MCP 等场景的事件顺序，1,441 个一方事件、Datadog/OTEL 字段、动态事件名，以及 `tengu_other` 140 条 exact / 891 项 Unresolved caller-owner 投影 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
 | 99 条 API path、53 个 Beta 和 Gateway/SDK owner | [api-beta-route-ownership.md](api-beta-route-ownership.md) |
 | Error、debug、tool failure、abort 与 LSP diagnostics | [error-diagnostic-atlas.md](error-diagnostic-atlas.md) · [error-diagnostic-owner-index.md](error-diagnostic-owner-index.md) |
 | Artifact Watch 评论自动响应 | [artifact-watch-comment-autoreact.md](artifact-watch-comment-autoreact.md) |
@@ -1507,11 +1530,11 @@ Windows `claude sandbox install/status` 回答宿主依赖和隔离用户等长�
 
 ## 46. Proxy、NO_PROXY、CA 与 mTLS
 
-Claude Code 没有一个覆盖所有网络调用的万能代理开关。主请求/通用 fetch、Axios/undici、WebSocket、AWS SDK、MCP transport、OTLP exporter 和 CCR 子进程分别选择 adapter；`NO_PROXY` 也存在不同匹配器。主模型能联网只证明其 transport 已通过 proxy，不证明 MCP、云 SDK、后台 Agent 或遥测能走同一路径。
+Claude Code 没有一个覆盖所有网络调用的万能代理开关。主请求/通用 fetch、Axios/undici、WebSocket、AWS SDK、MCP transport和 CCR 子进程分别选择 adapter；`NO_PROXY` 也存在不同匹配器。OTLP HTTP logs虽然带自己的 library env parser，但 Claude会先注入通用 `Kol()` programmatic agent，最终 merge由后者获胜；OTLP gRPC仍是另一条 credentials实现。主模型能联网只证明其 transport 已通过 proxy，不证明 MCP、云 SDK、后台 Agent 或遥测自动等价。
 
 TLS 又分服务端信任和客户端身份：CA store 组合 bundled/system/extra CA，并过滤过期系统证书；mTLS cert/key 要成对校验并在 stale connection 时重载。CCR agent proxy 是只接受 HTTPS CONNECT 的本地 policy relay，带有 allowlist、流控和兼容性边界，不等于任意直连。逐 transport 的优先级、407 helper refresh、证书轮换和排障顺序见 [Proxy、CA 与 mTLS](network-proxy-ca-and-mtls.md)。
 
-精确二进制 Probe 已在主 Messages HTTPS 路径观察到：小写 `https_proxy` 覆盖冲突的大写值，`no_proxy=localhost` 绕过两个 CONNECT proxy，缺 scheme 的 proxy 在 API marker 前 fail closed，自签服务从无 CA 的 exit 1 变为 extra CA 下的 exit 0，client cert/key 又让 server 观察到 authorized CN。该结论不外推 Axios、WebSocket、AWS、MCP、OTLP、子进程或 CCR。
+Messages HTTPS Probe观察到：小写 `https_proxy` 覆盖冲突的大写值，`no_proxy=localhost` 绕过两个 CONNECT proxy，缺 scheme 的 proxy在 API marker前 fail closed，自签服务从无 CA的 exit 1变为 extra CA下 exit 0，client pair又让 server观察 authorized CN。独立 OTLP HTTP logs Probe进一步证明 effective owner：OTLP专用 CA/client变量没有成为最终 HTTP agent；`NODE_EXTRA_CA_CERTS`、`CLAUDE_CODE_CLIENT_CERT/KEY` 和通用 proxy分别完成 collector POST、mTLS CN与小写 CONNECT precedence。所有 exporter TLS失败仍返回 Agent success/exit 0。两组报告都不外推 Axios、WebSocket、AWS、MCP、OTLP gRPC/metrics/traces、子进程或 CCR。
 
 ## 47. Active Goal 与 Stop-loop
 

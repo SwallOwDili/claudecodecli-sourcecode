@@ -1,19 +1,19 @@
 {
   "schemaVersion": 2,
-  "retrievedAt": "2026-08-21T12:50:19+08:00",
+  "retrievedAt": "2026-08-24T15:42:26+08:00",
   "captureMethod": "curl HTTP GET with redirects and content decoding; sha256 covers response bytes; semanticTextSha256 covers whitespace-normalized visible HTML text with script/style/svg/noscript/template content removed; excerptSha256 covers normalized quoted excerpts; excerptSourceVerified requires every normalized quoted line to occur in visible source text",
   "sources": [
     {
       "id": "claude-how-it-works",
       "url": "https://code.claude.com/docs/en/how-claude-code-works",
       "status": 200,
-      "bytes": 498340,
-      "sha256": "d0b3d66e93a167fdc17695c881511ca6c4c2c8321dfc69fba52e9ffff6ae5e85",
+      "bytes": 463933,
+      "sha256": "297534f2102dfe1b3dd54bb7dbb36efd6cbff6f6aab2d2c8fdb1a05277979afa",
       "excerptIds": [
         "public-agentic-loop-phases"
       ],
-      "semanticTextBytes": 17759,
-      "semanticTextSha256": "267bfed558cba7e901d95d2ddbfd4c59443e29878526de5b90535f08042d8dfc",
+      "semanticTextBytes": 16348,
+      "semanticTextSha256": "7a869bd73f0b18a48273b7c2d9908c1fa92e4ba2ede3fc59200e60a5291769e9",
       "excerptSha256": {
         "public-agentic-loop-phases": "bbce1c8c497616c45ae07c6d5d305f4dbf9f2e5141274c6fba974fc55b6488b8"
       },
@@ -25,8 +25,8 @@
       "id": "claude-agent-loop",
       "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "status": 200,
-      "bytes": 638290,
-      "sha256": "db61b9fb7e998bae7f4aeef9fef5e183f7cc7825e21d402cad690fdb60990090",
+      "bytes": 636771,
+      "sha256": "48cd3aeb4cee52a860a63a9e401e24e5cf387feabea306c7749947893ea69914",
       "excerptIds": [
         "public-tool-results-feedback"
       ],
@@ -43,13 +43,13 @@
       "id": "claude-context-window",
       "url": "https://code.claude.com/docs/en/context-window",
       "status": 200,
-      "bytes": 408544,
-      "sha256": "d7025bc670d6f4b6e3f6c42f86b3b18b468f87b776e42cfcb2e77ffaf1d73f15",
+      "bytes": 405894,
+      "sha256": "2535fc534bbd93bd2dc1660a31655f0fbd13b35e3270922dfa657df4c5cce5dc",
       "excerptIds": [
         "public-context-auto-compaction"
       ],
-      "semanticTextBytes": 7362,
-      "semanticTextSha256": "cbacb0c659fb32a05df856679f5edf7a2ad425f5a3d609509a9c725434946ee9",
+      "semanticTextBytes": 7345,
+      "semanticTextSha256": "546504c2475edc1ccc9d3a78d2070056350a3bf12a6eeb6512416e538333aeed",
       "excerptSha256": {
         "public-context-auto-compaction": "3f208c3c6429930a68c15047cd5ff803286de128b09cf29085c8957be4e8e9de"
       },
@@ -61,13 +61,13 @@
       "id": "claude-prompt-caching",
       "url": "https://code.claude.com/docs/en/prompt-caching",
       "status": 200,
-      "bytes": 506562,
-      "sha256": "d8270f08611c0cfe2b26ee5bca1a94e9ad11f6b48962de9fa85df2bf6301fb3b",
+      "bytes": 506602,
+      "sha256": "76a1a894894108a58c7b46e18294d566e9bcf8be87bc468e44148de1ea3339e2",
       "excerptIds": [
         "public-cache-invalidation"
       ],
-      "semanticTextBytes": 27907,
-      "semanticTextSha256": "c5a19a8113312ef35e7d33fddfd3c71556904c5116dc39c93d06872d630d8205",
+      "semanticTextBytes": 28665,
+      "semanticTextSha256": "080c67f0f31dc0ec2abdb117bf27f2d39b7ea55b92933d9f3df3676b5d93cf95",
       "excerptSha256": {
         "public-cache-invalidation": "2045a13ef62323f86e9fd660c2b0040c0089d431aaf958208e91284ff7ebe47b"
       },
@@ -79,13 +79,13 @@
       "id": "claude-sessions",
       "url": "https://code.claude.com/docs/en/sessions",
       "status": 200,
-      "bytes": 468983,
-      "sha256": "23d1aa8829407c7961c71d8b04806aa046061230eb97f54c35254ee1f4461982",
+      "bytes": 468864,
+      "sha256": "fb8e73fae3cf49959a6c05820ecd4c0117949a6a36e45ee19397ff77b7baac9c",
       "excerptIds": [
         "public-session-fork-identity"
       ],
-      "semanticTextBytes": 22037,
-      "semanticTextSha256": "cac34331033ae2e3a86f62a8016683766298afd71ffff6201e6a341fbda74efc",
+      "semanticTextBytes": 22889,
+      "semanticTextSha256": "194892096b1abc77d746a36b6cc0f45c395d8b27e73453f0b9e2843a44fc9e56",
       "excerptSha256": {
         "public-session-fork-identity": "c05869cea0316ef4b4ab674e4536a8e22663dfa27afbde193ffd4fb1e13f88bf"
       },
@@ -97,8 +97,8 @@
       "id": "claude-checkpointing",
       "url": "https://code.claude.com/docs/en/checkpointing",
       "status": 200,
-      "bytes": 366476,
-      "sha256": "ecdeed06698fa63f26ae234d28a3c9f05980ec5884da89513981f9a32a0f45e8",
+      "bytes": 364773,
+      "sha256": "87b4dacbf7d80159ed4575d6fb034d91abc958c9def165bd23448201bf95356d",
       "excerptIds": [
         "public-checkpoint-limitations"
       ],
@@ -115,13 +115,13 @@
       "id": "claude-memory",
       "url": "https://code.claude.com/docs/en/memory",
       "status": 200,
-      "bytes": 626182,
-      "sha256": "add61a927f76aaacdcf925d3073eba5e37f806c001e43bbb934ceca9a1d29e25",
+      "bytes": 624006,
+      "sha256": "6ac6e1f34f80727227c11dafd6d9e896d811aadf8cb44a24f2967381ddcc9060",
       "excerptIds": [
         "public-memory-entry-budget"
       ],
-      "semanticTextBytes": 33265,
-      "semanticTextSha256": "5f05fce74a4044c4b2666731078bc177a3a20393a5c172d45b6b68d36cf0b353",
+      "semanticTextBytes": 33300,
+      "semanticTextSha256": "da4d014e700cabb1d59bb7cdd7529e63ec6814dbb278575a6b7c1963f179e492",
       "excerptSha256": {
         "public-memory-entry-budget": "64a9ccc26fde93cc00c30bd3ffa8f5bf4b22546dfb90e2fda5dcbafc3cb23410"
       },
@@ -133,13 +133,13 @@
       "id": "claude-permissions",
       "url": "https://code.claude.com/docs/en/permissions",
       "status": 200,
-      "bytes": 667450,
-      "sha256": "35731fd7f2a1ce51229243da72cab7480f0937a340a6597ed90120c02e23b3a4",
+      "bytes": 649131,
+      "sha256": "7961cad018263e648de8b2fcf271dd0cc122365379936ecf304ec6330ab39606",
       "excerptIds": [
         "public-permission-precedence"
       ],
-      "semanticTextBytes": 55868,
-      "semanticTextSha256": "2454ef9103d134279b906af60e7b81d2ce95e962cb343232c22048b8dbef17a0",
+      "semanticTextBytes": 52408,
+      "semanticTextSha256": "96a0b6a1ed23d98273924266b70ebb5825af12a495318b3b255194f799739859",
       "excerptSha256": {
         "public-permission-precedence": "1ec071196872c090b6d2e858ded378ada407f3bd345924b589002fec9fdec3aa"
       },
@@ -151,13 +151,13 @@
       "id": "claude-sandboxing",
       "url": "https://code.claude.com/docs/en/sandboxing",
       "status": 200,
-      "bytes": 754367,
-      "sha256": "6852237f79d5419c0118d70d01dce9d10f0fc9741b851a1a5fef2705a42771d0",
+      "bytes": 757988,
+      "sha256": "8aae0dd0e700b32d79cdb2ddf477f3e07bbf3819f4dc02b4facc47243b967ad1",
       "excerptIds": [
         "public-sandbox-layers"
       ],
-      "semanticTextBytes": 57932,
-      "semanticTextSha256": "131bdf9b179d5b741ab3476c6c7a501611046157532ddb7090784239a1cdc88a",
+      "semanticTextBytes": 58009,
+      "semanticTextSha256": "11c137cbd1378a89b8c3554f349218aa1380d874fd6249d5cd866bc4eb44d12a",
       "excerptSha256": {
         "public-sandbox-layers": "237bf479d99c39fb31578079f9818e24e7e748e2f9d910d702b39bc37fa61a9c"
       },
@@ -169,13 +169,13 @@
       "id": "claude-hooks",
       "url": "https://code.claude.com/docs/en/hooks",
       "status": 200,
-      "bytes": 2654819,
-      "sha256": "301d66b0560f1eb72c8da9f6d288c4d6537c029b72fe14f85848daa1a2d72e6e",
+      "bytes": 2655336,
+      "sha256": "c36509ff894d3a2a83052e983203090929d5e2941dd40a94275f4a08481de180",
       "excerptIds": [
         "public-hook-events"
       ],
-      "semanticTextBytes": 184205,
-      "semanticTextSha256": "febb9339856d8f5d4bdb45193f86edfb4c98d9551162f121e91e93ab27b7643f",
+      "semanticTextBytes": 184783,
+      "semanticTextSha256": "9b95cc5de007792bc703de966dbc8bf67210f1ecf95d3779287f48f700bef8d2",
       "excerptSha256": {
         "public-hook-events": "e0927604dbcbcda24f98eb45d54f81b2b577199cbfb3a3e44ba78e3e19410c34"
       },
@@ -187,13 +187,13 @@
       "id": "claude-mcp",
       "url": "https://code.claude.com/docs/en/mcp",
       "status": 200,
-      "bytes": 1353666,
-      "sha256": "51d8e074d61f27eda82e7dbcc6b03d2db10bedd631ac2e41b8ef4c2e90c3c27d",
+      "bytes": 1353677,
+      "sha256": "d66f9ac93a2d29050286f027d0cf77a6a828aed3c4d318b5bf056ae41de584a3",
       "excerptIds": [
         "public-mcp-roots-change"
       ],
-      "semanticTextBytes": 85166,
-      "semanticTextSha256": "835915e5dd395f31dd530871e5cc75d5b70c2e8c901484e619d076d96d6590f4",
+      "semanticTextBytes": 85269,
+      "semanticTextSha256": "3aa3bd226b86d1cdd17fe8abe7ef7382ed3f0979e66fb486390aa6540622f98e",
       "excerptSha256": {
         "public-mcp-roots-change": "3a1e90bffc41826c687d72d6146f2333eca1e61bdfdd3d274394b4b543599ded"
       },
@@ -205,8 +205,8 @@
       "id": "claude-subagents",
       "url": "https://code.claude.com/docs/en/sub-agents",
       "status": 200,
-      "bytes": 1148209,
-      "sha256": "2c4b9cadba563fc5afe2e2167ad8d5a54caf520822e59fc6835b4c5584b449db",
+      "bytes": 1147350,
+      "sha256": "d3f35963bfa4425bcd3af1a143d88a9226bb78c88be23912b24c91f3ab66bcf1",
       "excerptIds": [
         "public-subagent-own-context"
       ],
@@ -223,13 +223,13 @@
       "id": "claude-agent-teams",
       "url": "https://code.claude.com/docs/en/agent-teams",
       "status": 200,
-      "bytes": 657671,
-      "sha256": "0eb325161ba653047163520a8cf354b425cdc5427a8db210b4dd4eb3f0752b23",
+      "bytes": 656224,
+      "sha256": "57c719c193b4d781bceb5472f21111eff34d771fbd21239f5b7954c49c89f594",
       "excerptIds": [
         "public-agent-teams-coordination"
       ],
-      "semanticTextBytes": 35401,
-      "semanticTextSha256": "b5902ff9d8351dfb1f7f23b15bc81830bd60945744896cd20ad70fa15a5083bb",
+      "semanticTextBytes": 35224,
+      "semanticTextSha256": "fdb738a0cb36fbdf2fda2f2889ebf946eeb79ddf4b0855c0b8112f832230ffbc",
       "excerptSha256": {
         "public-agent-teams-coordination": "329ab25135c278cca77b125ee656ddec4e27bbf1ad3b19ce1acbb2fd11c328fe"
       },
@@ -319,14 +319,14 @@
       "id": "claude-monitoring-usage",
       "url": "https://code.claude.com/docs/en/monitoring-usage",
       "status": 200,
-      "bytes": 1040779,
-      "sha256": "26c0301ccf39fc2c0970ca7bfb4231b21c09e4e9f7b2ec63ac31dffa119318a0",
+      "bytes": 1041116,
+      "sha256": "d62ad6c49d72557d2819e8d322b6e7c0984b87033854720a1d9c239b26063a35",
       "excerptIds": [
         "public-otel-exporter-precedence",
         "public-otel-prompt-redaction"
       ],
-      "semanticTextBytes": 97312,
-      "semanticTextSha256": "7812fb4349d3fd590dcb6a8d50197d0bd946d8f90878945b52cc26150c71d83d",
+      "semanticTextBytes": 97508,
+      "semanticTextSha256": "8065248d82f6970ec5f2cec25303cae0f1af3abe7b31e52ab07d768fbdfbd631",
       "excerptSha256": {
         "public-otel-exporter-precedence": "f63fed242a1945b58454d842a285f280b1a3474aa4a9cecd09a4e9ede7c7b235",
         "public-otel-prompt-redaction": "51e4af4f924921f64b61fd37adf9a29043c299caf92fb4cf8ee41ee8acc52ea8"
@@ -340,17 +340,17 @@
       "id": "claude-settings",
       "url": "https://code.claude.com/docs/en/settings",
       "status": 200,
-      "bytes": 1327414,
-      "sha256": "beb9bf7306e723d43c09e0325b6527765808ae7c14c1750a400c5335ded4e003",
+      "bytes": 605040,
+      "sha256": "f0c7fac2dd516f71d979db7328d4253f58e5d058b66eb0400a49dd71736856f3",
       "excerptIds": [
         "public-settings-precedence",
         "public-settings-live-reload"
       ],
-      "semanticTextBytes": 132042,
-      "semanticTextSha256": "94007ecfd9c56515fc40dc73e7cd9541200f7ee821bf4c247e1df4544945cccc",
+      "semanticTextBytes": 31285,
+      "semanticTextSha256": "fc420ec9dabb15d0ee42443a79c7c7818d38e684f55bc6f1319d2c69cdaad661",
       "excerptSha256": {
-        "public-settings-precedence": "32a0dbfb34a17b93d17e56c650d393da06bd4e7674f81496f2dd25f776cfeb96",
-        "public-settings-live-reload": "57041a0c91b30893e85ddec6d86afaff92f731ba43fa564dfb551efef3b64763"
+        "public-settings-precedence": "84ab7a44dd077f7189d043afdbfe0af466595ce83b558251facf42bbff51c62b",
+        "public-settings-live-reload": "b385513d0ed91f83109e51070e50f7679b87093c1d5b8a134cee29f850ce8969"
       },
       "excerptSourceVerified": {
         "public-settings-precedence": true,
@@ -361,13 +361,13 @@
       "id": "claude-model-config",
       "url": "https://code.claude.com/docs/en/model-config",
       "status": 200,
-      "bytes": 806326,
-      "sha256": "03fa1552965888a9531426da5c2d4a2619659f74cdc452561c5a90398237ee5b",
+      "bytes": 809731,
+      "sha256": "e9656a33df97e7de6948128946920550058cec966425ff266127148b779c2336",
       "excerptIds": [
         "public-fallback-chain"
       ],
-      "semanticTextBytes": 78907,
-      "semanticTextSha256": "b606d46fdf4935580be594c634d405673d1dfd86044f916e6a5cd90f9c5d29b4",
+      "semanticTextBytes": 79117,
+      "semanticTextSha256": "244696742aae1b4e1e142a1bdef879eee530e7552826e1fddd1535f036c48473",
       "excerptSha256": {
         "public-fallback-chain": "3e0ce2145eb7d102aad09482859dd3ec7bfac00d74a02a8a0154abf1bff7dc50"
       },
@@ -379,13 +379,13 @@
       "id": "claude-authentication",
       "url": "https://code.claude.com/docs/en/authentication",
       "status": 200,
-      "bytes": 447696,
-      "sha256": "02874cfca9be18a87022421f1203082d6626cc05506125d632eb515153621e3c",
+      "bytes": 447357,
+      "sha256": "a7c962bf0dd47c64e98183f2062779810594fb46e24a733d938fe6c0f4b8b806",
       "excerptIds": [
         "public-auth-precedence"
       ],
-      "semanticTextBytes": 20551,
-      "semanticTextSha256": "953afc647e437703e0f42b92869132aa60fcd06ed4c464e13a1b142e6384ca0f",
+      "semanticTextBytes": 20616,
+      "semanticTextSha256": "9668d6d65b5468a1b88be1f026f5e6b36e8a4bf4608d3ceee4a40d38b63233a0",
       "excerptSha256": {
         "public-auth-precedence": "55e25179949d8ea5bdc55b41cbf3b85b89f0045a291d44f325d5532e949aaec0"
       },
@@ -397,13 +397,13 @@
       "id": "claude-network-config",
       "url": "https://code.claude.com/docs/en/network-config",
       "status": 200,
-      "bytes": 516002,
-      "sha256": "b244cdfa12ad093d3fdd527d0eb7c31b3b0ac129059f93e777980cf371d3c740",
+      "bytes": 515217,
+      "sha256": "cc94f5cd6a7ec3732841021efa91fdf875007d46d37c7ca72d286580410d1e40",
       "excerptIds": [
         "public-background-network-settings"
       ],
-      "semanticTextBytes": 23124,
-      "semanticTextSha256": "7c1f7eb2bab255a4602f0cbd0a311dfa055a2ddb3d5e1ab3f7d813931beeafaf",
+      "semanticTextBytes": 23033,
+      "semanticTextSha256": "51b347ff99c2a20ddedca68190a171a976fe68dfe91fbb94bd87d811c20686c8",
       "excerptSha256": {
         "public-background-network-settings": "a801ea97a5099d40e486e6b42c37bcc38ce2d2e35878953c690221278dd23926"
       },
@@ -415,15 +415,15 @@
       "id": "claude-remote-control",
       "url": "https://code.claude.com/docs/en/remote-control",
       "status": 200,
-      "bytes": 621171,
-      "sha256": "2f9f4f6a9c73aca293e7a5fd9fe22281cc6b2a136ebbfd36e252fd2e981c2ed5",
+      "bytes": 618356,
+      "sha256": "8062191bef04c1ee38fff7262ee31e719888ba111f7aed9c894dd9e4cfd9a877",
       "excerptIds": [
         "public-remote-local-execution",
         "public-remote-transcript-security",
         "public-remote-compact-reconnect"
       ],
-      "semanticTextBytes": 48805,
-      "semanticTextSha256": "beee0b7b721ba9ae258afb23cfbd18e38ec375b58970339c37cc95b0770a9d4f",
+      "semanticTextBytes": 48791,
+      "semanticTextSha256": "38fb169b3607389b28c8bc80197b1ca013af2543742b93f08e4ab9d7ae5b83d9",
       "excerptSha256": {
         "public-remote-local-execution": "b895f063f77de47138a35a4586c8db17dbfe43faeaa2aa441f59fb25698a3cd7",
         "public-remote-transcript-security": "b95812743f1dba8b0f86dc67ce0333551aaa2426cb93a2dd3da9e747926d4ae6",
@@ -439,13 +439,13 @@
       "id": "claude-ide-integrations",
       "url": "https://code.claude.com/docs/en/ide-integrations",
       "status": 200,
-      "bytes": 700422,
-      "sha256": "1c06c2d53b54660aa0587cd57cd7724e232a7728b0d37c006c07e7cae21b84b3",
+      "bytes": 687064,
+      "sha256": "b1788476249f0a50591f16a0ca0d9a7e7791b6781ecd3e381fa1bd5528def315",
       "excerptIds": [
         "public-ide-loopback-contract"
       ],
-      "semanticTextBytes": 40969,
-      "semanticTextSha256": "c2c047bb99ccc082e5baf1e5caa91dd55140e5290634058e0087e00bd851fb48",
+      "semanticTextBytes": 40619,
+      "semanticTextSha256": "a0892ee67e053fa4a77a548f44db654cf0d9cc5fe88e9e94875d474e163eeeeb",
       "excerptSha256": {
         "public-ide-loopback-contract": "57e3a1479349007112237292b6f1c7f5b135d3afa90db688cc504b85cd5082d9"
       },
@@ -457,14 +457,14 @@
       "id": "claude-setup",
       "url": "https://code.claude.com/docs/en/setup",
       "status": 200,
-      "bytes": 942487,
-      "sha256": "a2077b368fc2bac7c4e8543621f5bb8fbaa7b1f99cdce608838cf9379368a73b",
+      "bytes": 942418,
+      "sha256": "f6e43d0ca158a8e75393a3be5e6be7713e2d4667f15acbeeae5a3b470bb89575",
       "excerptIds": [
         "public-doctor-readonly",
         "public-disable-updates"
       ],
-      "semanticTextBytes": 26623,
-      "semanticTextSha256": "fa15cdf4a6ded6f651dfcfc41043b9122c9bc269f64d9765ace18b4ce56a7d6b",
+      "semanticTextBytes": 26783,
+      "semanticTextSha256": "cd7fffe2209ff9d2befe5770e08e0457b0fbc609586c01c0387808575207bc9f",
       "excerptSha256": {
         "public-doctor-readonly": "780d6b77423a7e5543dd1fa182a54c041f2992d77ab848e104856d33e3487c46",
         "public-disable-updates": "ebb120dbf12fd7e1019fd1253ea53feb102e8caf4785ee3b4c3759a60f0eab3b"
@@ -478,18 +478,114 @@
       "id": "claude-troubleshooting",
       "url": "https://code.claude.com/docs/en/troubleshooting",
       "status": 200,
-      "bytes": 438039,
-      "sha256": "0ca72f6813c0931987249f61916e60f5f705ced8c8dfcbc94e1f5852222b8f6c",
+      "bytes": 437249,
+      "sha256": "753a14cbc177635a53bf95f878f4a961a9960e3965b6e684a6aabdca7bc71890",
       "excerptIds": [
         "public-autocompact-thrashing"
       ],
-      "semanticTextBytes": 10425,
-      "semanticTextSha256": "2f55cd36ed5d3d7190256fa91dc7ee1622191564593770c736436d134428b67f",
+      "semanticTextBytes": 10430,
+      "semanticTextSha256": "c87e4c492df69ae4c73a0c351f526879eefbe1de1789bccdbdb7b9871fa29a49",
       "excerptSha256": {
         "public-autocompact-thrashing": "a9040247383dc63eab5626fda4b512f2ac251d94896a903cf3ed69294f7aa028"
       },
       "excerptSourceVerified": {
         "public-autocompact-thrashing": true
+      }
+    },
+    {
+      "id": "anthropic-prompt-cache-harness",
+      "url": "https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything",
+      "status": 200,
+      "bytes": 546913,
+      "sha256": "2cf11a01bf66d7efa443cc8686782a2f12aea9e95e2d2da5248cd9f0fd3a06aa",
+      "excerptIds": [
+        "public-cache-harness-order"
+      ],
+      "semanticTextBytes": 24725,
+      "semanticTextSha256": "c710265017d30668702a3a819dd11862a58ecb2e280337cc726e56ac14fda299",
+      "excerptSha256": {
+        "public-cache-harness-order": "2e68aa56bfa8991ab06f246b3eefdda1538d21070df372c917608e3f3eb2a40c"
+      },
+      "excerptSourceVerified": {
+        "public-cache-harness-order": true
+      }
+    },
+    {
+      "id": "anthropic-auto-mode",
+      "url": "https://www.anthropic.com/engineering/claude-code-auto-mode",
+      "status": 200,
+      "bytes": 181716,
+      "sha256": "36887f4af1ef2299728a2cd9b71b77f783eaf7ac496766e29542e2176eec21e9",
+      "excerptIds": [
+        "public-auto-mode-threat-model",
+        "public-auto-mode-eval"
+      ],
+      "semanticTextBytes": 24342,
+      "semanticTextSha256": "980fece63ba9d17f476a701c57e741f0c195674396be3e3ab4383c0ce7d95968",
+      "excerptSha256": {
+        "public-auto-mode-threat-model": "5462b95abca16fb16c595434a58871eef30abf8515c23c09d70821dc6a5abdb8",
+        "public-auto-mode-eval": "d3acea4bc6646ba9cf51ecec43aee43e51bbe6f5b0cc761b78c9e8f7c9bc55a3"
+      },
+      "excerptSourceVerified": {
+        "public-auto-mode-threat-model": true,
+        "public-auto-mode-eval": true
+      }
+    },
+    {
+      "id": "anthropic-advanced-tool-use",
+      "url": "https://www.anthropic.com/engineering/advanced-tool-use",
+      "status": 200,
+      "bytes": 245068,
+      "sha256": "cf39ccebffc6a877231ff2d748bb98750ebfb881e0ca97248bbfcc53a7b9ebf2",
+      "excerptIds": [
+        "public-tool-search-scale"
+      ],
+      "semanticTextBytes": 24567,
+      "semanticTextSha256": "4d9bdfd0e305093ed6a3f7cad250c7dc7ea976b90c00c86252d804f5c69a1fda",
+      "excerptSha256": {
+        "public-tool-search-scale": "07a73c8bfe76471425d532699e2c98ba894f2697c7c1e7f62f29276e02870bf0"
+      },
+      "excerptSourceVerified": {
+        "public-tool-search-scale": true
+      }
+    },
+    {
+      "id": "anthropic-sandboxing-engineering",
+      "url": "https://www.anthropic.com/engineering/claude-code-sandboxing",
+      "status": 200,
+      "bytes": 130338,
+      "sha256": "99922ed6260bf81097b85b1ddcc67bbc1a606945c3ab3cf19e6d73bdaed5d3e4",
+      "excerptIds": [
+        "public-sandbox-os-proxy"
+      ],
+      "semanticTextBytes": 9235,
+      "semanticTextSha256": "988710c9c73508ec35a4e67d0ad629540751d3d5968d328dbce035b316a46df8",
+      "excerptSha256": {
+        "public-sandbox-os-proxy": "c20be1e918d740717039d6953384743825df56ea8bcc6120b02529109ae2fc8e"
+      },
+      "excerptSourceVerified": {
+        "public-sandbox-os-proxy": true
+      }
+    },
+    {
+      "id": "claude-data-usage",
+      "url": "https://code.claude.com/docs/en/data-usage",
+      "status": 200,
+      "bytes": 413635,
+      "sha256": "727c24de7a619528f70b44d7fae3832bc73e0599f3e4cae8b49e10f0f712193e",
+      "excerptIds": [
+        "public-local-transcript-retention",
+        "public-webfetch-hostname-preflight"
+      ],
+      "semanticTextBytes": 16685,
+      "semanticTextSha256": "6aadd10d3763491866f87e9e047297ae004b82d7bd0429b1abf951a6b49ccae1",
+      "excerptSha256": {
+        "public-local-transcript-retention": "3d44f2cf226ae5f918928ebfdd857e690bf9f8d6a08ac2801b54c5a952b958e6",
+        "public-webfetch-hostname-preflight": "65ab45aea21c29ce9cb33096f144e0ab16528163bfa7593cd94e478f93ad2e13"
+      },
+      "excerptSourceVerified": {
+        "public-local-transcript-retention": true,
+        "public-webfetch-hostname-preflight": true
       }
     }
   ]

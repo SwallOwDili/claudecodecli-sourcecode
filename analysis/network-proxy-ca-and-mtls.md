@@ -20,7 +20,7 @@
 | CA trust | 客户端是否信任服务端/代理证书 | bundled/system store、`NODE_EXTRA_CA_CERTS` | CA aggregate cache | client cert 能替代 root CA |
 | mTLS identity | 客户端向服务端证明什么身份 | cert/key/passphrase | last-good material、HTTPS agent | CA 信任成功就等于 mTLS 成功 |
 | CCR policy relay | Remote 子进程流量是否经组织 egress policy | session ID/token、feature gate、relay CA | local relay、WS pool、tool trust state | 与普通 `HTTPS_PROXY` 完全同一实现 |
-| telemetry exporter | Claude 自身 OTLP 如何建立 TLS | `OTEL_EXPORTER_OTLP_*` certificate/client cert/key | exporter 自己的 agent/credentials | 通用 `mg()` 已覆盖 OTLP |
+| telemetry exporter | Claude 自身 OTLP HTTP 如何建立 TLS | OTLP endpoint/protocol + 通用 proxy、CA、mTLS | `n1i() -> Kol()` programmatic agent | OTLP 专用 cert变量一定拥有 effective agent |
 
 ## 完整调用顺序：启动状态怎样进入一次请求
 
@@ -368,26 +368,25 @@ Remote 子进程所需的 proxy/CA env 由 agent proxy env provider重新注入�
 
 Static：`reverse/javascript/cli.readable.js` 93505-93530、421865-421885。
 
-## OTLP TLS 是独立 exporter 配置，不能从通用代理代码外推
+## OTLP 库有独立 TLS 变量，但 2.1.235 的有效 agent 由 Claude 覆盖
 
-OTLP HTTP exporter读取：
+bundled OTLP HTTP library 确实读取：
 
 - `OTEL_EXPORTER_OTLP_<SIGNAL>_CERTIFICATE` / 通用 certificate；
 - `..._CLIENT_CERTIFICATE`；
 - `..._CLIENT_KEY`；
 
-并构造自己的 HTTP agent。OTLP gRPC exporter读取同类文件，按 endpoint scheme 或 insecure flag创建 gRPC credentials；client key/cert 应成对提供。
+并为这些值构造 environment `agentFactory`。OTLP gRPC exporter也读取同类文件，按 endpoint scheme或 insecure flag创建 gRPC credentials。只读到这里，会得出“OTLP 使用自己独立 CA/mTLS agent”的结论，但这不是 2.1.235 HTTP exporter 的最终合并结果。
 
-目标 bundle 中没有一条已连通的静态调用链证明这些 exporter 经过 Claude Code 的通用 `mg()`、Axios interceptor 或 CCR CONNECT relay。因此准确结论是：
+Claude Code 在 `n1i("logs")` 返回的 programmatic options 里无条件写入 `httpAgentOptions = Kol(endpoint)`；legacy converter把它变成 programmatic `agentFactory`。OTLP merge 的顺序是：
 
 ```text
-OTLP 有独立 TLS/mTLS material 配置；
-通用 HTTP(S)_PROXY 是否覆盖某一 exporter，需按 exporter library 和运行 Probe 验证。
+programmatic agentFactory ?? environment agentFactory ?? default agentFactory
 ```
 
-不能因为进程环境里有 `HTTPS_PROXY` 就宣称 telemetry 一定通过同一个企业 proxy。
+因此 environment parser 虽然读到了 `OTEL_EXPORTER_OTLP_*_CERTIFICATE/CLIENT_*`，它生成的 factory 排在 Claude 注入的 `Kol()` 后面。HTTP logs 的有效 routing/TLS owner 实际回到 Claude 通用网络配置：`https_proxy/HTTPS_PROXY`、`NODE_EXTRA_CA_CERTS` 与 `CLAUDE_CODE_CLIENT_CERT/KEY`。这条结论只适用于本版由 `n1i()` 构造的 HTTP exporter；gRPC credentials 仍是另一条实现。
 
-Static：`reverse/javascript/cli.readable.js` 345993-346015、357461-357496。Boundary：本快照没有新增 OTLP-through-proxy wire Probe。
+Static：环境 TLS parser见 `reverse/javascript/cli.readable.js` 345993-346015；merge precedence见 345748-345764；Claude programmatic agent见 361719-361737；gRPC credentials见 357461-357496。下面的 exact-binary Probe 验证 HTTP logs 的有效 owner。
 
 ## 设置热更新和证书轮换的状态转换
 
@@ -419,7 +418,24 @@ Static：`reverse/javascript/cli.readable.js` 273155-273168。
 
 报告的 14 个 checks 全为 true。专属 validator 交叉校验版本/SHA、命令与 marker、exit/result、API 命中、proxy A/B、mTLS peer 和四条 Boundary；22 种字段/结构伪造全部被拒绝。
 
-**不能外推：** 这组 Probe 只覆盖主 Messages HTTPS transport。Axios、undici global dispatcher、WebSocket、AWS SDK、MCP、OTLP、子进程和 CCR relay 仍需分别建立 wire Probe；client cert 成功也不证明企业证书签发、轮换或撤销。
+**不能外推：** 这组 Probe 只覆盖主 Messages HTTPS transport。Axios、undici global dispatcher、WebSocket、AWS SDK、MCP、子进程和 CCR relay 仍需分别建立 wire Probe；OTLP 由下一组独立报告验证。client cert 成功也不证明企业证书签发、轮换或撤销。
+
+## 精确二进制 Probe：OTLP HTTP logs 的有效 CA、mTLS 与 proxy owner
+
+[`otlp-tls.json`](runtime-probes/otlp-tls.json) 用同一 SHA-256 的 `2.1.235` 二进制运行 15 个互相隔离的 CLI 进程。本地 Messages stub只负责让 Agent 正常结束；另建普通 HTTPS、TLS 1.2、强制 mTLS collector和两个 CONNECT proxy。Node 原生客户端先对三种 collector逐一 POST并得到 200，避免把坏夹具归咎于 Claude。
+
+| 对照 | 配置与外部观测 | 结论 |
+| --- | --- | --- |
+| 无额外 CA | collector 没有 HTTP request；TLS server记录 `ERR_SSL_DECRYPTION_FAILED_OR_BAD_RECORD_MAC` | 该受控自签 collector不可达，但 Agent task仍 success/exit 0 |
+| signal/common OTLP CA | `OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE`、通用 `..._CERTIFICATE` 均零 HTTP；JSON、protobuf、TLS 1.2、IP SAN和 signal-over-wrong-common对照不改变结果 | library environment agent没有成为 effective agent；不能把变量“被读取”写成证书已生效 |
+| Claude global CA | `NODE_EXTRA_CA_CERTS=$CA` 后 collector收到 `POST /v1/logs`、`application/json` | `Kol()` 的通用 CA owner真实生效 |
+| OTLP client pair | 配置 `OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE/KEY` 后 mTLS server仍记录 `ERR_SSL_PEER_DID_NOT_RETURN_A_CERTIFICATE` | library client pair没有进入 effective HTTP agent |
+| Claude client pair | `CLAUDE_CODE_CLIENT_CERT/KEY` 后 collector记录 `authorized=true`、CN=`Claude OTLP Probe Client`；只给 cert 不给 key仍在 HTTP前拒绝 | 通用 mTLS owner进入 OTLP HTTP handshake，且 pair不能拆开 |
+| proxy precedence | endpoint使用 `collector.invalid`，小写/大写 proxy冲突；只有小写 proxy收到 `CONNECT collector.invalid:$TLS_PORT`，collector POST成功 | OTLP HTTP继承通用 proxy selector，小写值获胜 |
+
+30 个 required checks全部为 true；26 类伪造会被专属 validator拒绝，包括把 signal-specific CA伪造成成功、把 OTLP client pair伪造成已发送、篡改 mTLS CN或把 collector CONNECT改标为大写 proxy。两次报告去掉 `capturedAt` 后 SHA-256一致。
+
+三个边界必须保留。第一，正向结果覆盖 HTTP/JSON logs；protobuf臂只用于证明 agent precedence，没有建立完整 protobuf成功合同。第二，gRPC、metrics、traces、collector retention/remote delivery和 CCR relay未由该报告验证。第三，`NODE_TLS_REJECT_UNAUTHORIZED=0` 只是诊断对照，不能作为修复方案或可接受安全姿态。
 
 ## 成功、失败与恢复矩阵
 
@@ -436,7 +452,7 @@ Static：`reverse/javascript/cli.readable.js` 273155-273168。
 | CCR status 有 `toolTrustFailureCodes` | tool adapter | CA bundle存在，但 JVM/NSS/Bazel/boto 某项未配置 | 按 code 修工具信任；不要关闭 TLS verification |
 | CCR startup probe failed | hosted relay unreachable | local relay启动但 traffic 可 502；主 init继续 | 检查到 CCR base URL 的 egress和 status endpoint |
 | gRPC/WS/client-mTLS/raw TCP 试图走 CCR relay | unsupported transport | CONNECT relay不把这些协议升级为受支持 | 改用独立 transport；不能靠重试或关闭 TLS verification 恢复 |
-| OTLP exporter连不上 | telemetry TLS/transport | 使用 exporter 自己的 cert/key/agent | 检查 `OTEL_EXPORTER_OTLP_*`；单独做 wire Probe |
+| OTLP exporter连不上 | effective agent/TLS | HTTP exporter的 programmatic `Kol()` 遮蔽 library env agent；失败不终止 Agent task | 2.1.235 检查通用 `NODE_EXTRA_CA_CERTS`、`CLAUDE_CODE_CLIENT_CERT/KEY` 和 proxy；不要假设 OTLP 专用 cert变量生效 |
 | 子进程看不到 `OTEL_*` | env scrub，非 bug | CLI 主动删除，防止 telemetry config 继承 | 给子进程显式配置它自己的 telemetry，不依赖继承 |
 
 ## 隐私、安全、性能与运维成本
@@ -477,7 +493,7 @@ CCR/tool-trust setup 可能写 system trust、JVM truststore、NSS、boto、Baze
 | --- | --- | --- | --- |
 | `Public` | [官方网络配置摘录](public-source-excerpts.md#public-background-network-settings) | 当前公开产品要求背景 session 从 settings env获取一致网络配置 | 不证明 2.1.235 每个 transport 的 adapter 与阈值 |
 | `Static` | proxy/CA/mTLS/CCR/MCP/OTLP 的目标 bundle 调用链 | 本版优先级、TTL、caps、fallback、env scrub和失败分支 | 某企业 proxy/CA/CCR 服务当前可达 |
-| `Probe` | 精确二进制本地 HTTPS/CONNECT/CA/mTLS 场景；另引用 sandbox network Probe | 主 Messages transport 的 proxy precedence、NO_PROXY、invalid proxy、extra CA 与 client identity | 407 helper、轮换、Axios/WS/AWS/MCP/OTLP/CCR transport |
+| `Probe` | 精确二进制 Messages 与 OTLP HTTP logs 两组 HTTPS/CONNECT/CA/mTLS 场景；另引用 sandbox network Probe | 两个 transport 的有效 CA/mTLS owner、proxy precedence及失败隔离 | 407 helper、轮换、Axios/WS/AWS/MCP/OTLP gRPC/CCR transport |
 | `Boundary` | server policy、真实企业 PKI、Remote entitlement、exporter proxy behavior | 明确哪些结论仍需现场触发 | 不代表代码路径不存在 |
 
 ## 关键源码定位
@@ -496,6 +512,8 @@ CCR/tool-trust setup 可能写 system trust、JVM truststore、NSS、boto、Baze
 | MCP HTTP/SSE/WS/stdio transports | [385585-385648](../reverse/javascript/cli.readable.js#L385585) |
 | child env OTEL scrub | [93505-93530](../reverse/javascript/cli.readable.js#L93505)、[421865-421885](../reverse/javascript/cli.readable.js#L421865) |
 | OTLP HTTP TLS material | [345993-346015](../reverse/javascript/cli.readable.js#L345993) |
+| OTLP HTTP agent merge precedence | [345748-345764](../reverse/javascript/cli.readable.js#L345748) |
+| Claude OTLP programmatic `Kol()` agent | [361719-361737](../reverse/javascript/cli.readable.js#L361719) |
 | OTLP gRPC credentials | [357461-357496](../reverse/javascript/cli.readable.js#L357461) |
 
 ## 后续版本交叉对比清单
@@ -515,6 +533,7 @@ CCR/tool-trust setup 可能写 system trust、JVM truststore、NSS、boto、Baze
 11. CCR unsupported protocol清单是否缩小或扩大。
 12. MCP各 transport与 stdio env inheritance 是否变化。
 13. child process `OTEL_*` scrub是否仍存在，是否增加其他敏感 family。
-14. OTLP exporter是否新接入通用 proxy/CCR adapter；必须用 wire Probe确认。
+14. OTLP HTTP是否仍由 `n1i() -> Kol()` 覆盖 library env agent；OTLP专用 cert变量是否开始变成 effective配置。
+15. OTLP logs的 proxy precedence、Claude global CA/mTLS owner与失败隔离是否变化；gRPC/metrics/traces需另做 wire Probe。
 
 真正的网络验收应为每个 transport记录：实际目标、selected proxy、NO_PROXY判定、CA来源、client cert fingerprint、请求次数、literal错误/响应和外部服务命中。环境变量清单只能证明配置输入，不能证明最终路由。

@@ -38,18 +38,18 @@ INDEX_PATH = "analysis/error-diagnostic-owner-index.md"
 
 # Filled after the reviewed rule set is bootstrapped. These constants make rule
 # deletion or silent coverage drift a validation failure on the fixed release.
-EXPECTED_RULES_SHA256 = "14458a4ef341de632f0e859060e917c4cd7d199bdced6d8ca7424d1dc97a40bd"
-EXPECTED_RULE_COUNT = 43
+EXPECTED_RULES_SHA256 = "58454341fe4b5135e5cd1908ec07a437485e9b75827841dd17bb2d566a90a749"
+EXPECTED_RULE_COUNT = 49
 EXPECTED_OWNER_COUNTS = {
     "Product": 308,
-    "Dependency": 250,
-    "Unresolved": 9_676,
+    "Dependency": 376,
+    "Unresolved": 9_550,
 }
 EXPECTED_STREAM_OWNER_COUNTS = {
     "Error constructor": {
         "Product": 54,
-        "Dependency": 250,
-        "Unresolved": 4_527,
+        "Dependency": 376,
+        "Unresolved": 4_401,
     },
     "Diagnostic callsite": {
         "Product": 254,
@@ -256,16 +256,27 @@ SEEDS = (
         tool_result_owner="tool pipeline end-turn owner",
     ),
     product_seed(
-        "product-hook-failure-diagnostic",
+        "product-hook-interrupt-diagnostic",
         "diagnostic",
         "tool/hooks-permission",
-        "hook runner cancellation and failure diagnostics",
-        (
-            "1.53534.53544",
-            "1.53612.53617",
-            "1.53612.53624",
-            "1.55101",
-        ),
+        "hook deny/interrupt decision diagnostic",
+        ("1.53534.53544",),
+    ),
+    product_seed(
+        "product-permission-hook-catch-diagnostic",
+        "diagnostic",
+        "tool/hooks-permission",
+        "permission hook async failure/cancellation catch",
+        ("1.53612.53617", "1.53612.53624"),
+        catch_owner="permission request hook async catch boundary",
+    ),
+    product_seed(
+        "product-post-tool-hook-catch-diagnostic",
+        "diagnostic",
+        "tool/hooks-permission",
+        "PostToolUse cancellation/timeout catch",
+        ("1.55101",),
+        catch_owner="PostToolUse outer catch boundary",
     ),
     product_seed(
         "product-sandbox-error",
@@ -541,6 +552,81 @@ SEEDS = (
         "OpenTelemetry global API registration guards",
         r"@opentelemetry/api:",
         "global API register/version check",
+    ),
+    dependency_scope_seed(
+        "dependency-protobufjs-reader",
+        "protobufjs/minimal",
+        "protobuf wire reader bounds and encoding guards",
+        (
+            "1.63353.63354",
+            "1.63353.63356",
+            "1.63353.63357",
+            "1.63353.63365",
+            "1.63353.63376",
+        ),
+        "Reader index/varint/wire-type guards",
+    ),
+    dependency_scope_seed(
+        "dependency-grpc-service-config",
+        "@grpc/grpc-js",
+        "gRPC service config, retry, hedging and load-balancing validation",
+        (
+            "1.64314.64315",
+            "1.64314.64316",
+            "1.64314.64317",
+            "1.64314.64318",
+            "1.64314.64319",
+            "1.64314.64320",
+            "1.64314.64321",
+            "1.64314.64322",
+            "1.64314.64323",
+        ),
+        "service-config parser and retry/hedging policy validators",
+    ),
+    dependency_scope_seed(
+        "dependency-google-auth-oauth2client",
+        "google-auth-library",
+        "OAuth2Client token, certificate and refresh-handler guards",
+        (
+            "1.20986.20991",
+            "1.20986.20992",
+            "1.20986.21001",
+            "1.20986.21007",
+            "1.20986.21009",
+            "1.20986.21016",
+            "1.20986.21021",
+            "1.20986.21023",
+            "1.20986.21027",
+            "1.20986.21031",
+            "1.20986.21032",
+            "1.20986.21033",
+        ),
+        "OAuth2Client auth URL, refresh, ID-token and signed-JWT validators",
+    ),
+    dependency_scope_seed(
+        "dependency-jose",
+        "jose",
+        "JWS/JWT/JWK algorithm, key-type and claims validation",
+        (
+            "1.102244",
+            "1.102245",
+            "1.102338",
+            "1.102350",
+            "1.102371",
+            "1.102410",
+            "1.102462.102466",
+            "1.102462.102468",
+            "1.102476.102477",
+            "1.102625.102631",
+            "1.102712.102772",
+            "1.102928",
+            "1.102937",
+            "1.102958",
+            "1.102959",
+            "1.102982",
+            "1.102992",
+        ),
+        "JWS/JWT/JWK validation functions",
     ),
     dependency_message_seed(
         "dependency-opentelemetry-protobuf",
@@ -1026,6 +1112,7 @@ def build_index(
 ) -> str:
     counts = summary["classification"]
     by_stream = summary["classificationByStream"]
+    flow = summary["productFlowEvidence"]
     grouped: dict[str, list[dict[str, Any]]] = collections.defaultdict(list)
     by_identity = {row["identity"]: row for row in projection}
     for rule in rules_document["rules"]:
@@ -1047,6 +1134,8 @@ def build_index(
         f"| **全量** | **{EXPECTED_INPUTS['error']['lines']:,}** | **{EXPECTED_INPUTS['diagnostic']['lines']:,}** | **{len(projection):,}** | 每条 canonical callsite 恰好出现一次 |",
         "",
         "这不是把 `Unresolved` 换成漂亮标签。当前只收口高置信第一批；剩余记录继续作为可量化的 semantic debt。特别是 diagnostic 的 `T()` 名称在压缩 bundle 中可能与依赖局部符号碰撞，未审阅 scope 不按“看起来像日志”归 Product。",
+        "",
+        f"Product flow 继续独立 fail closed：catchOwner 仅 **{flow.get('catchOwner:Resolved exact rule', 0):,}** 条、retryOwner **{flow.get('retryOwner:Resolved exact rule', 0):,}** 条、toolResultOwner **{flow.get('toolResultOwner:Resolved exact rule', 0):,}** 条、userSurfaceOwner **{flow.get('userSurfaceOwner:Resolved exact rule', 0):,}** 条获得 exact rule。owner 已解析不会自动抬高四个 flow 字段。",
         "",
         "## 四个 Product 后续 owner 字段怎样读",
         "",

@@ -1,6 +1,6 @@
 # 官方来源固定摘录
 
-这些摘录只用于保存 2026-08-21 刷新时实际看到的公开主张。响应原始哈希、去噪正文哈希、逐摘录哈希、逐句正文命中状态、字节数、HTTP 状态和 URL 见 [public-sources/manifest.json](public-sources/manifest.json)。刷新脚本要求每条引用逐句存在于当次页面的可见正文，防止把分析者概括伪装成官方原话。公开资料解释设计目标；`2.1.235` 是否实现仍由 `Static` 或 `Probe` 证据决定。
+这些摘录只用于保存 2026-08-24 刷新时实际看到的公开主张。响应原始哈希、去噪正文哈希、逐摘录哈希、逐句正文命中状态、字节数、HTTP 状态和 URL 见 [public-sources/manifest.json](public-sources/manifest.json)。刷新脚本要求每条引用逐句存在于当次页面的可见正文，防止把分析者概括伪装成官方原话。公开资料解释设计目标；`2.1.235` 是否实现仍由 `Static` 或 `Probe` 证据决定。
 
 ## `public-agentic-loop-phases`
 
@@ -153,20 +153,20 @@ Source: `claude-monitoring-usage`
 
 Source: `claude-settings`
 
-> When the same setting appears in multiple scopes, Claude Code applies them in priority order:
-> Managed (highest): can’t be overridden by any other scope, apart from the exceptions to managed settings precedence
-> Command line arguments: temporary session overrides
-> Local: overrides project and user settings
-> Project: overrides user settings
-> User (lowest): applies when nothing else specifies the setting
-> Permission rules merge across scopes instead, and a few security-sensitive keys are exceptions.
+> When the same key appears in more than one place, Claude Code uses the value from the highest level that sets it.
+> In order, highest precedence first:
+> Managed settings:
+> Command line arguments:
+> Project local settings
+> Shared project settings
+> User settings
 
 ## `public-settings-live-reload`
 
 Source: `claude-settings`
 
-> Claude Code watches your settings files and reloads them when they change, so edits to most keys apply to the running session without a restart.
-> The reload covers user, project, local, and managed settings, and the ConfigChange hook fires for each detected change.
+> Claude Code watches your settings files and reloads them when they change, so it applies most edits to the running session without a restart, including edits to permissions, hooks, and credential helpers such as apiKeyHelper.
+> The reload covers user, project, local, and managed settings, and Claude Code runs the ConfigChange hook for each settings-file change it detects, not for managed settings that arrive from MDM or the claude.ai console.
 
 ## `public-fallback-chain`
 
@@ -238,3 +238,53 @@ Source: `claude-troubleshooting`
 
 > If you see Autocompact is thrashing: the context refilled to the limit..., automatic compaction succeeded but a file or tool output immediately refilled the context window several times in a row.
 > Claude Code stops retrying to avoid wasting API calls on a loop that isn’t making progress.
+
+## `public-cache-harness-order`
+
+Source: `anthropic-prompt-cache-harness`
+
+> At Claude Code, we build our entire harness around prompt caching.
+> The best way to do this is static content first, dynamic content last.
+> In Claude Code, we add a <system-reminder> tag in the next user message or tool result with the updated information for the model, which helps preserve the cache.
+> When we run compaction, we use the exact same system prompt, user context, system context, and tool definitions as the parent conversation.
+
+## `public-auto-mode-threat-model`
+
+Source: `anthropic-auto-mode`
+
+> At the input layer, a server-side prompt-injection probe scans tool outputs (file reads, web fetches, shell output, external tool responses) before they enter the agent's context.
+> The classifier sees only user messages and the agent's tool calls; we strip out Claude's own messages and tool outputs, making it reasoning-blind by design.
+
+## `public-auto-mode-eval`
+
+Source: `anthropic-auto-mode`
+
+> Stage 1->Stage 2 (full pipeline) 0.4% FPR 17% FNR 5.7% FNR
+
+## `public-tool-search-scale`
+
+Source: `anthropic-advanced-tool-use`
+
+> That's 58 tools consuming approximately 55K tokens before the conversation even starts.
+> At Anthropic, we've seen tool definitions consume 134K tokens before optimization.
+> This represents an 85% reduction in token usage while maintaining access to your full tool library.
+
+## `public-sandbox-os-proxy`
+
+Source: `anthropic-sandboxing-engineering`
+
+> It is worth noting that effective sandboxing requires both filesystem and network isolation.
+> We've built this on top of OS level primitives such as Linux bubblewrap and MacOS seatbelt to enforce these restrictions at the OS level.
+
+## `public-local-transcript-retention`
+
+Source: `claude-data-usage`
+
+> Local caching: Claude Code clients store session transcripts locally in plaintext under ~/.claude/projects/ for 30 days by default to enable session resumption.
+
+## `public-webfetch-hostname-preflight`
+
+Source: `claude-data-usage`
+
+> Before fetching a URL, the WebFetch tool sends the requested hostname to api.anthropic.com to check it against a safety blocklist maintained by Anthropic.
+> Only the hostname is sent, not the full URL, path, or page contents.

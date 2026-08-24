@@ -301,9 +301,19 @@ hook 结果、permission mode、规则、managed policy、sandbox、安全分类
 6. Stop/SubagentStop hook；
 7. 正常 `completed`。
 
+### Prompt-too-long 为什么不一定立刻显示
+
+主请求把`promptTooLongIsHandled:true`交给transport。常见400/413，以及任何命中PTL/context-overflow文本或typed marker的error，会先变成internal`Prompt is too long`assistant error；Agent Loop把它留在内部候选列表，但暂时不向用户stream yield。随后它检查rapid-refill breaker、合法message group、auto-compact/remote/abort gate和prior attempt，再选择precomputed swap或一次reactive compact。
+
+- 成功：outward stream只发compact boundary、summary和重建attachment/hook；preserved messages留在active history，不向外重复发一遍。transition为`precomputed_compact_swap`或`reactive_compact_retry`，同一逻辑turn再次请求；原PTL不显示。
+- 普通失败或不具备资格：才把原错误和可选compact failure detail交给上层，terminal reason为`prompt_too_long`。
+- Rapid-refill breaker：surface专用thrashing文案，terminal reason为`rapid_refill_breaker`，不伪装成原PTL。
+
+这里的“扣住”只作用于用户出口。OTEL error、span failure、compact progress和 retry状态仍可存在，所以不能写成“错误完全静默”。主路径见可读 JS 271834-271842、272019-272038、272185-272213。
+
 ### `max_tokens` 恢复
 
-达到输出上限不一定立刻结束。本版常量 `DGS=3`，因此初次截断后最多再发起 **3 次**恢复请求；计数器 `maxOutputTokensRecoveryCount` 独立于正常 `turnCount`，工具成功进入下一轮时会重置。
+达到输出上限不一定立刻结束。正常 stream 的 `stop_reason=max_tokens` 或 `model_context_window_exceeded` 会先生成一个 internal `max_output_tokens` sentinel；这个 sentinel暂不向 outward stream yield，但截断前已流出的普通文字仍可能可见。本版常量 `DGS=3`，因此初次截断后最多再发起 **3 次**恢复请求；计数器 `maxOutputTokensRecoveryCount` 独立于正常 `turnCount`，工具成功进入下一轮时会重置。
 
 恢复分两条路径，不能统一写成“总会追加 continuation prompt”：
 
@@ -312,7 +322,9 @@ hook 结果、permission mode、规则、managed policy、sandbox、安全分类
 | 普通续写 | 默认路径，或响应不满足完整 thinking 恢复条件 | 保留已有 assistant/error 视图，再追加隐藏提示，要求直接续写、不道歉、不复述 |
 | incomplete-thinking 恢复 | 响应恰好只有一个可恢复的 signed thinking block、`stop_reason=max_tokens`、模型兼容，且 `tengu_thinking_block_resumption` gate 开启 | 不追加普通续写提示；保留 trailing thinking，设置 `resumeIncompleteThinking=true`，后续 assistant 标记 `resumedFromIncompleteThinking` |
 
-第二条路径保护的是签名 thinking 连续性，不是应用层文本拼接；本地 feature override 在 2.1.235 不可达，因此静态代码能证明该分支合同，但不能把它写成所有用户当前都会命中的默认行为。3 次仍未恢复时，CLI 才把最后一个 `max_output_tokens` 错误交给上层。
+第二条路径保护的是签名 thinking 连续性，不是应用层文本拼接；本地 feature override在 2.1.235 不可达，因此静态代码能证明该分支合同，但不能把它写成所有用户当前都会命中的默认行为。
+
+**本版不会在这里把 8K 自动提升成 64K。** recovery state 的 `maxOutputTokensOverride` 为 `undefined`，下一次请求仍重新解析当前 model/config/env的输出预算。3 次仍未恢复时，CLI才把最后一个 `max_output_tokens` 错误交给上层。证据见 272215-272224、409474、410242-410245。
 
 ### malformed tool use
 

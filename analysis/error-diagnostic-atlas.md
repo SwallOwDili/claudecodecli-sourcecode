@@ -36,8 +36,8 @@
 - constructor message argument shape：`string` 2,891, `template` 1,493, `call` 169, `identifier` 110, `member-or-call` 67, `missing` 59, `expression` 23, `conditional` 17, `array` 2。`missing` 或动态表达式表示静态阶段拿不到最终 message，不表示没有错误。
 - diagnostic `T()` callsites 共 **5,403**；显式/默认 level：`default-debug` 3,325, `verbose` 16, `debug` 42, `info` 58, `warn` 962, `error` 1,000。没有第二参数时由 `T()` 默认成 debug。
 - diagnostic message argument shape：`template` 4,413, `string` 859, `identifier` 55, `member-or-call` 33, `conditional` 28, `call` 15。template 占多数，说明最终日志常带运行时 path/status/id，公开时不能只扫描固定 literal。
-- exact owner projection 覆盖全部 **10,234** 条 callsite：`Product exact caller` **308**、`Dependency exact package/function` **250**、`Unresolved` **9,676**；当前精确收口 **558** 条，不用宽行区间或相似文案补 owner。
-- 分流后 Error constructor 为 Product **54** / Dependency **250** / Unresolved **4,527**；Diagnostic 为 Product **254** / Dependency **0** / Unresolved **5,149**。
+- exact owner projection 覆盖全部 **10,234** 条 callsite：`Product exact caller` **308**、`Dependency exact package/function` **376**、`Unresolved` **9,550**；当前精确收口 **684** 条，不用宽行区间或相似文案补 owner。
+- 分流后 Error constructor 为 Product **54** / Dependency **376** / Unresolved **4,401**；Diagnostic 为 Product **254** / Dependency **0** / Unresolved **5,149**。
 <!-- ERROR_DIAGNOSTIC_METRICS_END -->
 
 ## 精确 owner 投影：同一句错误为什么不能直接归模块
@@ -56,7 +56,7 @@
 | catch / retry owner | exact Product rule 直接绑定 catch wrapper 或 attempt/breaker owner | owner 已解析不等于每条日志都持有 retry counter |
 | tool-result / user-surface owner | exact ledger/end-turn 或输出 wrapper | debug diagnostic 不自动进入模型，也不自动显示给用户 |
 
-当前高置信批次故意让 Product 的 catch 与 user-surface 字段继续全部 fail closed；只有直接位于 recovery controller 的 caller 获得 retry owner，只有 tool-result ledger、deferred resume 或 end-turn scope 获得 tool-result owner。这个保守结果比把几千个 `T()` 全称为“Claude Code 日志”更有用：排障者能区分已确认状态 owner 与仍待追踪的 caller chain，也能看到剩余欠账，而不是从一个很大的覆盖率数字里误读完整性。
+当前高置信批次只把 4 条 exact caller 提升为 catchOwner：两个 PermissionRequest async catch，以及 PostToolUse outer catch 内的 cancel/timeout；相邻 Hook deny/interrupt 没有继承。retryOwner 仍只有 99 条，tool-result owner 13 条，user-surface 继续为 0。这个保守结果比把几千个 `T()` 全称为“Claude Code 日志”更有用：排障者能区分已确认状态 owner 与仍待追踪的 caller chain，也能看到剩余欠账，而不是从一个很大的覆盖率数字里误读完整性。
 
 这些计数来自 AST callsite，不等于 4,831 个产品故障：打包依赖、SDK、内嵌 runtime 都在同一 bundle。强结论必须回到 consumer。三个 constructor 的实用区别是：
 

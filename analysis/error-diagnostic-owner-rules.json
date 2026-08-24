@@ -604,22 +604,16 @@
     },
     {
       "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
-      "exactCallsiteDigest": "8fdc8e9701f7b12cbb83dff004e9cee3772d4e3424e7123bcb36ed61f73d4407",
+      "exactCallsiteDigest": "6eaa27dee1413bb5c3e92899b1318401d995c053d8c62f065f4860b0127f9fa2",
       "exactCallsiteIds": [
-        "diagnostic:634c24a0e273222a8cfbb2fcbdfd16e1b4953f9d91baadad4c0cc1c47b6554eb",
-        "diagnostic:38c2751578c2dbe3921e189b3e968836b60bdd56e1d98722eede08f94774ee3b",
-        "diagnostic:e332b43e22436d1ab3fe24c3e9e494d8b77863f992222151189916fe4d4ddfdf",
-        "diagnostic:abc4bc62b75ebe0453bed2eb22b2c86b5593265a68f494e8aa30bd724d3a8899",
-        "diagnostic:24232b55debe3b72134e4bd12b02e5cbd9d51883bcb1fab98a6b2e84f5de372e"
+        "diagnostic:634c24a0e273222a8cfbb2fcbdfd16e1b4953f9d91baadad4c0cc1c47b6554eb"
       ],
-      "expectedCount": 5,
+      "expectedCount": 1,
       "navigationOnly": {
         "canonicalLines": [
-          15385,
-          15395,
-          16069
+          15385
         ],
-        "maximumOffset": 10782709,
+        "maximumOffset": 10346343,
         "minimumOffset": 10346343
       },
       "owner": "tool/hooks-permission",
@@ -640,15 +634,95 @@
       "reviewSelector": {
         "classificationInput": false,
         "exactScopes": [
-          "1.53534.53544",
+          "1.53534.53544"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-hook-interrupt-diagnostic",
+      "scenario": "hook deny/interrupt decision diagnostic",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "35f30fe868f7abcc32a320cd866c6f87cd4cb2c945a34786774c3cc56de571c1",
+      "exactCallsiteIds": [
+        "diagnostic:38c2751578c2dbe3921e189b3e968836b60bdd56e1d98722eede08f94774ee3b",
+        "diagnostic:e332b43e22436d1ab3fe24c3e9e494d8b77863f992222151189916fe4d4ddfdf"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          15395
+        ],
+        "maximumOffset": 10362112,
+        "minimumOffset": 10360123
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": "permission request hook async catch boundary",
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:38c2751578c2dbe3921e189b3e968836b60bdd56e1d98722eede08f94774ee3b",
+        "lexicalFunction": null,
+        "messagePreview": "`Channel permission_request failed for ${D.name}: ${ce(U)}`",
+        "messageSha256": "f36e0473bb4aadde36f297222b0533e1b4462f63be92613bee74b47baae0b90f"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
           "1.53612.53617",
-          "1.53612.53624",
+          "1.53612.53624"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-permission-hook-catch-diagnostic",
+      "scenario": "permission hook async failure/cancellation catch",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "21b8ca700962c461f128d764d3598ad88e4233d6bc6c8efa24195af0c2afc2c5",
+      "exactCallsiteIds": [
+        "diagnostic:abc4bc62b75ebe0453bed2eb22b2c86b5593265a68f494e8aa30bd724d3a8899",
+        "diagnostic:24232b55debe3b72134e4bd12b02e5cbd9d51883bcb1fab98a6b2e84f5de372e"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          16069
+        ],
+        "maximumOffset": 10782709,
+        "minimumOffset": 10782646
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": "PostToolUse outer catch boundary",
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:abc4bc62b75ebe0453bed2eb22b2c86b5593265a68f494e8aa30bd724d3a8899",
+        "lexicalFunction": "Tcr",
+        "messagePreview": "\"PostToolUse hook cancelled (control stream closed)\"",
+        "messageSha256": "456d46f5d4e6a6926607ed04adccc1cb1728a4abd9a5a77402735e71738dfe25"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
           "1.55101"
         ],
         "messagePattern": null
       },
-      "ruleId": "product-hook-failure-diagnostic",
-      "scenario": "hook runner cancellation and failure diagnostics",
+      "ruleId": "product-post-tool-hook-catch-diagnostic",
+      "scenario": "PostToolUse cancellation/timeout catch",
       "stream": "diagnostic"
     },
     {
@@ -2004,6 +2078,308 @@
       },
       "ruleId": "dependency-opentelemetry-api",
       "scenario": "OpenTelemetry global API registration guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "7038ce44e96ed490144f841c287a7c963d0c22bb23bf78dada55e1ffdb1174ab",
+      "exactCallsiteIds": [
+        "error:496f7247b090d551eccbaaf09e7bc09e08267d1e3fb27c59246504eb8c0b093e",
+        "error:df1bfeb535fb2305011dd934c283b055087dfdf1e37d929034bcaf93eb76c725",
+        "error:924ec0bc13837c2e41f68743d2e587e3686b51e7e633626f21aa6892d9af5f5d",
+        "error:99aabea45d81e718fa488f856ebe76d95f9838d455e34a6bdf519cf3923a6215",
+        "error:9fb09932c37f72376e905fc16e958e83ac44d401ac78a64626666d77b5289291",
+        "error:8c68aedabb2960f0553f9604a60a3385266c67a95a77b77451cb41cc8ade25a5"
+      ],
+      "expectedCount": 6,
+      "navigationOnly": {
+        "canonicalLines": [
+          19249
+        ],
+        "maximumOffset": 13001299,
+        "minimumOffset": 12997635
+      },
+      "owner": "protobufjs/minimal",
+      "ownerClass": "Dependency",
+      "packageFunction": "Reader index/varint/wire-type guards",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:496f7247b090d551eccbaaf09e7bc09e08267d1e3fb27c59246504eb8c0b093e",
+        "lexicalFunction": "L6e",
+        "messagePreview": "\"index out of range: \"+e.pos+\" + \"+(t||1)+\" > \"+e.len",
+        "messageSha256": "d33dda518e7050cfc0608d4b585be0ac5e86ffb51fe7082417cd1d746caf974f"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.63353.63354",
+          "1.63353.63356",
+          "1.63353.63357",
+          "1.63353.63365",
+          "1.63353.63376"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-protobufjs-reader",
+      "scenario": "protobuf wire reader bounds and encoding guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "f148e22a0ae2152ab0257612544d1cc580149518aa6ed8a4089f1c9527336051",
+      "exactCallsiteIds": [
+        "error:73375ce00d4f37bbd9b93d78681379c8e9d8fb5c28c6a85a7f499661017f4edb",
+        "error:9a2f9e8ee4f3762d247e7a5e4b6632e68d9898102781a6209b3398787523814a",
+        "error:14888cf324aea8fdbc4482140bdf2b8e9767ed5ae6f531818ccb007bfe78a0d4",
+        "error:f5dda70187130e391801817864caa31f5dc0db15487e8905802f1ce3df6d4ebb",
+        "error:8d9675dadcbdd1bc0f8c6b66b6cf060b6b02aba6d24674204d9de35de42bab4d",
+        "error:d6545b48394b2178bd233b743592cbe0002af5175a51dd024a2df39e40b3cfe5",
+        "error:737fb85668c67a758e2fdb72b7dccb840297af7199a49ed51683613ab2f5fc00",
+        "error:79cfaa160136e6eef1f3a54fc477280c34adb63f0826d17f8b7ce6a09a5bef93",
+        "error:db4f5b0296dd58f375280328202c245e6d82513dd5650b1b4b6a134e69135266",
+        "error:d1bd81b342c4fb0e9116547c32825b80e0f58647b70d0e9895d8aea167781d2b",
+        "error:4c6f0b881948ce45a7d7788471745145042d3655f6ddd0b3c6915ab080a0aeb9",
+        "error:0ce0b049c3e54f27c4bbd40c72f5b4c7447e082be0b41323290a2b65958ddd2d",
+        "error:bc682cedffbb7ee73a8dc6a06327acb6c04c67919d3289f7f2238db9c3951733",
+        "error:5e56142015331c2552072209b280988cf3f66b7aeea73a5b465c6dda187cf28c",
+        "error:a61540ab1e6c2dc5ee62d0b4148df74d278ad2bed4e39cbe8dcff46ff6487d28",
+        "error:699ffc8993bef9e6434e20bf02cd129da36a9cbcb7cb95b0ce02c6b03d6178f7",
+        "error:8fae5ddaee1cf0761733ddc96a3a169ad36e876a37d2838b085569b672428874",
+        "error:8fe0e191f05d21c42683971274f280786a5ce401fe8bfab99a3d09e53674559e",
+        "error:1bf18b3e87b83f80e43a5d0f366d9ec7604171a4f5ff2a2247962cf2d69f18ce",
+        "error:e511e48b6071bae2ce8caaf2b5f1a9dd9810ba8d19f579b1dd012254f8185d3e",
+        "error:3fce2e660230a92bf2d86990f85ce1821b0cd121aa2a3e090e89a7dadaac468d",
+        "error:d7bb7c89ed019a91ba0c552431790e25701ce7fed8578555db6903c2cd76678d",
+        "error:75598401c426452500c790c75093e1fa70865edc08970ba88a20e9910c2eeb14",
+        "error:7b0802fc70649e5380a116a8ebadb63dc1096f9b6b4f25a18cd130f6dc4c6384",
+        "error:02bd628c0855513d14a9a6c71324f5ed5b3b2af7bde88a2cc1814a0134df0838",
+        "error:e0f864a47e40d278f31954a749b24ca11ce9a5a83039d58c5145fc524707818c",
+        "error:a2ea188fd5de4b57e7b0f4831be9dd9efd28e7ff7bd8c2a207cc93edde0ecb22",
+        "error:a6df6f96933dbe332a55d21f189896a5e53d34ad3e71706810c8bcf8f174b4ba",
+        "error:bcffe4d6eef0c51b4881da706a0d60ca75790417711d9df081e7b6a2bac6b836",
+        "error:7e74c38376de8a7746f78d55aecf6a1405a959be3a0dc2f4be45e11393b2af6d",
+        "error:469624ea4d74a309e45c57c22b635cde4044cf660550580c2f690bb2635248e9",
+        "error:4af66d5fda554bd44d7ad6ea751923bdd6e08fdb45bec560be92ffab1f02d8c1",
+        "error:2398fa5ce215d3c8ebcf8c3f363ddc90ddc30e0733cb4c1850b684343ebf3f69",
+        "error:45b5c3d0242502793f18aca28a6854f5e07403b62e6f89e033ef16ecff66de82",
+        "error:4fc6675da2a8392a7c03f5722b8582cea398f413cf178ce2c35a79e30be9b938",
+        "error:e31997a015d5c1f54abd550edd2cca6fd1f3545c5b9f9e23cea7c63b66779c80",
+        "error:7f08d6f1faf71598901df4c03c6ee0d510804e81f4938346a9ef72251e215f54",
+        "error:03031469b6bf3de1c62f34111b81b1728dec4eec50028757979b3f8e22355b81",
+        "error:c77c245263fa37bf02cfed1b30bb0ef23585331ca07ab1e7d681810d0f913f5d",
+        "error:d405a8521ec3eab6235c130c0e16b59205de6428b21b3ed891f1f1179c84e615",
+        "error:782320e3071d45bb2fa0dd7efe5d651213bdedbddc91e0c091c82888beeaf5f2",
+        "error:0824a8ecffd0e3150710857ca0f7f8480645fea756664fdf0f283030230b8e62"
+      ],
+      "expectedCount": 42,
+      "navigationOnly": {
+        "canonicalLines": [
+          19249
+        ],
+        "maximumOffset": 13267387,
+        "minimumOffset": 13259352
+      },
+      "owner": "@grpc/grpc-js",
+      "ownerClass": "Dependency",
+      "packageFunction": "service-config parser and retry/hedging policy validators",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:73375ce00d4f37bbd9b93d78681379c8e9d8fb5c28c6a85a7f499661017f4edb",
+        "lexicalFunction": "hOv",
+        "messagePreview": "`Invalid method config name: invalid service: expected type string, got ${typeof e.service}`",
+        "messageSha256": "63826abf4b6ea78c9e1438aa91d36a14a7839b47b2ea639509593173b1ee888c"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.64314.64315",
+          "1.64314.64316",
+          "1.64314.64317",
+          "1.64314.64318",
+          "1.64314.64319",
+          "1.64314.64320",
+          "1.64314.64321",
+          "1.64314.64322",
+          "1.64314.64323"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-grpc-service-config",
+      "scenario": "gRPC service config, retry, hedging and load-balancing validation",
+      "stream": "error"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "ca432d23637fa74bc53eb5e20afa4527965ef379448268fadedcac1f0446e30f",
+      "exactCallsiteIds": [
+        "error:402a423dc0584d3c63ffb2fe26451acbd60a89ffa06bcdca1528574cbd87e6be",
+        "error:ba67864ea6619b33dadff75a9643c7994d422d64f11f8cb9dc02a2eabffc6b9d",
+        "error:1825cb4f574330274a5d1839fca16205c6c193751f5184982c6b3e94192248b3",
+        "error:f31c5cf204eb65ded41e57f9f816f19e3b51a47facbeb38c7ce46638e5dc25c7",
+        "error:70dafdd2f7447b7f6f9b3d907183e859cf69798a3b6fb8566d7c2530e632f45a",
+        "error:ef7481c9d602be9614c45617cb6392afcaf93a41a06c79d7f368c66b3b32bf35",
+        "error:1495d64b3627563ccbaca7270ad01d74f485ea811b3b7a84d9bd823491d8f00e",
+        "error:85fbd9b862e8528f678317ba105e8e1eb1fecb566606fb31f550e3aff596c504",
+        "error:952bde3b62672696c55b24c60c9520d526c91976db373aed4f496be1c39856b1",
+        "error:428a124b0c02ce57cb72acc67e4da26863f700af2d0a79200e3e5d56945dfdfe",
+        "error:77866e64acc8f11655c16c3777be02b14304061b83f2d94fafaa4b68fe85c0e8",
+        "error:f19676b9b5890898c6f20befdbe4ee43398d1aeff41b9563377484cdcb09fc05",
+        "error:f94d55880e3f7813dfdc7766aa40f7524a6ec78d6cf46a57ce89b8f6a8450acd",
+        "error:c3ca099daba522c43813780bc323e7b4f5429d110e6bcc4bf3dd8eca2a2a7b63",
+        "error:d775a1e11ebadb8f2d07c945bde6f3c44342e0e4b070a4283a5822c788420d72",
+        "error:f4694cf6c4cfd054a5f1ce51657109140a602125a75a9aecb2bfa4fd712ef914",
+        "error:a55040759efc9329e11fb09d75d65165982053e784c7a04db0d76ed3d5df36b6",
+        "error:14e6a7c9b64d379964b4a72a32f3444e88742c0e047e3adde72fe905712c7eab",
+        "error:c3fc2a87e7ce565f38854fb60f65050a625d239c71e13c80eeabdb3aa3b1aaaa",
+        "error:9258cb7cc1bb5b793cc6dadbb8ddfcbba1af791363542e9f910c27c71e0d9c2b",
+        "error:0d2961d2d4196d6c02351f486fbc0f85121af556b2b001c91e1788b08c9569be",
+        "error:622e93a448492d0eb7963905731cc737b398e34a3b9f7e649c47449ad8f37099",
+        "error:9bf53c600d8660fe2945ce46f52782569c39dd9b3dc68e7ac950f1fc0de156dd",
+        "error:975dbebf28d3cd91d7938be56678efa458276452a896dfbf455844dd7e8417e8",
+        "error:d6ce2b4528355fa366b8c06ceab836adfbbb8de912672f3a86974495a6deec93",
+        "error:8b04ff54dabe04fca16557fa0fa4f97b44b9965dd9b67ce728ab8083c8e2d4f0",
+        "error:5dab33de3e35b614a3652cfe6b6ed8855e69bcc3476700e7948565ad0e505748"
+      ],
+      "expectedCount": 27,
+      "navigationOnly": {
+        "canonicalLines": [
+          331
+        ],
+        "maximumOffset": 3069310,
+        "minimumOffset": 3057501
+      },
+      "owner": "google-auth-library",
+      "ownerClass": "Dependency",
+      "packageFunction": "OAuth2Client auth URL, refresh, ID-token and signed-JWT validators",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:402a423dc0584d3c63ffb2fe26451acbd60a89ffa06bcdca1528574cbd87e6be",
+        "lexicalFunction": "generateAuthUrl",
+        "messagePreview": "\"If a code_challenge_method is provided, code_challenge must be included.\"",
+        "messageSha256": "621843c3ef19acb36e1b69d7f1f8ae516b840ad8891afaf196e26a12cd8e7412"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.20986.20991",
+          "1.20986.20992",
+          "1.20986.21001",
+          "1.20986.21007",
+          "1.20986.21009",
+          "1.20986.21016",
+          "1.20986.21021",
+          "1.20986.21023",
+          "1.20986.21027",
+          "1.20986.21031",
+          "1.20986.21032",
+          "1.20986.21033"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-google-auth-oauth2client",
+      "scenario": "OAuth2Client token, certificate and refresh-handler guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "721b8a8ed3aecc0f85868f633a3d2e58d97ba6cb561c91d7586047c212ae2362",
+      "exactCallsiteIds": [
+        "error:221be6adc6682260688fb2ec1ca25269025fdfd61f244fc60b1362d4141e8644",
+        "error:9a78723a4dce2edba2be9f07ee68ab004f228424ba47e7d783aac4b62312b1de",
+        "error:f86a92a2fbd9ce15523c15f56098b4a9c955fbcebeae83bd0f5834c835893028",
+        "error:2ba22be1c1f13e72dffcc186dade9a36c2555450be67a9d96a17e979288bc6ab",
+        "error:e34ee9fd9e022951b2b67f3cbb465ea6505f90a12180ecc48699f4062ec1afab",
+        "error:5a3b95292ff53ac2c6a91f4e6ce1b7f978337598a3eed9ee4663181934c963e6",
+        "error:bf8ef7d3d9e55112b8e86ffa08713ce3f4ee4eb026894711a80d6535324b13ab",
+        "error:1dd89713a4516e9a10a8f657099b05bc76d8c78ade0d24ecff785ac2da58e5c6",
+        "error:146e003d1b999ece59880c947071cd482ac5ae7ea3ae91306e284ddb5d560230",
+        "error:1ea1033cb15c212e8d0aba6791d06385dc71c1a77116c29cd67f330a44c81a24",
+        "error:c3f57c2df214cf96a3b1d382b2dd052d3a645252a0f3549be85d403f0a3030c6",
+        "error:0e2092a063ad2aed45d25633c0b8fed0170465a810466fb900a5068f51ffa05e",
+        "error:33591016dbe415e5e3a77ef085c74caca18dc3db439092b225ed78eeea7224ee",
+        "error:750a11f3e931757af15dbf8a2a9d2389586dce213c0b55cf630180e2b59e3b93",
+        "error:ec969765ca44033b8b9beb5f2a2c697eb41573647d69f36b3f6d3368aceb059f",
+        "error:18240a41c31bde1add75b7718830d591555a01f5c9dd8b7b59dd89bb757a0f1c",
+        "error:0007d3f955cc1ce635451047b3caede99b557a755507d483cbb543292927b47d",
+        "error:c4a14b94346e8b687b7f849116492c351fb6ddf3fbadbc762fdb90d3b8cf7dda",
+        "error:c4812a75d38a862b2ba3fcf6335a4acb19647c8e90aaeffef437b964543eda5a",
+        "error:12e96392aad3a1510a3e9611856ca7f6bd679361d6cd9dcee57951c6c802cd45",
+        "error:8fc0220da11f210b6866965a5d5913a3e990db226251a31f3e47e1bbb4aef6fa",
+        "error:7228f12d17f0fb13a73a375e1280fd7f92fa7535dd712cbba26961ff81ffdad3",
+        "error:30dee57647d3df496e82b13eff8199bff3348ed0a17cd0cdf8402b5d76bc20b4",
+        "error:983e62588cce68d794e7e16e930a5fc80d426290d04e317ad53b27ecc60f7e53",
+        "error:d59c6035292195a27f7b545b0d8db26a56ef1f528b148688d4f014be53c91feb",
+        "error:3a3160b2381e2330ca2f3d84cbe7c42fb4cb9f38c51a95e4da64ac644b8035ad",
+        "error:be1f0480f7d37d1d4c7fdc72b6fbf3d6ccdd507e1af80241b38bd0cadbf5d7f6",
+        "error:212fcc2bc83f3e927c43a20b80f429a0ce3a02b4b5f2242a87fdad133c0e5d26",
+        "error:4d769a0a7063103575c71edf112a253ba276513c4ecb77439f6bfd81958f2ff1",
+        "error:7dad4d3524527c831ea98343408b77bf3ef1412e51e8ea121e6dedd64f6763f2",
+        "error:55a1d11e91b5760b5daa748369942b3de4f780233c659a55ee2690eb0c4f683f",
+        "error:b9faab99d918adc3beb47998b6a173c6cca3891a8845266cd3915cb2cf8897ed",
+        "error:e0fcbc77343147c8c2da886584aa42eb46c45d1f562145902dddb66e3c62a918",
+        "error:83ffdaab4a29045845c4e8d814656b8067cc0f35f5320d603eeb59b8f044e237",
+        "error:f839257f4c01cefecc22328786aec5cb3cc67624b413e05e8b74615b3364fbf7",
+        "error:c5e880f5abd0dd1e7ff83e4c49ba3187e130437e9f35d905fae0f458584a314a",
+        "error:b2dafe95d0154041e9fb6f41a0a248dbbf6847da04d4ec01bbce3dcb69299c28",
+        "error:b4ec8284d826050bbe80fe6482226b68f9d6cd31c76c5a846b9b2742f294cd8f",
+        "error:a6f2f13447db552766414847b942c1a3113de0f1888a6e01c925509fe2f5c1d1",
+        "error:0752273702070b11d090de2af9f0c993073c3bbab93ff2a6d1420f93f3b8db2e",
+        "error:24ca42220764796a4413fd7a1fb784c13fe55276996bfc26a6524f62b36d7655",
+        "error:ad1b6378582307f24eed58226882c98f6385eb501f4b2559335a0e002b4c80d4",
+        "error:fc3994b734bde80ac6b33064a7528d76f0e6999b66ad514e3123d822edbbc749",
+        "error:97b3564762289a79b37a9840fc5c773bc0bad314fc1351ba21a6ead55d3537dc",
+        "error:6e68973170e6a677430d865b877d24db13031a0b0c4708cafc4551b8c39a83b2",
+        "error:0abd080295573448a7eb54cdc27fa462a752e5be2b4102b96edf85ca3422b5c9",
+        "error:8a06069ddf291b8501d28c8bf88c28468f7c12c3b4081b66f7b9fcf333384609",
+        "error:159b099c8e95cff6dd72bc5caefb84f185e9e4846157dc6206cb0733aab8f083",
+        "error:d210cd7823dc4eb1642bf0812d0b233198c2cd7b99b3a8acece2f0ebcac1c8b5",
+        "error:b9fccccaa0123f07c76c4af18b6bcdd4d92f0f5440006b6a8e399d95e3310f23",
+        "error:b3c26e8a44f949be6fa0cf966387b92da9a985b12bd13dd3f197fbf1a635de40"
+      ],
+      "expectedCount": 51,
+      "navigationOnly": {
+        "canonicalLines": [
+          63973,
+          63986
+        ],
+        "maximumOffset": 25904489,
+        "minimumOffset": 25742099
+      },
+      "owner": "jose",
+      "ownerClass": "Dependency",
+      "packageFunction": "JWS/JWT/JWK validation functions",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:9a78723a4dce2edba2be9f07ee68ab004f228424ba47e7d783aac4b62312b1de",
+        "lexicalFunction": "B7E",
+        "messagePreview": "`${MI.join(\" or \")} instances for symmetric algorithms must be of type \"secret\"`",
+        "messageSha256": "d6a3f84c92407045497922dc0067637fba92097235a3fde599d694cd98fed6b5"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.102244",
+          "1.102245",
+          "1.102338",
+          "1.102350",
+          "1.102371",
+          "1.102410",
+          "1.102462.102466",
+          "1.102462.102468",
+          "1.102476.102477",
+          "1.102625.102631",
+          "1.102712.102772",
+          "1.102928",
+          "1.102937",
+          "1.102958",
+          "1.102959",
+          "1.102982",
+          "1.102992"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-jose",
+      "scenario": "JWS/JWT/JWK algorithm, key-type and claims validation",
       "stream": "error"
     },
     {

@@ -101,6 +101,10 @@ MCP 工具表有 generation/refresh 语义。server 连接、断开、重连或�
 
 每个工具的名称、description 和 JSON schema 都会消耗 context。几十上百个 MCP/plugin 工具全部常驻时，用户还没输入任务，模型已经要阅读大量低概率接口；这同时增加 token、prefill latency 和选错工具的概率。
 
+官方 [Advanced tool use](https://www.anthropic.com/engineering/advanced-tool-use) 给了一组通用规模参考：5个server、58个工具约消耗55K token，Anthropic内部曾观察到工具定义优化前达到134K；示例从约77K降到8.7K，报告85% reduction。它还明确写出适用边界：工具定义超过10K token、多个server或10+ tools时收益更可能覆盖额外搜索延迟，小于10个且每个都高频使用时不一定划算。
+
+这些数字是官方API/内部实验，不是 `2.1.235` 当前workspace的测量。目标版本自己的成本应读取 `tengu_context_size.mcp_tools_tokens`、本轮tools wire与usage；不能把“85%”写成任何用户都能得到的固定节省。
+
 ### `defer_loading`
 
 本版 Tool Search 会把候选工具标成 `defer_loading`。初始上下文保留可发现信息，而完整 schema 在模型搜索/选择后再加入。判断与 schema 说明位于 `reverse/javascript/cli.readable.js` 114258-114369、156521-156552。

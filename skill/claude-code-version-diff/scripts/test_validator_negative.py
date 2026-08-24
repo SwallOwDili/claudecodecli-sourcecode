@@ -416,6 +416,30 @@ def encode_jsonl_record(record: dict) -> bytes:
     ).encode()
 
 
+def replace_mechanism_claim_field(
+    original: bytes,
+    claim_id: str,
+    field: str,
+    value: object,
+) -> bytes:
+    lines = original.splitlines(keepends=True)
+    changed = 0
+    for index, line in enumerate(lines):
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        if record.get("claimId") != claim_id:
+            continue
+        record[field] = value
+        lines[index] = encode_jsonl_record(record)
+        changed += 1
+    if changed != 1:
+        raise RuntimeError(
+            f"negative-test mechanism claim {claim_id!r} count is {changed}, expected 1"
+        )
+    return b"".join(lines)
+
+
 def remove_tool_registration(original: bytes, name: str) -> bytes:
     lines = original.splitlines(keepends=True)
     remaining: list[bytes] = []
@@ -546,6 +570,8 @@ def main() -> None:
     snapshot_version = (repo / "VERSION").read_text(encoding="utf-8").strip().encode()
     version_metadata = json.loads((repo / "analysis/version.json").read_text())
     binary_sha = version_metadata["binary"]["sha256"].encode()
+    binary_size = f"{version_metadata['binary']['size']:,}".encode()
+    byte_label = "字节".encode()
     inventory_summary = json.loads(
         (repo / "analysis/source-inventory/summary.json").read_text()
     )
@@ -578,6 +604,15 @@ def main() -> None:
             "README binary SHA-256 does not match analysis/version.json",
         ),
         (
+            "README.md",
+            lambda data: replace_once(
+                data,
+                b"`" + binary_size + b"` " + byte_label,
+                b"`999,999,999` " + byte_label,
+            ),
+            "README snapshot fact mismatch for 原始程序",
+        ),
+        (
             "analysis/risk-control-surface.txt",
             lambda data: replace_once(
                 data,
@@ -604,6 +639,11 @@ def main() -> None:
             "README.md",
             lambda data: data + b"\n" + b"[fixture](fixture)\n" * 60,
             "README front door has too many links",
+        ),
+        (
+            "README.md",
+            lambda data: data + b"\n## Fixture one\n\n## Fixture two\n",
+            "README front door has too many top-level headings",
         ),
         (
             "analysis/public-source-excerpts.md",
@@ -1754,6 +1794,13 @@ def main() -> None:
         (
             "analysis/completeness-audit.md",
             lambda data: replace_capability_state(
+                data, 27, b"| Documented |", b"| Deep |"
+            ),
+            "completeness capability 27 state mismatch: Deep != Documented",
+        ),
+        (
+            "analysis/completeness-audit.md",
+            lambda data: replace_capability_state(
                 data, 33, b"| Deep |", b"| Documented |"
             ),
             "deep topic contract install-update-doctor is not Deep in completeness capability 33: Documented",
@@ -1790,6 +1837,43 @@ def main() -> None:
                 data, "boundary.native-update-manifest-authenticity"
             ),
             "mechanism topic 'install-update-doctor' is missing required claim: boundary.native-update-manifest-authenticity",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: replace_mechanism_claim_field(
+                data, "native-update.download-integrity", "topic", "resilience"
+            ),
+            "mechanism topic 'install-update-doctor' required claim native-update.download-integrity has topic 'resilience'",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: replace_mechanism_claim_field(
+                replace_mechanism_claim_field(
+                    data,
+                    "native-update.download-integrity",
+                    "evidenceClass",
+                    "Boundary",
+                ),
+                "native-update.download-integrity",
+                "boundaryReason",
+                "negative fixture remains a valid Boundary record",
+            ),
+            "mechanism topic 'install-update-doctor' required claim native-update.download-integrity has evidenceClass 'Boundary'; expected 'Static'",
+        ),
+        (
+            "analysis/mechanism-evidence.jsonl",
+            lambda data: replace_mechanism_claim_field(
+                replace_mechanism_claim_field(
+                    data,
+                    "native-update.download-integrity",
+                    "staticEvidenceKind",
+                    "surface",
+                ),
+                "native-update.download-integrity",
+                "evidenceLimitation",
+                "negative fixture is only a shipped surface",
+            ),
+            "mechanism topic 'install-update-doctor' required claim native-update.download-integrity has staticEvidenceKind 'surface'; expected 'runtime'",
         ),
         (
             "analysis/mechanism-evidence.jsonl",

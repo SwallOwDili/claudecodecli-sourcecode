@@ -38,6 +38,7 @@ README_MAX_BYTES = 30_000
 README_MAX_LINES = 260
 README_MAX_LINKS = 50
 README_MAX_TABLE_ROWS = 70
+README_MAX_TOP_LEVEL_HEADINGS = 8
 TOOL_FACTORY_ANCHORS = {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
 EXPECTED_TOOL_REGISTRATION_CLASSES = {
     "Core terminal": 29,
@@ -1795,17 +1796,17 @@ MECHANISM_TOPIC_MINIMUMS = {
     "error-diagnostic-atlas": 3,
 }
 MECHANISM_TOPIC_REQUIRED_CLAIMS = {
-    "install-update-doctor": (
-        "native-update.installation-owner-selection",
-        "native-update.target-policy",
-        "native-update.download-integrity",
-        "native-update.atomic-version-publish",
-        "native-update.launcher-ownership-activation",
-        "native-update.partial-activation",
-        "native-update.version-lock-cleanup",
-        "native-update.result-and-restart-notice",
-        "boundary.native-update-manifest-authenticity",
-    ),
+    "install-update-doctor": {
+        "native-update.installation-owner-selection": ("Static", "runtime"),
+        "native-update.target-policy": ("Static", "runtime"),
+        "native-update.download-integrity": ("Static", "runtime"),
+        "native-update.atomic-version-publish": ("Static", "runtime"),
+        "native-update.launcher-ownership-activation": ("Static", "runtime"),
+        "native-update.partial-activation": ("Static", "runtime"),
+        "native-update.version-lock-cleanup": ("Static", "runtime"),
+        "native-update.result-and-restart-notice": ("Static", "runtime"),
+        "boundary.native-update-manifest-authenticity": ("Boundary", None),
+    },
 }
 DOCUMENTED_CAPABILITY_MISSING_FACT_MARKERS = {
     27: (
@@ -4393,6 +4394,14 @@ def validate_completeness_closure(
             failures.append(
                 f"completeness capability {capability} has invalid state: {state}"
             )
+        if (
+            capability in DOCUMENTED_CAPABILITY_MISSING_FACT_MARKERS
+            and state != "Documented"
+        ):
+            failures.append(
+                f"completeness capability {capability} state mismatch: "
+                f"{state} != Documented"
+            )
         if state == "Boundary":
             failures.append(
                 f"completeness capability {capability} uses Boundary before the "
@@ -4653,6 +4662,44 @@ def validate_markdown_source_references(repo: Path, failures: list[str]) -> None
                         )
 
 
+def validate_required_mechanism_claims(
+    records: list[dict], failures: list[str]
+) -> None:
+    claims_by_id = {
+        record.get("claimId"): record
+        for record in records
+        if isinstance(record.get("claimId"), str)
+    }
+    for topic, required_claims in MECHANISM_TOPIC_REQUIRED_CLAIMS.items():
+        for claim_id, (expected_class, expected_static_kind) in required_claims.items():
+            record = claims_by_id.get(claim_id)
+            if record is None:
+                failures.append(
+                    f"mechanism topic {topic!r} is missing required claim: {claim_id}"
+                )
+                continue
+            actual_topic = record.get("topic")
+            if actual_topic != topic:
+                failures.append(
+                    f"mechanism topic {topic!r} required claim {claim_id} has topic "
+                    f"{actual_topic!r}"
+                )
+            actual_class = record.get("evidenceClass")
+            if actual_class != expected_class:
+                failures.append(
+                    f"mechanism topic {topic!r} required claim {claim_id} has "
+                    f"evidenceClass {actual_class!r}; expected {expected_class!r}"
+                )
+            if expected_static_kind is not None:
+                actual_static_kind = record.get("staticEvidenceKind")
+                if actual_static_kind != expected_static_kind:
+                    failures.append(
+                        f"mechanism topic {topic!r} required claim {claim_id} has "
+                        f"staticEvidenceKind {actual_static_kind!r}; "
+                        f"expected {expected_static_kind!r}"
+                    )
+
+
 def validate_mechanism_topic_minimums(repo: Path, failures: list[str]) -> None:
     path = repo / "analysis/mechanism-evidence.jsonl"
     if not path.is_file():
@@ -4660,11 +4707,7 @@ def validate_mechanism_topic_minimums(repo: Path, failures: list[str]) -> None:
         return
     records = read_jsonl(path, failures)
     topic_counts: dict[str, int] = {}
-    claim_ids: set[str] = set()
     for record in records:
-        claim_id = record.get("claimId")
-        if isinstance(claim_id, str):
-            claim_ids.add(claim_id)
         topic = record.get("topic")
         if isinstance(topic, str):
             topic_counts[topic] = topic_counts.get(topic, 0) + 1
@@ -4673,12 +4716,7 @@ def validate_mechanism_topic_minimums(repo: Path, failures: list[str]) -> None:
             failures.append(
                 f"mechanism topic {topic!r} has {topic_counts.get(topic, 0)} claims; minimum is {minimum}"
             )
-    for topic, required_claims in MECHANISM_TOPIC_REQUIRED_CLAIMS.items():
-        for claim_id in required_claims:
-            if claim_id not in claim_ids:
-                failures.append(
-                    f"mechanism topic {topic!r} is missing required claim: {claim_id}"
-                )
+    validate_required_mechanism_claims(records, failures)
 
 
 def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
@@ -4880,12 +4918,7 @@ def validate_mechanism_evidence(repo: Path, failures: list[str]) -> int:
             failures.append(
                 f"mechanism topic {topic!r} has {topic_counts.get(topic, 0)} claims; minimum is {minimum}"
             )
-    for topic, required_claims in MECHANISM_TOPIC_REQUIRED_CLAIMS.items():
-        for claim_id in required_claims:
-            if claim_id not in claim_ids:
-                failures.append(
-                    f"mechanism topic {topic!r} is missing required claim: {claim_id}"
-                )
+    validate_required_mechanism_claims(records, failures)
     if len(records) < 90:
         failures.append(f"mechanism evidence has {len(records)} records; minimum is 90")
     probe_index_path = repo / "analysis/runtime-probe-index.md"
@@ -5644,6 +5677,55 @@ def validate_human_snapshot_identity(
     if readme_sha is None or readme_sha.group(1) != binary_sha:
         failures.append("README binary SHA-256 does not match analysis/version.json")
 
+    readme_rows: dict[str, str] = {}
+    for line in readme.splitlines():
+        match = re.match(r"^\| ([^|]+?) \| (.+) \|$", line)
+        if match:
+            readme_rows[match.group(1).strip()] = match.group(2).strip()
+
+    binary = metadata.get("binary", {})
+    extraction = metadata.get("extraction", {})
+    main_source = metadata.get("mainSource", {})
+    deep_reverse = metadata.get("deepReverse", {})
+    signing_identity = str(binary.get("codeSigningIdentity", ""))
+    signer = re.sub(r"^Developer ID Application:\s*", "", signing_identity)
+    signer = re.sub(r"\s+\([A-Z0-9]+\)$", "", signer)
+
+    def formatted_integer(value: object) -> str:
+        return f"{value:,}" if isinstance(value, int) else str(value)
+
+    expected_rows = {
+        "Git 分支 / CLI 输出": f"`{version}` / `{version} (Claude Code)`",
+        "原始程序": (
+            f"macOS {binary.get('architecture')} {binary.get('container')}，"
+            f"`{formatted_integer(binary.get('size'))}` 字节"
+        ),
+        "签名": f"{signer}，Team ID `{binary.get('teamIdentifier')}`",
+        "解包结果": (
+            f"{formatted_integer(extraction.get('fileCount'))} 个 packed 文件，"
+            f"`--path-patching {str(extraction.get('pathPatching')).lower()}`"
+        ),
+        "主 JavaScript": (
+            f"`{formatted_integer(main_source.get('size'))}` 字节，"
+            f"{formatted_integer(main_source.get('lines'))} 行"
+        ),
+        "JSC bytecode": (
+            f"`{formatted_integer(extraction.get('dumpedBytecodeBytes'))}` 字节，"
+            "仓库以确定性 gzip 保存"
+        ),
+        "原生模块": (
+            f"{formatted_integer(deep_reverse.get('nativeModulesAnalyzed'))} 个 `.node`，"
+            f"共 {formatted_integer(deep_reverse.get('architectureSlicesAnalyzed'))} 个架构 slice"
+        ),
+    }
+    for label, expected in expected_rows.items():
+        actual = readme_rows.get(label)
+        if actual != expected:
+            failures.append(
+                f"README snapshot fact mismatch for {label}: "
+                f"{actual!r} != {expected!r}"
+            )
+
     for relative in HUMAN_ANALYSIS_DOCS:
         path = repo / relative
         if not path.is_file():
@@ -5679,6 +5761,9 @@ def validate_readme_front_door(
     line_count = len(readme.splitlines())
     link_count = len(re.findall(r"\[[^\]]+\]\([^)]+\)", readme))
     table_row_count = sum(1 for line in readme.splitlines() if line.startswith("|"))
+    top_level_heading_count = len(
+        re.findall(r"^#{1,2}\s+\S", readme, re.MULTILINE)
+    )
 
     if len(raw) > README_MAX_BYTES:
         failures.append(
@@ -5696,6 +5781,11 @@ def validate_readme_front_door(
         failures.append(
             "README front door has too many table rows: "
             f"{table_row_count} > {README_MAX_TABLE_ROWS}"
+        )
+    if top_level_heading_count > README_MAX_TOP_LEVEL_HEADINGS:
+        failures.append(
+            "README front door has too many top-level headings: "
+            f"{top_level_heading_count} > {README_MAX_TOP_LEVEL_HEADINGS}"
         )
 
     required_markers = {

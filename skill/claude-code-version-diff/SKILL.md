@@ -184,7 +184,7 @@ It must directly cover:
 
 README must not contain the exhaustive article registry, every deep-topic binding, the full directory tree, per-inventory counts, long probe/check ledgers, validator acceptance prose or a field-by-field capability catalog. Those belong in `ARTICLES.md`, `analysis/completeness-audit.md`, `analysis/product-surface-inventory-index.md`, `analysis/runtime-probe-index.md`, `analysis/source-surface.md` and machine-readable reports.
 
-Use a default publication budget of 30,000 UTF-8 bytes, 260 lines, 50 Markdown links and 70 table rows. Do not raise these caps merely to make accumulated content pass; first move registries and ledgers to their owning indexes. A release with a genuine need to change a cap must record the reason in the Skill and validator together.
+Use a default publication budget of 30,000 UTF-8 bytes, 260 lines, 50 Markdown links, 70 table rows and at most 8 total H1/H2 headings. Do not raise these caps merely to make accumulated content pass; first move registries and ledgers to their owning indexes. A release with a genuine need to change a cap must record the reason in the Skill and validator together.
 
 Keep detailed hashes, byte counts and offsets in `analysis/version.json` and `analysis/unpack-manifest.json`. The README may repeat only the small identity set a reader needs to verify the artifact. Validators should enforce identity, selected front-door links and the presence of a meaningful lifecycle explanation; they must not force every human document or inventory row into README.
 

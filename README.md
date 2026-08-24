@@ -58,9 +58,10 @@ Claude Code 同时维护多种对象，目的并不相同：
 | Tool Search | 延迟没有被使用的完整工具 schema | deferred declaration 仍进入 request body；模型初始 active context 没有完整 description/input schema，也不是零 token |
 | microcompaction | 清理 active view 中较旧、较大的 tool result | 不删除 tool ID 因果链，不改物理 transcript |
 | precomputed compact | 提前生成候选 summary，命中时校验 anchor/分支 | 过期候选不会直接替换当前历史 |
-| full compact | 用 summary、保留的消息组和精确附件重建下一轮视图 | 不撤销工具副作用，不复活旧进程 |
+| manual/reactive/partial/precomputed compact | 用 summary 重建，并按各自规则保留合法 group、选择器另一侧或 `messagesSince` | 不存在固定的“保留末尾 N 条”规则 |
+| cold/full auto 与特定 SDK full compact | 用 summary 重建，返回 `messagesToKeep: []` | 不保留旧消息后缀，也不撤销工具副作用或复活旧进程 |
 
-`/compact` 因而不是单纯“把聊天总结成一段话”。客户端先运行 `PreCompact`，再选择预计算命中或现场生成；现场路径会插入专用压缩请求，抽取 summary，保留合法的 `tool_use/tool_result` 消息组与必要附件，并写 compact boundary 供 resume 修复逻辑链。详细的状态变化和三张机制图见 [`/compact` 图文指南](analysis/compact-visual-guide.md) 与 [上下文治理专题](analysis/context-governance-and-caching.md)。
+`/compact` 因而不是单纯“把聊天总结成一段话”。客户端先运行 `PreCompact`，再选择预计算命中或现场生成；当前 manual 路径会构造或复用 summary，按合法 group 保留后缀并重新生成必要附件，cold/full 路径则不保留旧消息后缀。各路径都会写 compact boundary，供 resume 修复逻辑链。详细的状态变化和三张机制图见 [`/compact` 图文指南](analysis/compact-visual-guide.md) 与 [上下文治理专题](analysis/context-governance-and-caching.md)。
 
 ### 3. 模型可以提议动作，客户端决定动作能否发生
 
@@ -167,7 +168,7 @@ skill/claude-code-version-diff/ 长期版本归档与对比流程
 
 | 等级 | 含义 |
 | --- | --- |
-| Static | 目标 bundle 中存在可追踪的状态、分支或 consumer |
+| Static | 目标 bundle 中的静态证据；可能是 runtime/consumer/constant，也可能只是 surface/declaration，后两者不证明运行时可达或已经发生 |
 | Probe | 固定 SHA-256 的目标二进制真实走过指定路径，并记录输入、输出和 exit status |
 | Public | 按 URL、抓取时间和响应 hash 固化的一方公开资料；只解释设计或声明，能否归属于 `2.1.235` 仍需目标版 Static/Probe |
 | Compatible | 重建实现满足已声明的接口/行为合同，不代表原始源码身份 |

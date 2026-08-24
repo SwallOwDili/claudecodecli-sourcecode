@@ -94,7 +94,7 @@ Include a boundary stating that local CLI execution controls do not prove server
 
 ## Human explanation documents
 
-`README.md` must start with a reading guide and a plain request-lifecycle overview. Inventory counts are machine-evidence navigation, not the main explanation.
+`README.md` must start with artifact identity, the source-recovery boundary, one governing product thesis and a plain request-lifecycle overview. It should teach the release's highest-value mechanisms and actual delta before routing readers onward. Exhaustive document links, inventory counts and validator ledgers belong in dedicated indexes, not the project front door.
 
 `analysis/technical-architecture.md` must connect input/resume, message graph, system/user context, tools/agents/skills/MCP, permissions/policy/hooks/sandbox, cache markers, API request/stream/tool loop, persistence, compaction, telemetry, native modules, and UI. It should let a reader follow the system without opening JSONL.
 
@@ -179,7 +179,7 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 1. Source inventory extractor reruns deterministically.
 2. Snapshot validator exits zero and reports source inventory files checked, deterministic product-surface mapping, evidence-appropriate Deep/Documented/Boundary capability states, and capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
-4. README links every required human document; the validator confirms each document is substantive and covers its required mechanism/field families.
+4. `ARTICLES.md` links every required human document; completeness and Skill contracts bind each deep topic. README remains a concise project front door with selected routes, and the validator confirms every document independently remains substantive.
 5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification, a contracted capability downgraded from `Deep`, and a `Documented` row that no longer names its exact missing fact.
 6. Deep-reverse validator exits zero when `reverse/` exists.
 7. Git branch name equals `VERSION`.

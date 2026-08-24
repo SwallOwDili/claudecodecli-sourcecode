@@ -140,6 +140,8 @@
 | 一方事件、OTEL、Datadog、错误上报和本地诊断记录什么 | [遥测、日志与诊断](analysis/telemetry.md) |
 | 一次 API、工具、compact、session 或 MCP 故障应该按什么事件顺序排查，1,441 个事件各有哪些字段和出口资格 | [遥测场景语义索引与逐事件证据](analysis/telemetry-event-catalog.md) |
 | `Error(...)`、debug log、tool failure、abort 和 LSP diagnostics 怎样进入恢复与用户结果 | [错误与诊断机制图谱](analysis/error-diagnostic-atlas.md) · [逐 callsite 精确 owner 索引](analysis/error-diagnostic-owner-index.md) |
+| 当前官方文档讲的机制，哪些能由 `2.1.235` bundle 或精确二进制确认 | [公开主张与目标版本证据对照](analysis/public-claims-validation.md) |
+| Probe 报告里的 command、input、literal output、check 和边界分别证明什么 | [精确二进制运行探针索引](analysis/runtime-probe-index.md) |
 | JSONL 中 `comparisonKey`、payload、schema 和 model 字段怎么读 | [机器清单字段阅读指南](analysis/inventory-field-guide.md) |
 | bundle 到底还能提取出哪些产品能力和证据 | [全量可提取能力面](analysis/source-surface.md) |
 

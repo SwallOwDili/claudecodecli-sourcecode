@@ -54,7 +54,7 @@ analysis/runtime-probe-index.md
 analysis/runtime-probes/*.json
 ```
 
-README routes readers into these documents and keeps hashes/counts secondary.
+README exposes only the best routes into these documents and keeps exhaustive links, hashes and counts in their dedicated indexes.
 
 ## Exhaustive product-surface references
 
@@ -88,7 +88,7 @@ The bound article must expose the following reader path with real content under 
 7. `## 证据索引...` with release-local `reverse/javascript/cli.readable.js#L...` references and explicit evidence classes. A contract may explicitly count full-path locators distributed beside lifecycle claims, but the evidence section must still index those ranges and name the evidence class; document scope cannot excuse bare claims without source locators.
 8. `## Boundary...` stating what the shipped client, untriggered branch, remote account, server, model internals, or missing original source cannot prove.
 
-The same article path must appear in the README first-screen reading route, `ARTICLES.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
+The same article path must appear in `ARTICLES.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. README links only the small subset that forms the best reader route for that release; it is not the deep-topic registry. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
 
 The first enforced contracts are:
 
@@ -379,7 +379,8 @@ Group related fields into a mechanism. A new telemetry event alone is an observa
 
 Before publication, verify:
 
-- README first screen links all human documents;
+- README states artifact identity and source-recovery boundaries, teaches one end-to-end lifecycle, names the real version delta, and exposes `ARTICLES.md` plus a small set of high-value next steps;
+- `ARTICLES.md` links all required human documents, while completeness and Skill bindings preserve the publication contract;
 - the mechanism atlas links every deep topic and lets a reader choose by user problem;
 - public research has retrieval dates and clearly separates `Public`, `Static`, `Probe`, and `Boundary` evidence;
 - public sources have status, byte length, raw and semantic SHA-256, excerpt hashes, and readable fixed excerpts;

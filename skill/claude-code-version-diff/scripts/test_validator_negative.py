@@ -550,8 +550,6 @@ def main() -> None:
         (repo / "analysis/source-inventory/summary.json").read_text()
     )
     datadog_count = str(inventory_summary["counts"]["datadog-forwarded-events"]).encode()
-    feature_count = str(inventory_summary["counts"]["feature-flag-callsites"]).encode()
-    feature_symbol = inventory_summary["discoveredSymbols"]["roles"]["featureValue"].encode()
 
     if not args.skip_baseline:
         baseline = run_validator(repo, validator)
@@ -604,12 +602,8 @@ def main() -> None:
         ),
         (
             "README.md",
-            lambda data: replace_once(
-                data,
-                b"feature `" + feature_symbol + b"` " + feature_count,
-                b"feature `" + feature_symbol + b"` 999",
-            ),
-            "README inventory fact mismatch for 动态观测调用",
+            lambda data: data + b"\n" + b"[fixture](fixture)\n" * 60,
+            "README front door has too many links",
         ),
         (
             "analysis/public-source-excerpts.md",
@@ -2032,12 +2026,12 @@ def main() -> None:
             "deep topic contract structured-output has 0 source references; minimum is 5",
         ),
         (
-            "README.md",
+            "ARTICLES.md",
             lambda data: data.replace(
                 b"analysis/plan-mode-and-human-approval.md",
                 b"analysis/plan-mode-and-human-approval-missing.md",
             ),
-            "deep topic contract plan-mode is not linked from README first screen",
+            "deep topic contract plan-mode is not linked from ARTICLES.md",
         ),
         (
             "ARTICLES.md",

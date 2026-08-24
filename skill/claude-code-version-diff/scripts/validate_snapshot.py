@@ -34,6 +34,10 @@ EXPECTED_TOOL_REGISTRATION_COUNT = 80
 EXPECTED_STATIC_TOOL_REGISTRATION_COUNT = 77
 EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT = 3
 EXPECTED_TOOL_FACTORY = "Yi"
+README_MAX_BYTES = 30_000
+README_MAX_LINES = 260
+README_MAX_LINKS = 50
+README_MAX_TABLE_ROWS = 70
 TOOL_FACTORY_ANCHORS = {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
 EXPECTED_TOOL_REGISTRATION_CLASSES = {
     "Core terminal": 29,
@@ -5625,10 +5629,6 @@ def git(repo: Path, *args: str) -> str:
     ).strip()
 
 
-def format_count(value: int) -> str:
-    return f"{value:,}"
-
-
 def validate_human_snapshot_identity(
     repo: Path, version: str, metadata: dict, failures: list[str]
 ) -> None:
@@ -5668,6 +5668,55 @@ def validate_human_snapshot_identity(
             failures.append(
                 f"version-specific Claude binary placeholder found in {relative}; use $CLAUDE_TARGET"
             )
+
+
+def validate_readme_front_door(
+    repo: Path, version: str, failures: list[str]
+) -> None:
+    path = repo / "README.md"
+    raw = path.read_bytes()
+    readme = raw.decode("utf-8")
+    line_count = len(readme.splitlines())
+    link_count = len(re.findall(r"\[[^\]]+\]\([^)]+\)", readme))
+    table_row_count = sum(1 for line in readme.splitlines() if line.startswith("|"))
+
+    if len(raw) > README_MAX_BYTES:
+        failures.append(
+            f"README front door is too large: {len(raw)} bytes > {README_MAX_BYTES}"
+        )
+    if line_count > README_MAX_LINES:
+        failures.append(
+            f"README front door has too many lines: {line_count} > {README_MAX_LINES}"
+        )
+    if link_count > README_MAX_LINKS:
+        failures.append(
+            f"README front door has too many links: {link_count} > {README_MAX_LINKS}"
+        )
+    if table_row_count > README_MAX_TABLE_ROWS:
+        failures.append(
+            "README front door has too many table rows: "
+            f"{table_row_count} > {README_MAX_TABLE_ROWS}"
+        )
+
+    required_markers = {
+        "source-recovery boundary": "它不是 Anthropic 内部 TypeScript 原始仓库",
+        "governing thesis": "模型提出下一步，客户端负责",
+        "article index": "[技术文章总入口](ARTICLES.md)",
+        "request lifecycle": "## 先建立一个正确模型",
+        "lifecycle visual": "analysis/visuals/system-lifecycle.svg",
+        "Agent Loop explanation": "### 1. Agent Loop",
+        "context governance explanation": "### 2. 上下文治理",
+        "local authority explanation": "### 3. 模型可以提议动作",
+        "recovery ownership explanation": "### 4. 恢复是",
+        "observability explanation": "### 5. “遥测”",
+        "release-local delta": f"## `{version}` 到底改了什么",
+        "artifact layers": "## 仓库里实际保存了什么",
+        "evidence boundary": "## 快照身份与证据边界",
+        "validation and comparison": "## 验证与长期版本对比",
+    }
+    for label, marker in required_markers.items():
+        if marker not in readme:
+            failures.append(f"README front door is missing {label}")
 
 
 def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
@@ -5819,8 +5868,6 @@ def validate_topic_depth_contracts(
     completeness_rows: dict[int, list[str]],
     failures: list[str],
 ) -> None:
-    readme = (repo / "README.md").read_text(encoding="utf-8")
-    readme_first_screen = readme.split("## 快照信息", 1)[0]
     articles_path = repo / "ARTICLES.md"
     articles = articles_path.read_text(encoding="utf-8") if articles_path.is_file() else ""
     skill_path = repo / "skill/claude-code-version-diff/SKILL.md"
@@ -6009,8 +6056,6 @@ def validate_topic_depth_contracts(
         ) is None:
             failures.append(f"deep topic contract {topic} lacks a concrete Boundary")
 
-        if relative not in readme_first_screen:
-            failures.append(f"deep topic contract {topic} is not linked from README first screen")
         if relative not in articles:
             failures.append(f"deep topic contract {topic} is not linked from ARTICLES.md")
         if relative not in skill:
@@ -6084,110 +6129,6 @@ def validate_human_inventory_facts(repo: Path, failures: list[str]) -> None:
                 f"human source-surface count mismatch for {name}: "
                 f"{actual} != {expected}"
             )
-
-    readme = (repo / "README.md").read_text(encoding="utf-8")
-    readme_rows: dict[str, str] = {}
-    for line in readme.splitlines():
-        match = re.match(r"^\| ([^|]+?) \| (.+) \|", line)
-        if match:
-            readme_rows[match.group(1).strip()] = match.group(2)
-
-    roles = summary.get("discoveredSymbols", {}).get("roles", {})
-    coverage = summary.get("coverage", {}).get("targetCallsites", {})
-    literal_coverage = summary.get("coverage", {}).get("literalOccurrences", {})
-    expected_rows = {
-        "环境访问": [
-            format_count(counts["environment-access-identifiers"]),
-            format_count(counts["environment-access-callsites"]),
-            format_count(counts["dynamic-process-environment-callsites"]),
-            format_count(counts["environment-schema"]),
-            format_count(counts["observability-environment-schema"]),
-            format_count(counts["observability-environment-defaults"]),
-        ],
-        "一方遥测": [
-            f"`{roles['firstPartyEvent']}` {format_count(coverage['firstPartyEvent']['total'])}",
-            f"`{roles['firstPartyEventAsync']}` {format_count(coverage['firstPartyEventAsync']['total'])}",
-            format_count(counts["first-party-event-callsites"]),
-            format_count(counts["first-party-events"]),
-            format_count(counts["first-party-event-fields"]),
-        ],
-        "第三方观测": [
-            f"Datadog allowlist {format_count(counts['datadog-forwarded-events'])}",
-            f"tag {format_count(counts['datadog-tag-fields'])}",
-            f"删除字段 {format_count(counts['datadog-redacted-fields'])}",
-        ],
-        "动态观测调用": [
-            f"`{roles['otelStructuredEvent']}` {format_count(counts['otel-event-callsites'])}",
-            f"feature `{roles['featureValue']}` {format_count(counts['feature-flag-callsites'])}",
-            f"GrowthBook `{roles['dynamicConfig']}` {format_count(counts['growthbook-callsites'])}",
-        ],
-        "Settings/schema": [
-            f"根 settings {format_count(counts['root-settings-keys'])}",
-            f"{format_count(counts['root-settings-schema'])} 条结构化 schema",
-            f"typed env {format_count(counts['environment-schema'])}",
-            f"schema property {format_count(counts['schema-property-identifiers'])}",
-            f"description {format_count(counts['schema-descriptions'])}",
-            f"enum group {format_count(counts['static-enum-groups'])}",
-        ],
-        "工具与命令": [
-            f"built-in tool {format_count(counts['builtin-tool-identifiers'])}",
-            f"known-tool catalog {format_count(counts['known-tool-catalog'])}",
-            f"named component {format_count(counts['named-component-identifiers'])}",
-            f"slash command {format_count(counts['slash-command-identifiers'])}",
-        ],
-        "协议与 hooks": [
-            f"SDK control subtype {format_count(counts['sdk-control-subtypes'])}",
-            f"output protocol event {format_count(counts['output-protocol-event-identifiers'])}",
-            f"hook event {format_count(counts['hook-events'])}",
-        ],
-        "模型与 beta": [
-            f"完整 model catalog {format_count(counts['model-catalog'])}",
-            f"pricing tier {format_count(counts['model-pricing-tiers'])}",
-            f"alias {format_count(counts['model-aliases'])}",
-            f"model literal {format_count(counts['model-identifiers'])}",
-            f"date-suffixed beta/API version {format_count(counts['anthropic-beta-identifiers'])}",
-        ],
-        "API/runtime": [
-            f"API path {format_count(counts['api-paths'])}",
-            f"API/path template {format_count(counts['api-path-templates'])}",
-            f"HTTP method route {format_count(counts['http-route-identifiers'])}",
-            f"runtime require {format_count(counts['runtime-requires'])}",
-        ],
-        "存储": [
-            f"Claude storage namespace {format_count(counts['claude-storage-namespaces'])}",
-            f"全 bundle namespace {format_count(counts['storage-namespaces'])}",
-            f"用户配置目录名 {format_count(counts['user-config-directories'])}",
-        ],
-        "错误与诊断": [
-            f"调用 {format_count(counts['error-message-callsites'])}",
-            f"模板/表达式 {format_count(counts['error-message-templates'])}",
-            f"调用 {format_count(counts['diagnostic-message-callsites'])}",
-            f"模板/表达式 {format_count(counts['diagnostic-message-templates'])}",
-        ],
-        "全词法表面": [
-            f"quoted string {format_count(literal_coverage['quotedStrings'])}",
-            f"{format_count(counts['static-string-literals'])} 个唯一值",
-            f"template {format_count(literal_coverage['templates'])}",
-            f"{format_count(counts['template-literals'])} 个唯一值",
-        ],
-        "网络": [
-            f"URL {format_count(counts['urls'])}",
-            f"URL template {format_count(counts['url-templates'])}",
-            f"API/path template {format_count(counts['api-path-templates'])}",
-            f"归一化 endpoint host {format_count(counts['endpoint-hosts'])}",
-        ],
-    }
-    for label, fragments in expected_rows.items():
-        row = readme_rows.get(label)
-        if row is None:
-            failures.append(f"README inventory fact row is missing: {label}")
-            continue
-        for fragment in fragments:
-            if fragment not in row:
-                failures.append(
-                    f"README inventory fact mismatch for {label}: missing {fragment!r}"
-                )
-
 
 def text_between(content: str, start: str, end: str) -> str:
     start_index = content.find(start)
@@ -6669,15 +6610,15 @@ def main() -> int:
             failures.append(f"analysis/version.json binary.{key} is not symbolic/redacted")
 
     validate_human_snapshot_identity(repo, version, metadata, failures)
+    validate_readme_front_door(repo, version, failures)
     validate_release_notes(repo, failures)
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
-    readme_first_screen = readme.split("## 快照信息", 1)[0]
     articles_path = repo / "ARTICLES.md"
     if "[技术文章总入口](ARTICLES.md)" not in readme[:3000]:
-        failures.append("README first screen does not expose ARTICLES.md")
+        failures.append("README does not expose ARTICLES.md near the top")
     if not articles_path.is_file():
         failures.append("missing root technical article index: ARTICLES.md")
     else:
@@ -6709,9 +6650,9 @@ def main() -> int:
                 failures.append(
                     f"human analysis document {relative} does not cover {term!r}"
                 )
-        if relative not in readme_first_screen:
+        if articles_path.is_file() and relative not in articles:
             failures.append(
-                f"README first screen does not link human analysis document: {relative}"
+                f"ARTICLES.md does not link human analysis document: {relative}"
             )
 
     if (

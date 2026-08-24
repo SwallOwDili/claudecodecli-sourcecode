@@ -264,13 +264,21 @@ interaction、LLM 和 tool span 同时可以关联 Perfetto span ID。LLM 完成
 
 一方 logger 尚未初始化且 batch config 也未知时，GrowthBook 调用返回可接受状态；config 已知但 logger 不可用时返回失败状态，让上层决定是否重试/降级。
 
-## `tengu_other` 不是 owner：caller 场景已经逐项落位
+## `tengu_other` 不是 owner：只有 exact caller 才能逐项落位
 
-事件名前缀 family 只是确定性导航。原目录有 911 个 unique event / 1,297 个固定 callsite 落入 `tengu_other`，这不表示它们共享一个“其他功能”。当前生成器把每个 `H`/`Fv` caller 同时绑定 event、词法 function、consumer parent/role、payload keys、canonical position、同哈希 readable line 和证据指纹，但 owner 只接受 25 条 exact caller allowlist，行号区间只供阅读、不参与分类。当前逐项收口 6 个事件：5 `Single-owner`、1 `Cross-owner`；其余 905 个 event / 1,272 个 callsite 保持 `Unresolved`。
+事件名前缀 family 只是确定性导航。原目录有 911 个 unique event / 1,297 个固定 callsite 落入 `tengu_other`，这不表示它们共享一个“其他功能”。当前生成器把每个 `H`/`Fv` caller 同时绑定 event、词法 function、consumer parent/role、payload keys、canonical position、同哈希 readable line 和证据指纹，但 owner 只接受 79 条 exact caller allowlist，行号区间只供阅读、不参与分类。当前逐项收口 12 个事件：11 `Single-owner`、1 `Cross-owner`；其余 899 个 event / 1,218 个 callsite 保持 `Unresolved`。
+
+新增的 54 个 caller 不是按名字批量归类，而是 6 个调用点全集都能闭合的状态机：GitHub App 安装向导 14 个 milestone caller 与相邻 React state updater 一一对应；GitHub Actions setup 的 8 个 caller 都位于 repo/default branch/SHA/branch/workflow/secret/unexpected-error 失败出口；官方 Marketplace 的 8 个 caller覆盖 policy skip、GCS 成功、git fallback、retry/backoff 与 xcrun shim 终态；remote stage file 的 9 个 caller覆盖 unsupported/no-op/gated/mkdir/write/atomic rename 终态；File History rewind 的 9 个 caller都在 dry-run 丢弃或 symlink/hardlink/parent identity/backup guard 拒绝路径；transcript 文件压实的 6 个 caller都在 torn tail、plan abort、source race 和 I/O failure 出口。每条映射不仅绑定 owner/scenario，还经 rule 绑定“观测到的状态变化”和 Boundary，并与 allowlist 一起进入完整 SHA-256。
+
+对应的可读源码区域分别是 [GitHub Actions 远端写入与失败链 L490523-L490588](../reverse/javascript/cli.readable.js#L490523)、[GitHub App 向导状态机 L490640-L491065](../reverse/javascript/cli.readable.js#L490640)、[Marketplace 持久状态与退避 L583864-L583920](../reverse/javascript/cli.readable.js#L583864)、[remote stage file 的发布边界 L599443-L599508](../reverse/javascript/cli.readable.js#L599443)、[File History rewind guard L194721-L195057](../reverse/javascript/cli.readable.js#L194721) 和 [transcript file/V5 compaction L401330-L401498](../reverse/javascript/cli.readable.js#L401330)。导航区间只帮助读者复核这些因果链；分类器不读取区间。
+
+高频不等于可以批量认领。`tengu_feedback_survey_event` 的 13 个 caller 分布在多种 survey/feedback surface，`tengu_left_arrow_blocked` 的 10 个 caller跨输入编辑、inflight guard 与不同 TUI 路径，`tengu_git_operation` 的 10 个 caller同时观察 shell 命令和 MCP tool name；本批没有为这些 caller 完成统一状态 owner 或明确 Cross-owner 的逐项证明，所以继续保持 `Unresolved`。`tengu_review_remote_precondition_recovery` 虽有 12 个 caller邻近 remote-review gate，仍有另一个独立入口未在本批完成 owner/continuation trace，也没有继承现有 `remote-review` 导航区间。
+
+这六组的状态语义也不同，不能只读成“某功能打了一条日志”。GitHub setup 失败时远端 branch、workflow 或 secret 可能已经部分写入，事件不提供事务回滚；Marketplace 多数分支先持久化 attempted/installed/fail reason/retry time，但 xcrun-shim 分支只返回分类结果；stage file 成功分支以临时文件 rename 发布，no-op 和失败分支则不产生同一目标状态；File History 单文件拒绝不会回滚同轮已经恢复或删除的其他文件；transcript 压实失败会保留原 transcript 为权威源并尽力删临时文件，但不证明 cleanup 或下一次压实成功。这些差异就是 caller owner 必须携带状态变化和 Boundary 的原因。
 
 规则不使用事件前缀推断 owner。`tengu_copper_lantern` 的 codename 和空 payload 没有业务语义；它之所以归入 `remote-runtime / daemon supervisor`，是因为唯一 caller 位于 service recall、worker drain、service uninstall 和 daemon exit 的窄区间。相反，`tengu_fast_mode_toggled` 的 caller 分布在 identity/model access、remote review、usage picker 和 terminal message UI，因此保留 `Cross-owner`，不强行塞进一个模块。
 
-这一步只解决已进入 exact allowlist 的 caller 归属，不是“事件一定执行或送达”。EndConversation、heap dump、update refused 等未逐项映射的邻近 caller 明确保留 Unresolved，不会继承某个宽导航区间的 owner；运行 gate、sampling、payload spread 的实际值、collector 接收与服务端 retention 仍需各自证据。25 条 allowlist、905 项折叠 Unresolved 证据和 caller 指纹见 [遥测事件目录](telemetry-event-catalog.md#tengu_other-callerowner-场景投影)。
+这一步只解决已进入 exact allowlist 的 caller 归属，不是“事件一定执行或送达”。EndConversation、heap dump、update refused 等未逐项映射的邻近 caller 明确保留 Unresolved，不会继承某个宽导航区间的 owner；运行 gate、sampling、payload spread 的实际值、collector 接收与服务端 retention 仍需各自证据。79 条 allowlist、899 项折叠 Unresolved 证据、状态变化、Boundary 和 caller 指纹见 [遥测事件目录](telemetry-event-catalog.md#tengu_other-callerowner-场景投影)。
 
 ## 错误上报、debug 和本地诊断
 

@@ -1,0 +1,294 @@
+{
+  "artifacts": {
+    "analysis/error-diagnostic-owner-index.md": {
+      "sha256": "1b08d7864f630acfd27d8522c0ce988afb98d381884fc2e17f472cceb48ad029",
+      "size": 16817
+    },
+    "analysis/error-diagnostic-owner-projection.jsonl": {
+      "lines": 10234,
+      "sha256": "519d49a74a709e18b00d71e61d4800251b18059dd761558846d2db5a45865f4b",
+      "size": 9942671
+    },
+    "analysis/error-diagnostic-owner-rules.json": {
+      "sha256": "14458a4ef341de632f0e859060e917c4cd7d199bdced6d8ca7424d1dc97a40bd",
+      "size": 109607
+    }
+  },
+  "classification": {
+    "Dependency": 250,
+    "Product": 308,
+    "Unresolved": 9676
+  },
+  "classificationByStream": {
+    "Diagnostic callsite": {
+      "Dependency": 0,
+      "Product": 254,
+      "Unresolved": 5149
+    },
+    "Error constructor": {
+      "Dependency": 250,
+      "Product": 54,
+      "Unresolved": 4527
+    }
+  },
+  "classificationContract": {
+    "exactCallsiteIdentityOnly": true,
+    "lineRangesClassify": false,
+    "messageSimilarityClassifies": false,
+    "reviewSelectorsClassify": false,
+    "unresolvedIsSemanticDebt": true
+  },
+  "mappedCallsites": 558,
+  "ownerCounts": {
+    "@anthropic-ai/sdk": {
+      "Error constructor": 1
+    },
+    "@aws-sdk/core": {
+      "Error constructor": 30
+    },
+    "@aws-sdk/credential-providers": {
+      "Error constructor": 4
+    },
+    "@aws-sdk/util-endpoint": {
+      "Error constructor": 1
+    },
+    "@modelcontextprotocol/sdk": {
+      "Error constructor": 28
+    },
+    "@opentelemetry/api": {
+      "Error constructor": 2
+    },
+    "@smithy/core": {
+      "Error constructor": 1
+    },
+    "@smithy/core/cbor": {
+      "Error constructor": 2
+    },
+    "@smithy/core/event-streams": {
+      "Error constructor": 1
+    },
+    "@smithy/core/protocols": {
+      "Error constructor": 4
+    },
+    "@smithy/core/schema": {
+      "Error constructor": 8
+    },
+    "@smithy/core/serde": {
+      "Error constructor": 1
+    },
+    "@smithy/middleware-endpoint": {
+      "Error constructor": 1
+    },
+    "@smithy/node-http-handler": {
+      "Error constructor": 2
+    },
+    "@smithy/util-base64": {
+      "Error constructor": 11
+    },
+    "@smithy/util-stream": {
+      "Error constructor": 4
+    },
+    "@smithy/util-utf8": {
+      "Error constructor": 2
+    },
+    "ajv": {
+      "Error constructor": 33
+    },
+    "context/compact": {
+      "Diagnostic callsite": 35,
+      "Error constructor": 8
+    },
+    "mcp/config-policy": {
+      "Diagnostic callsite": 54,
+      "Error constructor": 30
+    },
+    "model/request": {
+      "Diagnostic callsite": 63
+    },
+    "protobufjs OpenTelemetry OTLP generated codec": {
+      "Error constructor": 102
+    },
+    "sandbox/enforcement": {
+      "Diagnostic callsite": 54,
+      "Error constructor": 13
+    },
+    "session/persistence": {
+      "Diagnostic callsite": 25
+    },
+    "session/transcript": {
+      "Diagnostic callsite": 6
+    },
+    "tool/hooks-permission": {
+      "Diagnostic callsite": 14
+    },
+    "tool/runtime": {
+      "Diagnostic callsite": 3,
+      "Error constructor": 3
+    },
+    "zod": {
+      "Error constructor": 12
+    }
+  },
+  "productFlowEvidence": {
+    "catchOwner:Unresolved": 308,
+    "retryOwner:Resolved exact rule": 99,
+    "retryOwner:Unresolved": 209,
+    "toolResultOwner:Resolved exact rule": 13,
+    "toolResultOwner:Unresolved": 295,
+    "userSurfaceOwner:Unresolved": 308
+  },
+  "reviewedRuleCount": 43,
+  "scenarioCounts": {
+    "AWS SDK credential and protocol invariants": {
+      "Error constructor": 30
+    },
+    "AWS credential source/profile guards": {
+      "Error constructor": 4
+    },
+    "AWS endpoint provider precondition": {
+      "Error constructor": 1
+    },
+    "Ajv compiler internal invariants": {
+      "Error constructor": 33
+    },
+    "MCP trust, policy and local config guards": {
+      "Error constructor": 30
+    },
+    "MCPB, plugin, connector and policy compilation": {
+      "Diagnostic callsite": 41
+    },
+    "OTLP protobuf object/array verification": {
+      "Error constructor": 102
+    },
+    "OpenTelemetry global API registration guards": {
+      "Error constructor": 2
+    },
+    "PreTool and permission hook entry diagnostics": {
+      "Diagnostic callsite": 2
+    },
+    "REPL sandbox violation one-shot relaxation": {
+      "Diagnostic callsite": 1
+    },
+    "Smithy CBOR precision and undefined-value guards": {
+      "Error constructor": 2
+    },
+    "Smithy HTTP protocol base invariant": {
+      "Error constructor": 1
+    },
+    "Smithy HTTP protocol implementation guards": {
+      "Error constructor": 4
+    },
+    "Smithy endpoint configuration guard": {
+      "Error constructor": 1
+    },
+    "Smithy event-stream union guard": {
+      "Error constructor": 1
+    },
+    "Smithy normalized schema invariants": {
+      "Error constructor": 8
+    },
+    "Smithy numeric serde invariant": {
+      "Error constructor": 1
+    },
+    "Stainless Anthropic client fetch precondition": {
+      "Error constructor": 1
+    },
+    "Storage V5 transcript compact": {
+      "Diagnostic callsite": 6
+    },
+    "UTF-8 encoder contract": {
+      "Error constructor": 2
+    },
+    "Zod schema conversion internal invariants": {
+      "Error constructor": 12
+    },
+    "base64 encoder contract": {
+      "Error constructor": 11
+    },
+    "claude.ai MCP connector bounded fetch": {
+      "Diagnostic callsite": 13
+    },
+    "deferred tool resume re-entry": {
+      "Diagnostic callsite": 3
+    },
+    "end-turn hook decisions after tool result": {
+      "Diagnostic callsite": 4
+    },
+    "hook runner cancellation and failure diagnostics": {
+      "Diagnostic callsite": 5
+    },
+    "manual compact and context-hint diagnostics": {
+      "Diagnostic callsite": 4
+    },
+    "manual compact fallback and autocompact breakers": {
+      "Diagnostic callsite": 8
+    },
+    "manual compact model policy gate": {
+      "Error constructor": 6
+    },
+    "precomputed compact sidecar lifecycle": {
+      "Diagnostic callsite": 16
+    },
+    "reactive compact bounded retry ladder": {
+      "Diagnostic callsite": 4
+    },
+    "reactive compact hook and response diagnostics": {
+      "Diagnostic callsite": 3
+    },
+    "reactive compact response validation": {
+      "Error constructor": 2
+    },
+    "remote session persistence conflict and retry": {
+      "Diagnostic callsite": 10
+    },
+    "request degradation, retry and fallback": {
+      "Diagnostic callsite": 63
+    },
+    "sampling tool-result pairing and capability validation": {
+      "Error constructor": 28
+    },
+    "sandbox mount, bridge and platform invariants": {
+      "Error constructor": 13
+    },
+    "sandbox trust compilation and one-shot relaxation": {
+      "Diagnostic callsite": 53
+    },
+    "socket connect and inactivity timeout": {
+      "Error constructor": 2
+    },
+    "stream source, capability and index guards": {
+      "Error constructor": 4
+    },
+    "tool-result graph invariants": {
+      "Error constructor": 3
+    },
+    "tool-result persistence and context budget": {
+      "Diagnostic callsite": 3
+    },
+    "transcript and persistence continuity diagnostics": {
+      "Diagnostic callsite": 15
+    }
+  },
+  "schemaVersion": 1,
+  "sourceCallsites": {
+    "diagnosticCallsites": 5403,
+    "errorConstructors": 4831
+  },
+  "sourceInputs": {
+    "diagnostic": {
+      "lines": 5403,
+      "path": "analysis/source-inventory/diagnostic-message-callsites.jsonl",
+      "sha256": "1cef982ab45ace333aaed9fa1d7488f2f153bb3828c48804d046c1c68f437bd6",
+      "size": 8218613
+    },
+    "error": {
+      "lines": 4831,
+      "path": "analysis/source-inventory/error-message-callsites.jsonl",
+      "sha256": "1eeaaae9fd4f90ede1539c435b544315c39989d4f8747c48085b3a1c9043d205",
+      "size": 5639025
+    }
+  },
+  "sourceVersion": "2.1.235",
+  "totalCallsites": 10234,
+  "unresolvedCallsites": 9676
+}

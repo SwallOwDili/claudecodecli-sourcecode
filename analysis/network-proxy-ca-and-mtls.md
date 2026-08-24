@@ -14,7 +14,7 @@
 
 贯穿场景：企业要求 Claude Code 通过 `https://proxy.corp:8443` 出网，代理使用内部 CA，Anthropic gateway 还要求 client certificate。CLI 启动时验证 proxy URL，加载 bundled/system/extra CA 与 cert/key；主 API `fetch` 经统一请求选项，Axios/undici、WebSocket 和 AWS SDK 各装配自己的 agent。若 session 运行在 Remote CCR，客户端又启动本地 `127.0.0.1` CONNECT relay，把子进程 HTTPS 隧道经 WebSocket 送到 hosted policy proxy，并把该 proxy CA 注入常见工具信任链。
 
-| 平面 | 解决的问题 | 关键输入 | 主要缓存/状态 | 常见误判 |
+| 状态平面 / owner | 解决的问题 | 关键输入 | 主要缓存/状态 | 常见误判 |
 | --- | --- | --- | --- | --- |
 | proxy routing | 请求经哪个中间节点 | `https_proxy`/`HTTPS_PROXY`/`http_proxy`/`HTTP_PROXY`、`NO_PROXY` | proxy agent cache、global dispatcher | 设置变量就等于所有库都使用 |
 | CA trust | 客户端是否信任服务端/代理证书 | bundled/system store、`NODE_EXTRA_CA_CERTS` | CA aggregate cache | client cert 能替代 root CA |
@@ -22,7 +22,7 @@
 | CCR policy relay | Remote 子进程流量是否经组织 egress policy | session ID/token、feature gate、relay CA | local relay、WS pool、tool trust state | 与普通 `HTTPS_PROXY` 完全同一实现 |
 | telemetry exporter | Claude 自身 OTLP 如何建立 TLS | `OTEL_EXPORTER_OTLP_*` certificate/client cert/key | exporter 自己的 agent/credentials | 通用 `mg()` 已覆盖 OTLP |
 
-## 启动顺序决定了后续 transport 能拿到什么
+## 完整调用顺序：启动状态怎样进入一次请求
 
 目标版本的初始化顺序可以压缩成：
 
@@ -38,6 +38,15 @@ load/apply safe settings env
 ```
 
 proxy URL validation发生在 global agents 安装前。选中的 proxy 值如果不是带 scheme 且含 host 的完整 URL，初始化抛配置错误，文案要求修复/取消该变量并 restart；不会静默把 `proxy.corp:8080` 当成合法 HTTP proxy。
+
+1. settings/env owner 先应用受信的环境值，未信任 project helper 不执行。
+2. CA owner 合并 bundled、system 与 extra roots；mTLS owner读取并校验 cert/key pair。
+3. proxy selector 按小写到大写的固定顺序选择第一个非空值，并校验完整 URL。
+4. global network setup清旧 agent/cache，为 fetch、Axios、undici、WebSocket、AWS 与 MCP装各自 adapter。
+5. request-time adapter对目标 URL执行对应的 `NO_PROXY` matcher，决定直连或 proxy。
+6. 使用 proxy 且收到 407 时，auth owner清 helper cache、保存 challenge，并把请求交回有界 retry。
+7. TLS handshake使用 CA 验证服务端；配置 mTLS 时再发送 client certificate证明本地身份。
+8. Remote CCR 条件成立时另建 loopback CONNECT relay；普通 transport 成功不会把 CCR/OTLP/子进程路径一并升级为已验证。
 
 Static：主初始化位于 `reverse/javascript/cli.readable.js` 591165-591205；通用 proxy helper 位于 58199-58410。
 
@@ -395,6 +404,23 @@ settings manager 在重新应用 env 时，先保存旧的 `NODE_EXTRA_CA_CERTS`
 
 Static：`reverse/javascript/cli.readable.js` 273155-273168。
 
+## 精确二进制 Probe：主 Messages HTTPS 路径
+
+[`network-proxy-tls.json`](runtime-probes/network-proxy-tls.json) 对 SHA-256 固定为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` 的 `2.1.235` 二进制建立本地 HTTPS Messages service、两个 CONNECT proxy、一日测试 CA 和 client certificate。所有证书只在临时目录生成，没有外部账号或企业 PKI 参与。
+
+| 受控运行 | 输入 | literal result / exit | 外部观测 | 证明边界 |
+| --- | --- | --- | --- | --- |
+| CA 缺失 | `NO_PROXY=localhost`，不提供 extra CA | `Self-signed certificate detected...` / `1` | HTTPS server 零 HTTP marker | TLS 在 HTTP handler 前拒绝；不证明其他 transport 错误文案 |
+| extra CA | `NODE_EXTRA_CA_CERTS=$CA` | `NETWORK_OK` / `0` | server 收到一次 Messages POST | 主 Messages transport 采用 extra CA |
+| proxy precedence | `https_proxy=$A`、`HTTPS_PROXY=$B`、无 bypass | `NETWORK_OK` / `0` | 只有 lowercase proxy A 收到 `CONNECT localhost:$PORT` | 小写值遮蔽大写值；仅证明该 transport |
+| `NO_PROXY` | 两个 proxy 仍设置，`no_proxy=localhost` | `NETWORK_OK` / `0` | 两个 proxy 的 CONNECT 数均不增加 | 普通 hostname bypass 在主 Messages transport 生效 |
+| 非法 proxy | `https_proxy=proxy.invalid:8080` | 进程失败 / `1` | API server 零 marker | 缺 scheme 配置 fail closed，未发送受控请求 |
+| mTLS | extra CA + `CLAUDE_CODE_CLIENT_CERT/KEY` | `MTLS_OK` / `0` | server 观察 `authorized=true`、CN=`Claude Probe Client` | 证明 client material 进入本地 TLS handshake |
+
+报告的 14 个 checks 全为 true。专属 validator 交叉校验版本/SHA、命令与 marker、exit/result、API 命中、proxy A/B、mTLS peer 和四条 Boundary；22 种字段/结构伪造全部被拒绝。
+
+**不能外推：** 这组 Probe 只覆盖主 Messages HTTPS transport。Axios、undici global dispatcher、WebSocket、AWS SDK、MCP、OTLP、子进程和 CCR relay 仍需分别建立 wire Probe；client cert 成功也不证明企业证书签发、轮换或撤销。
+
 ## 成功、失败与恢复矩阵
 
 | 症状 | 更可能的问题层 | 当前实现行为 | 恢复/验证 |
@@ -409,6 +435,7 @@ Static：`reverse/javascript/cli.readable.js` 273155-273168。
 | CCR proxy 返回 405 | protocol mismatch | relay 只接受 HTTPS CONNECT | 不给该工具设置 plain `HTTP_PROXY`；升级/配置正确 HTTPS proxy 支持 |
 | CCR status 有 `toolTrustFailureCodes` | tool adapter | CA bundle存在，但 JVM/NSS/Bazel/boto 某项未配置 | 按 code 修工具信任；不要关闭 TLS verification |
 | CCR startup probe failed | hosted relay unreachable | local relay启动但 traffic 可 502；主 init继续 | 检查到 CCR base URL 的 egress和 status endpoint |
+| gRPC/WS/client-mTLS/raw TCP 试图走 CCR relay | unsupported transport | CONNECT relay不把这些协议升级为受支持 | 改用独立 transport；不能靠重试或关闭 TLS verification 恢复 |
 | OTLP exporter连不上 | telemetry TLS/transport | 使用 exporter 自己的 cert/key/agent | 检查 `OTEL_EXPORTER_OTLP_*`；单独做 wire Probe |
 | 子进程看不到 `OTEL_*` | env scrub，非 bug | CLI 主动删除，防止 telemetry config 继承 | 给子进程显式配置它自己的 telemetry，不依赖继承 |
 
@@ -433,11 +460,16 @@ Static：`reverse/javascript/cli.readable.js` 273155-273168。
 
 ### 性能与可用性成本
 
+- proxy/CA/mTLS 不直接改变逻辑 prompt token，但握手失败和 retry 可能重复发送同一请求、增加延迟与潜在费用；服务端是否对失败 attempt 计费仍是 Boundary。
 - proxy 多一跳，CCR 又增加 loopback CONNECT + WebSocket tunnel + hosted egress；延迟和带宽背压都高于直连。
 - CA aggregate、mTLS parse、system trust/JVM/NSS安装主要发生在启动/刷新，缓存降低稳态成本，但轮换会重建连接池。
 - helper 最长占用 30 秒；407 还会增加至少一次 retry。
 - CCR pending 上限 32 MiB、pool 4 和 4/1 MiB 水位保护内存，但大型上传或高并发工具会更早遇到背压。
 - 不支持 gRPC/WS/client-mTLS/raw TCP 意味着某些工具不是“配置一下 CA”就能恢复，需要换 transport 或由管理员提供独立路径。
+
+### 外部副作用
+
+CCR/tool-trust setup 可能写 system trust、JVM truststore、NSS、boto、Bazel 和 Git 配置；proxyAuthHelper 又会执行外部命令。这些副作用不因一次 Messages 请求失败而自动撤销，必须按 adapter 的 status/failure code 清理或补偿。
 
 ## 证据分层
 
@@ -445,26 +477,26 @@ Static：`reverse/javascript/cli.readable.js` 273155-273168。
 | --- | --- | --- | --- |
 | `Public` | [官方网络配置摘录](public-source-excerpts.md#public-background-network-settings) | 当前公开产品要求背景 session 从 settings env获取一致网络配置 | 不证明 2.1.235 每个 transport 的 adapter 与阈值 |
 | `Static` | proxy/CA/mTLS/CCR/MCP/OTLP 的目标 bundle 调用链 | 本版优先级、TTL、caps、fallback、env scrub和失败分支 | 某企业 proxy/CA/CCR 服务当前可达 |
-| `Probe` | 本章不新增网络 wire Probe；仅引用仓库已有 sandbox network Probe作为“退出码不等于动作成功”的旁证 | 对应受控 sandbox egress拒绝 | 普通 proxy、407 helper、mTLS rotation、CCR、OTLP through proxy |
+| `Probe` | 精确二进制本地 HTTPS/CONNECT/CA/mTLS 场景；另引用 sandbox network Probe | 主 Messages transport 的 proxy precedence、NO_PROXY、invalid proxy、extra CA 与 client identity | 407 helper、轮换、Axios/WS/AWS/MCP/OTLP/CCR transport |
 | `Boundary` | server policy、真实企业 PKI、Remote entitlement、exporter proxy behavior | 明确哪些结论仍需现场触发 | 不代表代码路径不存在 |
 
 ## 关键源码定位
 
 | 主题 | `reverse/javascript/cli.readable.js` |
 | --- | --- |
-| proxy precedence、URL validation、NO_PROXY、helper、global agents | 58199-58410 |
-| CA store、过期过滤、extra CA cache | 43941-44040 |
-| mTLS file loading、pair validation、last-good、agents | 44197-44307 |
-| stale TLS error后的 mTLS reload | 215568-215590 |
-| settings env热更新与 cache/agent重建 | 273155-273168 |
-| CCR relay parser、pool、limits、flow control | 589940-590506 |
-| CCR trust adapters、gate、env输出与诊断 | 590500-591174 |
-| 主初始化顺序 | 591165-591205 |
-| MCP agent-proxy fallback | 371455-371468 |
-| MCP HTTP/SSE/WS/stdio transports | 385585-385648 |
-| child env OTEL scrub | 93505-93530、421865-421885 |
-| OTLP HTTP TLS material | 345993-346015 |
-| OTLP gRPC credentials | 357461-357496 |
+| proxy precedence、URL validation、NO_PROXY、helper、global agents | [58199-58410](../reverse/javascript/cli.readable.js#L58199) |
+| CA store、过期过滤、extra CA cache | [43941-44040](../reverse/javascript/cli.readable.js#L43941) |
+| mTLS file loading、pair validation、last-good、agents | [44197-44307](../reverse/javascript/cli.readable.js#L44197) |
+| stale TLS error后的 mTLS reload | [215568-215590](../reverse/javascript/cli.readable.js#L215568) |
+| settings env热更新与 cache/agent重建 | [273155-273168](../reverse/javascript/cli.readable.js#L273155) |
+| CCR relay parser、pool、limits、flow control | [589940-590506](../reverse/javascript/cli.readable.js#L589940) |
+| CCR trust adapters、gate、env输出与诊断 | [590500-591174](../reverse/javascript/cli.readable.js#L590500) |
+| 主初始化顺序 | [591165-591205](../reverse/javascript/cli.readable.js#L591165) |
+| MCP agent-proxy fallback | [371455-371468](../reverse/javascript/cli.readable.js#L371455) |
+| MCP HTTP/SSE/WS/stdio transports | [385585-385648](../reverse/javascript/cli.readable.js#L385585) |
+| child env OTEL scrub | [93505-93530](../reverse/javascript/cli.readable.js#L93505)、[421865-421885](../reverse/javascript/cli.readable.js#L421865) |
+| OTLP HTTP TLS material | [345993-346015](../reverse/javascript/cli.readable.js#L345993) |
+| OTLP gRPC credentials | [357461-357496](../reverse/javascript/cli.readable.js#L357461) |
 
 ## 后续版本交叉对比清单
 

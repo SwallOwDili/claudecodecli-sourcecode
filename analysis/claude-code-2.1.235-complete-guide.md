@@ -11,7 +11,7 @@
 
 结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
 
-需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再从 workspace trust/settings/provider 的能力编译进入 Agent Loop 四种时钟、Bash 分层风控、上下文治理、Telemetry、Resume 消息图、MCP/Skills/子 Agent、Artifact 结果未知与 native Voice；最后归纳逐请求编译能力、权力不对称、四时钟因果反馈、事实/表示分离、按对象恢复、隔离扩展和观测出口边界。C/Q/E/S/O 只是分析者归纳的阅读索引，不是源码原生模块或 Anthropic 官方架构。精确的 71 类 inventory、335 条 claim、三轴证据分类和未完成 consumer tracing 单独放在 [机器证据索引](product-surface-inventory-index.md)，不再压住正文。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md) 和 [错误与诊断机制图谱](error-diagnostic-atlas.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
+需要查全量表面时，不要在本卷里翻零散提及：先读 [模型只有提案权：2.1.235 本地执行系统解剖](product-surface-evidence-map.md)。它先区分模型提案、客户端因果账本和外部真实副作用，再从 workspace trust/settings/provider 的能力编译进入 Agent Loop 四种时钟、Bash 分层风控、上下文治理、Telemetry、Resume 消息图、MCP/Skills/子 Agent、Artifact 结果未知与 native Voice；最后归纳逐请求编译能力、权力不对称、四时钟因果反馈、事实/表示分离、按对象恢复、隔离扩展和观测出口边界。C/Q/E/S/O 只是分析者归纳的阅读索引，不是源码原生模块或 Anthropic 官方架构。精确的 71 类 inventory、339 条 claim、三轴证据分类和未完成 consumer tracing 单独放在 [机器证据索引](product-surface-inventory-index.md)，不再压住正文。然后读 [全面性审计](completeness-audit.md) 判断 58 个能力面的机制深度和仍未完成的 consumer tracing。读 [工具注册与宿主表面](tool-registration-and-host-surfaces.md) 区分人工维护的 29 项核心参考、80 个同工厂 AST 注册调用点、工厂调用展开和一次请求真实 `tools[]`，读 [核心终端工具参考](builtin-tools-reference.md) 查逐工具状态与副作用。高价值状态机已拆成独立专题： [Plan Mode](plan-mode-and-human-approval.md)、[Structured Output](structured-output-and-schema-contract.md)、[REPL](repl-programmatic-tool-runtime.md)、[EndConversation](end-conversation-risk-control.md)、[Remote/Runner/Notifications](remote-routines-runner-and-notifications.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md)、[ClaudeDesign/Projects](claude-design-and-projects.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Artifact Watch](artifact-watch-comment-autoreact.md)、[`/insights`](insights-history-analysis-pipeline.md)、[CLI 启动资源](cli-startup-files-plugins-deeplinks.md) 和 [复杂 Slash Command](complex-slash-command-lifecycles.md)。遥测排查先进入 [场景语义索引与 1,441 条逐事件证据](telemetry-event-catalog.md)，按 API、工具权限、compact、session、MCP、后台任务、登录和 transcript 恢复理解 owner 与状态变化，再下钻字段；API/Beta 与异常则分别进入 [99 条 API 路径与 53 个 Beta 所有权](api-beta-route-ownership.md)、[错误与诊断机制图谱](error-diagnostic-atlas.md)和[10,234 条 callsite 精确 owner 索引](error-diagnostic-owner-index.md)。不要用 event/path/error 字符串存在替代 consumer、恢复路径或服务端 Boundary。Settings、CLI/SDK、Slash Command、Hook、Storage 及其他专用状态机继续由对应专题提供精确集合和完整失败合同。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -944,7 +944,7 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 看到 recording或 profile标识不等于默认上传。需要分别检查创建 gate、文件路径、retention和发送 consumer。
 
-需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans。原 family `tengu_other` 的 911 event / 1,297 callsite 当前只接受 25 条 exact caller identity，完整收口 5 Single-owner、1 Cross-owner；905 event / 1,272 callsite 保留 Unresolved。这是 Derived 客户端 owner 投影，仍不等于分支运行、采样命中或远端送达。需要从异常或日志文本下钻时，使用 [错误与诊断机制图谱](error-diagnostic-atlas.md)：它把 4,831 个错误构造点和 5,403 个 `T()` 调用点放回 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，避免把一条 message 当成完整行为。
+需要从事件下钻时，使用 [遥测场景语义索引与逐事件证据](telemetry-event-catalog.md)：先按 API attempt、工具权限/执行、Permission UI、reactive compact、session、MCP、后台任务、登录、错误终态和 transcript 写入恢复解释事件先后、owner、字段和成功/失败含义，再逐项覆盖 1,441 个静态一方事件、43 个动态名称调用点、181 个 Datadog allowlist、26 个 OTEL 事件、8 个 metrics 和 10 个 spans。原 family `tengu_other` 的 911 event / 1,297 callsite 当前只接受 79 条 exact caller identity，完整收口 11 Single-owner、1 Cross-owner；899 event / 1,218 callsite 保留 Unresolved。每条命中还绑定局部状态变化与 Boundary；这是 Derived 客户端 owner 投影，仍不等于分支运行、采样命中、外部副作用完成或远端送达。需要从异常或日志文本下钻时，先用 [错误与诊断机制图谱](error-diagnostic-atlas.md)理解 abort、重试、tool result、stderr/TUI、LSP attachment、Hook、telemetry 与副作用恢复链，再进入 [Error/Diagnostic 精确 owner 索引](error-diagnostic-owner-index.md)：全 10,234 条互斥投影中只收口 308 Product caller 与 250 Dependency package/function，9,676 保持 Unresolved；Product 的 catch/user-surface 当前仍全部未解析，避免把一条 message 或 lexical scope 当成完整行为。
 
 ## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
@@ -1229,7 +1229,7 @@ Doctor分别检查：
 - 71类 source inventory；
 - 5个 native module、7个 slice和完整静态报告；
 - 204,740,576字节 JSC bytecode；
-- 335 条机制证据：243 Static、44 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，335 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
+- 339 条机制证据：243 Static、48 Probe、33 Public、15 Boundary；Static 细分为 205 runtime、16 consumer、12 constant、4 surface、6 declaration，339 个 claim ID 均唯一；validator 逐条核对 48 个 topic、源码范围、anchors、Probe 字段与 Boundary；
 - 58 个能力面：57 项 Deep、1 项 Boundary；
 - 93个归一化风险控制项；
 - 156个根 settings、361个 feature flag候选；
@@ -1314,9 +1314,9 @@ Doctor分别检查：
 | 安装、更新、doctor | [install-update-doctor-lifecycle.md](install-update-doctor-lifecycle.md) |
 | Native bridge和兼容重建 | [native-bridge-runtime.md](native-bridge-runtime.md) |
 | 遥测、日志、隐私、诊断 | [telemetry.md](telemetry.md) |
-| API、工具、compact、session、MCP 等场景的事件顺序，1,441 个一方事件、Datadog/OTEL 字段、动态事件名，以及 `tengu_other` 25 条 exact / 905 项 Unresolved caller-owner 投影 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
+| API、工具、compact、session、MCP 等场景的事件顺序，1,441 个一方事件、Datadog/OTEL 字段、动态事件名，以及 `tengu_other` 79 条 exact / 899 项 Unresolved caller-owner 投影 | [telemetry-event-catalog.md](telemetry-event-catalog.md) |
 | 99 条 API path、53 个 Beta 和 Gateway/SDK owner | [api-beta-route-ownership.md](api-beta-route-ownership.md) |
-| Error、debug、tool failure、abort 与 LSP diagnostics | [error-diagnostic-atlas.md](error-diagnostic-atlas.md) |
+| Error、debug、tool failure、abort 与 LSP diagnostics | [error-diagnostic-atlas.md](error-diagnostic-atlas.md) · [error-diagnostic-owner-index.md](error-diagnostic-owner-index.md) |
 | Artifact Watch 评论自动响应 | [artifact-watch-comment-autoreact.md](artifact-watch-comment-autoreact.md) |
 | `/insights` 历史分析与 facet cache | [insights-history-analysis-pipeline.md](insights-history-analysis-pipeline.md) |
 | CLI 启动 file/plugin/deep-link 资源 | [cli-startup-files-plugins-deeplinks.md](cli-startup-files-plugins-deeplinks.md) |
@@ -1445,7 +1445,9 @@ classifier denial 可触发 `PermissionDenied` Hook。`retry:true` 只向下一�
 
 每个 run 使用新的 HOME、Claude config、Git workspace、trace 和 credential copy，以 `-p --output-format stream-json --permission-mode dontAsk` 启动同版 child。这里的 sandbox 是状态目录隔离，不是断网、容器或 OS syscall sandbox；获得 Bash、Write、WebFetch 或 MCP grant 后仍会产生真实副作用。费用 ceiling 在 run 开始前检查，所以最多可被一个已启动的 Agent run 越过；之后付费 grader 被跳过、suite 标记 `partial_reason=cost_ceiling`。
 
-六类 grader 分别是 regex、tool order、tool used、file exists、LLM 和 baseline。LLM/baseline 各发 3 次独立 judge，2/3 多数决定 PASS；grader 异常按失败计入，不从平均值消失。完整 suite 达阈值 exit 0，质量/case 错误 exit 1，cost ceiling 或 auth failure partial exit 2；SIGINT/SIGTERM 即使报告仍写 `partial=true, partialReason=interrupted`，最终 shell exit 也分别是 130/143。JSON、HTML 与可选私有 publish 保留每次 run、evidence、judge votes、费用和 Delta。完整合同见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
+六类 grader 分别是 regex、tool order、tool used、file exists、LLM 和 baseline。LLM/baseline 各发 3 次独立 judge，2/3 多数决定 PASS；grader 异常按失败计入，不从平均值消失。完整 suite 达阈值 exit 0，质量/case 错误 exit 1，cost ceiling 或 auth failure partial exit 2；SIGINT/SIGTERM 即使报告仍写 `partial=true, partialReason=interrupted`，最终 shell exit 也分别是 130/143。JSON、HTML 与可选私有 publish 保留每次 run、evidence、judge votes、费用和 Delta。
+
+精确二进制的免费 smoke 已实际运行 1 个 with arm和 1 个 without arm：两臂 regex score 均为 1、Delta 0、partial false；只有 with request带 plugin SessionStart hook context，without request不带；JSON/HTML 均 mode 0644，command使用 `--no-publish --no-scaffold`。这证明 harness 编排，不证明本地 stub代表真实模型质量，也不覆盖 paid judge。完整合同见 [Plugin Evaluation Harness](plugin-evaluation-harness.md)。
 
 ## 38. Runtime Supervision：后台存活、可连接与任务完成是三件事
 
@@ -1508,6 +1510,8 @@ Windows `claude sandbox install/status` 回答宿主依赖和隔离用户等长�
 Claude Code 没有一个覆盖所有网络调用的万能代理开关。主请求/通用 fetch、Axios/undici、WebSocket、AWS SDK、MCP transport、OTLP exporter 和 CCR 子进程分别选择 adapter；`NO_PROXY` 也存在不同匹配器。主模型能联网只证明其 transport 已通过 proxy，不证明 MCP、云 SDK、后台 Agent 或遥测能走同一路径。
 
 TLS 又分服务端信任和客户端身份：CA store 组合 bundled/system/extra CA，并过滤过期系统证书；mTLS cert/key 要成对校验并在 stale connection 时重载。CCR agent proxy 是只接受 HTTPS CONNECT 的本地 policy relay，带有 allowlist、流控和兼容性边界，不等于任意直连。逐 transport 的优先级、407 helper refresh、证书轮换和排障顺序见 [Proxy、CA 与 mTLS](network-proxy-ca-and-mtls.md)。
+
+精确二进制 Probe 已在主 Messages HTTPS 路径观察到：小写 `https_proxy` 覆盖冲突的大写值，`no_proxy=localhost` 绕过两个 CONNECT proxy，缺 scheme 的 proxy 在 API marker 前 fail closed，自签服务从无 CA 的 exit 1 变为 extra CA 下的 exit 0，client cert/key 又让 server 观察到 authorized CN。该结论不外推 Axios、WebSocket、AWS、MCP、OTLP、子进程或 CCR。
 
 ## 47. Active Goal 与 Stop-loop
 

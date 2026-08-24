@@ -75,6 +75,11 @@ class CallerOwnerMapping(NamedTuple):
     navigation_end: int
 
 
+class CallerOwnerSemantics(NamedTuple):
+    state_change: str
+    boundary: str
+
+
 # Owner labels are admitted one caller at a time. The navigation range only tells
 # a reviewer where to read surrounding code; it is never part of the match.
 CALLER_OWNER_ALLOWLIST = (
@@ -103,37 +108,161 @@ CALLER_OWNER_ALLOWLIST = (
     CallerOwnerMapping("fast-mode-usage-picker", "usage-and-credits", "tengu_fast_mode_toggled", 487_764, "named:des", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:3", "f84c72f348ead43c", "identity-account", "usage and credits", "usage-credit approval, extra usage and fast-mode selection", 487_764, 487_764),
     CallerOwnerMapping("fast-mode-message-ui", "input-and-refusal-ui", "tengu_fast_mode_toggled", 524_166, "named:onMessage", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:84d18855ecc4c75fe60c:4", "8669fea1e83d5530", "terminal-host", "input and refusal UI", "hotkeys, paste, mode cycling and refusal retraction", 524_166, 524_166),
     CallerOwnerMapping("copper-lantern", "daemon-service-recall", "tengu_copper_lantern", 632_061, "named:Ehy", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:deaf317c346f375f3cd9:1", "a575093a2f5cb62f", "remote-runtime", "daemon supervisor", "service recall, worker drain and supervisor shutdown", 632_000, 632_084),
+    CallerOwnerMapping("github-app-step-01", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_752, "named:z1w", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:1", "c787d2e4f0d8d30d", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-02", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_772, "named:J1w", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:2", "695eede1f623e0ee", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-03", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_821, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:3", "bca052604411955e", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-04", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_857, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:4", "cb740b8cb1782023", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-05", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_858, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:5", "8c95a8ce845a7b50", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-06", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_864, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:6", "e2b3607dae16b352", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-07", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_879, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:7", "f0cb1646e9786baf", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-08", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_880, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:8", "09099d283aa83afb", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-09", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_881, "named:nHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:9", "1b4fcf57756d58bf", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-10", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_906, "named:pHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:10", "700a7f07734b2b3b", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-11", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_911, "named:fHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:11", "2a7135446633f63e", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-12", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_944, "named:wHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:88a6d75cae3dfd5dc4a3:1", "d2f74b907185fca0", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-13", "github-app-install-wizard", "tengu_install_github_app_step_completed", 490_955, "named:CHw", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:12", "48732f718d0ba540", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-app-step-14", "github-app-install-wizard", "tengu_install_github_app_step_completed", 491_054, "named:iv", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:fe028b39df055326e598:13", "ebda12e3e2fc56f8", "workflow-product", "GitHub App and Actions setup", "install wizard validation, repository selection, credentials and workflow setup", 490_640, 491_065),
+    CallerOwnerMapping("github-actions-failed-01", "github-actions-setup", "tengu_setup_github_actions_failed", 490_533, "named:I1w", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:5e4d7b6c1aeafa3ec001:1", "ad57dc7cc37b177f", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-02", "github-actions-setup", "tengu_setup_github_actions_failed", 490_534, "named:I1w", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:5e4d7b6c1aeafa3ec001:2", "307872d6d38bf420", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-03", "github-actions-setup", "tengu_setup_github_actions_failed", 490_548, "named:moc", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:97d6823b47c031eb4244:1", "bfbdb255a5223a54", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-04", "github-actions-setup", "tengu_setup_github_actions_failed", 490_550, "named:moc", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:97d6823b47c031eb4244:2", "31a04760af3c0c53", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-05", "github-actions-setup", "tengu_setup_github_actions_failed", 490_552, "named:moc", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:97d6823b47c031eb4244:3", "ca9247a9815c8b01", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-06", "github-actions-setup", "tengu_setup_github_actions_failed", 490_557, "named:moc", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:97d6823b47c031eb4244:4", "3760ce6766dc745f", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-07", "github-actions-setup", "tengu_setup_github_actions_failed", 490_567, "named:moc", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:97d6823b47c031eb4244:5", "b983d26e97b329af", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("github-actions-failed-08", "github-actions-setup", "tengu_setup_github_actions_failed", 490_585, "named:moc", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6f92a876503946181b32:1", "75934776b60cc1e1", "workflow-product", "GitHub App and Actions setup", "repository checks, branch and workflow creation, secret write and error propagation", 490_523, 490_588),
+    CallerOwnerMapping("marketplace-autoinstall-01", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_888, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:be2be2dd83eee6ed1e1b:1", "9ff854b2c2860ef3", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-02", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_890, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:be2be2dd83eee6ed1e1b:2", "83fc8ab134541dce", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-03", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_896, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:5326bb8a2af85c59b487:1", "7b2cd7863a1aff56", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-04", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_900, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:4944ba300c5ac0cedc1b:1", "a75f44d2e748f7fc", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-05", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_905, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:a878f23544b050915e7e:1", "b18ff479be6303c9", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-06", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_909, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:773b54301da682aa10d6:1", "a7ae823b16390ac8", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-07", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_914, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:dca9c2396dfba04cf1bc:1", "0e1d3bae540741d0", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("marketplace-autoinstall-08", "official-marketplace-autoinstall", "tengu_official_marketplace_auto_install", 583_919, "named:z3g", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:6644c277f20abe4c55be:1", "5153da207c5d2471", "plugin-runtime", "plugin marketplace lifecycle", "policy gates, GCS or git install, retry scheduling and terminal outcome", 583_864, 583_920),
+    CallerOwnerMapping("stage-file-01", "remote-stage-file", "tengu_stage_file_completed", 599_468, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:67e476324232924b8220:1", "63dbedacc0ac1779", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-02", "remote-stage-file", "tengu_stage_file_completed", 599_479, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:2dfe5deae56b79089d68:1", "a74e07db5afe6059", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-03", "remote-stage-file", "tengu_stage_file_completed", 599_489, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:7e5e3cd42ebaa97cb5e7:1", "c264867695d091a2", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-04", "remote-stage-file", "tengu_stage_file_completed", 599_490, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:26a32766eecfab82713f:1", "3ec4218c53ac0a97", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-05", "remote-stage-file", "tengu_stage_file_completed", 599_495, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:7e5e3cd42ebaa97cb5e7:2", "a161f7091ef4e090", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-06", "remote-stage-file", "tengu_stage_file_completed", 599_496, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:17095582c9b78f666694:1", "7894ac5b5c69eb2d", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-07", "remote-stage-file", "tengu_stage_file_completed", 599_503, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:f02f03adca5299a3bc3b:1", "b90c7c6f8b9713fc", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-08", "remote-stage-file", "tengu_stage_file_completed", 599_505, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:08fe93cabfc7f78ff108:1", "18bbd48156278b03", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("stage-file-09", "remote-stage-file", "tengu_stage_file_completed", 599_507, "named:vKE", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:08fe93cabfc7f78ff108:2", "a2eb6f808daa19d0", "remote-runtime", "remote staged files", "runner gate, existing-file no-op, fetch, atomic publish and terminal result", 599_443, 599_508),
+    CallerOwnerMapping("file-history-rewind-failed-01", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_746, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:1", "2071d66a3476fad0", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-02", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_752, "anonymous:<anonymous>", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:2", "f732b548809adc05", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-03", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_766, "named:uiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:3", "b798ca4d3e932154", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-04", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_771, "named:uiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:4", "62c15cef498ad10d", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-05", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_780, "named:uiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:5", "f71f69462bf2a0c4", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-06", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_788, "named:uiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:6", "45df7fcd624829a1", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-07", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_802, "named:uiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:7", "495e515430dc10f1", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-08", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_973, "named:o", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:8", "73ca0a2db63caa97", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("file-history-rewind-failed-09", "file-history-rewind", "tengu_file_history_rewind_restore_file_failed", 194_977, "named:yiS", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:c4dfcbff0b40b3f9859d:9", "cbb0da335c3d9985", "workspace-state", "file history and rewind", "dry-run diff failure, restore refusal, path identity guard and missing backup", 194_721, 195_057),
+    CallerOwnerMapping("transcript-compact-failed-01", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_362, "named:performCompactTranscript", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:1", "cb5cd5aaecf08771", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("transcript-compact-failed-02", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_369, "named:performCompactTranscript", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:2", "97f0e934b5a93c03", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("transcript-compact-failed-03", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_385, "named:performCompactTranscript", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:3", "0854318d84a65772", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("transcript-compact-failed-04", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_404, "named:performCompactTranscript", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:4", "fe95f2292eaeedda", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("transcript-compact-failed-05", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_417, "named:performCompactTranscript", "SequenceExpression/expressions/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:5", "282fc20b4aa18dde", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
+    CallerOwnerMapping("transcript-compact-failed-06", "transcript-file-compaction", "tengu_transcript_compact_failed", 401_425, "named:n", "ExpressionStatement/expression/other", "firstPartyEvent+firstPartyEventAsync:22ed3192e2bcce7d7f40:6", "018f87d97b41c90c", "workspace-state", "transcript storage", "file and V5 transcript compaction validation, source race and I/O abort", 401_330, 401_500),
 )
+
+CALLER_OWNER_RULE_SEMANTICS = {
+    "limits-teleport-compact": CallerOwnerSemantics(
+        "request watchdog 将 reactive compact 记为成功，request loop 因而可以带着压实后的会话状态继续。",
+        "静态 caller 不证明用户会话实际触发了 compact、删掉多少上下文，或后续请求成功。",
+    ),
+    "transcript-storage": CallerOwnerSemantics(
+        "transcript writer 进入写失败分支；本次记录没有获得 durable 确认，连续性仍交给后续 graph repair 或 recovery。",
+        "caller 只证明本地失败处理，不证明运行时文件错误、实际保留字节、后续恢复结果或遥测送达。",
+    ),
+    "tool-hooks-and-subagents": CallerOwnerSemantics(
+        "post-tool hook 路径在 tool/subagent 执行后记录错误，并把控制权交回外层 tool runtime。",
+        "映射不证明具体执行了哪个 hook、工具副作用是否已经完成，或后续 hook/model turn 是否恢复。",
+    ),
+    "remote-review": CallerOwnerSemantics(
+        "remote-review workflow 拒绝或恢复 launch precondition，或在推进本地 gate/launch 状态时记录 fast-mode 选择。",
+        "静态 caller 不证明 remote session 已创建、quota 已接受、cloud review 已执行、findings 已送达或 PR comment 已完成。",
+    ),
+    "identity-and-model-access": CallerOwnerSemantics(
+        "identity/model-access surface 在应用本地 access 与 account-limit 检查后记录所选 fast-mode 状态。",
+        "映射不证明当前 entitlement、服务端 policy、模型可用性、实际 request routing 或遥测送达。",
+    ),
+    "usage-and-credits": CallerOwnerSemantics(
+        "usage picker 把 fast-mode 选择与本地 usage-credit approval 状态一起记录。",
+        "映射不证明 billing 已接受、账号余额、后续请求模式或服务端实际扣费。",
+    ),
+    "input-and-refusal-ui": CallerOwnerSemantics(
+        "message UI 应用并记录由输入处理触发的 fast-mode toggle。",
+        "映射不证明下一次模型请求使用该模式、服务端接受该模式，或事件离开本地队列。",
+    ),
+    "daemon-service-recall": CallerOwnerSemantics(
+        "daemon supervisor 进入 service recall，开始 drain workers、卸载 service，并转向 supervisor shutdown。",
+        "exact caller 不证明每个 worker 都已干净退出、OS service 删除成功，或 exit event 到达 collector。",
+    ),
+    "github-app-install-wizard": CallerOwnerSemantics(
+        "GitHub setup UI 推进一个具名 wizard milestone，更新 repository/credential/workflow 选择，或在 setup 返回后进入 success。",
+        "这些静态 UI 转移不证明 browser authorization、GitHub App 安装、远端仓库写入、secret 持久化，或部分远端副作用已回滚。",
+    ),
+    "github-actions-setup": CallerOwnerSemantics(
+        "GitHub Actions setup 在 repository、branch、workflow file 或 secret 操作后进入具名失败分支，并抛出或继续传播错误。",
+        "更早的 GitHub 写入可能已经存在；caller 不证明网络操作实际结果、远端回滚、最终仓库状态或事件送达。",
+    ),
+    "official-marketplace-autoinstall": CallerOwnerSemantics(
+        "plugin owner 在 auto-install 状态机中记录 policy skip、安装成功、可重试失败与 backoff，或 xcrun-shim 终态。",
+        "xcrun-shim 分支只返回分类结果，没有同样的 retry 持久化更新；caller 不证明未来重试、marketplace 完整性、网络成功或遥测保留。",
+    ),
+    "remote-stage-file": CallerOwnerSemantics(
+        "remote file stager 到达一个终态：unsupported runner、existing/read-only no-op、gated fetch、mkdir/write failure，或 atomic rename 成功发布到 stage root。",
+        "映射不证明远端文件真实存在、字节符合服务端意图、后续 consumer 打开了 staged path，或事件已发送。",
+    ),
+    "file-history-rewind": CallerOwnerSemantics(
+        "rewind owner 在 backup lookup、path type、link count、parent identity 或 file I/O guard 失败时丢弃 dry-run row，或拒绝/跳过 restore。",
+        "同一轮 rewind 的其他文件可能已经恢复或删除；这些 caller 不证明事务级回滚、运行时文件系统最终状态或 recovery 完成。",
+    ),
+    "transcript-file-compaction": CallerOwnerSemantics(
+        "file/V5 transcript compaction 在 torn tail、invalid plan、source race 或 I/O error 时放弃 publish；文件路径未发布 replacement 时还会尝试清理临时文件。",
+        "映射不证明源 transcript 其余部分健康、没有 concurrent append、cleanup 成功，或后续 compaction 已恢复。",
+    ),
+}
 
 EXPECTED_CALLER_OWNER_EVENTS = 911
 EXPECTED_CALLER_OWNER_CALLSITES = 1_297
-EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES = 25
-EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = "5e88441ffcf2cff47b10bfb980618a98f2d16487c3c2a3f3b351e0db45dbeb92"
+EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES = 79
+EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = "43d545d8f0c85d69f5f1fefc0663e1153dece9e392b07520616107aa8d2f3aac"
 EXPECTED_CALLER_OWNER_STATUS = {
-    "Single-owner": 5,
+    "Single-owner": 11,
     "Cross-owner": 1,
     "Partially resolved": 0,
-    "Unresolved": 905,
+    "Unresolved": 899,
 }
 EXPECTED_CALLER_OWNER_BUCKETS = {
-    "Unresolved": (905, 1_272),
+    "Unresolved": (899, 1_218),
     "identity-account": (1, 2),
     "model-request": (1, 1),
-    "remote-runtime": (1, 1),
+    "plugin-runtime": (1, 8),
+    "remote-runtime": (2, 10),
     "terminal-host": (1, 1),
     "tool-runtime": (1, 1),
-    "workflow-product": (2, 18),
-    "workspace-state": (1, 1),
+    "workflow-product": (4, 40),
+    "workspace-state": (3, 16),
 }
 CALLER_OWNER_REPRESENTATIVES = {
     "Unresolved": ("tengu_end_conversation_tool_call", "tengu_heap_dump", "tengu_update_refused"),
     "identity-account": ("tengu_fast_mode_toggled",),
     "model-request": ("tengu_reactive_compact_succeeded",),
-    "remote-runtime": ("tengu_copper_lantern",),
+    "plugin-runtime": ("tengu_official_marketplace_auto_install",),
+    "remote-runtime": ("tengu_copper_lantern", "tengu_stage_file_completed"),
     "terminal-host": ("tengu_fast_mode_toggled",),
     "tool-runtime": ("tengu_post_tool_hook_error",),
-    "workflow-product": ("tengu_review_remote_precondition_failed", "tengu_fast_mode_toggled"),
-    "workspace-state": ("tengu_transcript_write_failed",),
+    "workflow-product": (
+        "tengu_review_remote_precondition_failed",
+        "tengu_fast_mode_toggled",
+        "tengu_install_github_app_step_completed",
+        "tengu_setup_github_actions_failed",
+    ),
+    "workspace-state": (
+        "tengu_transcript_write_failed",
+        "tengu_file_history_rewind_restore_file_failed",
+        "tengu_transcript_compact_failed",
+    ),
 }
 
 PREFIX_FAMILIES = {
@@ -568,8 +697,19 @@ def caller_consumer_label(row: dict[str, Any]) -> str:
 def caller_owner_allowlist_sha256(
     mappings: Sequence[CallerOwnerMapping],
 ) -> str:
+    rule_ids = sorted({mapping.rule_id for mapping in mappings})
     encoded = json.dumps(
-        [mapping._asdict() for mapping in mappings],
+        {
+            "mappings": [mapping._asdict() for mapping in mappings],
+            "ruleSemantics": {
+                rule_id: (
+                    CALLER_OWNER_RULE_SEMANTICS[rule_id]._asdict()
+                    if rule_id in CALLER_OWNER_RULE_SEMANTICS
+                    else None
+                )
+                for rule_id in rule_ids
+            },
+        },
         ensure_ascii=True,
         sort_keys=True,
         separators=(",", ":"),
@@ -641,6 +781,16 @@ def validate_caller_owner_allowlist(
         == EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256,
         "caller-owner exact allowlist digest changed",
     )
+    rule_ids = {mapping.rule_id for mapping in CALLER_OWNER_ALLOWLIST}
+    require(
+        rule_ids == set(CALLER_OWNER_RULE_SEMANTICS),
+        "caller-owner rule semantics coverage changed",
+    )
+    for rule_id, semantics in CALLER_OWNER_RULE_SEMANTICS.items():
+        require(
+            semantics.state_change and semantics.boundary,
+            f"caller-owner rule semantics is incomplete: {rule_id}",
+        )
     mapping_ids: set[str] = set()
     exact_identities: set[tuple[str, int, str, str, str]] = set()
     target_events = {
@@ -737,6 +887,8 @@ def project_caller_owners(
                 owner = "Unresolved"
                 topic = "Unresolved"
                 scenario = "No reviewed exact caller allowlist entry matches this callsite"
+                state_change = "Unresolved: no exact caller rule establishes the observed local state transition"
+                boundary = "No owner or runtime claim is admitted without an exact reviewed mapping"
                 navigation_range = None
             else:
                 mapping_id = mapping.mapping_id
@@ -744,12 +896,17 @@ def project_caller_owners(
                 owner = mapping.owner
                 topic = mapping.topic
                 scenario = mapping.scenario
+                semantics = CALLER_OWNER_RULE_SEMANTICS[mapping.rule_id]
+                state_change = semantics.state_change
+                boundary = semantics.boundary
                 navigation_range = [mapping.navigation_start, mapping.navigation_end]
             callsites.append(
                 {
                     "owner": owner,
                     "topic": topic,
                     "scenario": scenario,
+                    "stateChange": state_change,
+                    "boundary": boundary,
                     "mappingId": mapping_id,
                     "ruleId": rule_id,
                     "navigationRange": navigation_range,
@@ -770,6 +927,8 @@ def project_caller_owners(
         rules = sorted_unique(
             item["ruleId"] for item in callsites if item["ruleId"] is not None
         )
+        state_changes = sorted_unique(item["stateChange"] for item in callsites)
+        boundaries = sorted_unique(item["boundary"] for item in callsites)
         if owners == ["Unresolved"]:
             status = "Unresolved"
         elif "Unresolved" in owners:
@@ -784,6 +943,8 @@ def project_caller_owners(
             "topics": topics,
             "scenarios": scenarios,
             "rules": rules,
+            "stateChanges": state_changes,
+            "boundaries": boundaries,
             "callsites": callsites,
         }
     require(len(result) == EXPECTED_CALLER_OWNER_EVENTS, "caller-owner projection output count")
@@ -1027,7 +1188,7 @@ def render_header(version: str) -> list[str]:
         "| 第三方 OTEL | enable gate、signal exporter、content gate、resource attributes | 26 个事件、52 个调用点、8 个 metric、10 个 span | 管理员 collector 的落盘、转发和保留策略 |",
         "| 服务端/collector | 接受、拒绝、二次处理、保留和访问控制 | 客户端请求形状之外没有静态证据 | Anthropic 服务端或管理员 collector 的最终处理 |",
         "",
-        "family 层的 `tengu_other` 只表示事件名没有命中 release-local family 规则。它不是产品 owner、模块边界或服务端分类；后文 caller projection 只给 25 个逐项复核的 exact callsite 归属，剩余 905 个事件保持 `Unresolved`。像 `tengu_background` 这类 singleton label 仍只匹配同名事件，不会自动吞并所有同前缀名字。",
+        f"family 层的 `tengu_other` 只表示事件名没有命中 release-local family 规则。它不是产品 owner、模块边界或服务端分类；后文 caller projection 只给 {EXPECTED_CALLER_OWNER_ALLOWLIST_ENTRIES} 个逐项复核的 exact callsite 归属，剩余 {EXPECTED_CALLER_OWNER_STATUS['Unresolved']} 个事件保持 `Unresolved`。像 `tengu_background` 这类 singleton label 仍只匹配同名事件，不会自动吞并所有同前缀名字。",
         "",
         "## 字段怎么读",
         "",
@@ -1157,7 +1318,7 @@ def render_scenario_semantic_index(
         "",
         "### 为什么 family `tengu_other` 不能再承担语义归属",
         "",
-        "`tengu_other` 不能当作语义兜底或低价值垃圾桶；它只表示当前 family 前缀规则没有命中。独立 caller projection 只把逐项复核的 `tengu_reactive_compact_succeeded` 与 `tengu_transcript_write_failed` 分别归入 `model-request`、`workspace-state`；`tengu_query_error` 等其余事件继续标成 `Unresolved`。排障先看 exact caller 证据，再用 family 做名字导航；family 和行区间都不能决定产品所有权。",
+        "`tengu_other` 不能当作语义兜底或低价值垃圾桶；它只表示当前 family 前缀规则没有命中。独立 caller projection 已逐项复核 compact、transcript 写入/压实、tool hook、remote review、fast mode、daemon recall、GitHub setup、官方 Marketplace、remote stage file 与 File History rewind 等 exact caller；`tengu_query_error` 等未映射事件继续标成 `Unresolved`。排障先看 exact caller 证据，再用 family 做名字导航；family 和行区间都不能决定产品所有权。",
         "",
     ]
 
@@ -1268,14 +1429,14 @@ def render_caller_owner_projection(
         f"<!-- caller-owner-mapped-callsites:{callsite_count - owner_callsites['Unresolved']} -->",
         f"<!-- caller-owner-unresolved-callsites:{owner_callsites['Unresolved']} -->",
         "",
-        "family projection 有 911 个名字、1,297 个静态调用点落入 `tengu_other`。生成器先把它们与同哈希 readable view 逐个对齐，再只接受 25 条逐 caller 人工 allowlist：这 25 个调用点完整覆盖 6 个代表事件，其余 905 个事件、1,272 个调用点保持 `Unresolved`。family 继续承担名字导航；caller projection 不会用邻近行替未审阅 caller 猜 owner。",
+        f"family projection 有 911 个名字、1,297 个静态调用点落入 `tengu_other`。生成器先把它们与同哈希 readable view 逐个对齐，再只接受 {len(CALLER_OWNER_ALLOWLIST)} 条逐 caller 人工 allowlist：这些调用点完整覆盖 {status_counts['Single-owner'] + status_counts['Cross-owner']} 个事件，其余 {len(unresolved_events)} 个事件、{owner_callsites['Unresolved']:,} 个调用点保持 `Unresolved`。family 继续承担名字导航；caller projection 不会用邻近行替未审阅 caller 猜 owner。",
         "",
         "### 分类合同",
         "",
         "1. **输入不是事件名清单。** 每条 allowlist 同时固定 event name、readable line、词法 function、consumer parent/relation/role、inventory comparison key 和 16 位证据指纹；缺一项都不能命中。",
         "2. **owner 由 exact caller allowlist 决定。** readable range 只帮助人阅读附近代码，分类器完全不读取 range；扩大导航区间不会吸收同区间的其他 caller，事件前缀也不会自动成为 owner。",
         "3. **同名事件按全部调用点聚合。** 全部 caller 都有 exact mapping 且落在同一 owner 才是 `Single-owner`；跨 host/owner 的同名事件标成 `Cross-owner`；只有一部分 caller 命中时标成 `Partially resolved`；所有调用点都没有 exact mapping 才是 `Unresolved`。",
-        "4. **双重身份校验防止静默换义。** inventory comparison key 参与初筛；event/function/consumer/payload/canonical position/readable line/rule 生成的 16 位 SHA-256 前缀再做复核。整个 25 条 allowlist 另有完整 SHA-256，删除或篡改都会让生成失败。",
+        f"4. **双重身份校验防止静默换义。** inventory comparison key 参与初筛；event/function/consumer/payload/canonical position/readable line/rule 生成的 16 位 SHA-256 前缀再做复核。整个 {len(CALLER_OWNER_ALLOWLIST)} 条 allowlist 连同 rule 的状态变化与 Boundary 另有完整 SHA-256，删除或篡改都会让生成失败。",
         "5. **这是客户端 Derived 投影。** 它说明 2.1.235 中 logger caller 的状态 owner，不证明分支实际执行、采样命中、网络送达、服务端保留，也不声称这些 owner 是 Anthropic 原始源码模块名。",
         "",
         "### 覆盖结果",
@@ -1309,8 +1470,8 @@ def render_caller_owner_projection(
             "",
             "### 代表性因果链",
             "",
-            "| event | status | caller owner | topic / scenario | caller evidence |",
-            "| --- | --- | --- | --- | --- |",
+            "| event | status | caller owner | topic / scenario | 观测到的状态变化 | Boundary | caller evidence |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     representative_events = (
@@ -1320,6 +1481,12 @@ def render_caller_owner_projection(
         "tengu_review_remote_precondition_failed",
         "tengu_fast_mode_toggled",
         "tengu_copper_lantern",
+        "tengu_install_github_app_step_completed",
+        "tengu_setup_github_actions_failed",
+        "tengu_official_marketplace_auto_install",
+        "tengu_stage_file_completed",
+        "tengu_file_history_rewind_restore_file_failed",
+        "tengu_transcript_compact_failed",
     )
     for event in representative_events:
         require(event in projection, f"caller-owner representative missing: {event}")
@@ -1336,6 +1503,8 @@ def render_caller_owner_projection(
             f"| {code_span(event)} | {code_span(item['status'])} | "
             f"{table_cell(code_list(item['owners']))} | "
             f"{table_cell(code_list(item['topics']))}<br>{table_cell(code_list(item['scenarios']))} | "
+            f"{table_cell('<br>'.join(item['stateChanges']))} | "
+            f"{table_cell('<br>'.join(item['boundaries']))} | "
             f"{table_cell(evidence)} |"
         )
 
@@ -1377,6 +1546,8 @@ def render_caller_owner_projection(
             "### 真正未收口的调用点",
             "",
             f"当前明确欠账是 **{len(unresolved_events)} 个 Unresolved events / {unresolved_callsite_count:,} 个 callsites**。`Unresolved` 不是低价值事件，而是当前没有逐 caller 复核结果承担语义归属。即便调用点恰好落在某个已解释机制附近，也不会自动继承邻近 owner。",
+            "",
+            "**高频仍不等于可批量认领。** `tengu_feedback_survey_event` 的 13 个 caller 分布在多种 survey/feedback surface；`tengu_left_arrow_blocked` 的 10 个 caller 跨输入编辑、inflight guard 与不同 TUI 路径；`tengu_git_operation` 的 10 个 caller 同时观察 shell command 与 MCP tool name。`tengu_review_remote_precondition_recovery` 虽有 12 个 caller 邻近 remote-review gate，另一个 caller 位于独立入口；在完整 owner/continuation trace 完成前，它也不会继承 `remote-review` 的导航区间。",
             "",
             "下列三个反例原先会被宽行区间误归属；现在即使把 allowlist 的导航区间扩大到覆盖它们，event/function/consumer/comparison identity 不匹配，仍必须保持 `Unresolved`：",
             "",
@@ -1424,17 +1595,19 @@ def render_caller_owner_projection(
             "<details>",
             "<summary>Exact caller allowlist 全集（导航区间不参与分类）</summary>",
             "",
-            "| mapping | event | exact caller identity | evidence fingerprint | navigation only | caller owner | topic / scenario |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| mapping | rule | event | exact caller identity | evidence fingerprint | navigation only | caller owner | topic / scenario | 观测到的状态变化 | Boundary |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for mapping in CALLER_OWNER_ALLOWLIST:
+        semantics = CALLER_OWNER_RULE_SEMANTICS[mapping.rule_id]
         lines.append(
-            f"| {code_span(mapping.mapping_id)} | {code_span(mapping.event)} | "
+            f"| {code_span(mapping.mapping_id)} | {code_span(mapping.rule_id)} | {code_span(mapping.event)} | "
             f"{table_cell(code_span(f'L{mapping.readable_line} / {mapping.function} / {mapping.consumer} / {mapping.comparison_key}'))} | "
             f"{code_span(mapping.evidence_fingerprint)} | "
             f"{code_span(f'L{mapping.navigation_start}-L{mapping.navigation_end}')} | "
-            f"{code_span(mapping.owner)} | {table_cell(mapping.topic)}<br>{table_cell(mapping.scenario)} |"
+            f"{code_span(mapping.owner)} | {table_cell(mapping.topic)}<br>{table_cell(mapping.scenario)} | "
+            f"{table_cell(semantics.state_change)} | {table_cell(semantics.boundary)} |"
         )
     lines.extend(["", "</details>", ""])
     return lines
@@ -1474,7 +1647,7 @@ def render_family_summary(
     lines.extend(
         [
             "",
-            "family 层的 `tengu_other` 仍有 911 项，因为 family 规则只复现名字前缀。独立 caller/owner projection 目前仅逐项收口 6 个事件；其余 905 项明确保持 `Unresolved`，不能把它们解释成一个语义兜底、产品模块或低价值集合。",
+            f"family 层的 `tengu_other` 仍有 911 项，因为 family 规则只复现名字前缀。独立 caller/owner projection 目前逐项收口 {EXPECTED_CALLER_OWNER_STATUS['Single-owner'] + EXPECTED_CALLER_OWNER_STATUS['Cross-owner']} 个事件；其余 {EXPECTED_CALLER_OWNER_STATUS['Unresolved']} 项明确保持 `Unresolved`，不能把它们解释成一个语义兜底、产品模块或低价值集合。",
             "",
         ]
     )
@@ -1794,7 +1967,7 @@ def render_provenance(
         f"- Canonical source: {code_span(canonical['path'])}; bytes {canonical['size']:,}; SHA-256 {code_span(canonical['sha256'])}.",
         f"- Parser: {code_span(summary['javascriptParser']['name'])} {code_span(summary['javascriptParser']['version'])}, ECMAScript {code_span(summary['javascriptParser']['ecmaVersion'])}.",
         f"- Generator: {code_span('skill/claude-code-version-diff/scripts/build_telemetry_event_catalog.py')}; SHA-256 {code_span(sha256_bytes(generator_data))}.",
-        "- Caller projection additionally verifies the linked readable JavaScript view and its metadata file byte-for-byte, then admits owner labels only through the 25-entry exact caller allowlist; navigation ranges are display-only.",
+        f"- Caller projection additionally verifies the linked readable JavaScript view and its metadata file byte-for-byte, then admits owner labels only through the {len(CALLER_OWNER_ALLOWLIST)}-entry exact caller allowlist; rule-bound state changes and Boundaries participate in the allowlist digest, while navigation ranges are display-only.",
         "",
         "| Input | lines | bytes | SHA-256 |",
         "| --- | ---: | ---: | --- |",
@@ -1823,7 +1996,7 @@ def render_provenance(
             "shasum -a 256 analysis/telemetry-event-catalog.md",
             "```",
             "",
-            "生成器会先校验版本、所有精确数量、调用点 kinds/roles/callees、payload 状态、unresolved spread 总数、family 投影、事件字段映射、readable view hash、2,151 个固定 caller 的逐项对齐，以及 25 条 exact caller mapping 的完整 digest、identity 和 evidence fingerprint；任一不匹配都会拒绝覆盖输出。导航区间只用于阅读，不参与归属。输出按稳定排序生成，不包含时间戳或机器绝对路径，并通过同目录临时文件原子替换。",
+            f"生成器会先校验版本、所有精确数量、调用点 kinds/roles/callees、payload 状态、unresolved spread 总数、family 投影、事件字段映射、readable view hash、2,151 个固定 caller 的逐项对齐，以及 {len(CALLER_OWNER_ALLOWLIST)} 条 exact caller mapping 连同状态变化/Boundary 的完整 digest、identity 和 evidence fingerprint；任一不匹配都会拒绝覆盖输出。导航区间只用于阅读，不参与归属。输出按稳定排序生成，不包含时间戳或机器绝对路径，并通过同目录临时文件原子替换。",
             "",
             "## 最终边界",
             "",

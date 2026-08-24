@@ -141,6 +141,104 @@ def replace_in_h2_section(
     return (content[:heading] + changed + content[end:]).encode("utf-8")
 
 
+def insert_product_first_screen_table(original: bytes) -> bytes:
+    content = original.decode("utf-8")
+    first_h2 = content.find("\n## ")
+    if first_h2 < 0:
+        raise RuntimeError("negative-test product first H2 is missing")
+    table = (
+        "\n\n| 文件 | 数量 |\n"
+        "| --- | ---: |\n"
+        "| lexical inventory | 71 |\n"
+    )
+    return (content[:first_h2] + table + content[first_h2:]).encode("utf-8")
+
+
+def confuse_product_version_and_baseline(original: bytes) -> bytes:
+    return replace_once(
+        original,
+        "这些是**版本特征**".encode(),
+        "这些是**架构特征**".encode(),
+    )
+
+
+def swap_product_h2_sections(
+    original: bytes,
+    first_heading: str,
+    second_heading: str,
+) -> bytes:
+    content = original.decode("utf-8")
+    first_start = content.find(f"## {first_heading}")
+    second_start = content.find(f"## {second_heading}")
+    if first_start < 0 or second_start < 0 or first_start >= second_start:
+        raise RuntimeError("negative-test product chapter order anchors are missing")
+    first_end = second_start
+    following = content.find("\n## ", second_start + 3)
+    second_end = len(content) if following < 0 else following + 1
+    first = content[first_start:first_end]
+    second = content[second_start:second_end]
+    return (
+        content[:first_start] + second + first + content[second_end:]
+    ).encode("utf-8")
+
+
+def pile_product_source_links(original: bytes) -> bytes:
+    anchor = "用户还没有提交“改端口”"
+    links = (
+        " [证据一](../reverse/javascript/cli.readable.js#L1)"
+        " [证据二](../reverse/javascript/cli.readable.js#L2)"
+        " [证据三](../reverse/javascript/cli.readable.js#L3)"
+    )
+    return replace_once(original, anchor.encode(), (anchor + links).encode())
+
+
+def replace_product_extension_prose_with_table(original: bytes) -> bytes:
+    content = original.decode("utf-8")
+    heading = "## 扩展与委派："
+    start = content.find(heading)
+    if start < 0:
+        raise RuntimeError("negative-test product extension heading is missing")
+    body_start = content.find("\n", start) + 1
+    details = content.find("<details>", body_start)
+    if body_start <= 0 or details < 0:
+        raise RuntimeError("negative-test product extension prose/details boundary is missing")
+    prose = content[body_start:details].strip()
+    paragraphs = [value.strip() for value in re.split(r"\n\s*\n", prose) if value.strip()]
+    rows = ["| 审计项 | 原正文 |", "| --- | --- |"]
+    for index, paragraph in enumerate(paragraphs, 1):
+        flattened = re.sub(r"\s+", " ", paragraph).replace("|", "\\|")
+        rows.append(f"| {index} | {flattened} |")
+    table = "\n".join(rows) + "\n\n"
+    return (content[:body_start] + table + content[details:]).encode("utf-8")
+
+
+def append_product_repeated_ending(original: bytes) -> bytes:
+    content = original.decode("utf-8")
+    navigation = content.find("## 按问题继续阅读")
+    if navigation < 0:
+        raise RuntimeError("negative-test product navigation heading is missing")
+    repeated = (
+        "## 第二个结论\n\n"
+        "这是另一个独立结尾，把恢复再总结一次，破坏唯一综合判断。\n\n"
+    )
+    return (content[:navigation] + repeated + content[navigation:]).encode("utf-8")
+
+
+def invert_product_concurrency_contract(original: bytes) -> bytes:
+    changed = replace_in_h2_section(
+        original,
+        "从提议到副作用：一轮 Agent 工作怎样交接所有权",
+        "不会回头重算并发分类",
+        "会回头重算并发分类",
+    )
+    return replace_in_h2_section(
+        changed,
+        "从提议到副作用：一轮 Agent 工作怎样交接所有权",
+        "不重算 concurrency class",
+        "重算 concurrency class",
+    )
+
+
 def replace_release_notes_mechanism_row(original: bytes, row_number: int) -> bytes:
     content = original.decode("utf-8")
     section_start = content.find("## 逐项机制回填")
@@ -639,6 +737,60 @@ def main() -> None:
             "required probe check failed: zipMismatchKeepsTranscript",
         ),
         (
+            "analysis/runtime-probes/network-proxy-tls.json",
+            lambda data: replace_once(
+                data,
+                b'"mtlsClientCertificateObserved": true',
+                b'"mtlsClientCertificateObserved": false',
+            ),
+            "network proxy/TLS probe: required check failed: mtlsClientCertificateObserved",
+        ),
+        (
+            "analysis/runtime-probes/plugin-evaluation.json",
+            lambda data: replace_once(
+                data,
+                b'"withoutRequestOmitsPluginHookContext": true',
+                b'"withoutRequestOmitsPluginHookContext": false',
+            ),
+            "Plugin Evaluation probe: required check failed: withoutRequestOmitsPluginHookContext",
+        ),
+        (
+            "analysis/network-proxy-ca-and-mtls.md",
+            lambda data: replace_once(
+                data,
+                b"7. TLS handshake",
+                b"7. Secure connection",
+            ),
+            "deep topic contract network-proxy-mtls lifecycle is missing TLS handshake",
+        ),
+        (
+            "analysis/visuals/network-proxy-ca-mtls.dot",
+            lambda data: replace_once(
+                data,
+                b"NO_PROXY match?",
+                b"Bypass match?",
+            ),
+            "deep topic visual network-proxy-mtls is missing state anchor: NO_PROXY match?",
+        ),
+        (
+            "analysis/plugin-evaluation-harness.md",
+            lambda data: replace_once(
+                data,
+                b"5. ablation planner",
+                b"5. experiment planner",
+            ),
+            "deep topic contract plugin-evaluation lifecycle is missing ablation planner",
+        ),
+        (
+            "analysis/visuals/plugin-evaluation-lifecycle.dot",
+            lambda data: replace_once(
+                data,
+                b"Ablation planner",
+                b"Experiment planner",
+            ),
+            "deep topic visual plugin-evaluation is missing state anchor: Ablation planner",
+        ),
+        (
             "analysis/source-inventory/summary.json",
             corrupt_discovered_symbol,
             "callsite symbol mismatch for firstPartyEventAsync",
@@ -948,19 +1100,44 @@ def main() -> None:
         ),
         (
             "analysis/product-surface-evidence-map.md",
-            lambda data: replace_once(
+            insert_product_first_screen_table,
+            "product surface reader-first first screen must not contain tables or lists",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            confuse_product_version_and_baseline,
+            "product surface version delta must remain separate from baseline architecture",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            lambda data: swap_product_h2_sections(
                 data,
-                "## 把 C/Q/E/S/O 留作阅读索引".encode(),
-                "## 运行结构概览".encode(),
+                "能力编译：模型看到什么，也不是模型决定的",
+                "从提议到副作用：一轮 Agent 工作怎样交接所有权",
             ),
-            "product surface reader-first narrative is missing",
+            "product surface reader-first core chapter order is invalid",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            pile_product_source_links,
+            "product surface reader-first prose paragraph has too many source links: capability",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            replace_product_extension_prose_with_table,
+            "product surface reader-first ordinary path must start in prose: extension",
+        ),
+        (
+            "analysis/product-surface-evidence-map.md",
+            append_product_repeated_ending,
+            "product surface reader-first must have one synthesis and no repeated ending",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "把 C/Q/E/S/O 留作阅读索引",
-                "C/Q/E/S/O 是本文的 Derived 分析框架，不是源码目录图，也不是 Anthropic 官方架构或命名",
+                "折叠证据附录",
+                "C/Q/E/S/O 是本文从最终决定权归纳的 Derived 阅读框架，不是源码目录，也不是 Anthropic 官方命名",
                 "这是源码原生架构，不是本文归纳模型",
             ),
             "product surface five-plane model must be labeled as a Derived reading model",
@@ -969,7 +1146,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "把 C/Q/E/S/O 留作阅读索引",
+                "折叠证据附录",
                 "它不拥有真实文件、子进程和远端对象",
                 "它拥有真实文件、子进程和远端对象",
             ),
@@ -979,7 +1156,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "Agent Loop：从按下回车到下一次决策",
+                "从提议到副作用：一轮 Agent 工作怎样交接所有权",
                 "| API attempt |",
                 "| API request |",
             ),
@@ -989,9 +1166,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "能力编译：任务还没发给模型，边界已经形成",
-                "advertisement path",
-                "single capability path",
+                "能力编译：模型看到什么，也不是模型决定的",
+                "advertised",
+                "visible-in-bundle-only",
                 replace_all=True,
             ),
             "product surface capability compilation must connect trust, settings merge",
@@ -1000,7 +1177,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字",
+                "扩展与委派：连接、启动和产生增益是三件事",
                 "async_launched",
                 "task_started",
                 replace_all=True,
@@ -1011,37 +1188,32 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
-                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **否** |",
-                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及其后端 | **是** |",
+                "从提议到副作用：一轮 Agent 工作怎样交接所有权",
+                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及后端 | 不进入 |",
+                "| `server_tool_use` | Anthropic 服务端工具生命周期 | 服务端工具及后端 | 进入 |",
             ),
             "product surface execution semantics must distinguish client tool_use from server_tool_use",
         ),
         (
             "analysis/product-surface-evidence-map.md",
-            lambda data: replace_in_h2_section(
-                data,
-                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
-                "改写后不会重新计算 `isConcurrencySafe`",
-                "改写后会重新计算 `isConcurrencySafe`",
-            ),
+            invert_product_concurrency_contract,
             "product surface Bash semantics must classify concurrency on the original input",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "上下文治理：长对话为什么没有一个万能缓存",
-                "hit  -> 不发送新的 summary request",
-                "hit  -> 仍发送新的 summary request",
+                "历史变短，现实不变：compact 与 resume 改的是表示",
+                "预计算 hit 不发送新 summary request",
+                "预计算 hit 仍发送新 summary request",
             ),
-            "product surface compact semantics must separate precomputed hit/finalize",
+            "product surface compact explanation must teach the ordinary miss prompt",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "远端副作用：Artifact 超时后，客户端为什么只能得到结果未知",
+                "远端结果未知：Artifact timeout 后，Telemetry 也不能替你下结论",
                 "不做 local-version equality",
                 "强制做 local-version equality",
             ),
@@ -1060,7 +1232,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码",
+                "Native 尾声：同一权力边界怎样跨过 ABI",
                 "`validated-artifacts-and-runtime`",
                 "`build-and-runtime`",
             ),
@@ -1070,9 +1242,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "观测系统：既要看见运行状态，又不能把遥测当成事实",
-                "关闭其中一条，不代表其他通道同时关闭",
-                "关闭其中一条，代表其他通道同时关闭",
+                "远端结果未知：Artifact timeout 后，Telemetry 也不能替你下结论",
+                "Telemetry 能否证明提交？不能",
+                "Telemetry 能否证明提交？能",
             ),
             "product surface telemetry semantics must distinguish first-party, Datadog",
         ),
@@ -1080,9 +1252,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "恢复语义：Resume 恢复因果视图，不是旧进程",
-                "| Artifact reference |",
-                "| Unified transaction handle |",
+                "历史变短，现实不变：compact 与 resume 改的是表示",
+                "Artifact reference",
+                "Unified transaction handle",
             ),
             "product surface recovery semantics must separate message graph",
         ),
@@ -1093,24 +1265,16 @@ def main() -> None:
                 "三个不等价的世界".encode(),
                 "一个统一世界".encode(),
             ),
-            "product surface opening must teach proposal authority",
-        ),
-        (
-            "analysis/product-surface-evidence-map.md",
-            lambda data: replace_once(
-                data,
-                "<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论".encode(),
-                "<div><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论".encode(),
-            ),
-            "product surface evidence methodology must be collapsed",
+            "product surface version delta must remain separate from baseline architecture",
         ),
         (
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "执行控制：模型能提出 Bash，不代表 Bash 会执行",
-                "本会话批准同类 Edit",
-                "批准 Edit",
+                "从提议到副作用：一轮 Agent 工作怎样交接所有权",
+                "acceptEdits",
+                "acceptAllEdits",
+                replace_all=True,
             ),
             "product surface tool authority must separate discovery",
         ),
@@ -1118,9 +1282,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "上下文治理：长对话为什么没有一个万能缓存",
-                "| Context hint |",
-                "| Context hint / microcompaction |",
+                "历史变短，现实不变：compact 与 resume 改的是表示",
+                "| Context Hint |",
+                "| Context Hint / microcompaction |",
             ),
             "product surface must not collapse the server context-hint protocol",
         ),
@@ -1128,7 +1292,7 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "观测系统：既要看见运行状态，又不能把遥测当成事实",
+                "远端结果未知：Artifact timeout 后，Telemetry 也不能替你下结论",
                 "即使 `OTEL_LOG_USER_PROMPTS` 没开",
                 "仅当 `OTEL_LOG_USER_PROMPTS` 已开",
             ),
@@ -1138,8 +1302,8 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "观测系统：既要看见运行状态，又不能把遥测当成事实",
-                "event + exact caller identity + comparison fingerprint",
+                "远端结果未知：Artifact timeout 后，Telemetry 也不能替你下结论",
+                "event、exact caller identity 与 comparison fingerprint",
                 "wide source range",
             ),
             "product surface telemetry explanation must teach why exact caller identity is required",
@@ -1148,9 +1312,9 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_in_h2_section(
                 data,
-                "这些机制共同暴露出的工程选择",
-                "第五，恢复按对象负责",
-                "第五，统一恢复控制器负责",
+                "三个工程选择",
+                "局部恢复",
+                "统一恢复控制器",
             ),
             "product surface must derive the version's technical character",
         ),
@@ -1167,10 +1331,10 @@ def main() -> None:
             "analysis/product-surface-evidence-map.md",
             lambda data: replace_once(
                 data,
-                "Untraced/Inventory only 不是 Boundary".encode(),
-                "Untraced 与 Boundary".encode(),
+                "Untraced/Inventory only".encode(),
+                "Boundary-only".encode(),
             ),
-            "human analysis document analysis/product-surface-evidence-map.md does not cover 'Untraced/Inventory only 不是 Boundary'",
+            "product surface evidence must keep Untraced work distinct from Boundary",
         ),
         (
             "analysis/visuals/evidence-surface-lifecycle.dot",
@@ -1259,6 +1423,15 @@ def main() -> None:
             "environment/feature reference generation check failed",
         ),
         (
+            "analysis/environment-variable-reference.md",
+            lambda data: replace_once(
+                data,
+                "Static consumer 人工合同：owner=".encode(),
+                "Static consumer 人工合同：owner-missing=".encode(),
+            ),
+            "environment/feature reference generation check failed",
+        ),
+        (
             "analysis/source-inventory/environment-access-callsites.jsonl",
             lambda data: replace_once(
                 data,
@@ -1297,6 +1470,15 @@ def main() -> None:
         (
             "analysis/feature-flag-reference.md",
             lambda data: replace_once(data, b"361/361", b"360/361"),
+            "environment/feature reference generation check failed",
+        ),
+        (
+            "analysis/feature-flag-reference.md",
+            lambda data: replace_once(
+                data,
+                b"fallback/precedence=",
+                b"fallback/precedence-missing=",
+            ),
             "environment/feature reference generation check failed",
         ),
         (
@@ -1931,6 +2113,30 @@ def main() -> None:
         print(f"negative case {case_number}: PASS", flush=True)
 
     missing_cases = [
+        (
+            "skill/claude-code-version-diff/scripts/probe_plugin_evaluation.mjs",
+            "Plugin Evaluation probe: missing probe script",
+        ),
+        (
+            "analysis/runtime-probes/plugin-evaluation.json",
+            "Plugin Evaluation probe: missing report",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_plugin_evaluation_validator.py",
+            "missing Plugin Evaluation validator forgery test",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/probe_network_proxy_tls.mjs",
+            "network proxy/TLS probe: missing probe script",
+        ),
+        (
+            "analysis/runtime-probes/network-proxy-tls.json",
+            "network proxy/TLS probe: missing report",
+        ),
+        (
+            "skill/claude-code-version-diff/scripts/test_network_proxy_tls_validator.py",
+            "missing network proxy/TLS validator forgery test",
+        ),
         (
             "analysis/runtime-probes/native-reconstruction-x86.json",
             "missing x86_64 native reconstruction behavior report",

@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-24T02:42:48.302Z",
+  "target": {
+    "version": "2.1.235",
+    "binarySha256": "83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748"
+  },
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.21.1",
+    "opensslVersion": "OpenSSL 3.6.3 9 Jun 2026 (Library: OpenSSL 3.6.3 9 Jun 2026)"
+  },
+  "commands": {
+    "caFailure": "NO_PROXY=localhost $CLAUDE_TARGET --print NETWORK_CA_FAILURE_MARKER ...",
+    "caSuccess": "NODE_EXTRA_CA_CERTS=$CA NO_PROXY=localhost $CLAUDE_TARGET --print NETWORK_CA_SUCCESS_MARKER ...",
+    "proxyPrecedence": "https_proxy=$PROXY_A HTTPS_PROXY=$PROXY_B NO_PROXY= $CLAUDE_TARGET --print NETWORK_PROXY_PRECEDENCE_MARKER ...",
+    "noProxy": "https_proxy=$PROXY_A HTTPS_PROXY=$PROXY_B no_proxy=localhost $CLAUDE_TARGET --print NETWORK_NO_PROXY_MARKER ...",
+    "invalidProxy": "https_proxy=proxy.invalid:8080 $CLAUDE_TARGET --print NETWORK_INVALID_PROXY_MARKER ...",
+    "mtls": "NODE_EXTRA_CA_CERTS=$CA CLAUDE_CODE_CLIENT_CERT=$CERT CLAUDE_CODE_CLIENT_KEY=$KEY NO_PROXY=localhost $CLAUDE_TARGET --print NETWORK_MTLS_MARKER ..."
+  },
+  "input": {
+    "baseUrl": "https://localhost:$PORT",
+    "proxyA": "http://127.0.0.1:$PROXY_A_PORT",
+    "proxyB": "http://127.0.0.1:$PROXY_B_PORT",
+    "markers": {
+      "caFailure": "NETWORK_CA_FAILURE_MARKER",
+      "caSuccess": "NETWORK_CA_SUCCESS_MARKER",
+      "proxyPrecedence": "NETWORK_PROXY_PRECEDENCE_MARKER",
+      "noProxy": "NETWORK_NO_PROXY_MARKER",
+      "invalidProxy": "NETWORK_INVALID_PROXY_MARKER",
+      "mtls": "NETWORK_MTLS_MARKER"
+    },
+    "tls": {
+      "serverCommonName": "localhost",
+      "clientCommonName": "Claude Probe Client",
+      "generatedForProbeOnly": true
+    }
+  },
+  "literalOutput": {
+    "caFailure": {
+      "exitStatus": 1,
+      "signal": null,
+      "subtype": "success",
+      "isError": true,
+      "result": "API Error: Unable to connect to API: Self-signed certificate detected. Check your proxy or corporate SSL certificates",
+      "stderrClass": "empty"
+    },
+    "caSuccess": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "NETWORK_OK",
+      "stderrClass": "empty"
+    },
+    "proxyPrecedence": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "NETWORK_OK",
+      "stderrClass": "empty"
+    },
+    "noProxy": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "NETWORK_OK",
+      "stderrClass": "empty"
+    },
+    "invalidProxy": {
+      "exitStatus": 1,
+      "signal": null,
+      "subtype": null,
+      "isError": null,
+      "result": null,
+      "stderrClass": "proxy"
+    },
+    "mtls": {
+      "exitStatus": 0,
+      "signal": null,
+      "subtype": "success",
+      "isError": false,
+      "result": "MTLS_OK",
+      "stderrClass": "empty"
+    }
+  },
+  "exitStatus": {
+    "caFailure": 1,
+    "caSuccess": 0,
+    "proxyPrecedence": 0,
+    "noProxy": 0,
+    "invalidProxy": 1,
+    "mtls": 0
+  },
+  "observed": {
+    "apiRequestsByMarker": {
+      "caFailure": [],
+      "caSuccess": [
+        {
+          "marker": "NETWORK_CA_SUCCESS_MARKER",
+          "method": "POST",
+          "path": "/v1/messages?beta=true",
+          "clientAuthorized": false,
+          "clientAuthorizationError": "UNABLE_TO_GET_ISSUER_CERT",
+          "clientCommonName": null
+        }
+      ],
+      "proxyPrecedence": [
+        {
+          "marker": "NETWORK_PROXY_PRECEDENCE_MARKER",
+          "method": "POST",
+          "path": "/v1/messages?beta=true",
+          "clientAuthorized": false,
+          "clientAuthorizationError": "UNABLE_TO_GET_ISSUER_CERT",
+          "clientCommonName": null
+        }
+      ],
+      "noProxy": [
+        {
+          "marker": "NETWORK_NO_PROXY_MARKER",
+          "method": "POST",
+          "path": "/v1/messages?beta=true",
+          "clientAuthorized": false,
+          "clientAuthorizationError": "UNABLE_TO_GET_ISSUER_CERT",
+          "clientCommonName": null
+        }
+      ],
+      "invalidProxy": [],
+      "mtls": [
+        {
+          "marker": "NETWORK_MTLS_MARKER",
+          "method": "POST",
+          "path": "/v1/messages?beta=true",
+          "clientAuthorized": true,
+          "clientAuthorizationError": null,
+          "clientCommonName": "Claude Probe Client"
+        }
+      ]
+    },
+    "proxyConnects": [
+      {
+        "proxy": "lowercase",
+        "kind": "connect",
+        "authority": "localhost:$PORT",
+        "proxyAuthorizationPresent": false
+      }
+    ],
+    "tlsFixtureSetupExitStatuses": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "checks": {
+    "exactVersion": true,
+    "exactBinarySha256": true,
+    "caFailureRejectedBeforeHttp": true,
+    "caFailureClassifiedAsTls": true,
+    "extraCaAllowsMessagesRequest": true,
+    "lowercaseProxyWinsPrecedence": true,
+    "uppercaseProxyNotUsed": true,
+    "proxiedMessagesRequestSucceeds": true,
+    "noProxyBypassesBothProxies": true,
+    "noProxyDirectRequestSucceeds": true,
+    "invalidProxyFailsClosed": true,
+    "invalidProxyDiagnostic": true,
+    "mtlsRequestSucceeds": true,
+    "mtlsClientCertificateObserved": true
+  },
+  "boundaries": [
+    "This probe exercises the exact 2.1.235 main Messages HTTPS transport only.",
+    "It does not prove Axios, undici-global, WebSocket, AWS SDK, MCP, OTEL, subprocess, or CCR relay behavior.",
+    "The CA, server certificate, and client certificate are local one-day test fixtures; no external service or account behavior is exercised.",
+    "A successful client-certificate observation proves the local TLS handshake, not enterprise certificate issuance, rotation, or revocation."
+  ],
+  "pass": true
+}

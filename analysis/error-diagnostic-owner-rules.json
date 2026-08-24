@@ -1,0 +1,2288 @@
+{
+  "classificationKey": "exactCallsiteIds only",
+  "navigationAndReviewSelectorsClassify": false,
+  "rules": [
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "9804d14cbb58c89077665fb244e3046bf4e01b6dc0caac98158ebf8a26f56fdd",
+      "exactCallsiteIds": [
+        "error:fd9c7437a38982203e9d2514bb808ed02207c183a972c3287b3499e7c85f2990",
+        "error:f4477e654fb9b57beda550b7f32c1c6d420ea46bef9574402b18574200ab7612"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          14565
+        ],
+        "maximumOffset": 9513184,
+        "minimumOffset": 9512450
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "error:fd9c7437a38982203e9d2514bb808ed02207c183a972c3287b3499e7c85f2990",
+        "lexicalFunction": "PzS",
+        "messagePreview": "`Reactive compact: no assistant message in summarization response (${s.messages.length} messages, types: ${s.messages.map((d)=>d.type).join(\", \")})`",
+        "messageSha256": "33acbef654df1545b091e2b6555f3f0de6c55e6e38743bf5dcc656643cf6c6d8"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.49954"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-reactive-error",
+      "scenario": "reactive compact response validation",
+      "stream": "error"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "17525a45bec735c913e1aa20b910a89a3f77870e308a5fc6396c7828aa445238",
+      "exactCallsiteIds": [
+        "error:8a79cd0912ab8127edc08888d41596e8782757f84c6e0daebe43bcba91589734",
+        "error:9a304466cde79d396ffb6a50d0aae44f0c18dfc3bf65f4e564c88fdd72df261d",
+        "error:3b5d3d13152a4623f0f51651b484b5bc9cd029f779a7b1d06f9bd19fafa3d145",
+        "error:fce39c1a49eab8ee5e2e503a2366ed8e6ee9c28d2a3b194a4add18ce951bc0ec",
+        "error:08e96018f17fbd1531c34dac714e5e7da896cc3c7175486068172057b809a2c5",
+        "error:5e3a0399a6595ef626a454931d8c2d7f13ec3d0169005c4b32ecf1a447cbdc7b"
+      ],
+      "expectedCount": 6,
+      "navigationOnly": {
+        "canonicalLines": [
+          14568
+        ],
+        "maximumOffset": 9558130,
+        "minimumOffset": 9555096
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "error:3b5d3d13152a4623f0f51651b484b5bc9cd029f779a7b1d06f9bd19fafa3d145",
+        "lexicalFunction": "Gof",
+        "messagePreview": "\"Compaction unavailable: CLAUDE_CODE_NO_MODEL_FALLBACK is set and model substitution is disabled \\xB7 unset it to allow the swap\"",
+        "messageSha256": "1da7a5c57ac16a683e049f22d45eda47348ae20f4822eec7dbc7cbcf9eb0fbe3"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.50099"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-manual-error",
+      "scenario": "manual compact model policy gate",
+      "stream": "error"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "ffcc9a6fd26297bd1ec0f356e091e9cdb78472d44b89082b3607d920254407b5",
+      "exactCallsiteIds": [
+        "diagnostic:b4a944311624eab695b0230beefc62c1de95bc8cb9782b8ff83d9543d98c227f",
+        "diagnostic:1e88410108e806830712aa711f159d08bfc21b0ed45b38faf0537e84b40fca4d",
+        "diagnostic:650ab55ba1a6e3d73de1bdf82a8f0a9bb0ad758cfedbfcebd86cfeede2047825"
+      ],
+      "expectedCount": 3,
+      "navigationOnly": {
+        "canonicalLines": [
+          3255,
+          14565
+        ],
+        "maximumOffset": 9512994,
+        "minimumOffset": 8346757
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:b4a944311624eab695b0230beefc62c1de95bc8cb9782b8ff83d9543d98c227f",
+        "lexicalFunction": "bmi",
+        "messagePreview": "`Reactive compact blocked by PreCompact hook: ${y.blockedBy}`",
+        "messageSha256": "47c02a4f6d20a515ce934b2d0e99990fdf022db715c43b23dcdd4fa506badd70"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.47336",
+          "1.49954"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-reactive-diagnostic",
+      "scenario": "reactive compact hook and response diagnostics",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "4ab34d8aa56a36052ed9db8218698a090004f739142965ab17ea291a1c0aa67f",
+      "exactCallsiteIds": [
+        "diagnostic:537a4c8cb1793ce90ab2f0f4eb502cc2e76d770ea99b2922a9d665eb3d62ec66",
+        "diagnostic:7754ce2885065426f63d7a4e502b16789470a0c2bea480c5e8d6031eb06d688d",
+        "diagnostic:6e932c2ec1837e6b631077164c8497eec0eb2ea024d75d38103fa9cc1d2751f7",
+        "diagnostic:61b33fb496c9cc45dcd4661119696d35a451afe0c516efd3cb75e16938b0d7ef"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          14565
+        ],
+        "maximumOffset": 9516031,
+        "minimumOffset": 9514032
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "reactive compact media-strip and prompt-gap ladder",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:537a4c8cb1793ce90ab2f0f4eb502cc2e76d770ea99b2922a9d665eb3d62ec66",
+        "lexicalFunction": "vmi",
+        "messagePreview": "\"Reactive compact: fewer than 2 groups, nothing to compact\"",
+        "messageSha256": "52a3f1ae59b8a247edb9ef9f5b32c36be3d3e18f03632ae57ce899fae11592d2"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.49959"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-reactive-retry-diagnostic",
+      "scenario": "reactive compact bounded retry ladder",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "f9ace00e64b9b33d1fa6a3c41010aeeeb6c1d7271c5980ac34043b9f816a86a6",
+      "exactCallsiteIds": [
+        "diagnostic:833689a4794ca6068e4cc6f41a3820ce983768b604adc72bf1bd0b180fab6def",
+        "diagnostic:daa04f98a3028e82e112b2e2bd6606266b336c6b186e635bf5333e26072b7783",
+        "diagnostic:62ef9b19ec12c086f55e235a36dae48e20739accc4822c1da7018a1d0e342046",
+        "diagnostic:828bbd43a610e613f6eb647956da8d4461644a7537f01386851072fd69b83c1a",
+        "diagnostic:e1f5a088d95abe67f25480a4c97698e9dfe01c5bd2808a2032c691bdb191d81a",
+        "diagnostic:33d80ba827db79b9bfa7ee63ee9bf220f6f30d7e0bc09a09d6c293ce283ee292",
+        "diagnostic:093eb45bf583009a4c65610c02a5089d03bcc201956ecfe5be9e426b5c8b8743",
+        "diagnostic:e4680e129632b9e2fd20a418ead390f441ecdbf7691b9c8ba7978e2af8f18456",
+        "diagnostic:6a8df66a2629cf1c66df09b32d87e2b2b0119dfc5746093c5e11f64ba35380dd",
+        "diagnostic:8a6008e074bddaaf2e8b0563d32946dac677288c31da1cecf7d9a94d66587ec7",
+        "diagnostic:70408d91f91bf964d4765709ac0659090a98e517f9f53fac35a6611ccfea7ef6",
+        "diagnostic:061376d8ab94a6fcee6dab2d71e2b1e45e35ed57a217ac953df8cdaa5da2458d",
+        "diagnostic:c48cb893b1029068ad76fdf1579b87b56dbf3f02d76d34c9796f7d9ccb79bdcb",
+        "diagnostic:9cce6717f7ed5754b078294ae6d6ec91a7549fcdef6f5e1e7696a9446e875d3b",
+        "diagnostic:6808242f5f98865215d7b25026c1735b372fdee3fb9d86b7689196fb48b72313",
+        "diagnostic:b47672c095bd492d3703b61a02d3dc864f1a88f2585fdc1093e0135a64a20e66"
+      ],
+      "expectedCount": 16,
+      "navigationOnly": {
+        "canonicalLines": [
+          14565
+        ],
+        "maximumOffset": 9532869,
+        "minimumOffset": 9520409
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:833689a4794ca6068e4cc6f41a3820ce983768b604adc72bf1bd0b180fab6def",
+        "lexicalFunction": "RUa",
+        "messagePreview": "`precomputed compact: arm gated (${o}, ${r})`",
+        "messageSha256": "a117b5fd5ed09f9c8bcd5500cc5f0dd1f54d0b9adf83099ed7e8afc281f31a4d"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.49987",
+          "1.49998",
+          "1.50003",
+          "1.50005",
+          "1.50011",
+          "1.50011.50012",
+          "1.50020",
+          "1.50024",
+          "1.50035"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-precomputed-diagnostic",
+      "scenario": "precomputed compact sidecar lifecycle",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "32ef0f798f15be8e91e8518bd9d65c1375fe228d076283568e395787bad439a7",
+      "exactCallsiteIds": [
+        "diagnostic:23353f89ba4724fc63577b9d7cca2b6d00f7735c97f2f69db3546bc0c7918ecc",
+        "diagnostic:c9ca66b0e817d3ad9cb9c5757fa46e3d9d6c1c757787895326e40c3a4fa2db7d",
+        "diagnostic:7f8d8bafb3a54368a37196486964e49671369853ccf898b952e4fcd6b60187d1",
+        "diagnostic:62ee128461a6b9ee6a7bb0dfc4d1223d61b6d772f0294f844d47f914b2538a46"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          14565,
+          14567,
+          14568
+        ],
+        "maximumOffset": 9570250,
+        "minimumOffset": 9542322
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:23353f89ba4724fc63577b9d7cca2b6d00f7735c97f2f69db3546bc0c7918ecc",
+        "lexicalFunction": "nyi",
+        "messagePreview": "`Compaction blocked by PreCompact hook: ${e.blockedBy}`",
+        "messageSha256": "265fa79c7bdbba3f71cd8bd93c486414454ab3a1d13000c7faf006788cd6f17d"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.50080",
+          "1.50087",
+          "1.50132",
+          "1.50151"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-manual-auto-diagnostic",
+      "scenario": "manual compact and context-hint diagnostics",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "acc13e4b9a8662597e719c29ae6dee940f1f853983d3db428ce0e609ec455723",
+      "exactCallsiteIds": [
+        "diagnostic:57d58d28862de8fdb27015274317ee2a064a0d405d4b14674171190678447b5b",
+        "diagnostic:161cb61adfc31c4bf47f23b2dc0e618673cfbc56d4a080d7ff8c5f1b192bc428",
+        "diagnostic:66cd5ce663f25f9e657b0c77d762e5861966ca15f4f2e808e299d11e9402dd1d",
+        "diagnostic:4b598eb88340fb06f7e3f2879b1b3917a42d52c16786b4193a7ca0ca9e112b23",
+        "diagnostic:96db55ba16d239e520816200d11ca7b6fff743efc6a99b26fb507334e4f6276c",
+        "diagnostic:aa23f2ff4720faeb800c1831df4afed06f75a0d368d8d0724e34f67f01366b81",
+        "diagnostic:df9826594b556f09fe4e42feb5ac5266fb7c997b430daa525ee278cf7f59777c",
+        "diagnostic:92777e3d7b0fa72f8042696183d288f082ee56831463f7319f4f23d758774660"
+      ],
+      "expectedCount": 8,
+      "navigationOnly": {
+        "canonicalLines": [
+          14568
+        ],
+        "maximumOffset": 9567558,
+        "minimumOffset": 9555107
+      },
+      "owner": "context/compact",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "model fallback, circuit breaker and rapid-refill owner",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:57d58d28862de8fdb27015274317ee2a064a0d405d4b14674171190678447b5b",
+        "lexicalFunction": "Gof",
+        "messagePreview": "`Compact cache sharing: no text in response, falling back. Response: ${Oe(E)}`",
+        "messageSha256": "5fcbbb0674cd2f9586d46dab8cb2dc267e7d7c66c05d675ffb602d738e975b54"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.50099",
+          "1.50128",
+          "1.50133"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-compact-fallback-breaker-diagnostic",
+      "scenario": "manual compact fallback and autocompact breakers",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "ca280c039c609c8227316dee4dfdf6fd682a824aa51749d92fb33df8d96c5650",
+      "exactCallsiteIds": [
+        "diagnostic:9600336593254c4fd08f5843ed6dfe20d6dd9c70528d237c01ea2fbdec497d61",
+        "diagnostic:61e46e3a213fabdf7bc14a816839ea99a3b6bd0baa7f47979c8f33b25b5fce27",
+        "diagnostic:5ddac803fb79400ea31c9dbfdbe4dd59b07f2b9c135ba1e901a586dc9eaad88b",
+        "diagnostic:373637d231eaa5b30c1b34a37ad6f62194dee8e971ddaac863bd0e1b6eb5fb4b",
+        "diagnostic:7ef4e60e10ad78e3a61e5b6f40675e1987a54271ebe84e74ef22c0867565c5a7",
+        "diagnostic:33d4ed13a9ac97e2bbd9732b7734cfb7003bfa97e558a59e7cf54accdd0eaa8d"
+      ],
+      "expectedCount": 6,
+      "navigationOnly": {
+        "canonicalLines": [
+          21470,
+          21472
+        ],
+        "maximumOffset": 15372206,
+        "minimumOffset": 15369901
+      },
+      "owner": "session/transcript",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:9600336593254c4fd08f5843ed6dfe20d6dd9c70528d237c01ea2fbdec497d61",
+        "lexicalFunction": "performCompactTranscript",
+        "messagePreview": "`Transcript compact failed (${St(l)}): ${ce(l)}`",
+        "messageSha256": "e48b782c5c78f47f4e893ba508037d1cbf4cb04291f8306b9410cb1239de01e0"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.75147",
+          "1.75158",
+          "1.75158.75160"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-transcript-compact-diagnostic",
+      "scenario": "Storage V5 transcript compact",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "e467664d75a95c9501f7e472d9420ebb707c548a3151df6dee5eaa0dd7db7490",
+      "exactCallsiteIds": [
+        "error:3c8fddfe541baea70a7c66f5f9ccc20679ee9569d77c36d24983c35b1250e0d4",
+        "error:f55e0d143c0b52de8832d7507d40ba2994d479ea5b0510b36ddcccca1d380d5d",
+        "error:e6b85c04dc64a263442db3b8212ed68c77a192e044225c00fcacb1ee8aa244ee"
+      ],
+      "expectedCount": 3,
+      "navigationOnly": {
+        "canonicalLines": [
+          16031,
+          19548,
+          21399
+        ],
+        "maximumOffset": 15305947,
+        "minimumOffset": 10738124
+      },
+      "owner": "tool/runtime",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": "tool-result ledger and model-message pairing guard",
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "error:3c8fddfe541baea70a7c66f5f9ccc20679ee9569d77c36d24983c35b1250e0d4",
+        "lexicalFunction": "mapToolResultToToolResultBlockParam",
+        "messagePreview": "`Unexpected agent tool result status: ${e.status}`",
+        "messageSha256": "d14fa932f6fb55f19317a25b92b7e1a8ab3f8e5a4d47fe75d65f5849ac0d9ae3"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.54812.54876",
+          "1.67548",
+          "1.74686"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-tool-result-error",
+      "scenario": "tool-result graph invariants",
+      "stream": "error"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "4645e1da0a0aa3ae0c69bf49176f7a94d3e41672b17e18619bb35ad427a89b81",
+      "exactCallsiteIds": [
+        "diagnostic:90df03df0acf30f5b3922089905a7707e69c29363631846d56c8cdaa05f43b8f",
+        "diagnostic:87423d329240774778bb18d59eb5a4ae49b23ab26d8c3080992ef27498b74e06",
+        "diagnostic:7a2c9d70ac739b7e49a7f66b74b46e5506e5b96ec81322f5320fa17383edcdc4"
+      ],
+      "expectedCount": 3,
+      "navigationOnly": {
+        "canonicalLines": [
+          1956,
+          1964
+        ],
+        "maximumOffset": 5864616,
+        "minimumOffset": 5859178
+      },
+      "owner": "tool/runtime",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": "tool-result ledger and context attachment owner",
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:90df03df0acf30f5b3922089905a7707e69c29363631846d56c8cdaa05f43b8f",
+        "lexicalFunction": "YJe",
+        "messagePreview": "`Persisted tool result to ${o} (${Xa(i.length)})`",
+        "messageSha256": "9f83fc065f523b07661ce12596612a5bc57af2a43bfa3a84194a2646a85fa5c8"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.35156",
+          "1.35190"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-tool-result-diagnostic",
+      "scenario": "tool-result persistence and context budget",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "76f3beb335a22fdd531181267379fcd4d39e4eba10477d763fe3196befafd124",
+      "exactCallsiteIds": [
+        "diagnostic:9c9396d5f53ba731387578182010fc328773e20a97a08930f2dab0b4835e06a6",
+        "diagnostic:2a68bcdf0c5e08e451a44ff470bf0a8c5604e0b035f009ca2cd748b72582e96f"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          2004
+        ],
+        "maximumOffset": 5935011,
+        "minimumOffset": 5933357
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:9c9396d5f53ba731387578182010fc328773e20a97a08930f2dab0b4835e06a6",
+        "lexicalFunction": "Rrr",
+        "messagePreview": "`executePreToolHooks called for tool: ${e}`",
+        "messageSha256": "4e7b75cfb2c910770ad816105e386d37ba7e946b72ba1a920586223a3913ce81"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.35484",
+          "1.35489"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-permission-hook-diagnostic",
+      "scenario": "PreTool and permission hook entry diagnostics",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "d033ebdb9133bbe6dc2e58fde362f4550a0f84a392c7419a5e7f50351d44f90c",
+      "exactCallsiteIds": [
+        "diagnostic:446008980742ef0dbc18027d66d5c179599835e7317b1e594da13ce0df498665",
+        "diagnostic:8e3e7c9eed9a717929c11bd529ce6da3ca5e61bc105e81d54f852c4a68966198",
+        "diagnostic:f93ae39f88e37ae06722e6c5445e32c8b711378423c25cd6773050d04d00e7f3"
+      ],
+      "expectedCount": 3,
+      "navigationOnly": {
+        "canonicalLines": [
+          3006
+        ],
+        "maximumOffset": 7594726,
+        "minimumOffset": 7594134
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": "deferred tool resume owner",
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:446008980742ef0dbc18027d66d5c179599835e7317b1e594da13ce0df498665",
+        "lexicalFunction": "LNp",
+        "messagePreview": "`Deferred tool resume: permissionMode mismatch (deferred under '${e.permissionMode}', resuming under '${s}'). --resume does not restore permissionMode \\u2014 pass --permission-mode ${e.permissionMode} to match.`",
+        "messageSha256": "b14703de0f2da80d55336ea66d9d1d5de5dfb3aedf2956648f812579ae862d41"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.43324"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-deferred-tool-resume-diagnostic",
+      "scenario": "deferred tool resume re-entry",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "fb49c763af0e9d466ff6020437eced32aff034cb7b75dcb3d74d16c3ca240cea",
+      "exactCallsiteIds": [
+        "diagnostic:ed37c645f874aad3f4a788f5708cf94e2c1e269df42bef0867d76e9231e4bcae",
+        "diagnostic:b16b82d4dac2f06c2dc273c67916d97136f6f7d65f63f4e81f8916c0359d76d2",
+        "diagnostic:b2f35d1a913f9866496861f043a19d4aa56a7e241079e6d029c2a9a7f7025f26",
+        "diagnostic:0f0cb55c52ed07b13d8d0214dd1ea4f949bb6cf5f2f568a34a94096b2e6d2b83"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          14921,
+          14939
+        ],
+        "maximumOffset": 9905386,
+        "minimumOffset": 9866779
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": "tool pipeline end-turn owner",
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:ed37c645f874aad3f4a788f5708cf94e2c1e269df42bef0867d76e9231e4bcae",
+        "lexicalFunction": "a3a",
+        "messagePreview": "`[end-turn] Stop hook block discarded (turn ended by ${d===\"tool\"?\"tool result\":d===\"mcp_meta\"?\"MCP end-turn\":\"loop tick\"}, no model re-invoke): ${b.blockingError?.blockingError??b.stopReason??\"preventContinuation\"}`",
+        "messageSha256": "d0e4cc545da4cbe9d66bb6a537d37ffa8b3215ea52d0ef5720e2166eb0344bf5"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.51511",
+          "1.51685"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-end-turn-tool-result-diagnostic",
+      "scenario": "end-turn hook decisions after tool result",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "8fdc8e9701f7b12cbb83dff004e9cee3772d4e3424e7123bcb36ed61f73d4407",
+      "exactCallsiteIds": [
+        "diagnostic:634c24a0e273222a8cfbb2fcbdfd16e1b4953f9d91baadad4c0cc1c47b6554eb",
+        "diagnostic:38c2751578c2dbe3921e189b3e968836b60bdd56e1d98722eede08f94774ee3b",
+        "diagnostic:e332b43e22436d1ab3fe24c3e9e494d8b77863f992222151189916fe4d4ddfdf",
+        "diagnostic:abc4bc62b75ebe0453bed2eb22b2c86b5593265a68f494e8aa30bd724d3a8899",
+        "diagnostic:24232b55debe3b72134e4bd12b02e5cbd9d51883bcb1fab98a6b2e84f5de372e"
+      ],
+      "expectedCount": 5,
+      "navigationOnly": {
+        "canonicalLines": [
+          15385,
+          15395,
+          16069
+        ],
+        "maximumOffset": 10782709,
+        "minimumOffset": 10346343
+      },
+      "owner": "tool/hooks-permission",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:634c24a0e273222a8cfbb2fcbdfd16e1b4953f9d91baadad4c0cc1c47b6554eb",
+        "lexicalFunction": "runHooks",
+        "messagePreview": "`Hook interrupt: tool=${e.name} hookMessage=${g.message}`",
+        "messageSha256": "dca882a5e6e1f4d63b591ca6fbcf3d740baa61754ffae0da23b376296e22aaad"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.53534.53544",
+          "1.53612.53617",
+          "1.53612.53624",
+          "1.55101"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-hook-failure-diagnostic",
+      "scenario": "hook runner cancellation and failure diagnostics",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "4873d7fc14f7c830dfe5986ee0fb36ff279525091b6131494db7eba7481277e0",
+      "exactCallsiteIds": [
+        "error:d10b865dd92454553147245f796145eddc7d54f1fd0d39afff4cf2ee8d9c29ec",
+        "error:3b992586082c0c8e30fc8db4fdb2a0747b78bb30a3955f2f2dc676b67cd50718",
+        "error:dca9256ad180e0061f610dc81f7046202c755d6f12b014484ea37f4e3622cb72",
+        "error:b95716160d094f71cf89ac4e54d5f148a0402db211e4b361d3d3894aa3f1200a",
+        "error:aa756603232985c5c870fee40cd5880cba09bf6c9fff3a76a1aa3c1adc79433a",
+        "error:31638d7c9efba8f4f11c1f776adf2d379022ee0a693c041a4b106f80664b8257",
+        "error:be1e906f0b20f37b238a4f21092abd5844151fe43cc6b8dbbf95ae6b75d6baa3",
+        "error:2c7ab0c361bfed37cafae4b11216f3994bc3cfe3dd5d38b77ae1e83adbad4d1e",
+        "error:63faa54e6eee55e5b7890ec6a633f311100ec77c7cbdcfc57bfaf7fa6a832e8d",
+        "error:07a1b74c62ec3c2b45473ed77c2851a45812ba1b00cf28ac1e9ae33b5ecefd9a",
+        "error:06f9fd8b402024e1578363d11a5d1a5f1368cf8c1221934d208bc3fe6205476c",
+        "error:420f8d69ab8c8e8780db4fc2390bf0d033d4a80dacc975101165f1f0a8fd8dcc",
+        "error:a2b6233aa2255388126100b5efdcad3dbaf6d0abb995581a135e72d500eddb0c"
+      ],
+      "expectedCount": 13,
+      "navigationOnly": {
+        "canonicalLines": [
+          1074,
+          1076,
+          1079,
+          2812,
+          21853
+        ],
+        "maximumOffset": 16009446,
+        "minimumOffset": 4500490
+      },
+      "owner": "sandbox/enforcement",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "error:d10b865dd92454553147245f796145eddc7d54f1fd0d39afff4cf2ee8d9c29ec",
+        "lexicalFunction": "ae",
+        "messagePreview": "`Sandbox ancestor-pin verification failed: cannot lstat ${te} (${ue?.code??ue}). Refusing to build a mount plan with unverifiable pin components.`",
+        "messageSha256": "d7b0bb0d39d61203590d0cce09f6b9a3fac2ae5668742fe2a8f91b19970f836c"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.27778.27804",
+          "1.27821",
+          "1.27917",
+          "1.27980",
+          "1.28025",
+          "1.40610",
+          "1.77624"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-sandbox-error",
+      "scenario": "sandbox mount, bridge and platform invariants",
+      "stream": "error"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "bfa4367412d55822bb7178ce76d9e8195474fba2ddffd863327a1be26ad4211c",
+      "exactCallsiteIds": [
+        "diagnostic:5f3ae14d5c09cf80f38e33e95520de7e65a172d372da2d1134c5d55cfdadf424",
+        "diagnostic:1832eb5c3ac66d807eec3084621024fe2e4cf05e33ad8c0f0a8eb5635cbb3d4d",
+        "diagnostic:6b13dc39b1f0d67b6a63bd6a667bd664c9d828cdb10836dc1a01ec100d0d5194",
+        "diagnostic:b734a06d142f09038973ed6e28ecf90ee9538c5abb29cb4b414409131544795d",
+        "diagnostic:028dc3df387798b85e118b35e53e279fc05d2ed8e34e1348820c701bdf422a88",
+        "diagnostic:49040c9ef2e6100930a453e78ea63e8faaf16320623a595d111054f83078b2c0",
+        "diagnostic:5eaed54b6be0c0f604959c56d123b310babb839cf6c61c59318572ac5cdf1a6c",
+        "diagnostic:ba2618cadf9fe9a745ca87d3084c21b0e65c57af3348764aab6e9918e2e4fee7",
+        "diagnostic:d61d4590846a223ed43964d0969fcdb864c436f5f0ed98ae904578deb553cb94",
+        "diagnostic:914ebb391c7434a1465b7fe6b81095a7cd6d53e416fbc201ea38c429a20330f8",
+        "diagnostic:4d8112b8611c0b31ab235b4285d7bc699832950e67cd0f42ea413bde02f8e252",
+        "diagnostic:a7eb7ef469eb62bbc206e0764f4a3376f053260c04151c147734f8a35aa7c56a",
+        "diagnostic:a791c8a0a08d6d08e3dcc48adb8b5212e4a30c70b3f4519720e02d494e9f8516",
+        "diagnostic:7d873db87a3bacecac799d4e8c30bfc6c0833902b5349f46126a75eba5fe9abb",
+        "diagnostic:e69b8e7b10c4f25d3268bf6cb161b4e93e26e3d82231e59f71ae1536df782d36",
+        "diagnostic:de7c95a500b84ecc98dbf1a605e3fa1d53855fad81ea71e4870a1e96622456ab",
+        "diagnostic:1bc981447d69dc1c6923b280914335bf4f18fe21e2717897946f2c16fb62b1b6",
+        "diagnostic:aca0629d286d9bf1cfbf7b0243e80ebb1e5b65784c3d1a0473a86d3e736e70aa",
+        "diagnostic:219254557c93f2dce964f5d28228ae59847bc32d8f3f43fd8fd5b0a055394e43",
+        "diagnostic:07c432e996dbc71c853a979107a8c84f2265508239a02142cbea893cdd420bad",
+        "diagnostic:f1ae3c6e65dfd35f309cb575ab8e40fe016e1776ec7db019345d6079af488a69",
+        "diagnostic:313362dff417fd5f14cda6d2c55dfb76060d783cddf81049381ed475723ebd1c",
+        "diagnostic:59cfe3fd4024a01857f73db1b9880a73bb4cc9c7528536b438db38ffca82edf3",
+        "diagnostic:40b6bb02f770efeb88bc3dd62b7fccf400d47e6d1417688a0a15415da06bc94e",
+        "diagnostic:28d14f8acbf4cd2bce65c60be6ccf12abd6686cb36108a4bbe0f175bf1a44fd2",
+        "diagnostic:5d30978268fc8891ddd3b12cf1be15680b5ccc672eaf44fe63a8bace359ba3b4",
+        "diagnostic:ff29e5c07c19b4a734587c4de5fb7683d8c04763021b17824693d254a3c7954f",
+        "diagnostic:9dc60e5049f81b55460f7513637f9432844f5c60d786e8d31d2ce9644d3f91d5",
+        "diagnostic:7cfaae70d1920a83421f976238e2b6e1e6101ea54ae41af043d3aca8fab52493",
+        "diagnostic:8d725bafcdf43957c67cf39084ea35829d0d6b231c952f46d6d3ae93d855d46f",
+        "diagnostic:40813acc2acbb3dc924ff7f20a6b2b64571abaf9275ca403f78b9e794fc93c8f",
+        "diagnostic:3dbf84b760e28fccc39147b2538c8d5b76842ebad548242fefe58665f3bed0c2",
+        "diagnostic:62f9fa0c229f5a721f9bd0a0b3012c5dce4dad30fb5c83d7604893c803dcb2d7",
+        "diagnostic:c0d43bd8f14ba0e7c7457caf2314e6341eb3498d7aa28007a88422a4b7b6bfb8",
+        "diagnostic:1aa8fa382daac2e865cec51d25010cb76a39339ef20dfbebeb1bdb1a79147717",
+        "diagnostic:341b3d52ca0c3fb54d7b87f9f0d9e2e6d1a3c39e653a8e87afa9935c0d4b9ba4",
+        "diagnostic:038f8c47acf2f2e9de36adc38fd8f33ed0677cc52cd974e3bb73c17299ff774d",
+        "diagnostic:464183c80f36657dfa198c3f118bc62faf08e823d36a9f857ed27d6a4186ce46",
+        "diagnostic:a75c8ecaa7f5de497b1e2739beb2d351fd8d2148dfe6d93c75a26909f6dc498d",
+        "diagnostic:08d008af949a583e85161353d7b032c8c776cb368eb3830c0aff5cc187d90e89",
+        "diagnostic:a8f680d6e05d9517bf538a48b3122fdfa564cfb595e70a1fd3030cc78da6042a",
+        "diagnostic:286aa2f4f13be30caa98406417588ba6a574f0adfd798e876a13fdf482d49e0a",
+        "diagnostic:6c192d06097cf189387db2694fabfee7d9e24daa0a170c7aa731555dc0fff2f8",
+        "diagnostic:cca4bc89d6ccc85800c146779dbe3efeba87887d1e19bc9a83123161eda90b53",
+        "diagnostic:c6d66339a6ea8274d692dd2494654f53de25db07a845f3211068bd7cbbd1b1b8",
+        "diagnostic:61d72f01d1b3bec3331500353a7d94501ed2e0b54c60864083803100f64531fa",
+        "diagnostic:b398cb87f3a2f053c13086a5ba712b0cb98dc0ac4074b9dd286b593ac33791ac",
+        "diagnostic:ac6015036e806b976a77a044e224af93319c64c451495367b02d586ae21ad26c",
+        "diagnostic:1a0b223a760caf0713fcc54e719ff0cb0ed31d2a058b69a85510fee7a0c2b41f",
+        "diagnostic:668c6175223e2b544567b45ad55333856920c15feeb7479ee74b9e4af42cb1d7",
+        "diagnostic:98e18baebf850a4c03d0993ba4e23306805ea30718c4c789622842f64f732506",
+        "diagnostic:b28acbea68615caf440e796cf8781963ca78ac3e7c63b6d794763f4a859b9fb5",
+        "diagnostic:82639de2fc41ba00e4c2d67cba694db958a8ca2eaad90425d2bf4a3c7b05adfa"
+      ],
+      "expectedCount": 53,
+      "navigationOnly": {
+        "canonicalLines": [
+          1145,
+          2810,
+          2812
+        ],
+        "maximumOffset": 7046843,
+        "minimumOffset": 4975173
+      },
+      "owner": "sandbox/enforcement",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:5f3ae14d5c09cf80f38e33e95520de7e65a172d372da2d1134c5d55cfdadf424",
+        "lexicalFunction": "se",
+        "messagePreview": "`[sandbox] glob pattern '${Ve}' not expanded for the mask sweep: wildcards outside the final path component (or a bare '**' leaf) could steer the readdir walk through unvetted directories \\u2014 the pattern participates lexically only`",
+        "messageSha256": "285d0f78fdbf0b6db6f06a6ee971a86ac95c59f6264238fe2b08c0f2195386db"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.29914",
+          "1.29914.29930",
+          "1.29914.29956",
+          "1.29914.29958",
+          "1.29914.29959",
+          "1.29914.29984",
+          "1.29914.29985",
+          "1.29997",
+          "1.29998",
+          "1.30009",
+          "1.30055.30056",
+          "1.30055.30057",
+          "1.30055.30057.30058",
+          "1.30070.30078",
+          "1.40589",
+          "1.40610.40623"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-sandbox-diagnostic",
+      "scenario": "sandbox trust compilation and one-shot relaxation",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "cfbbe8a79866e3b1875cc3de58221d450f124425f809079474281106e81f51f1",
+      "exactCallsiteIds": [
+        "diagnostic:ae311f442d83896b9342b23e1da2b3283fcefc1518c0bbcbb6d72be520e4ff47"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          16149
+        ],
+        "maximumOffset": 10814875,
+        "minimumOffset": 10814875
+      },
+      "owner": "sandbox/enforcement",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "single unsandboxed retry gate",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:ae311f442d83896b9342b23e1da2b3283fcefc1518c0bbcbb6d72be520e4ff47",
+        "lexicalFunction": "a",
+        "messagePreview": "\"REPL Bash sandbox violation \\u2014 auto-retrying unsandboxed\"",
+        "messageSha256": "04a22dfd75c88e57e9c6de33678c508ad94c77db79a02e6c062c3a252093dc81"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.55192.55193"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-sandbox-unsandboxed-retry-diagnostic",
+      "scenario": "REPL sandbox violation one-shot relaxation",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "84da60af55176f4d0e58fea46ba0e40368ed98f37ae143f171bdacec34ccc503",
+      "exactCallsiteIds": [
+        "error:6ea768e4efd07d7a5b95ee866398c6b60d8ce34b855838d92042a5c9068a4805",
+        "error:71418871cc7730f912cb21a3be4c117b024275237394fce39650e345dbd8bd50",
+        "error:efef304ff1bae177ea1bd7a5caf73f28df886cdc7c5d50afffb0431cbf518ead",
+        "error:3a22ed4b8d1145ef3b5f44bc815902531253964ddd94ec271c7420b72f26e94b",
+        "error:8b395c512b2b1b8951f35f8beb5c6600e2904aa89432faa67f072f0812a5ea19",
+        "error:c005bd9cce730fa4ceccd11257f6abaa9eb9dff389148bb15aa9d40f615c8b4a",
+        "error:76ba91d9967ce9e613c9140689543d960bcb74a4224f9ac1fef98eb99ea4a507",
+        "error:088c1b1ed21fea18d6d1ad07428ce856edc71ca98b25d4dc1288a4286614264e",
+        "error:b2e62d7bd15ab3d9aea6f6b68e5530a831b83bc7061c027f87564f9d39355248",
+        "error:9570dc6a92489b9560b577f8581b4e35e2efd00be24b6c793ce031668e72d46e",
+        "error:74ef1499db98acda3197bf84a37b83a25afd809c6601aebb449505a54a347d5e",
+        "error:f0fe270a488409b6804ce8f7ccf0deaf3d3c61911ddf7f9ee092ee5daeaef916",
+        "error:6a73c272e075c877b009207eeece0ba7bb09895d7060e9e60018011b50a36f81",
+        "error:3aeca21f563ccc9851589ebdd0bf50f886e5c65b6be807b61d8be08a018320f7",
+        "error:3f9b6617d1677688bcf120553d6d4176899bdaa5fd2e0347ad7e9065d9fdab9e",
+        "error:a8cc49884ebf1929d3980c47a17220d83be8e3bb90bdf097337fc56b114ab8eb",
+        "error:64afc20250ba988ffd7674cf02c5efcfbe5bb1feef1b848d254e71a8755a6825",
+        "error:07ab602a90675674213b6ffbc6d994bad63ac7170ad10a9a740e64649557cb17",
+        "error:4b43ff3e667d8a7956b5ff909ca05c5d12ad6049f177e99fffcf9b8e075c4328",
+        "error:eae3b1a83d4883ec3f73831deb18f3ad90c2f41c424657e53660c3183ae6d661",
+        "error:edaee2d9ae115d837510ad0a64c372e8b76943cc39e7f825aa74fe8225d876a4",
+        "error:862dfd3ba420d211d54f7d2755040899182f884d1e2c9e160160022e2315de64",
+        "error:74956789f0baf759379659c1a2cf6ff9cd70f1336a3fe0c26df553e962ffb3a9",
+        "error:a633c1cfd5d92d7f56a2985c2b7be5f4019bf60a93bacc2b630b1fa1aa264ab3",
+        "error:20c4c1c12913a6baf8113260005bfc1fe4bff12f628db778a7445a71402d8767",
+        "error:952cdc50edfcc3d6aba5ab6b952f20bef2a87ac428c2dd44a0d4b50eb98165e6",
+        "error:9b231b6ec857398a6bfff5807e484f53b7d64ae85219442c0d5eb2203d1b34ae",
+        "error:b45dd3a5300ba44818a3ee801db9d450ef684478f7649746ba04c3628be8c4a9",
+        "error:f6b1d7f3e1bfeebaf9857c481608669856c7469b2857e67d65fcceae3c1710ae",
+        "error:a34295f1b8435cf7ddeb42abf6fa5af4161562e4eeb8f88fa21e24d08dfc1aed"
+      ],
+      "expectedCount": 30,
+      "navigationOnly": {
+        "canonicalLines": [
+          20848,
+          20850,
+          20856,
+          20858,
+          20860,
+          20863,
+          20865,
+          20867,
+          20881
+        ],
+        "maximumOffset": 14964455,
+        "minimumOffset": 14581997
+      },
+      "owner": "mcp/config-policy",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "error:6ea768e4efd07d7a5b95ee866398c6b60d8ce34b855838d92042a5c9068a4805",
+        "lexicalFunction": "NXv",
+        "messagePreview": "\"XAA: oauth.xaa must be set\"",
+        "messageSha256": "845506005af83d303704c8471ac46a39d0d3fe0d0974db478ba2d0b8cc216c22"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.71746",
+          "1.71810",
+          "1.71826",
+          "1.72364",
+          "1.72416.72417.72421",
+          "1.72514.72517",
+          "1.72834",
+          "1.72894",
+          "1.73109",
+          "1.73161.73162.73166",
+          "1.73256.73258",
+          "1.73416",
+          "1.73421",
+          "1.73439"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-mcp-config-error",
+      "scenario": "MCP trust, policy and local config guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "fc86467c4a29da46cd25d016e44c849196cc06c274e5236bc0cfc24d07ca3ac4",
+      "exactCallsiteIds": [
+        "diagnostic:005d06ff45f41a2dd87765148a03af0184cf42250435c60acbce9148bb4476dd",
+        "diagnostic:54a5be776263a69449c0503021e573c804708d116a13ae7a901d34f0cb621eb3",
+        "diagnostic:717beb5cf04d831d7a0aeea4bf32c0765958b926203f12f6020826103e2b7f40",
+        "diagnostic:6a6291f41dd1ab9cc57d9d46bde2ff73011d746c454612633bc9fbbbacff6b6c",
+        "diagnostic:cc1b8912ab207054bfde288284a28254d46fe1947670293f5722ac0a4741751a",
+        "diagnostic:0e7b4da31d31871c333a677c5fed8e988c342f4e43878141084c95b7fe77bf74",
+        "diagnostic:782112cd7caf45a0cc6ea4aa8a5204c60c1375e8d482c076bcdc02ebaa3caf67",
+        "diagnostic:04a9ec4600402610e05ff6a4deefc4c7c7d21d77fc25a2eade31af0c08b8ccf6",
+        "diagnostic:57d26fb7575c040139f5dc532df3708c6b65f49ff97d2266607253a73ca1071c",
+        "diagnostic:9b9cee3b27d3a8cfad5464830efd2cdece83fcd46bcf6492c4ae754cea06b97a",
+        "diagnostic:b82e23eea6296c0779d9e3108834c35ddf1cf7643876eec61e2e77cc1e9a0a13",
+        "diagnostic:522fa87d8667f1070d931f5dc1c20c6cd916be660b6953f2cfa5123c30848044",
+        "diagnostic:fe956b11eb508bc898f3fb04a6ca8dfb81d33065855fdc4f12e66fe3b8182d70",
+        "diagnostic:6b25bf6ac5e2ee7c987f3ab2ab5cff5d93bb672999b01e521af7f3828c0384db",
+        "diagnostic:c0a5002d18b8a384b068b4203893b39396e2b018744ff0b352d1e2a1e8d2dcde",
+        "diagnostic:db37c88e446477a5ea05341455c74362d86646f79665f908ad655eca465d1aa6",
+        "diagnostic:22932eebcd36adb54689076df346b3d16d142db5aea7367a0015b1d75684579b",
+        "diagnostic:28b70057564d877962771128190de34f160da0d07b5038ebd6778b7dd79346cb",
+        "diagnostic:03c402bfc316679ad04d7f3f81a7a255a7cd8cef4e003de9dd65554d933b2789",
+        "diagnostic:5f87067398339b30a54d308b7da601f0ceab85d7ca63bcbf5a67f0c4dcf0ebf9",
+        "diagnostic:a5b074caa71953bef7f0db6a783abb520219ddd6851f4141b21a90d0d8303f9a",
+        "diagnostic:fc48fc4fb6f597cb39f3cc792ccef6072bb2e74f7b10086fdf001cdeb82bae84",
+        "diagnostic:b9de291cc93b42f22911bb27b4d18a92a5989fd98baf9c8ca0b405a9af0bcd5a",
+        "diagnostic:a35d9f36f0ae4e9851634b4f56be51eb0a04d51bcee6a866626620b15c5d11e3",
+        "diagnostic:73aecf522122dc801035b57504a61118a3311b36343f2ee64752ce65fccf8fc2",
+        "diagnostic:8cea703da4ce5aa63ea67433fbdc25121e3b115ad88f1b44ed8ff0d0f58696c2",
+        "diagnostic:9b3059e1681c0571970fa577d3b4abce86a266cb7a8cad2b3972416b00456e34",
+        "diagnostic:8b071ea842a4d18cd1135cc6d477e824e4d6a7ab649650bf2ab041d57378d0fc",
+        "diagnostic:32dda0e21527fb9fbcf618aae32b2cb55ecde7c0c339a520b4f4d97dc5058ce8",
+        "diagnostic:7c23f883b5c641aa16f5dde2c3205e0677515c12f5531f295b7e971af53bff5e",
+        "diagnostic:5b70e9123418807d92b72a974915ad15cd76fc34d68c15918cc1ea39437928b2",
+        "diagnostic:0c0eadd89eb1f0aca32dc6d33057aaa57ce553f2328518c3b4cf2c6997189d7f",
+        "diagnostic:a8dcdbbc217a43b868762a9ef9b1103f31fa406d53992f9320e6a5b4b10ad0b8",
+        "diagnostic:1fd7dc1b4431b92045ce3a303cd3692ab531cec4b01d3544fd241592ab27be4c",
+        "diagnostic:ea86a6a5fd59c439d65feeadf885b8be780e515e2f996709cff9336864ca20c1",
+        "diagnostic:58d8899362d597f63007108443534264df58a92147547af8df1ed53d7969455f",
+        "diagnostic:67ffe018c4f5cb3f13e61a9493099b53b68438fd353394b7f748d3f5a0cbe73e",
+        "diagnostic:a0ddde02ee4cfd93269970dae2af3ecbb0688671a2ef878769f02ec6b3dd87ff",
+        "diagnostic:ce7d16ddcfacfbd6a21f3600bdc1c54bf9bc7257dec16df700b8fdd361f5b44a",
+        "diagnostic:1a0c0b86d1f5ff1f83b4bcc3e613e8a131571874efb9544a212b25791c4a7326",
+        "diagnostic:0443a81df70f56c18bb8e78cb97eec3f8ddcd1e9837c105498309d2c6991d925"
+      ],
+      "expectedCount": 41,
+      "navigationOnly": {
+        "canonicalLines": [
+          14943,
+          14944,
+          14977
+        ],
+        "maximumOffset": 10117322,
+        "minimumOffset": 9988131
+      },
+      "owner": "mcp/config-policy",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:005d06ff45f41a2dd87765148a03af0184cf42250435c60acbce9148bb4476dd",
+        "lexicalFunction": "Ndf",
+        "messagePreview": "`Loading MCP servers from MCPB: ${t}`",
+        "messageSha256": "af9ae4dd5e068a7c13c16a7e395300925a6ae000186958f7b1415b5cc37b2bdf"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.51907",
+          "1.51907.51908",
+          "1.51911",
+          "1.51911.51912",
+          "1.51911.51914",
+          "1.51915",
+          "1.51920",
+          "1.51936",
+          "1.52059",
+          "1.52068",
+          "1.52077",
+          "1.52087",
+          "1.52112",
+          "1.52118",
+          "1.52131",
+          "1.52521",
+          "1.52522",
+          "1.52522.52525",
+          "1.52522.52529"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-mcp-config-diagnostic",
+      "scenario": "MCPB, plugin, connector and policy compilation",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "283a7bc6c796a3efaaa29bfeed3bbc2014ceacc45a92bc1c88c023220e260010",
+      "exactCallsiteIds": [
+        "diagnostic:4a0b0a908a6aca94c73907e0dbd5c55aafb77cddbcadc3937673ce5ed0486104",
+        "diagnostic:c7ebfd2d904f04011dae631c2621f777ff63f04fcaec95e3a9c1471f6cea57db",
+        "diagnostic:60715189fba2230957818cea07215ea879deb10704a1bb879ad50134edaa94b4",
+        "diagnostic:6e7d561cd953c6d40f8ae407d33636a9c58834c56aef861bd3d4e689fd9cd771",
+        "diagnostic:16ee8cf95a85802e4fca99170780f5ba32ead0e15a264fec339eaf75852cef43",
+        "diagnostic:757ce2b8b0bebfba313797f5c23bb70dac0fdc32220ef336bfcab34105344061",
+        "diagnostic:bbc6de095137978d01868a9b13cac9bc521664ea8b7c25bda3d82b094e97f7fb",
+        "diagnostic:fb061c630234f5487baa86e5ed2358c6544e13fcae72564601709763a5ae5ecc",
+        "diagnostic:1761a3995c6bda9d614e4ba3810018e761037abcb1f2f2d2cc002439dff4fcbd",
+        "diagnostic:cf82080673a7ab88bf88ec1bec0bab0de3c5689d7771e0fc50e384c9342b3af5",
+        "diagnostic:4ad61aca9f5392e5a800fa36faff649c884d0738c32fc5756d16b1d5f1c49854",
+        "diagnostic:c188c59dad40eab32fa6f0e26208b20dadbf1417ecaea6a77935f09702fd4175",
+        "diagnostic:2d82649fb72124a2c73a9feb48f5bf4fb25b2dfcd0651026085d4633b043de4e"
+      ],
+      "expectedCount": 13,
+      "navigationOnly": {
+        "canonicalLines": [
+          14944
+        ],
+        "maximumOffset": 10001551,
+        "minimumOffset": 9998316
+      },
+      "owner": "mcp/config-policy",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "claude.ai connector bounded fetch budget",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:4a0b0a908a6aca94c73907e0dbd5c55aafb77cddbcadc3937673ce5ed0486104",
+        "lexicalFunction": "w8S",
+        "messagePreview": "`[claudeai-mcp] Disabled via ${r?\"env var\":\"disableClaudeAiConnectors setting\"}`",
+        "messageSha256": "39628a5f22ae6642ea814a9a609a8e46b77d1eab40054130a4126e93302d8421"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.51944"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-mcp-connector-retry-diagnostic",
+      "scenario": "claude.ai MCP connector bounded fetch",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "21dcc18c3a3627d625ed364c3a1b3070c839215d001e0134e71df5742f7ad8a6",
+      "exactCallsiteIds": [
+        "diagnostic:2786748581beec89d06d6a831c063a2d592fe32154c7a94ecd6358e7cf5d79b1",
+        "diagnostic:692876c752fdfee4cf55dc98edbb90fc80b452b92122ee48028d770f1cfae77b",
+        "diagnostic:30bfdafd6564943af3a97ad08dba742191fbedb0fa3311693f41a06aab4b968b",
+        "diagnostic:0957408a3497ae79b38ec3a6c922942890424bca1ec4298aebc52b1ca301b3db",
+        "diagnostic:64f36dad09b217fd3393af73835002a614dd9b90a6957e05bd4aa24c65decb2b",
+        "diagnostic:95ee77b65ee1991891ebbcedd966727e338c8b94a2444611d1779b16a46ba7fd",
+        "diagnostic:37293aa3d1ce4f75575f3f621c98b6869d600f70cb2a9b3f589c4c3c694aa446",
+        "diagnostic:66a17311f283ecb9f441d6a11d6773a4a3720ac38673deed4f7a4a61b76c8b94",
+        "diagnostic:6b9fd64e742b1a1486a9fbbec07df49a00a86fb3e58b8a6a8492141efcfdb578",
+        "diagnostic:a34f474525a71a4347cd0d7bc8ad9b1ccb8595f1d33813b1d3137f4a03b97601"
+      ],
+      "expectedCount": 10,
+      "navigationOnly": {
+        "canonicalLines": [
+          793
+        ],
+        "maximumOffset": 3958642,
+        "minimumOffset": 3957205
+      },
+      "owner": "session/persistence",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "remote persistence conflict/backoff owner",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:2786748581beec89d06d6a831c063a2d592fe32154c7a94ecd6358e7cf5d79b1",
+        "lexicalFunction": "pbb",
+        "messagePreview": "`Successfully persisted session log entry for session ${e}`",
+        "messageSha256": "3ba7fcd352899240bed93b8f21ca62d2d279fe7a2741b9f08ce1a329f25a89a0"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.25591"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-session-persistence-diagnostic",
+      "scenario": "remote session persistence conflict and retry",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "a1666e4342db26f87fc3f3f8a9364a7bc1e07466709a8118f9e15e96a282d222",
+      "exactCallsiteIds": [
+        "diagnostic:5ca1922717c63dd7dce680ff0c43a63b6ab6b3333aff52e789d7928903b2184f",
+        "diagnostic:b41c2d6683783206f3372b232d2e7a735bd5f79bee10d402704b791efb981a57",
+        "diagnostic:4e3766c92cb8ff1493a3b6473a27c2b43ea738c2253741db4d352f5ab1285033",
+        "diagnostic:6d718ae2975c06d4c1d3fa73bc0e3b0b58f44ce223f1c0484827128e314655aa",
+        "diagnostic:9aa602ec87f5433458cda8608b72fb6d58db05e3d689a0d93269640e500015c1",
+        "diagnostic:72cc75a1962b012710d50da25028e2333711f138fe0862c855e526c4382d3e80",
+        "diagnostic:9013f7c260effd3c8d05d2dd0123bd15d6c4a0ceb7c292155a3adc1b332f63ad",
+        "diagnostic:e44f856c7521ae7d2889c72d26717e59112782534346a69d5a39dd20a432edf5",
+        "diagnostic:4b4ec8a0da26d0715cba5dcae240c68198a720a9427de7afd724b1210e7a5a19",
+        "diagnostic:47020b23f8c3141c0933ce24b9c0520f7ed051f44142fc34555878669da35d46",
+        "diagnostic:921fee99508e50d44144891504ec5a34646fd8879aa01376349ed193efb4da4c",
+        "diagnostic:e8f084d9cdf4ac8ed4bf8b6ea931c6a6dc9fb5df4c2dc113f4b481f08e254b91",
+        "diagnostic:e4e0141562d679e4e08964534e80c62c22639ea11fb592174dc21831b61b4f6b",
+        "diagnostic:36e9b5ba64c77c556ac0e73a6b92eb7cdf9ca341079b787a4fad5fcd2b4e3620",
+        "diagnostic:d3df1a23adc1ba94aad6fa828b0961b200d573f0c7a06d88267a41a3d4150fd7"
+      ],
+      "expectedCount": 15,
+      "navigationOnly": {
+        "canonicalLines": [
+          14289,
+          14977,
+          21474,
+          23550,
+          23607
+        ],
+        "maximumOffset": 21095082,
+        "minimumOffset": 9492208
+      },
+      "owner": "session/persistence",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": null,
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:5ca1922717c63dd7dce680ff0c43a63b6ab6b3333aff52e789d7928903b2184f",
+        "lexicalFunction": null,
+        "messagePreview": "`Forked agent [${o}] failed to record initial transcript: ${D}`",
+        "messageSha256": "6b28d359f2074e21e1a4a360ecdd0126b538ab8cb50c354b46d9cae5c3a8cff1"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.49931.49932",
+          "1.49931.49933",
+          "1.52532",
+          "1.75184",
+          "1.92118",
+          "1.94063",
+          "1.94069"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-session-continuity-diagnostic",
+      "scenario": "transcript and persistence continuity diagnostics",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "No exact runtime Probe proves that this branch executed in the inspected session.",
+      "exactCallsiteDigest": "539fd95b8052d79dc1d8e60636cc86fc1fdd70111691704b34cba5af28413083",
+      "exactCallsiteIds": [
+        "diagnostic:ac09758c4320aa2ee4ce1ebf81de3691ed802a207e3e0aa55b5eb8d66170bc9a",
+        "diagnostic:8c172ffb1253d3bd4a5001a278ac9a4bae1b01ba9f635b5f1f5fc32ee3bfd3b7",
+        "diagnostic:88809f8d6531aac336bd2feca152a62d5e20d86d7193711103ff41e2d172e246",
+        "diagnostic:3330a26a60fbfe19cf3f2782f9246ae0f94b06d2ab08182d22f690b6fc4ff8fb",
+        "diagnostic:b33ba013ee7a5aae868fbbb780b276eeecfdad6628bf3fee896bfa7242870f1c",
+        "diagnostic:30a3623aa608cdba90aca7c9c811a8a0204c681fa914fcbb69725a59a44f2f85",
+        "diagnostic:896791d8fd6d95065d376bf83d65b95d8c6b0a03ae30d0a9e94016239d00297f",
+        "diagnostic:95d5087f08445dd2f6511b2c8b2bc7042fde76c9cceb0f1d7bb800190c8282ec",
+        "diagnostic:3dc70328c0b0bc97c00c34b5c4a5442bcc11590520d94a00a6dd1638fd007f36",
+        "diagnostic:1b67a3890eb0550d87eba03862478ab20666d6b6cea018b9b4ea8c667663f1e9",
+        "diagnostic:6dd51da27d7a7c001997ac68e2f76f655644aa29b9b698655d517dbd371c7035",
+        "diagnostic:52791d35ddaf272d39d05131d411123567bdb8999e19645b28062d77588e615c",
+        "diagnostic:a7eab1fda62a9fb575571e118b335a09ac9a14c3111f36d2c4ee3963eff5796c",
+        "diagnostic:22e4b50c420d2673d052bc7dbb6c24e3b9577813a227e2fe878bb519b2e85838",
+        "diagnostic:917abb707234e766e0228b7c9e1f2ef7b3cbe63e8f7cb180b2313368307689ad",
+        "diagnostic:5abd0c5360f4f26c4fd98dce9f81c7c2388acf0ff823cdea15228c3aefe2396a",
+        "diagnostic:5ef2f629e80ed7f6a6ba024ed726f735629a282c82e6a899109515563a20b2e3",
+        "diagnostic:344c9be72944f5d32d0d2ec5b6cbcab605ea5a01b91e6dbced262a5de7248485",
+        "diagnostic:2c85b8eea42d505c4b5ece1ed1e52853bb67db143e7e5ca852ada332fc7aa626",
+        "diagnostic:bf51e5251e50f62b32ad731fd4b55429c02bfeb4863ee32df129baa2662f7097",
+        "diagnostic:e5dc3fd82100c4c5943afec3019875720b4fcffa57299e5124448cf9f9292dfc",
+        "diagnostic:640493b740e22af56cb2bef844bd7bac99f890d933e912e1334452459d0453b8",
+        "diagnostic:5b9a8288ab8b8c7390ee0847b11b76e430842c96a4f6d266196e46b0214cafba",
+        "diagnostic:28d4353135204e04433e930c0aa60f4953ca0522785f61acf4d9894488e14acd",
+        "diagnostic:1ad31709360f266a2e4546fb2189ebf01949ababb10bbbb721839aec855caee8",
+        "diagnostic:51a9fd6fc111a7b918246babedbbed19299363903db954307c15c0f420b0b871",
+        "diagnostic:239dc7149907281fa6142518a5ae7b1badaa4aa88a690f4eb7fff06ccfbde07d",
+        "diagnostic:f17b68123cc8ef9e7f7d727a0cea7626814da1ee4d580d845668718b26da2641",
+        "diagnostic:259db51dff33100d29cc3e2e99a6fb8e1aa8092ba596da3ea033cf2b3732ea9b",
+        "diagnostic:094097b3750a890e486cfda8d53c6b6dd507368130554204ff194eca2e7248b0",
+        "diagnostic:0879c356bc894e0b410b7df1aeee0db0f6cf6801058377a34d9cb618b88c9dcb",
+        "diagnostic:4fc36c8459f9dda3a6a641521c5b2a11ce3f8dda00c81b386bc89f28ce3cd8ed",
+        "diagnostic:8a78ee3b75aa74a27039995666e727f55fd42116fc54930127bca53662f3e27f",
+        "diagnostic:eb029478d29c608df8fc6fa092c3860dc49243b98e19ce3e0cdc864b3f298539",
+        "diagnostic:244f9d828a7651caffb1da28513d1997654e7349b4fca10649b226c8d4d00df3",
+        "diagnostic:bb72fbd8114cbcf9c7e5499d41823011ab957262eb6d2071398e74ff57933713",
+        "diagnostic:e3617fa50b39a2563a038e2f684c3d598d5751c24ba2b11dd96f0c1c0bf8f9b2",
+        "diagnostic:f53da0ae9452a608e969f968e97604a5a3e848d4a09c7e499c9ea1e5c7e37d04",
+        "diagnostic:ff07ca34515f5ef9b932d6a967e5dccb86af8e87538b53c8b4fa302eb72b866d",
+        "diagnostic:acff23125b759bb233ffcdd793c9a4ad01c9f2e4a394cf071ba4b1923842ed60",
+        "diagnostic:d2048263e92c64e042d8f3e35f35889307caf2b6be8aed0768e5a3ac5ee86d0b",
+        "diagnostic:b0e37da0132f90ad187815342ae4bbf24cc95c962804378d52a0e2548cd9ab9b",
+        "diagnostic:e485141b7f998c9e8ccb8c0a6dce2c887ee1c58b293f1fb2333fb064c4931da4",
+        "diagnostic:0b9e6d9f530e75efde9d4752fd01e4dda7f885032d74fc359df0b59ef501b007",
+        "diagnostic:3fefbaf9b4fde9c39016dbac86efe83bc89f0c140e806cf40da9d2710946870f",
+        "diagnostic:3de8be55bf25b2ec4912c03070c4c494df13f66d749ea4cb5c47b249568515f5",
+        "diagnostic:f51c772fd8117466ea8995c8ff4b125ad7d6690fdd4d206822305acdd5a2b436",
+        "diagnostic:946f8e5607ecac43e8b5fd884adaf86a7213e9e965f64ba01ccc21918215423f",
+        "diagnostic:d9520719598051285f3a96ad8921edf1025a551affe7ff199cedeb9df06e98dd",
+        "diagnostic:7a0aa3d52453e2771f61a780a9615d58af1fbda39846c8b1c29a8130d5d8a57a",
+        "diagnostic:5dc56f800010195e29c6c362745205d89e2f7940b6b137b89c9689afd6caa4e3",
+        "diagnostic:84034af23dd9bb8ad4d829b37d0be587976e72136509ec626208e1c537bbb3c4",
+        "diagnostic:245b784524118f6e6455bb7afc8cf7de01eb34f13431d309be20554b8c03f5b4",
+        "diagnostic:03792998ec097dcdae141b84dfc9a96aaaaa2e3dd33a3c72c6502850d82767e8",
+        "diagnostic:6adf9b3ba6f62eeb964b131c0b82ad72c02d3fa533e8cf2a61665a3f351f5fc1",
+        "diagnostic:f2c2b353f3ecd8a133b95492b8b9c34e06a127269627aec7de9c2a66e470e4b7",
+        "diagnostic:b9b2026610cedb2704d6afcd7dba69c5dea75d6a7b35754ca4f1e59219932dde",
+        "diagnostic:95890409321a974a6f0d9545bbbb53bec1958da29d5392a67b0f50261bf7b067",
+        "diagnostic:1939bc554c90f151627cbbc90482aedbb3a162474d036f25f28d18855f59ad99",
+        "diagnostic:4c0f7f9030db04f40bcfaca8a146d8a82714e94b551b6031037ec6731c8c490d",
+        "diagnostic:3a9f12e317d66719052a1db2b1a9dd3479ff084f103628dd01fb97233df96f1d",
+        "diagnostic:3fb8448e55cbf73dd5c3b3aee5592a24f59495b0429e64f2d9202ce899e1f54b",
+        "diagnostic:1d2a53208950595877aafebff2d7865ce30a218c533a6019c59ee65534c07943"
+      ],
+      "expectedCount": 63,
+      "navigationOnly": {
+        "canonicalLines": [
+          14943,
+          18445,
+          18447,
+          19236,
+          20747,
+          21698,
+          21700
+        ],
+        "maximumOffset": 15747211,
+        "minimumOffset": 9910133
+      },
+      "owner": "model/request",
+      "ownerClass": "Product",
+      "packageFunction": null,
+      "productFlow": {
+        "catchOwner": null,
+        "retryOwner": "request attempt, fallback-model and payload-repair controllers",
+        "toolResultOwner": null,
+        "userSurfaceOwner": null
+      },
+      "representative": {
+        "identity": "diagnostic:ac09758c4320aa2ee4ce1ebf81de3691ed802a207e3e0aa55b5eb8d66170bc9a",
+        "lexicalFunction": "tdf",
+        "messagePreview": "\"[query] turn-start poll_events build aborted \\u2014 leaving events queued\"",
+        "messageSha256": "893d3d78163c5c701468947a568fb3fd5189288093cfd3b02f6ff160f9397f2f"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.51699",
+          "1.60841",
+          "1.62435",
+          "1.62455",
+          "1.62469",
+          "1.68715",
+          "1.76343",
+          "1.76343.76367.76368",
+          "1.76343.76375",
+          "1.76343.76390"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "product-request-recovery-diagnostic",
+      "scenario": "request degradation, retry and fallback",
+      "stream": "diagnostic"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "8ad1893c8349e779795111fd7d480bdc314e09624d0fc70025fcc5606400dc7d",
+      "exactCallsiteIds": [
+        "error:aa9df60487506291199908faed1960f98746771bf33a05c0fdffbd6ddef04d6d",
+        "error:926bbb0d70caaa28a44666335250537e27b268a39bbd328b3fafbf1e292a4405",
+        "error:be2c7c64c5a3b52479d7d6ee7c87e558ce77530c22ad5601caf808938273c800",
+        "error:315c3a443e44785ed593185d690f0e4e3f98c609860fa93f1e014792f9743bf1",
+        "error:20835ea371776817ec46e1d2620922d50d201119ef412aef66e5602bacdd09be",
+        "error:437d09a42f5399d48151248bc567ad0cc7a87f87d21e52e0562487dd0b94a0b9",
+        "error:70c44a2939f85e7ab99f1a2f17043128c4ee480ebd44392f64dda08eed539e34",
+        "error:28d3f5ba7c4276cb70b21a72f725329dad427d1fd07d0615aa7b07fd08ee9a0d",
+        "error:1cfa512e7c7c32494ed9e81ce0671cbdbeb8df4619ac479201ecd545fc6e929f",
+        "error:c32306f4b7fe8fa29f8cf5352d7e958681abfd2efcf335c4d845720c18f683ce",
+        "error:44ed21a78f1e756a80e65cf77451ed757916fa63057ccb4d2907087d1afeeeaa",
+        "error:15912d5ad4002497fae7fa0534ef50778a10a49325838aa9df98d462c63426fb",
+        "error:e4f5a34990c006b499baa6eb1d086f30dadfeb63778cde8dce04c5ef4aee7fb8",
+        "error:31a645fd951a5c1f229bfbcad24f4c312c69b81e1688f45bcef6b74ee51ed7aa",
+        "error:5298a1af81e20636e55dba9b6bf2025d07671acff38b77d8edb71aa662846a6c",
+        "error:bbf52d2c0b2d31edcf8775eee4feaefd55f28b60efd70359adfec6462dbba8ef",
+        "error:56807b3f855102336c7cd408d4075160c46817fc3d491fbdc079e026d95cb88b",
+        "error:434439c7920ea56c3dd5ff51a831218519ec82735d57dedce9376a5809e84b8b",
+        "error:52ab767987baf70678456596f4338264b950c40b241b83b9c8cbc911a1aa0cfc",
+        "error:37e21a50196aeebe34437e6382ed300f675b1275a2c1952919bc7777c00509c2",
+        "error:1592ef0c3c1781b342ea25fb65e862c456263ee3bfc3fe69f0e14b424c7ec9cc",
+        "error:e58db7d0ae3920ca0aba6f7de922ad259d7751a3cf494bc3d3e3c78a2f53137d",
+        "error:c33d6c6d1838dccce41197f2d39e008c4c376dad4a0f6f604699d9dfc80df324",
+        "error:0fb9da178ba47cdc4d0de0a102b26ade156e616139b0fa9fb86bb6f0806d9142",
+        "error:6c98bd2c44ba11fb63cfccb0e9552a82421de0fe10a98d8072c0cb08d505d43e",
+        "error:de5e9cae3d81514ffab3e96bedb02081479d092f174fee2d57d1e90bda328b97",
+        "error:9b26d96cd261b67d7e079d779a36f9e64c5809be02c1edf138caeef5fc03b3e2",
+        "error:5893d965d6e8af9fbfe0f5cacf02088dee9b2bc224dcaf8fda6194a939ee1ec9"
+      ],
+      "expectedCount": 28,
+      "navigationOnly": {
+        "canonicalLines": [
+          134
+        ],
+        "maximumOffset": 961322,
+        "minimumOffset": 951656
+      },
+      "owner": "@modelcontextprotocol/sdk",
+      "ownerClass": "Dependency",
+      "packageFunction": "Client methods createMessageStream/createMessage and exact capability guards",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:aa9df60487506291199908faed1960f98746771bf33a05c0fdffbd6ddef04d6d",
+        "lexicalFunction": "createMessageStream",
+        "messagePreview": "\"Client does not support sampling tools capability.\"",
+        "messageSha256": "0ecac89e809b2de7df19cf372dbfcaee1a64783b29ba2692fcfc86c4c0cd9468"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.7627",
+          "1.7644.7652",
+          "1.7644.7653",
+          "1.7644.7655",
+          "1.7644.7656",
+          "1.7644.7657",
+          "1.7644.7665",
+          "1.7644.7674",
+          "1.7644.7675"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-mcp-sdk-sampling",
+      "scenario": "sampling tool-result pairing and capability validation",
+      "stream": "error"
+    },
+    {
+      "boundary": "The dependency constructor is proven; its Product catch, translation and user surface remain unresolved until a first-party caller is traced.",
+      "exactCallsiteDigest": "b036ec2a4047bdf5c7541f56eded694ffaf54d60bb9a7cfe0b5e1e235fcb04a3",
+      "exactCallsiteIds": [
+        "error:b643fd56522dd94c5076d65131949c7604c5cc854eb338dd8bb36707ae727079"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          39
+        ],
+        "maximumOffset": 225481,
+        "minimumOffset": 225481
+      },
+      "owner": "@anthropic-ai/sdk",
+      "ownerClass": "Dependency",
+      "packageFunction": "Anthropic client fetch shim VQc",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:b643fd56522dd94c5076d65131949c7604c5cc854eb338dd8bb36707ae727079",
+        "lexicalFunction": "VQc",
+        "messagePreview": "\"`fetch` is not defined as a global; Either pass `fetch` to the client, `new Anthropic({ fetch })` or polyfill the global, `globalThis.fetch = fetch`\"",
+        "messageSha256": "1c5a8998e96c503336531a813a027b4f28c248e49cf823112d985f640f74f8f7"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [
+          "1.2712"
+        ],
+        "messagePattern": null
+      },
+      "ruleId": "dependency-anthropic-sdk-fetch",
+      "scenario": "Stainless Anthropic client fetch precondition",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "126e47ba10baaea17310e245e77653f9c04d32a44c684e46c3fd08a0ea41bd5f",
+      "exactCallsiteIds": [
+        "error:33275331fe1b3eed72c75cb8f22ad1978329e2381d5cc489036b61c498ebf11c",
+        "error:7893ab7e30273d89b31f07e463672ef9371a9eaf36e250bbddca2755c579f4a6"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          148,
+          3142
+        ],
+        "maximumOffset": 7807858,
+        "minimumOffset": 1041684
+      },
+      "owner": "@smithy/util-utf8",
+      "ownerClass": "Dependency",
+      "packageFunction": "toUtf8 encoder",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:33275331fe1b3eed72c75cb8f22ad1978329e2381d5cc489036b61c498ebf11c",
+        "lexicalFunction": "xXy",
+        "messagePreview": "\"@smithy/util-utf8: toUtf8 encoder function only accepts string | Uint8Array.\"",
+        "messageSha256": "76957f75e9fd06c4c7cc9101ae21a2ee6d9046b8f2fc7ff419b3cbe2c3b4eb5a"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/util-utf8:"
+      },
+      "ruleId": "dependency-smithy-util-utf8",
+      "scenario": "UTF-8 encoder contract",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "af1454e563968b6cea144d64ec58d93d9f971cc1068fdfbaa405211e0ccfb7c7",
+      "exactCallsiteIds": [
+        "error:b6b48474a7e3b0324fad56629d2afc570c4561bf100bd3965adbab4acf2cf6df",
+        "error:26fdf7a085c09d5fea39263e37a9779a41c297a5768587f3d9a603c6f28072db",
+        "error:9c0f91190967219a260bed4742379058149edf78621aabcf5ebf6831e9ff8431",
+        "error:700554f43aee69eef47c782b4449ce9524f71d66fee119ecafab63e4cb91c488",
+        "error:667e4faa942299bb454eab858a4ecc3ae30e1123dd2b06d61a392f7fedcfb118",
+        "error:c55daed7abba22b7eaabf56c9e80a705f72ec5cd6e2bf93e0105cb106ed0eb28",
+        "error:00c8282602dcb1d421e06f1190f998bfdeb5ca5c1335ab5549a6cadf06575f37",
+        "error:42b35be98bdd83e17210780486354781015596726b6ae0cf2ec24f497b809b10",
+        "error:f6deff5e1a609f22a0460a122e300b364f878f9843d833935e0f1758bdc70188",
+        "error:a918ebae27a536eabf95ae0441a1e0187d30727515df950def3768d4e2837567",
+        "error:8e81b3bbbea0b8561c1f546ab0e689dba70788b60ae9148c2fd8f5bc137d6690"
+      ],
+      "expectedCount": 11,
+      "navigationOnly": {
+        "canonicalLines": [
+          148,
+          236,
+          245,
+          259,
+          273,
+          284,
+          318,
+          3142
+        ],
+        "maximumOffset": 7807275,
+        "minimumOffset": 1042188
+      },
+      "owner": "@smithy/util-base64",
+      "ownerClass": "Dependency",
+      "packageFunction": "toBase64 encoder",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:b6b48474a7e3b0324fad56629d2afc570c4561bf100bd3965adbab4acf2cf6df",
+        "lexicalFunction": "OXy",
+        "messagePreview": "\"@smithy/util-base64: toBase64 encoder function only accepts string | Uint8Array.\"",
+        "messageSha256": "4d28fbcc9bfaaf78cfff0657c53b7b558f64f1a8213b121c8b26f5d176bab55a"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/util-base64:"
+      },
+      "ruleId": "dependency-smithy-util-base64",
+      "scenario": "base64 encoder contract",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "9cccc6c198d0e74d6544f72808b62ca36a8b44145e57dbf77f60e58ec950098a",
+      "exactCallsiteIds": [
+        "error:4c055fe0f1c35fda1c9d9c423b6c17c15746bb029fd87067276dbb6f1da8d59f",
+        "error:c82d6e937ccb28ef43a02c445ac28b1733f9dc0b19093d2fd6b0b953a7d4ecb0"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          217
+        ],
+        "maximumOffset": 1550017,
+        "minimumOffset": 1548932
+      },
+      "owner": "@smithy/node-http-handler",
+      "ownerClass": "Dependency",
+      "packageFunction": "NodeHttpHandler timeout guards",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:4c055fe0f1c35fda1c9d9c423b6c17c15746bb029fd87067276dbb6f1da8d59f",
+        "lexicalFunction": null,
+        "messagePreview": "`@smithy/node-http-handler - the request socket did not establish a connection with the server within the configured timeout of ${r} ms.`",
+        "messageSha256": "b0505659eb3f9af7317b904078f4a575e1539d75ec4acb517f57ff66e5aba008"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/node-http-handler"
+      },
+      "ruleId": "dependency-smithy-node-http-handler",
+      "scenario": "socket connect and inactivity timeout",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "6eaf7be21b13a8854482a7a88b3e072bf8993e2664a6b09cad6ba0a3ee413244",
+      "exactCallsiteIds": [
+        "error:d72110929956f1a75ddfd0f5d918bc24baf60cb20d22bd70c884b193abccf701",
+        "error:756f6fdd32f0939f3da0aaec396bbdd90580bf4add557bf1f1737393270ae268",
+        "error:fab6516ec6bf8f51b3c964a0ab3aae63dd19f1de7513b45744f5eadc0d239219",
+        "error:1b1803d1fa159135f4b8d5914572b08e209a94ce5943c3947703519f216b3faf"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          236
+        ],
+        "maximumOffset": 1603313,
+        "minimumOffset": 1599143
+      },
+      "owner": "@smithy/util-stream",
+      "ownerClass": "Dependency",
+      "packageFunction": "ChecksumStream and stream helpers",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:d72110929956f1a75ddfd0f5d918bc24baf60cb20d22bd70c884b193abccf701",
+        "lexicalFunction": "constructor",
+        "messagePreview": "`@smithy/util-stream: unsupported source type ${r?.constructor?.name??r} in ChecksumStream.`",
+        "messageSha256": "feaaba6b5945fb204cc01d27c859035709b29b0b2c9257f929cb5c820de0fc06"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/util-stream"
+      },
+      "ruleId": "dependency-smithy-util-stream",
+      "scenario": "stream source, capability and index guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "c09a13db8b3881601b29d28c740bf85e94c2a35e96ba99220be599296d2aabd6",
+      "exactCallsiteIds": [
+        "error:df0662b53820a69d1548c4d028e9dc673441a1ddf14f68e026b6e31fdcd18a3c",
+        "error:b7f20a83ca635baaf6882888d5c6ada30cea2c8e675b14573a422e218186ec5a",
+        "error:fa90c2ab2c049a0a26fc5e1cb6d4887c652395482b5c2ce7c5363aef30754912",
+        "error:52e7f6ccdbb8f2084b32052bb779f2d7671956bb951c5b3826b5e6a19d453ba3",
+        "error:1fab22dc135873b99d5ef67c3981ec96f94b76470b214350da81e751fc802262",
+        "error:a03f19e328172b1a27e6c46b67643afc9e6d3c0cc5e999b8918304dac0e6b9e8",
+        "error:869882e5133d88e540ef6f06c082c4811eb1d9bd0e0cb301273099d22af6aa97",
+        "error:4092c9b36edf2243777c1c28a8857a5f9d94a6d0dabf91155c8e90764b225f7c"
+      ],
+      "expectedCount": 8,
+      "navigationOnly": {
+        "canonicalLines": [
+          243,
+          245
+        ],
+        "maximumOffset": 1657605,
+        "minimumOffset": 1620216
+      },
+      "owner": "@smithy/core/schema",
+      "ownerClass": "Dependency",
+      "packageFunction": "NormalizedSchema and protocol schema helpers",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:df0662b53820a69d1548c4d028e9dc673441a1ddf14f68e026b6e31fdcd18a3c",
+        "lexicalFunction": "constructor",
+        "messagePreview": "`@smithy/core/schema - NormalizedSchema member init ${this.getName(!0)} missing member name.`",
+        "messageSha256": "fbb93fc8744df133bfe8046d2807afe8f31d7039e3df476ae8db5a14cdec6d70"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core/schema"
+      },
+      "ruleId": "dependency-smithy-core-schema",
+      "scenario": "Smithy normalized schema invariants",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "3a623be09a9a8d1f129995c1707312c595450bcbf790f70d33bd0e8d912d8500",
+      "exactCallsiteIds": [
+        "error:75ea82280a384509e6ee83efe1000d3f328ff83dca0e620e53f5f8c5f2cddf5c"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          245
+        ],
+        "maximumOffset": 1648986,
+        "minimumOffset": 1648986
+      },
+      "owner": "@smithy/core/serde",
+      "ownerClass": "Dependency",
+      "packageFunction": "NumericValue parser",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:75ea82280a384509e6ee83efe1000d3f328ff83dca0e620e53f5f8c5f2cddf5c",
+        "lexicalFunction": "constructor",
+        "messagePreview": "'@smithy/core/serde - NumericValue must only contain [0-9], at most one decimal point \".\", and an optional negation prefix \"-\".'",
+        "messageSha256": "24848ab00361b164f6f6acadd103a050bd5849082b1026e7fc4e9a6064caa93e"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core/serde"
+      },
+      "ruleId": "dependency-smithy-core-serde",
+      "scenario": "Smithy numeric serde invariant",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "2c1791aa7b55b01174bef212327d94e2424b489f2bb2eb917ca7ccf46c430285",
+      "exactCallsiteIds": [
+        "error:cbf55b2a06f7512e78d9c52a877194f6ee72d22eebf1be0b0fe133a66c10895b"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          245
+        ],
+        "maximumOffset": 1655708,
+        "minimumOffset": 1655708
+      },
+      "owner": "@smithy/core/event-streams",
+      "ownerClass": "Dependency",
+      "packageFunction": "event stream serializer",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:cbf55b2a06f7512e78d9c52a877194f6ee72d22eebf1be0b0fe133a66c10895b",
+        "lexicalFunction": "writeEventBody",
+        "messagePreview": "\"@smithy/core/event-streams - non-struct member not supported in event stream union.\"",
+        "messageSha256": "eec2645b0f3a1c80498f19a594d7c5ef53d99033bacebd77168b556c4be933a9"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core/event-streams"
+      },
+      "ruleId": "dependency-smithy-core-event-streams",
+      "scenario": "Smithy event-stream union guard",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "6624c49e6187bf846853e8c13ecabc36f12e3dbc0109ffe52a82d63e92ca46df",
+      "exactCallsiteIds": [
+        "error:63cb181c2204b1a78bfa26723a60fd3ff1c74441ef9b8e512b5e09b73caad8c6",
+        "error:7f0f02f82b5dff166747d0e68dd87b0f9ccae6a0f23adff62e0a4c2364d83cd6",
+        "error:5cd9af94ba13f200a4261fb56003385f0c49acef1bd8bd08fa11c0d2cf03fee2",
+        "error:89baecde392c36095847a290139eec17e9953b1075a3fd7168373d2f0d723627"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          245
+        ],
+        "maximumOffset": 1667928,
+        "minimumOffset": 1658704
+      },
+      "owner": "@smithy/core/protocols",
+      "ownerClass": "Dependency",
+      "packageFunction": "HTTP protocol base methods",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:63cb181c2204b1a78bfa26723a60fd3ff1c74441ef9b8e512b5e09b73caad8c6",
+        "lexicalFunction": "getDefaultContentType",
+        "messagePreview": "`@smithy/core/protocols - ${this.constructor.name} getDefaultContentType() implementation missing.`",
+        "messageSha256": "5b21553f7170d43f6144fa4745a027645ec53a9f575dd21095b22513591ef644"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core/protocols"
+      },
+      "ruleId": "dependency-smithy-core-protocols",
+      "scenario": "Smithy HTTP protocol implementation guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "9bf379eac05cd00ef1c18fbc19fddedaae0faaa8b5b837585ae258800a0b634f",
+      "exactCallsiteIds": [
+        "error:cd27b8f317092c554117defda95f7eca71cba7292a42ab364e3b37d9e7c905cc"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          245
+        ],
+        "maximumOffset": 1658945,
+        "minimumOffset": 1658945
+      },
+      "owner": "@smithy/core",
+      "ownerClass": "Dependency",
+      "packageFunction": "HttpProtocol event-stream marshaller guard",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:cd27b8f317092c554117defda95f7eca71cba7292a42ab364e3b37d9e7c905cc",
+        "lexicalFunction": "getEventStreamMarshaller",
+        "messagePreview": "\"@smithy/core - HttpProtocol: eventStreamMarshaller missing in serdeContext.\"",
+        "messageSha256": "2b8abffa6234bcf4b4b0d40622b61ccd96120fd864b1c69bbbc6a4cdaa1580a9"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core - "
+      },
+      "ruleId": "dependency-smithy-core-base",
+      "scenario": "Smithy HTTP protocol base invariant",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "de3d60aa809e39f661ab30b059e9b61b0890e9972e8bc0666ee189926bb49458",
+      "exactCallsiteIds": [
+        "error:b1638afda6bcd5ef7996d82613391fb6525589a37505d4682ea798de5058e58c",
+        "error:5aa92aa63d4adb31fce24945c10cd435a91a69b2b60f7482f29a15367a4a01d6"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          259
+        ],
+        "maximumOffset": 1748521,
+        "minimumOffset": 1742950
+      },
+      "owner": "@smithy/core/cbor",
+      "ownerClass": "Dependency",
+      "packageFunction": "CBOR serializer",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:b1638afda6bcd5ef7996d82613391fb6525589a37505d4682ea798de5058e58c",
+        "lexicalFunction": "Ym_",
+        "messagePreview": "`@smithy/core/cbor - truncating BigInt(${e}) to ${t} with loss of precision.`",
+        "messageSha256": "f9750bbd21eca314d2e2772504bd267818fc56c717b1330548011f5471119087"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/core/cbor"
+      },
+      "ruleId": "dependency-smithy-core-cbor",
+      "scenario": "Smithy CBOR precision and undefined-value guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "7b70d5c113f1a7ffc209e30c87df081fc4ebb5f239c2b420114ccb86af9bb4d7",
+      "exactCallsiteIds": [
+        "error:4b49df6c2fa801bd2d1398676fc0cbf6b566eefbaea39b527a44b8c682008029"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          273
+        ],
+        "maximumOffset": 1867604,
+        "minimumOffset": 1867604
+      },
+      "owner": "@smithy/middleware-endpoint",
+      "ownerClass": "Dependency",
+      "packageFunction": "default endpoint rule-set resolver",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:4b49df6c2fa801bd2d1398676fc0cbf6b566eefbaea39b527a44b8c682008029",
+        "lexicalFunction": null,
+        "messagePreview": "\"@smithy/middleware-endpoint: (default endpointRuleSet) endpoint is not set - you must configure an endpoint.\"",
+        "messageSha256": "8196fd40af6ea9ebed6f593ee9ef5f9db32fd8c37930b935a4513ca8a86ec585"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@smithy/middleware-endpoint"
+      },
+      "ruleId": "dependency-smithy-middleware-endpoint",
+      "scenario": "Smithy endpoint configuration guard",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "33c97f82898d8c4e9f44f5cb1e656defdabb66229c5ba5a42af20680a9573445",
+      "exactCallsiteIds": [
+        "error:fff45e4eb39d8452c2e75fd323d1c5bca214b4b40ae2136f8fc1f709142a3143",
+        "error:bc668b7d3399f8938c7381ab7820d50f161ac02b796442e175f69818ccfdce97",
+        "error:f9f7312124022a4d1a289b21ae0afe3a63c831892e22b9aa4be102ad9dcea93a",
+        "error:46ed322e4224ecc87952b06bb69d69766c21e5118905a0d431ace0a2ba27fb71",
+        "error:79386c9f6a08ef64d79ba149bd1730e6ecc46d1150a74f99b6aabcbfde739b17",
+        "error:0deb205675b0ae3f91393f8da59bdb2038d0f4029cef0ffa8543178386c868bb",
+        "error:5cd7470b82437a80fcb7f9bea24cd28d7cf9641f95d3dad6a1159c26622acc9f",
+        "error:ec17e84481f2c27dc3234387b57aa643f730eaab9ccf1b2bde1c4cae5935fb80",
+        "error:dcb3413c7e7cdded1bc2f32d758259d564030375b106e46600034c5ac4afba60",
+        "error:78ae12d3f54d3209a2b5b5c6a616c43629f0c6f32e4fd9830b64b8cb936edfbe",
+        "error:60555f9499941038289758d9267cd6eeffe9b8dd602d69b63664c8d0d68bf460",
+        "error:a5b38e58baf2226dc0e11056007c6a2efdddb252a3c0b445c0de43d6a62e29e1",
+        "error:21a5995fd563ed9c5cf83b9923872b08fb7da3607fcfa4df622c8ea48edbba7d",
+        "error:9d79a33eda141d527e4f06e6c290308561b86c4c3e3276058915023db715df0f",
+        "error:c6b84389e22c2cd6c563b668b082adb1c69908848a9633ce5682b934aa542955",
+        "error:715753acbca9af436b535b981597779d7c3cae7dbb4f53b1d934658f6f6b61d4",
+        "error:ea7216a668ab26b956d3732bcfc443cf3d55b33064b89ac8682d92d7918f403b",
+        "error:2e1d7ff65e20c81e1ffec068d9cc9476a9b273a132ccfbec5236bd14a506ae29",
+        "error:ae70dc0d48504bc3084c1ca5d89aedbea3a2849095182c9d8bfadbce75ebe73f",
+        "error:de9888894a52c24fef599b32ed667d28470d46bbaa2539b2b54c71136b1d9efa",
+        "error:d0a544011dfd807460141ca28c558c52daa34b82c231ced41ce53ead2befa7fb",
+        "error:1a5a1df83716da5b6d67eb5e81b3c3fabc7be7eb9b625f04405d0a1977dc7c59",
+        "error:45f0f479f694fe3c62f42d10a14b5356e6f23eab2b5bf288c933b61b7c2af6cf",
+        "error:b5c1e317a2311aabccb942a22bb27bd8fb747914852c802c10a6676b9df761a1",
+        "error:2537b95a23ef9b3e8e040dc93b660f85a9377365cf7ee40eeffdaa0684ca3af7",
+        "error:9ab00d8bdb63e4619f27764b00fc4af17aaed90a0aa4fb91745b263d7a955eb3",
+        "error:b353fc3edfc5853a36a2bec689235aee0c620c5aa18eae86173906919f5b5c5e",
+        "error:bf954654522e022be6b3ae32be748431977da7770988f37a702b27b85888b5ef",
+        "error:4601aeabcac45c8dd3c786d92bb903a569278650901d89f0239571960d4c338e",
+        "error:32c62a4d0e1e671a2332781b81b2627164ab1e000026251ad73f564032e9b1ce"
+      ],
+      "expectedCount": 30,
+      "navigationOnly": {
+        "canonicalLines": [
+          259,
+          273
+        ],
+        "maximumOffset": 1940030,
+        "minimumOffset": 1715427
+      },
+      "owner": "@aws-sdk/core",
+      "ownerClass": "Dependency",
+      "packageFunction": "SigV4 configuration and protocol serializers",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:fff45e4eb39d8452c2e75fd323d1c5bca214b4b40ae2136f8fc1f709142a3143",
+        "lexicalFunction": "n",
+        "messagePreview": "\"@aws-sdk/core::resolveAwsSdkSigV4Config - `credentials` not provided and no credentialDefaultProvider was configured.\"",
+        "messageSha256": "efae6af52fe91d1d3d0b5dec66fcacfdd4c3522f4326481ba6e0ea4474e02164"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@aws-sdk/core"
+      },
+      "ruleId": "dependency-aws-sdk-core",
+      "scenario": "AWS SDK credential and protocol invariants",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "bc5f5689e2162ac18989a4fe42cf798014fa5f9c6603470298e5c3bac0c45f2c",
+      "exactCallsiteIds": [
+        "error:1f0bd379c80ff7a402959d27e1c5acf15ff8e11f8ca7ccaedb744950c0be5361",
+        "error:15656f214090f760f61aa8f039820a8ef6d34269a719e227773dd751e2928cbb",
+        "error:9d6dc32a29778dba8915955c35a05d46b2f41c48683ec49694b32dc2d1c5f919",
+        "error:c2375cca626398e9f0d86d418c39830b33bb4bacf65e1009aee91842e899411c"
+      ],
+      "expectedCount": 4,
+      "navigationOnly": {
+        "canonicalLines": [
+          318,
+          3129,
+          3154,
+          3231
+        ],
+        "maximumOffset": 8242433,
+        "minimumOffset": 2912997
+      },
+      "owner": "@aws-sdk/credential-providers",
+      "ownerClass": "Dependency",
+      "packageFunction": "credential provider profile resolver",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:1f0bd379c80ff7a402959d27e1c5acf15ff8e11f8ca7ccaedb744950c0be5361",
+        "lexicalFunction": "expireAfter",
+        "messagePreview": "\"@aws-sdk/credential-providers - createCredentialChain(...).expireAfter(ms) may not be called with a duration lower than five minutes.\"",
+        "messageSha256": "221e10100ef33944b57146cd2d9ab91b70d722f74dce4a5f98f33b6594e02ca6"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@aws-sdk/credential-providers"
+      },
+      "ruleId": "dependency-aws-sdk-credential-providers",
+      "scenario": "AWS credential source/profile guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "611f1c3a2ce1841341fe6e7784f8c67c3fdfcedb4d5060769ac42889b99e926d",
+      "exactCallsiteIds": [
+        "error:25dab70b34d94c2d4245eea869f2044b90b4192b82670eda682adf3a81718ba7"
+      ],
+      "expectedCount": 1,
+      "navigationOnly": {
+        "canonicalLines": [
+          259
+        ],
+        "maximumOffset": 1735199,
+        "minimumOffset": 1735199
+      },
+      "owner": "@aws-sdk/util-endpoint",
+      "ownerClass": "Dependency",
+      "packageFunction": "endpoint configuration resolver",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:25dab70b34d94c2d4245eea869f2044b90b4192b82670eda682adf3a81718ba7",
+        "lexicalFunction": "Im_",
+        "messagePreview": "\"@aws-sdk/util-endpoint - endpointProvider and endpoint missing in config for this client.\"",
+        "messageSha256": "733f2e0f9922d60b84de8256856b8eddb78604b9ad0b748530709f17818c4c10"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@aws-sdk/util-endpoint"
+      },
+      "ruleId": "dependency-aws-sdk-util-endpoint",
+      "scenario": "AWS endpoint provider precondition",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "9198c7261e1dba92e173f0e317301714ceb6d45afe3c760ba525f2d5e1a903fb",
+      "exactCallsiteIds": [
+        "error:35ba5b978968ed71d85f56c4cf3fe2e1086ad59ed18949f043eb5ce168b5c88c",
+        "error:05eab3eb774a1d4e22be5928fef54511ead564b3c8b771a09bcb4b54b936e2c0"
+      ],
+      "expectedCount": 2,
+      "navigationOnly": {
+        "canonicalLines": [
+          284
+        ],
+        "maximumOffset": 2350310,
+        "minimumOffset": 2350163
+      },
+      "owner": "@opentelemetry/api",
+      "ownerClass": "Dependency",
+      "packageFunction": "global API register/version check",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:35ba5b978968ed71d85f56c4cf3fe2e1086ad59ed18949f043eb5ce168b5c88c",
+        "lexicalFunction": "GF_",
+        "messagePreview": "`@opentelemetry/api: Attempted duplicate registration of API: ${e}`",
+        "messageSha256": "02fd0147187b0b239e172c63660ca8f1c153a48c5a1e13c2cdb1d0112d4408be"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "@opentelemetry/api:"
+      },
+      "ruleId": "dependency-opentelemetry-api",
+      "scenario": "OpenTelemetry global API registration guards",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "0147a023c532b9e5a629caaa208025bb7ce1e9d6eb059baab19f88447a77941e",
+      "exactCallsiteIds": [
+        "error:d44c660a8725eb2aed55400fa51fba74d55010ab63b459f1f46c74cf07c8b052",
+        "error:cc78d8df8583896969274a57f7dfba42543bcf2aca9cd3eb5ce99fd8db33996d",
+        "error:e6e90bf051888e513306a11c98623e3bfa1909bc9e873f30cac49bbf7bf837e7",
+        "error:40c2ff761ef8006696a5f83166a25ab7672b2cc79fa7a5a4790a479058e4223f",
+        "error:8e2ea06e4f443f970f5fa6737af56a2930de02e9604217773680c29da696ac8d",
+        "error:1edcab3c28ed2d679e42cdb8c29bb1f2bdde9005018f0e069f067dd3423b6373",
+        "error:58c601780aca73787a7c210529069a3ecad3f815956d2f3bbb2a66ba03986cb6",
+        "error:e035aaea841f1e1d6b0f089bd2534a6f5eb277b12808ea70d90d2ee2a8b44c82",
+        "error:0f4fa82ec682e4eaad4db705bedf15a47a66887ba11aa5ab21b38d60a305058e",
+        "error:8db97328c73e07b169c5bbfbe21cc097a1efb7fe8e745dc82849b1847a9aec9e",
+        "error:8136a34b2b29240ae88cd0c39a2e641298b2abc85772fdedf86a77bcba0672c0",
+        "error:eb744c483eda0d5f6a7caedde21db14a0c794a15ee3bf0758fa69c2640891680",
+        "error:6ee118afdb23143fe1bc25f0faf3be7bb0de7e86042e5c99798a28b2ea3b50ce",
+        "error:17e855571e326a342d54f5ec27ad486f609dd7bced4d164b13c63b8caa91fa24",
+        "error:9a4d52193940cd32909bafd5a8ef3877ebf11501ef97e00615e691e48d1ac5f7",
+        "error:2af7e25697c3f69c79bdd4df5662d7226e7bc76a3f4ff0f33811a0625ffcc3c5",
+        "error:36e3f8de4fa820116ba5dd348ce9b96d2aa8b2bcaa568c8d68fc4f15d57d3f99",
+        "error:59463cfa9630e1c91b9fe480d35392a12e586e179b07623464245cfe69e43f98",
+        "error:c6fe5dc6ccfca84945127f07e009e4fd023af77e89b643d8bd0ab011c71f4865",
+        "error:589d10346576aa2809de79d0349e4ab732217eacb7b1d820b46bf516c57f75ce",
+        "error:33fab88b9a33666db2a64736d845413c9b9d98a4699a2621f086f2cffe4a5ffd",
+        "error:274ac7b024d19d0a71ba9c71939d49a960cc8ee210ccf5f606d8f024e96da50a",
+        "error:e6f02065e535a498cccdca1304d5d7043689e981154445f88e682cb6606d1bde",
+        "error:56b1a295ef8a481d3f1484f2b34adcec1b15e26582eef392d94c90d7b2268c81",
+        "error:bf2f4589228809714f7f0509e7d93cb95efcafcb0fe5f307e11cfa9c760273ee",
+        "error:eb112532427cb62ffd5ee62abb2cf5e621226def8c18c0d477e9400e965c4b2c",
+        "error:ec9dd7aca38cb9289e1cbdf58f597621ab3839d4cc4d12d2aa87a3533436dac5",
+        "error:4dfe10079588af698847ad88ceb9b41db7f8aca6653a0082db46657ab30f406c",
+        "error:827ddaf82efd4fcd3423af26ddffc408230f437798a146555e8eab025e734737",
+        "error:8652816de3d5201876a04fdb3ac4f4b361bc1a4ddc79b46e415e0062cfde8c57",
+        "error:c6b18c6230b3f5ae8b0022d5a8d86fd593fea376a10b0c939d5176c48be809b3",
+        "error:f37414c6f3d86de8119f86264643f01d621d414e2cf804e8227e083e4d6234c7",
+        "error:845128835803c020677e0804557e48426fa251d730798790767ed290cba63b0b",
+        "error:e51188dc43a0e6c9b305e5e75514fbf63e934452791c7037a506203bec667ce6",
+        "error:9ceaa5b1095aa010e0c1dabaab3837d9885e5cb514230cca901de369c849dccf",
+        "error:07160a23c944f3e56d1468128467445bb400c002b83561e256eb92f4aed839b8",
+        "error:4070a0aad30e02053a8dcfc7c1b1a1716c008e7f38301f7dfe924e80702ee08c",
+        "error:790929f1e6292eed408196520fd1a335f3ad6020ae31b0db1829fd4ff64ead51",
+        "error:35d77060ef12a1895f07abe3c27b8308900606c4da0b693248e69152067d835b",
+        "error:87599612928edc29d9824cc8f538b8d2a5391f572ba7cdd722aae671cd6076e9",
+        "error:314c111985a444e38293fb93142137b8361cc47dce3d8c973d076a8e068d7160",
+        "error:724314f10b2588f226eb4d6e2d9f95724c255a302ef5cc0d514b1211eae167ea",
+        "error:67f57aaff99cb958eae87e9a9a12f38e2426b4d77c4b3738e4ee57f5ecbea143",
+        "error:e1960ea69a762578b522616592d72c8b4ee60b395125b47710cdbe19a78ecbd6",
+        "error:2ede3c8c8b0c8d85c9ff1f63e1e3affb46f667d6b765cdc6b3fbc0542e6083c3",
+        "error:0917b3bc5e007db2aca057cb3818d959e9cccdf538bf5458b260e32a66be8fe9",
+        "error:fb4b3e735463ffd8db1ddd0bdaefac087a5342b793ff8f8c1b0a8dc6bbc40f59",
+        "error:ac4c5d7a43b7a2abbeab1588ff881d33b76be38a16016ee0f7c0a7c21253e710",
+        "error:41333cd00f1ed85bc1cf31acfd214e40a1abef4b36c643c9cf6c188f4342954a",
+        "error:540c51703ade8904b35f0faf6640cfd699a464c9c2369129aafde70cfe53da88",
+        "error:c09cc797fd2fa8eeadeec46c4f869444b000285568eecd0a623898d2f660aa7f",
+        "error:8541389e0b09dc9b41a1386f25d69505ba7b45094776081f14440b94269e77aa",
+        "error:ef19a7f2e13363c9b4e5f3ad0316b1e6c7cd89e0ae903ddd8ccda5ce04c26d20",
+        "error:23ce7a3676f9c9ba087eb4cfd49c5b85e868c5cbca7e136952183f52a9bd755f",
+        "error:5749d141d32ba7d27756319ddaea267c03759b4546a393384f807867eb73703c",
+        "error:6f310d97379a12f14d1cffa0811f01c0f69d34c22cf519f6ba64efc1cefe3087",
+        "error:3d394b6792d84a4e8af5d2fa8c5823fc2e24242ad5467ef84135b0de077120b0",
+        "error:365ec409be0a193da61d74638d443df75f6d7a27c7791a6ddfc3bce79ae79736",
+        "error:b9d1c56a8ce0577213fafafb56a21e375404f06ac3a00f7d781c41206acd1aff",
+        "error:b8c9b33254c009881ff421d1323cd902c00573341bc655cdbcb20bdec92f0904",
+        "error:c8683e50590a4230bbdf3d81c72140c9de743fb83d27f00ffcbf123c165664b1",
+        "error:bbf3b96355ca3fb45568d4adda57ed34adb41cdcaf86b71a17e78faefd429634",
+        "error:87f2a9758feeea5121da19cb7528fa4dd5a43654701ef841bae06ae3f89f9127",
+        "error:9197c403aac17edc7ff911001e10931b6dfc06c027df8e300c981929b3efc839",
+        "error:3d739ebc7dee79e1de2f0c55cbaa9f5d20b7c60567cfa03587792810fab56f2c",
+        "error:06f9d68d361a1a2e353bd2dbb419619387d4335bca110021ac06ef872efcd948",
+        "error:66ec3eb1493149ba57eb0e7d674732d3fde08948a75dade7ab9f38cce0e19943",
+        "error:7d496975d5ad1229553d362ed4aac79abc3f3f2734f3415dfede1d3f5da49217",
+        "error:fbc72053736373a7c5052c62771befc00370e44c78eb0539a554fffc5d3dd7f4",
+        "error:cc0c19f34d1dd029253034ef70b5aba9ff6675a8253fb8cf5e8b5d976395c223",
+        "error:0cc6efbdbb13cf7fba1868af6013fcfdd2f7d62691593a2d7dd5454158f78454",
+        "error:e83f5ac5430ff1adb564f7e40a80f381d696d7a20b38caac600687c88ebc950e",
+        "error:a059ff3302a690a0e253f76a847fbf56aa84672acc3b5c73b023af0aacc0732f",
+        "error:fed40daf2b3da2b2607eacc79c9d4bea1e2218c7dbcc0feaa5699e3469b380a1",
+        "error:6a12603e8157a0f66e4065e269c5ce7c71e22c36469244d7ca3f3374111c13ff",
+        "error:ba3426d942442c63130896dd5185583c78091ef2ee951395f32b68a6632eeff3",
+        "error:569a6f9c75a970d3e31dde654befb69a9cdbb14b11c24cdc584dd2b68b8ec95d",
+        "error:6daf44600e14125885bed239748621e9ccc4631b2652388ec1e4f5f8bba27c02",
+        "error:ce21f51017c1eb35063178c5b4739172e7d8f01c8b659eb527671304f4f54d6e",
+        "error:5e15bd05e57598d1c4d886b2e726c3906f7a4ebcf3fe1382e3da5483e76a35b7",
+        "error:960eb07fac28209a485dba2288329062e60aaaac1b8223c52f99d8d5463ee210",
+        "error:11679197a0be4ca9a5b4ad55a19931c147d92ae6edc9ca89ccb6b2885a9092e4",
+        "error:6fa2c450228cadd454734f96b5ab6aa463fb68d4c02b2a92be5925683b116b6c",
+        "error:db7eee8276d001377410ac46a7397472037a4133c10ee3690d704d2bcd968ab8",
+        "error:d0f99ba0e3f8c44b4aa02b86fffd9726b6084b21b1b66b7993c736085f1f1daf",
+        "error:b9f71543ce3368c8bd420a8eb819a391b746f7ffa65b2c8f649c206230118478",
+        "error:cbe94722c6920bb1d112a25db6cbcd1f91c56f421125859c89cd3acebd2e7f08",
+        "error:77e6bce3d7fe4ba1bf0c94775d6f60d65892baa1bab2cb631ccd589246fb2e2e",
+        "error:f92bd9415873feacbb3b792f83593c8abd6a436e44731bba37992a3a2692dfeb",
+        "error:d767182bba1d951d30cd2eae5dc9701f8ade5c56b773e4a7e835ba6ab58f9b77",
+        "error:e0a733ad5682fca066c1915abbbbe20a68f66c580ce17c9696eab981813ebae4",
+        "error:5597a0ef1a46595f77ddf511b0600401e461c030ee48a0b0eb028d4d09d98b6d",
+        "error:367514013b6395e69214b3449eed7707e7ba9dde285bb8688f2b2db618f679b7",
+        "error:c2afc762299df39e4fc844006c3c089a98b906afa953a0f3c8c2a882916d8fcb",
+        "error:5eacd3ec81380e5c907b9a971ed36c86e59d65337b6cc3fc1fa4a81a32bc8755",
+        "error:fe655fc261f8bcd91540625c7568ee4d4a0101aac44219eb4664862b9ced7606",
+        "error:8fef3ab71b7b3b39ca5de968875f2897990ef3cb3749b35c0bbaa12b3d631b67",
+        "error:6a6c08077f72f123daba746a205fd980da98bbe399787cae19d30aba1bc4913b",
+        "error:ed7a7d2476f13777ae2a0e88d4582ca726d6f38ac5f7e1596e3357fc5826113d",
+        "error:0c60d4452cbe7e800369667e872696624bc33a53efd86f2202ee5376dfebb3fc",
+        "error:65ea4b11d4ef58481fa2d24d2a58e121f3883d89f60e7dbe55ef43200991b3dc",
+        "error:ebb2eefbca26ed5b2e56bd6e2c8de176e9d335d933ec1fdbe596df96b1cbdbbf"
+      ],
+      "expectedCount": 102,
+      "navigationOnly": {
+        "canonicalLines": [
+          19249
+        ],
+        "maximumOffset": 13202355,
+        "minimumOffset": 13008551
+      },
+      "owner": "protobufjs OpenTelemetry OTLP generated codec",
+      "ownerClass": "Dependency",
+      "packageFunction": "generated verify/fromObject field guards",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:d44c660a8725eb2aed55400fa51fba74d55010ab63b459f1f46c74cf07c8b052",
+        "lexicalFunction": null,
+        "messagePreview": "\".opentelemetry.proto.common.v1.AnyValue.arrayValue: object expected\"",
+        "messageSha256": "a51c2e2ab4497a0243b7de7a3aa7b1faa9c4486b72faae7ae373a962a475fe82"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "^\\\"\\.opentelemetry\\.proto\\."
+      },
+      "ruleId": "dependency-opentelemetry-protobuf",
+      "scenario": "OTLP protobuf object/array verification",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "adee41e43627e3b73cc36b7cee0a4c1844cb1d0e1c3f648b6dc742c6d420efae",
+      "exactCallsiteIds": [
+        "error:59e9a2e3976e4655a993a81163e840e91152123d0067372332da045872597917",
+        "error:aa81eb218eaa99c87188c00c7645b881fc47dadbc8efbfb849ad18030444d425",
+        "error:ee6e2038c1ea09d21824c648e5b63b0717f5bedf96434062f0278db1a29551bd",
+        "error:a64d2f43313e572a5034dec5b1b9c2f5b3290037aa69e8bf6d4cae1490f9d835",
+        "error:bf3782453f9d1de21ea0337b27d997b685e94b30373f52a04c5a7fb5d5f11893",
+        "error:a8708c10c7ba0d82f59a7c4b0921e3b3f5f8f7d67fbb9f9e86eaed2ae0b1990f",
+        "error:37c33a8a62bbeca4783aeb0110df1b2259ea325cddcf65310f0588ecacfe26ee",
+        "error:72a020b40778a2f84394b6b5eeaf3d0ad4327f150a713452be0cc98559389c7d",
+        "error:9233ff942ea2289481f5552062c39070c0864e747e33349ee4b4dcb5b149a834",
+        "error:60a064d6fca32ac823058bb9c67eae0d74680b431741620e3c84c7621e01b7b0",
+        "error:5da37e98097e093c26ccc72a7688e5bb5100fb59fd72a933d84a064138725a59",
+        "error:1375add04ba8bbafa7192dcb15c2cce29b25fe462e2b05d4db677da5a1a74ae1",
+        "error:fbd07d032ec43c77e835e5b621df32c92cbe4ca3aa1854c2dfa6102b77efd0e9",
+        "error:b39b3b86fb8d4a6b74e4c06e3aeaa10eeec845436ef3fdc488e76d58561e1236",
+        "error:9d28ad5b675d5f738aec24a93d1f92841a629a983f83ecefb417e9adcddc975c",
+        "error:efe68ebe14981874a94afb65e01963ea06db5de077b077656afab82a794b371f",
+        "error:10f514fe5685040afacf97d660604542be605b5f9c1e50f01ed0fa2ecf069a04",
+        "error:7c69ae12d8faee33e17ca9bf331092d5a37697670dce861561cb8c12739de24f",
+        "error:343be6b67f95dee1275aa78ff3687e8d9a4c4734296c5f7c2194cf0d4ecfc49f",
+        "error:42d11074ce1f4618a2ea1b3644fc03a415d64e241e8bcd5cdc2616a1925a660a",
+        "error:b21d35723025f84628091422266463081cd2a544c89c58168bc53909768a0f68",
+        "error:b4ff97776d494a6a4fce2d0add7af507a35de3d0fcbf8feb6627a3339ed9de45",
+        "error:053f21926269efb5b1739e2e7b4b70fb4ea5206fd8a3bbccab636c3f45571819",
+        "error:203ee900ebc4e9b45ffc389d01205868f940f632ae769cf7c2d20eee12f397bf",
+        "error:29552cf5b203c20d27fdd0fa50664e4d3888c354b6e0f5100768c36358e6c763",
+        "error:10f1b58e943a5aae1f50ea9fbc3b3eb3476ce33743e35759d82810037b9209aa",
+        "error:650bbd1bb6f2c0c0ff09d8023654a77abb684f226a8eb8b0d2261212889ee995",
+        "error:17806e852ad40b1e715cc7eea0d50bbbeb3b10d31e9ef9a1f8f3f1d381c15bcf",
+        "error:7c00e08cc85859ef6b354297af19cb451d33bdaccf3ba02be529b8be94e404d3",
+        "error:84b0f6ceeaf0f8a4332112da076b88c866090d4fbb86126b4af42ee55c0f5f79",
+        "error:b71bf71f4520b97d79e7ef8e1726622919c6be3a2179f1b764be84252af33e64",
+        "error:b4c0f7bcdcb67cfb6f6e87f0d748ab84257f295223b8e9a66bab1cc75cbd7a78",
+        "error:f6c631dbbac8719b0bd771435762252681a5675edd30239d0c206d5b84073067"
+      ],
+      "expectedCount": 33,
+      "navigationOnly": {
+        "canonicalLines": [
+          128,
+          131,
+          134,
+          1278,
+          1281,
+          1284,
+          20762,
+          20830,
+          20833,
+          20836
+        ],
+        "maximumOffset": 14501632,
+        "minimumOffset": 843661
+      },
+      "owner": "ajv",
+      "ownerClass": "Dependency",
+      "packageFunction": "schema compiler and removeSchema",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:59e9a2e3976e4655a993a81163e840e91152123d0067372332da045872597917",
+        "lexicalFunction": "jWy",
+        "messagePreview": "\"ajv implementation error\"",
+        "messageSha256": "d8068e96578ca4383659c3faadc9c4c4dc07c7287601e529920adbd08830878f"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "^(?:\\\"ajv implementation error\\\"|\\\"ajv\\.removeSchema: invalid parameter\\\")$"
+      },
+      "ruleId": "dependency-ajv",
+      "scenario": "Ajv compiler internal invariants",
+      "stream": "error"
+    },
+    {
+      "boundary": "The exact constructor belongs to the bundled dependency; Product catch/recovery and runtime reachability are not inferred from its message.",
+      "exactCallsiteDigest": "4009e0963ce770042678ab8c4c9d1865e86dc1911138b5b90fe0fb40d74395f3",
+      "exactCallsiteIds": [
+        "error:aa93e4294c659eb08f0b822487280fc6e34c965016fe1e9064edbc4e9d9b5930",
+        "error:d0d33703b3c484a334a3373b0fad29deb2c23cb1984fc4260db6f354e4f69e18",
+        "error:10daab24b6fbb6b45375501efa5c1ace335a0352eae388db7717269e5937b97c",
+        "error:63907bbb42230a5d61e78cc9fffe560d80f2ef4921c83a79ffe8fea6f517ae18",
+        "error:1e3ec353c99bee14046f660d4ac768de1a6b4dfa54b6565a4aa01fc52dbf25e2",
+        "error:0105e09481cabae24cd2a56e21a2b18adef091b117731527ae1dc57135476e33",
+        "error:d94c377af4bb80ae96ab807212c87972bce8cfba6bb2ca4216607c6338522c66",
+        "error:5c9889c0aa255a3dcb0ba78e9b2e0e5e6340c1a1258ded704dae99c782072bce",
+        "error:ac258df67c53c28b955898885ab3f2a994c8b280d9c37ae9fa3d2d098e350bd8",
+        "error:dbb3e3e7a3e6209748d32baa10be38095e471d36f3a72e7526fb70c7e7bda7d4",
+        "error:5f4685d00fe83a13b714a06e7386ce929dbf7077ae5f43174c2ed49c29a5615e",
+        "error:96dd43aefb7a39c61874aada7a36ee8b3cf05f947e5c58ddb63dc58d2f89e43c"
+      ],
+      "expectedCount": 12,
+      "navigationOnly": {
+        "canonicalLines": [
+          37,
+          104,
+          123,
+          1206,
+          1208,
+          1269,
+          1271,
+          20823,
+          20825,
+          64122,
+          64124
+        ],
+        "maximumOffset": 26297529,
+        "minimumOffset": 180716
+      },
+      "owner": "zod",
+      "ownerClass": "Dependency",
+      "packageFunction": "Zod parser and JSON Schema converter",
+      "productFlow": null,
+      "representative": {
+        "identity": "error:aa93e4294c659eb08f0b822487280fc6e34c965016fe1e9064edbc4e9d9b5930",
+        "lexicalFunction": "emit",
+        "messagePreview": "\"Unprocessed schema. This is a bug in Zod.\"",
+        "messageSha256": "bcb65e2c0f521ed335d691d36138084d725a8bae84d2803dda7196dc0ac7d305"
+      },
+      "reviewSelector": {
+        "classificationInput": false,
+        "exactScopes": [],
+        "messagePattern": "^(?:\\\"Unprocessed schema\\. This is a bug in Zod\\.\\\"|\\\"Internal ZodObject error: invalid unknownKeys value\\.\\\"|\\\"Uninitialized schema in ZodMiniType\\.\\\"|\\\"Mixed Zod versions detected in object shape\\.\\\")$"
+      },
+      "ruleId": "dependency-zod",
+      "scenario": "Zod schema conversion internal invariants",
+      "stream": "error"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceInputs": {
+    "diagnostic": {
+      "lines": 5403,
+      "path": "analysis/source-inventory/diagnostic-message-callsites.jsonl",
+      "sha256": "1cef982ab45ace333aaed9fa1d7488f2f153bb3828c48804d046c1c68f437bd6",
+      "size": 8218613
+    },
+    "error": {
+      "lines": 4831,
+      "path": "analysis/source-inventory/error-message-callsites.jsonl",
+      "sha256": "1eeaaae9fd4f90ede1539c435b544315c39989d4f8747c48085b3a1c9043d205",
+      "size": 5639025
+    }
+  },
+  "sourceVersion": "2.1.235"
+}

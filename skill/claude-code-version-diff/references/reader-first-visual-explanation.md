@@ -14,6 +14,22 @@ Build three progressive layers. A reader should be able to stop after any layer 
 
 Do not begin with binary hashes, inventory counts, minified names, or a wall of configuration fields. Those belong in layer three.
 
+## Reader-first anti-regression contract
+
+Machine validation must protect the reading path, not force authors to preserve a fixed paragraph template. Parse Markdown into headings and block types (`prose`, `table`, `list`, `code`, `image`, `details`) and validate their order and density. Do not accept a bag of required phrases as a substitute for prose structure.
+
+- The first screen introduces the governing thesis and one mental model before any table, list, evidence appendix, file inventory, or version-delta ledger. It may contain one explanatory image.
+- Keep baseline architecture and target-release delta explicitly separate. A version article may lead with the delta judgment, but it must perform a clear scope switch to baseline architecture before the mechanism chapters; the delta must not be presented as the definition of the whole architecture.
+- Follow one scenario through the core chapters. A single explicitly named side lane is acceptable when forcing it into the main task would make the explanation artificial.
+- Core chapters appear in causal order. Each starts with prose, teaches the ordinary path before failure/retry/optimization, and ends by explaining the engineering choice or transition to the next owner.
+- A chapter must contain a concrete tension, the client's design choice, and both benefit and cost. These ideas may be written naturally; do not require visible `Question:`, `Conflict:`, or other mechanical labels.
+- Tables summarize a model already introduced in prose. They do not open or close a core chapter, and a chapter cannot consist mainly of tables or bullet lists. Long matrices and enumerations move to a deep topic, collapsed appendix, or machine index.
+- Keep source locators local to the claim they support, but avoid link walls. A prose paragraph should carry at most two source locators; additional ranges belong in a short evidence strip or footnotes.
+- Counts, filenames, fields, and symbols are supporting evidence. Consecutive count-led or file-led paragraphs indicate that the article has regressed into an audit ledger.
+- The last narrative chapter derives one integrated technical judgment from multiple earlier mechanisms. Reading routes, evidence methods, inventories, and completeness debt follow it as navigation or appendices, not as competing conclusions.
+
+Validator thresholds should be calibrated against block roles rather than total byte length or heading count. Keep exact semantic checks for known implementation traps, but bind them to the relevant chapter and evidence claim instead of requiring long fixed strings.
+
 ## Teaching sequence
 
 Use this sequence unless the mechanism genuinely requires a different order:

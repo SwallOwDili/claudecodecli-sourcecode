@@ -96,8 +96,12 @@ def main() -> int:
         "导航区间不参与分类",
         "tengu_fast_mode_toggled` | `Cross-owner`",
         "tengu_copper_lantern` | `Single-owner` | `remote-runtime`",
-        "| `Unresolved` | 905 |",
-        "完整 Unresolved caller 证据（905 events / 1,272 callsites）",
+        "tengu_install_github_app_step_completed` | `Single-owner` | `workflow-product`",
+        "tengu_official_marketplace_auto_install` | `Single-owner` | `plugin-runtime`",
+        "观测到的状态变化",
+        "部分远端副作用已回滚",
+        f"| `Unresolved` | {module.EXPECTED_CALLER_OWNER_STATUS['Unresolved']} |",
+        "完整 Unresolved caller 证据（899 events / 1,218 callsites）",
     )
     for value in required:
         if value not in first:
@@ -115,6 +119,32 @@ def main() -> int:
             4,
         ),
         "tengu_copper_lantern": ("Single-owner", ["remote-runtime"], 1),
+        "tengu_install_github_app_step_completed": (
+            "Single-owner",
+            ["workflow-product"],
+            14,
+        ),
+        "tengu_setup_github_actions_failed": (
+            "Single-owner",
+            ["workflow-product"],
+            8,
+        ),
+        "tengu_official_marketplace_auto_install": (
+            "Single-owner",
+            ["plugin-runtime"],
+            8,
+        ),
+        "tengu_stage_file_completed": ("Single-owner", ["remote-runtime"], 9),
+        "tengu_file_history_rewind_restore_file_failed": (
+            "Single-owner",
+            ["workspace-state"],
+            9,
+        ),
+        "tengu_transcript_compact_failed": (
+            "Single-owner",
+            ["workspace-state"],
+            6,
+        ),
     }
     for event, (status, owners, callsites) in expected_resolved.items():
         item = projection[event]
@@ -123,6 +153,20 @@ def main() -> int:
             fail(f"exact resolved event changed: {event} -> {observed}")
         if any(callsite["mappingId"] is None for callsite in item["callsites"]):
             fail(f"resolved event has an unmapped caller: {event}")
+        if any(
+            not callsite["stateChange"] or not callsite["boundary"]
+            for callsite in item["callsites"]
+        ):
+            fail(f"resolved event lacks state-change or Boundary semantics: {event}")
+
+    mapped_rule_ids = {mapping.rule_id for mapping in module.CALLER_OWNER_ALLOWLIST}
+    if mapped_rule_ids != set(module.CALLER_OWNER_RULE_SEMANTICS):
+        fail("rule semantics do not exactly cover mapped caller rules")
+    if any(
+        not semantics.state_change or not semantics.boundary
+        for semantics in module.CALLER_OWNER_RULE_SEMANTICS.values()
+    ):
+        fail("rule semantics contains an empty state change or Boundary")
 
     counterexamples = (
         "tengu_end_conversation_tool_call",
@@ -139,8 +183,8 @@ def main() -> int:
     status = collections.Counter(item["status"] for item in projection.values())
     if dict(status) != {
         "Cross-owner": 1,
-        "Single-owner": 5,
-        "Unresolved": 905,
+        "Single-owner": 11,
+        "Unresolved": 899,
     }:
         fail(f"exclusive status counts changed: {dict(status)}")
     mapped_callsites = sum(
@@ -153,6 +197,7 @@ def main() -> int:
 
     original_allowlist = module.CALLER_OWNER_ALLOWLIST
     original_digest = module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256
+    original_semantics = module.CALLER_OWNER_RULE_SEMANTICS
     try:
         module.CALLER_OWNER_ALLOWLIST = tuple(
             mapping._replace(
@@ -195,6 +240,28 @@ def main() -> int:
         module.CALLER_OWNER_ALLOWLIST = original_allowlist
         module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
 
+    identity_mutations = (
+        ("event", "tengu_heap_dump"),
+        ("function", "named:tampered"),
+        ("consumer", "ExpressionStatement/expression/other"),
+        ("comparison_key", "firstPartyEvent+firstPartyEventAsync:tampered:1"),
+    )
+    for field, value in identity_mutations:
+        try:
+            changed = original_allowlist[0]._replace(**{field: value})
+            module.CALLER_OWNER_ALLOWLIST = (changed,) + original_allowlist[1:]
+            module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = (
+                module.caller_owner_allowlist_sha256(module.CALLER_OWNER_ALLOWLIST)
+            )
+            expect_build_failure(
+                module,
+                root,
+                "caller-owner mapping does not select one exact callsite",
+            )
+        finally:
+            module.CALLER_OWNER_ALLOWLIST = original_allowlist
+            module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
+
     try:
         changed = original_allowlist[0]._replace(evidence_fingerprint="0" * 16)
         module.CALLER_OWNER_ALLOWLIST = (changed,) + original_allowlist[1:]
@@ -208,6 +275,45 @@ def main() -> int:
         )
     finally:
         module.CALLER_OWNER_ALLOWLIST = original_allowlist
+        module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
+
+    try:
+        changed_semantics = dict(original_semantics)
+        changed_semantics.pop("remote-stage-file")
+        module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics
+        module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = (
+            module.caller_owner_allowlist_sha256(original_allowlist)
+        )
+        expect_build_failure(module, root, "caller-owner rule semantics coverage changed")
+    finally:
+        module.CALLER_OWNER_RULE_SEMANTICS = original_semantics
+        module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
+
+    try:
+        changed_semantics = dict(original_semantics)
+        changed_semantics["remote-stage-file"] = module.CallerOwnerSemantics(
+            "",
+            original_semantics["remote-stage-file"].boundary,
+        )
+        module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics
+        module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = (
+            module.caller_owner_allowlist_sha256(original_allowlist)
+        )
+        expect_build_failure(module, root, "caller-owner rule semantics is incomplete")
+    finally:
+        module.CALLER_OWNER_RULE_SEMANTICS = original_semantics
+        module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
+
+    try:
+        changed_semantics = dict(original_semantics)
+        changed_semantics["file-history-rewind"] = module.CallerOwnerSemantics(
+            original_semantics["file-history-rewind"].state_change,
+            "tampered Boundary",
+        )
+        module.CALLER_OWNER_RULE_SEMANTICS = changed_semantics
+        expect_build_failure(module, root, "caller-owner exact allowlist digest changed")
+    finally:
+        module.CALLER_OWNER_RULE_SEMANTICS = original_semantics
         module.EXPECTED_CALLER_OWNER_ALLOWLIST_SHA256 = original_digest
 
     restored = module.build_catalog(root)
@@ -239,7 +345,14 @@ def main() -> int:
                 "broadNavigationCannotClassify": True,
                 "negativeMappingDeletionRejected": True,
                 "negativeMappingTamperRejected": True,
+                "negativeEventTamperRejected": True,
+                "negativeFunctionTamperRejected": True,
+                "negativeConsumerTamperRejected": True,
+                "negativeComparisonKeyTamperRejected": True,
                 "negativeFingerprintTamperRejected": True,
+                "negativeRuleDeletionRejected": True,
+                "negativeEmptyStateChangeRejected": True,
+                "negativeBoundaryTamperRejected": True,
                 "deterministic": True,
                 "catalogFresh": catalog_fresh,
                 "restored": True,

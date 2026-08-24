@@ -1,12 +1,12 @@
 # Claude Code CLI 2.1.235 机器证据索引
 
-> 这是一份确定性审计页，不是技术文章。先读 [本地执行系统解剖](product-surface-evidence-map.md)，需要复核覆盖和跨版本差异时再回到这里。
+> 这是一份确定性审计页，不是技术文章。先读 [状态边界与本地执行系统解剖](product-surface-evidence-map.md)，需要复核覆盖和跨版本差异时再回到这里。
 
 ## 当前语义收口状态
 
-[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 335 条 claim，覆盖 48 个 topic：243 Static、44 Probe、33 Public、15 Boundary。
+[`summary.json`](source-inventory/summary.json) 注册 71 类 inventory；canonical source SHA-256 为 `22642ddc2aa33ff16a5ee3c5a5bffb14f03c270f0047b4e5e40ba6a22efbeb8e`。[`mechanism-evidence.jsonl`](mechanism-evidence.jsonl) 当前有 339 条 claim，覆盖 48 个 topic：243 Static、48 Probe、33 Public、15 Boundary。
 
-仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 606 个静态环境名称和 138 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 211 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 905 个 `tengu_other` caller-owner，以及 error/diagnostic 逐 callsite owner、遥测运行 gate/动态 payload/远端 delivery 和若干高风险正向 Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。
+仍需人工收口的客户端证据包括：[环境变量参考](environment-variable-reference.md)中的 562 个静态环境名称和 138 个动态环境表达式、[Feature 参考](feature-flag-reference.md)中的 186 个 Feature key、[Telemetry 场景索引](telemetry-event-catalog.md)中的 899 个 `tengu_other` caller-owner。[Error/Diagnostic owner 索引](error-diagnostic-owner-index.md)已对 558/10234 个 callsite 建立 exact owner（Product 308、Dependency 250），仍有 9676 个；此外还有遥测运行 gate/动态 payload/远端 delivery和未触发 transport/remote/paid-judge Probe。这些是 `Untraced/Inventory only`，不是服务端 Boundary。环境/Feature 本批分别新增 44/25 项结构化人工合同，生成器会按 lexical owner、调用点数量和 access mode 拒绝伪收口。
 
 ## 三轴怎样读
 

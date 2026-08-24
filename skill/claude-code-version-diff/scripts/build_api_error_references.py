@@ -1004,6 +1004,25 @@ def build_metrics(repo: Path) -> str:
     inventory = repo / "analysis/source-inventory"
     errors = list(read_jsonl(inventory / "error-message-callsites.jsonl"))
     diagnostics = list(read_jsonl(inventory / "diagnostic-message-callsites.jsonl"))
+    owner_summary_path = repo / "analysis/error-diagnostic-owner-summary.json"
+    if not owner_summary_path.is_file():
+        raise ValueError("missing analysis/error-diagnostic-owner-summary.json")
+    owner_summary = json.loads(owner_summary_path.read_text(encoding="utf-8"))
+    if owner_summary.get("sourceVersion") != "2.1.235":
+        raise ValueError("error/diagnostic owner summary version changed")
+    if owner_summary.get("totalCallsites") != len(errors) + len(diagnostics):
+        raise ValueError("error/diagnostic owner summary total changed")
+    owner_counts = owner_summary.get("classification", {})
+    stream_counts = owner_summary.get("classificationByStream", {})
+    if sum(owner_counts.values()) != len(errors) + len(diagnostics):
+        raise ValueError("error/diagnostic owner classifications are not exhaustive")
+    expected_stream_totals = {
+        "Error constructor": len(errors),
+        "Diagnostic callsite": len(diagnostics),
+    }
+    for stream, total in expected_stream_totals.items():
+        if sum(stream_counts.get(stream, {}).values()) != total:
+            raise ValueError(f"error/diagnostic owner stream total changed: {stream}")
     role_counts = Counter(row.get("calleeRole") for row in errors)
     error_kinds = Counter(row.get("nameArgument", {}).get("kind") for row in errors)
     diagnostic_kinds = Counter(
@@ -1026,6 +1045,8 @@ def build_metrics(repo: Path) -> str:
             f"- constructor message argument shape：{error_kind_text}。`missing` 或动态表达式表示静态阶段拿不到最终 message，不表示没有错误。",
             f"- diagnostic `T()` callsites 共 **{len(diagnostics):,}**；显式/默认 level：{level_text}。没有第二参数时由 `T()` 默认成 debug。",
             f"- diagnostic message argument shape：{diagnostic_kind_text}。template 占多数，说明最终日志常带运行时 path/status/id，公开时不能只扫描固定 literal。",
+            f"- exact owner projection 覆盖全部 **{len(errors) + len(diagnostics):,}** 条 callsite：`Product exact caller` **{owner_counts['Product']:,}**、`Dependency exact package/function` **{owner_counts['Dependency']:,}**、`Unresolved` **{owner_counts['Unresolved']:,}**；当前精确收口 **{owner_summary['mappedCallsites']:,}** 条，不用宽行区间或相似文案补 owner。",
+            f"- 分流后 Error constructor 为 Product **{stream_counts['Error constructor']['Product']:,}** / Dependency **{stream_counts['Error constructor']['Dependency']:,}** / Unresolved **{stream_counts['Error constructor']['Unresolved']:,}**；Diagnostic 为 Product **{stream_counts['Diagnostic callsite']['Product']:,}** / Dependency **{stream_counts['Diagnostic callsite']['Dependency']:,}** / Unresolved **{stream_counts['Diagnostic callsite']['Unresolved']:,}**。",
         ]
     )
 
@@ -1051,6 +1072,9 @@ def validate_contract(repo: Path, api_doc: str, error_doc: str) -> list[str]:
             "五层状态归属",
             "Debug logger",
             "用户症状与恢复决策表",
+            "Product exact caller",
+            "Dependency exact package/function",
+            "精确 owner 投影",
             "Static：",
             "Boundary：",
         ],

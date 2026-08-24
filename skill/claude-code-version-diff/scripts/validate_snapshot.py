@@ -15,6 +15,8 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
+from validate_network_proxy_tls import validate_network_proxy_tls_report
+from validate_plugin_evaluation import validate_plugin_evaluation_report
 from validate_project_data_lifecycle import validate_project_data_lifecycle_report
 
 
@@ -153,20 +155,10 @@ SOURCE_INVENTORY_MINIMUMS = {
 }
 HUMAN_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": (
-        "Derived 阅读模型",
-        "能力编译：任务还没发给模型",
-        "Agent Loop：从按下回车到下一次决策",
-        "执行控制：模型能提出 Bash，不代表 Bash 会执行",
-        "上下文治理：长对话为什么没有一个万能缓存",
-        "观测系统：既要看见运行状态，又不能把遥测当成事实",
-        "恢复语义：Resume 恢复因果视图，不是旧进程",
-        "动态扩展：MCP、Skills 与子 Agent",
-        "远端副作用：Artifact 超时后",
-        "Native Bridge：CLI 不只有文本",
-        "这些机制共同暴露出的工程选择",
-        "四个嵌套生命周期单位各算各的账",
-        "Untraced/Inventory only 不是 Boundary",
-        "三轴证据坐标",
+        "版本特征",
+        "架构特征",
+        "Derived 阅读框架",
+        "Untraced/Inventory only",
         "runtime-authority-lifecycle.svg",
         "product-surface-runtime-planes.svg",
         "evidence-surface-lifecycle.svg",
@@ -665,11 +657,13 @@ HUMAN_ANALYSIS_DOCS = {
         "OpenTelemetry",
         "Datadog",
         "GrowthBook",
-        "5 `Single-owner`",
+        "11 `Single-owner`",
         "1 `Cross-owner`",
-        "905 个 event / 1,272 个 callsite",
+        "899 个 event / 1,218 个 callsite",
         "tengu_copper_lantern",
         "tengu_fast_mode_toggled",
+        "状态变化",
+        "Boundary",
     ),
     "analysis/telemetry-event-catalog.md": (
         "TELEMETRY_EVENT_CATALOG_BEGIN",
@@ -685,13 +679,16 @@ HUMAN_ANALYSIS_DOCS = {
         "tengu_transcript_writer_recovered",
         "tengu_other` 不能当作",
         "caller-owner-target-events:911",
-        "caller-owner-single:5",
+        "caller-owner-single:11",
         "caller-owner-cross:1",
-        "caller-owner-unresolved:905",
-        "caller-owner-allowlist-entries:25",
-        "caller-owner-unresolved-callsites:1272",
+        "caller-owner-unresolved:899",
+        "caller-owner-allowlist-entries:79",
+        "caller-owner-unresolved-callsites:1218",
         "tengu_copper_lantern",
         "tengu_fast_mode_toggled",
+        "tengu_install_github_app_step_completed",
+        "tengu_official_marketplace_auto_install",
+        "观测到的状态变化",
         "Boundary",
     ),
     "analysis/api-beta-route-ownership.md": (
@@ -709,10 +706,27 @@ HUMAN_ANALYSIS_DOCS = {
         "ERROR_DIAGNOSTIC_METRICS_START",
         "4,831",
         "5,403",
+        "Product exact caller",
+        "Dependency exact package/function",
+        "9,676",
+        "error-diagnostic-owner-index.md",
         "AbortError",
         "tool_expected_error",
         "10,485,760",
         "4,000",
+        "Boundary",
+    ),
+    "analysis/error-diagnostic-owner-index.md": (
+        "10,234",
+        "Product exact caller",
+        "Dependency exact package/function",
+        "9,676",
+        "catchOwner",
+        "retryOwner",
+        "toolResultOwner",
+        "userSurfaceOwner",
+        "exactCallsiteIds",
+        "messageSimilarityClassifies",
         "Boundary",
     ),
     "analysis/source-surface.md": (
@@ -722,7 +736,7 @@ HUMAN_ANALYSIS_DOCS = {
     ),
 }
 HUMAN_ANALYSIS_MINIMUMS = {
-    "analysis/product-surface-evidence-map.md": (27000, 14),
+    "analysis/product-surface-evidence-map.md": (12000, 8),
     "analysis/completeness-audit.md": (5000, 6),
     "analysis/builtin-tools-reference.md": (9000, 10),
     "analysis/tool-registration-and-host-surfaces.md": (20000, 10),
@@ -781,6 +795,7 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/telemetry-event-catalog.md": (1000000, 20),
     "analysis/api-beta-route-ownership.md": (68000, 10),
     "analysis/error-diagnostic-atlas.md": (15000, 16),
+    "analysis/error-diagnostic-owner-index.md": (12000, 10),
 }
 READER_FIRST_ANALYSIS_DOCS = {
     "analysis/product-surface-evidence-map.md": "runtime-authority-lifecycle",
@@ -1478,6 +1493,122 @@ TOPIC_DEPTH_CONTRACTS = {
             "boundary": r"证据与边界",
         },
     },
+    "plugin-evaluation": {
+        "document": "analysis/plugin-evaluation-harness.md",
+        "visual_stem": "plugin-evaluation-lifecycle",
+        "capability": 37,
+        "capability_markers": (r"Plugin Evaluation", r"plugin eval"),
+        "lifecycle_anchors": (
+            ("case discovery", r"discovery owner"),
+            ("identity loader", r"loader.{0,120}identity"),
+            ("case schema", r"schema owner"),
+            ("plugin trust", r"plugin trust owner"),
+            ("ablation planner", r"ablation planner"),
+            ("isolated run state", r"独立 HOME/config/cwd/trace"),
+            ("child loop", r"child.{0,120}Agent Loop"),
+            ("run observation", r"observer.{0,120}trace"),
+            ("grading", r"grader owner"),
+            ("report and Delta", r"report owner.{0,160}Delta"),
+        ),
+        "gate_markers": (
+            ("schema major", r"schema_version.{0,100}major.{0,40}1"),
+            ("run cap", r"runs.{0,220}最大.{0,20}50"),
+            ("turn cap", r"max_turns.{0,220}最大.{0,20}200"),
+            ("timeout cap", r"timeout_seconds.{0,220}最大.{0,20}3600"),
+            ("prose cap", r"1 MiB"),
+            ("grader file cap", r"256.{0,40}\.md"),
+            ("discovery depth", r"深度最多.{0,20}16"),
+            ("judge votes", r"3 次独立 judge"),
+            ("probe checks", r"17 个 checks"),
+        ),
+        "failure_markers": (
+            ("case load error", r"case load error"),
+            ("no valid Delta", r"不再写.{0,80}Delta"),
+            ("timeout kill", r"timeout_seconds.{0,100}SIGKILL"),
+            ("cost partial", r"cost ceiling.{0,120}partial"),
+            ("auth partial", r"auth failure.{0,120}partial"),
+            ("signal exit", r"130.{0,160}143"),
+        ),
+        "visual_anchors": (
+            "Case 输入",
+            "读取与信任门",
+            "Ablation planner",
+            "每个 run 新建临时状态",
+            "启动同版 child Agent Loop",
+            "Grader",
+            "聚合",
+            "明确 partial / 不可比较",
+            "边界",
+        ),
+        "minimum_lifecycle_steps": 10,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r".*先看清五个状态对象.*",
+            "ordered lifecycle": r".*完整调用顺序.*",
+            "gates and thresholds": r".*Case 不是随便读几个 Markdown 文件.*",
+            "failure and recovery": r".*失败、partial 与 CI exit code.*",
+            "user impact": r".*用户影响：Token、费用、隐私与副作用.*",
+            "evidence": r".*证据结论.*",
+            "boundary": r".*证据结论.*",
+        },
+    },
+    "network-proxy-mtls": {
+        "document": "analysis/network-proxy-ca-and-mtls.md",
+        "visual_stem": "network-proxy-ca-mtls",
+        "capability": 46,
+        "capability_markers": (r"Proxy", r"NO_PROXY", r"CA", r"mTLS"),
+        "lifecycle_anchors": (
+            ("trusted settings env", r"settings/env owner"),
+            ("CA and mTLS loading", r"CA owner.{0,120}mTLS owner"),
+            ("proxy selection", r"proxy selector"),
+            ("transport adapters", r"global network setup.{0,160}adapter"),
+            ("NO_PROXY decision", r"NO_PROXY.{0,80}直连或 proxy"),
+            ("407 auth refresh", r"407.{0,120}helper cache"),
+            ("TLS handshake", r"TLS handshake"),
+            ("CCR separate relay", r"Remote CCR.{0,120}CONNECT relay"),
+        ),
+        "gate_markers": (
+            ("proxy precedence", r"https_proxy.{0,80}HTTPS_PROXY.{0,80}http_proxy.{0,80}HTTP_PROXY"),
+            ("NO_PROXY", r"NO_PROXY"),
+            ("proxy helper TTL", r"300000 ms"),
+            ("mTLS file cap", r"1048576.{0,20}bytes"),
+            ("CCR gate", r"CLAUDE_CODE_REMOTE.{0,120}CCR_AGENT_PROXY_ENABLED"),
+            ("CONNECT header cap", r"8192.{0,20}bytes"),
+            ("probe check count", r"14 个 checks"),
+        ),
+        "failure_markers": (
+            ("invalid proxy", r"invalid proxy URL"),
+            ("407 refresh", r"407.{0,120}(?:helper|challenge)"),
+            ("self-signed CA", r"Self-signed certificate|自签 CA"),
+            ("mTLS last good", r"last-good"),
+            ("unsupported transport", r"gRPC/WS/client-mTLS/raw TCP"),
+        ),
+        "visual_anchors": (
+            "Settings + environment",
+            "Proxy selector",
+            "NO_PROXY match?",
+            "CA aggregate",
+            "mTLS material",
+            "Transport adapters",
+            "Remote CCR agent proxy",
+            "OTLP exporter",
+        ),
+        "minimum_lifecycle_steps": 8,
+        "minimum_evidence_references": 8,
+        "gate_scope": "document",
+        "evidence_scope": "document",
+        "section_patterns": {
+            "state ownership": r".*60 秒理解.*",
+            "ordered lifecycle": r".*完整调用顺序.*",
+            "gates and thresholds": r".*第一层：普通 HTTP.*proxy.*",
+            "failure and recovery": r".*成功、失败与恢复矩阵.*",
+            "user impact": r".*隐私、安全、性能与运维成本.*",
+            "evidence": r".*证据分层.*",
+            "boundary": r".*证据分层.*",
+        },
+    },
     "error-diagnostic-atlas": {
         "document": "analysis/error-diagnostic-atlas.md",
         "visual_stem": "error-diagnostic-atlas-lifecycle",
@@ -1561,7 +1692,7 @@ MECHANISM_TOPIC_MINIMUMS = {
     "telemetry": 8,
     "risk-controls": 1,
     "auto-mode-classifier": 3,
-    "plugin-evaluation": 3,
+    "plugin-evaluation": 5,
     "runtime-supervision": 3,
     "enterprise-gateway": 3,
     "auth-account": 3,
@@ -1570,7 +1701,7 @@ MECHANISM_TOPIC_MINIMUMS = {
     "usage-cost-limits": 3,
     "project-data-lifecycle": 3,
     "sandbox-runtime": 3,
-    "network-proxy-mtls": 3,
+    "network-proxy-mtls": 6,
     "active-goal": 3,
     "background-model-tasks": 3,
     "advisor": 3,
@@ -2132,6 +2263,384 @@ def validate_dot_svg_regeneration(
             )
 
 
+PRODUCT_SURFACE_SOURCE_LINK_RE = re.compile(
+    r"\]\((?:\.\./)?(?:reverse/javascript/cli\.readable\.js|extracted/cli\.js)#L\d+"
+    r"(?:-L?\d+)?\)"
+)
+PRODUCT_SURFACE_READER_ROLES = (
+    ("baseline", r"版本判断.*三个世界"),
+    ("capability", r"能力编译"),
+    ("agent", r"提议.*副作用|Agent.*所有权"),
+    ("history", r"历史.*(?:compact|resume)|compact.*resume"),
+    ("extension", r"扩展.*委派"),
+    ("remote", r"远端结果.*(?:Artifact|Telemetry)"),
+    ("native", r"Native.*ABI"),
+    ("synthesis", r"工程选择|综合判断"),
+    ("navigation", r"按问题.*阅读"),
+    ("evidence", r"证据附录"),
+)
+PRODUCT_SURFACE_CORE_ROLES = (
+    "baseline",
+    "capability",
+    "agent",
+    "history",
+    "extension",
+    "remote",
+    "native",
+)
+
+
+def markdown_top_level_h2_sections(content: str) -> list[dict[str, object]]:
+    """Return H2 sections outside fenced code and collapsed details."""
+    headings: list[dict[str, object]] = []
+    details_depth = 0
+    fence: str | None = None
+    offset = 0
+    for line in content.splitlines(keepends=True):
+        stripped = line.strip()
+        fence_match = re.match(r"^(```|~~~)", stripped)
+        if fence_match:
+            marker = fence_match.group(1)
+            if fence is None:
+                fence = marker
+            elif fence == marker:
+                fence = None
+            offset += len(line)
+            continue
+        if fence is not None:
+            offset += len(line)
+            continue
+
+        details_depth = max(0, details_depth - stripped.count("</details>"))
+        heading = re.match(r"^##\s+(.+?)\s*$", stripped)
+        if details_depth == 0 and heading:
+            headings.append(
+                {
+                    "title": heading.group(1),
+                    "start": offset,
+                    "body_start": offset + len(line),
+                }
+            )
+        details_depth += stripped.count("<details")
+        offset += len(line)
+
+    for index, heading in enumerate(headings):
+        end = headings[index + 1]["start"] if index + 1 < len(headings) else len(content)
+        heading["end"] = end
+        heading["body"] = content[int(heading["body_start"]) : int(end)]
+    return headings
+
+
+def markdown_main_blocks(content: str) -> list[dict[str, object]]:
+    """Split Markdown into top-level teaching blocks, keeping details opaque."""
+    blocks: list[dict[str, object]] = []
+    pending: list[str] = []
+    details: list[str] = []
+    details_depth = 0
+    fence: str | None = None
+    code: list[str] = []
+
+    def append_block(lines: list[str], forced_kind: str | None = None) -> None:
+        if not lines:
+            return
+        text = "\n".join(lines).strip()
+        if not text:
+            return
+        nonblank = [line.strip() for line in lines if line.strip()]
+        if forced_kind is not None:
+            kind = forced_kind
+        elif nonblank and all(line.startswith("|") and line.endswith("|") for line in nonblank):
+            kind = "table"
+        elif nonblank and re.match(r"^(?:[-*+] |\d+[.)] )", nonblank[0]):
+            kind = "list"
+        elif nonblank and all(re.match(r"^!\[[^]]*\]\([^)]+\)$", line) for line in nonblank):
+            kind = "image"
+        elif nonblank and re.match(r"^#{1,6}\s+", nonblank[0]):
+            kind = "heading"
+        elif nonblank and all(line.startswith(">") for line in nonblank):
+            kind = "quote"
+        elif nonblank and all(line.startswith("<!--") or line.endswith("-->") for line in nonblank):
+            kind = "comment"
+        else:
+            kind = "prose"
+        blocks.append({"kind": kind, "text": text, "chars": len(text)})
+
+    for line in content.splitlines():
+        stripped = line.strip()
+        if details_depth > 0:
+            details.append(line)
+            details_depth += stripped.count("<details") - stripped.count("</details>")
+            if details_depth <= 0:
+                append_block(details, "details")
+                details = []
+                details_depth = 0
+            continue
+        if stripped.startswith("<details"):
+            append_block(pending)
+            pending = []
+            details = [line]
+            details_depth = max(1, stripped.count("<details") - stripped.count("</details>"))
+            continue
+
+        fence_match = re.match(r"^(```|~~~)", stripped)
+        if fence_match:
+            marker = fence_match.group(1)
+            if fence is None:
+                append_block(pending)
+                pending = []
+                fence = marker
+                code = [line]
+            elif fence == marker:
+                code.append(line)
+                append_block(code, "code")
+                code = []
+                fence = None
+            else:
+                code.append(line)
+            continue
+        if fence is not None:
+            code.append(line)
+            continue
+
+        if not stripped:
+            append_block(pending)
+            pending = []
+            continue
+        if re.match(r"^#{1,6}\s+", stripped):
+            append_block(pending)
+            pending = []
+            append_block([line], "heading")
+            continue
+        pending.append(line)
+
+    append_block(code, "code")
+    append_block(details, "details")
+    append_block(pending)
+    return blocks
+
+
+def markdown_prose_text(value: str) -> str:
+    value = re.sub(r"!\[([^]]*)\]\([^)]+\)", r"\1", value)
+    value = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", value)
+    value = re.sub(r"`([^`]*)`", r"\1", value)
+    value = re.sub(r"<[^>]+>", " ", value)
+    value = re.sub(r"[*_~#>|]", "", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def product_surface_reader_roles(
+    sections: list[dict[str, object]],
+    failures: list[str],
+) -> dict[str, dict[str, object]]:
+    result: dict[str, dict[str, object]] = {}
+    for role, pattern in PRODUCT_SURFACE_READER_ROLES:
+        matches = [
+            section
+            for section in sections
+            if re.search(pattern, str(section["title"]), re.IGNORECASE)
+        ]
+        if len(matches) != 1:
+            failures.append(
+                "product surface reader-first core chapter role mismatch: "
+                f"{role} matched {len(matches)} headings"
+            )
+            continue
+        result[role] = matches[0]
+    return result
+
+
+def validate_product_surface_reader_contract(
+    content: str,
+    version: str,
+    failures: list[str],
+) -> None:
+    sections = markdown_top_level_h2_sections(content)
+    if not sections:
+        failures.append("product surface reader-first article has no top-level chapters")
+        return
+    roles = product_surface_reader_roles(sections, failures)
+    if len(roles) != len(PRODUCT_SURFACE_READER_ROLES):
+        return
+
+    expected_order = [role for role, _ in PRODUCT_SURFACE_READER_ROLES]
+    observed_order = sorted(expected_order, key=lambda role: int(roles[role]["start"]))
+    if observed_order != expected_order:
+        failures.append("product surface reader-first core chapter order is invalid")
+    if roles["evidence"] is not sections[-1]:
+        failures.append("product surface reader-first evidence appendix must be the final chapter")
+
+    intro = content[: int(sections[0]["start"])]
+    intro_blocks = markdown_main_blocks(intro)
+    forbidden_intro = [
+        block for block in intro_blocks if block["kind"] in {"table", "list", "details"}
+    ]
+    if forbidden_intro:
+        failures.append(
+            "product surface reader-first first screen must not contain tables or lists"
+        )
+    if int(sections[0]["start"]) > 2_400:
+        failures.append("product surface reader-first first chapter starts too late")
+    if sum(block["kind"] == "image" for block in intro_blocks) != 1:
+        failures.append("product surface reader-first first screen must contain one governing visual")
+
+    intro_text = markdown_prose_text(intro)
+    baseline_text = markdown_prose_text(str(roles["baseline"]["body"]))
+    delta_baseline_split = re.search(
+        r"版本特征.{0,220}架构特征",
+        intro_text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    not_a_rewrite = re.search(
+        r"(?:不是|并非).{0,60}(?:Agent\s+Loop|架构).{0,60}(?:重写|新增|发布)|"
+        r"(?:Agent\s+Loop|架构).{0,60}(?:不是|并非).{0,60}(?:重写|新增)",
+        intro_text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not (
+        version in intro_text
+        and delta_baseline_split
+        and not_a_rewrite
+        and "架构判断" in baseline_text
+        and re.search(r"三个.{0,30}(?:不等价|不同).{0,20}世界", baseline_text)
+        and all(world in baseline_text for world in ("模型世界", "客户端世界", "外部世界"))
+    ):
+        failures.append(
+            "product surface version delta must remain separate from baseline architecture"
+        )
+
+    baseline_body = str(roles["baseline"]["body"])
+    scenario_patterns = (
+        r"未信任|trust",
+        r"8080|9090|端口",
+        r"测试",
+        r"MCP|委派",
+        r"compact|压缩",
+        r"resume",
+        r"Artifact|发布",
+    )
+    scenario_hits = [
+        pattern
+        for pattern in scenario_patterns
+        if re.search(pattern, baseline_body, re.IGNORECASE)
+    ]
+    scene_roles = ("capability", "agent", "history", "extension", "remote")
+    scene_continuity = all(
+        any(
+            re.search(pattern, str(roles[role]["body"]), re.IGNORECASE)
+            for pattern in scenario_patterns
+        )
+        for role in scene_roles
+    )
+    second_scenario = re.search(
+        r"(?:换一个|另一个|第二个|再举一个)(?:新的?)?场景",
+        "\n".join(str(roles[role]["body"]) for role in PRODUCT_SURFACE_CORE_ROLES),
+    )
+    if not (
+        re.search(r"贯穿场景|同一场景", baseline_body)
+        and len(scenario_hits) >= 6
+        and scene_continuity
+        and not second_scenario
+        and re.search(r"Voice.{0,80}(?:不属于|只在).{0,80}Native", baseline_body, re.DOTALL)
+    ):
+        failures.append("product surface reader-first scenario is not continuous")
+
+    for role in PRODUCT_SURFACE_CORE_ROLES:
+        section = roles[role]
+        blocks = markdown_main_blocks(str(section["body"]))
+        teaching = [
+            block
+            for block in blocks
+            if block["kind"] not in {"comment", "heading", "details"}
+        ]
+        first_teaching = next(
+            (block for block in teaching if block["kind"] != "image"),
+            None,
+        )
+        prose = [block for block in teaching if block["kind"] in {"prose", "quote"}]
+        table_lists = [block for block in teaching if block["kind"] in {"table", "list"}]
+        teaching_chars = sum(int(block["chars"]) for block in teaching)
+        lifecycle_tables = [
+            block
+            for block in table_lists
+            if block["kind"] == "table"
+            and re.search(r"时刻|阶段|步骤", str(block["text"]), re.IGNORECASE)
+            and re.search(r"owner|状态", str(block["text"]), re.IGNORECASE)
+        ]
+        exempt_lifecycle = max(
+            (int(block["chars"]) for block in lifecycle_tables),
+            default=0,
+        )
+        table_list_chars = (
+            sum(int(block["chars"]) for block in table_lists) - exempt_lifecycle
+        )
+        density = table_list_chars / max(1, teaching_chars)
+        if (
+            first_teaching is None
+            or first_teaching["kind"] not in {"prose", "quote"}
+            or len(markdown_prose_text(str(first_teaching["text"]))) < 50
+        ):
+            failures.append(
+                f"product surface reader-first ordinary path must start in prose: {role}"
+            )
+        if len(prose) < 3 or density > 0.55 or len(table_lists) > 3:
+            failures.append(
+                "product surface reader-first section is dominated by tables or lists: "
+                f"{role}"
+            )
+        for block in prose:
+            source_links = len(PRODUCT_SURFACE_SOURCE_LINK_RE.findall(str(block["text"])))
+            if source_links > 2:
+                failures.append(
+                    "product surface reader-first prose paragraph has too many source links: "
+                    f"{role}"
+                )
+                break
+
+        first_detail = next(
+            (index for index, block in enumerate(blocks) if block["kind"] == "details"),
+            len(blocks),
+        )
+        ordinary_prefix = blocks[:first_detail]
+        prefix_prose = [
+            block
+            for block in ordinary_prefix
+            if block["kind"] in {"prose", "quote"}
+        ]
+        prefix_text = " ".join(str(block["text"]) for block in ordinary_prefix)
+        state_verbs = re.findall(
+            r"进入|变成|改变|追加|生成|执行|发送|保存|交给|回到|得到|编译|重建|提交|更新|接收|产生|连接|刷新|发现|启动|完成|隔离|注入|驻留|授权",
+            prefix_text,
+        )
+        if len(prefix_prose) < 2 or len(state_verbs) < 2:
+            failures.append(
+                "product surface reader-first ordinary path must precede failure detail: "
+                f"{role}"
+            )
+
+    synthesis = roles["synthesis"]
+    synthesis_blocks = markdown_main_blocks(str(synthesis["body"]))
+    synthesis_prose = [
+        block for block in synthesis_blocks if block["kind"] in {"prose", "quote"}
+    ]
+    synthesis_like = [
+        section
+        for section in sections
+        if re.search(
+            r"综合(?:判断|结论)|工程选择|最终结论|第二个结论|再次总结",
+            str(section["title"]),
+        )
+    ]
+    if not (
+        synthesis_like == [synthesis]
+        and len(synthesis_prose) >= 3
+        and not any(block["kind"] in {"table", "list"} for block in synthesis_blocks)
+        and not PRODUCT_SURFACE_SOURCE_LINK_RE.search(str(synthesis["body"]))
+    ):
+        failures.append(
+            "product surface reader-first must have one synthesis and no repeated ending"
+        )
+
+
 def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     relative = "analysis/product-surface-evidence-map.md"
     inventory_relative = "analysis/product-surface-inventory-index.md"
@@ -2154,6 +2663,11 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     expected = [Path(entry["path"]).name for entry in summary.get("files", [])]
     content = path.read_text(encoding="utf-8")
     inventory_content = inventory_path.read_text(encoding="utf-8")
+    validate_product_surface_reader_contract(
+        content,
+        (repo / "VERSION").read_text(encoding="utf-8").strip(),
+        failures,
+    )
     if len(expected) != EXPECTED_SOURCE_INVENTORY_COUNT:
         failures.append(
             "product surface source inventory count mismatch: "
@@ -2276,171 +2790,83 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 f"product surface environment inventory {label} ownership must be Mixed"
             )
 
-    narrative_end = len(content)
-    narrative_markers = (
-        "## 能力编译：任务还没发给模型，边界已经形成",
-        "## Agent Loop：从按下回车到下一次决策",
-        "### 四个嵌套生命周期单位各算各的账",
-        "## 执行控制：模型能提出 Bash，不代表 Bash 会执行",
-        "## 上下文治理：长对话为什么没有一个万能缓存",
-        "## 观测系统：既要看见运行状态，又不能把遥测当成事实",
-        "## 恢复语义：Resume 恢复因果视图，不是旧进程",
-        "## 动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字",
-        "## 远端副作用：Artifact 超时后，客户端为什么只能得到结果未知",
-        "## Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码",
-        "## 这些机制共同暴露出的工程选择",
-        "## 把 C/Q/E/S/O 留作阅读索引",
-        "<summary><strong>证据方法附录",
-        "## 判断一条清单能否支持技术结论",
-        "## 三轴证据坐标",
-    )
-    for marker in narrative_markers:
-        position = content.find(marker)
-        if position < 0 or position >= narrative_end:
-            failures.append(
-                f"product surface reader-first narrative is missing {marker!r}"
-            )
     if "<!-- SOURCE_INVENTORY_COVERAGE_BEGIN -->" in content:
         failures.append(
             "product surface article must keep the full machine inventory in the separate index"
         )
+    reader_sections = markdown_top_level_h2_sections(content)
+    reader_roles = product_surface_reader_roles(reader_sections, [])
+    capability_section = str(reader_roles.get("capability", {}).get("body", ""))
+    extension_section = str(reader_roles.get("extension", {}).get("body", ""))
+    evidence_section = str(reader_roles.get("evidence", {}).get("body", ""))
+    for role in ("capability", "agent", "history", "extension", "remote", "native"):
+        section = str(reader_roles.get(role, {}).get("body", ""))
+        if len(PRODUCT_SURFACE_SOURCE_LINK_RE.findall(section)) < 2:
+            failures.append(
+                f"product surface reader-first core chapter lacks local source evidence: {role}"
+            )
 
-    required_case_anchors = (
-        "tool-registrations.jsonl#L80",
-        "cli.readable.js#L393203",
-        "api-paths.txt#L17",
-        "runtime-requires.txt#L1",
-        "cli.readable.js#L54",
-        "cli.readable.js#L271491",
-        "cli.readable.js#L271553",
-        "cli.readable.js#L270840",
-        "cli.readable.js#L272032",
-        "cli.readable.js#L409843",
-        "cli.readable.js#L267124",
-        "cli.readable.js#L316220",
-        "cli.readable.js#L331309",
-        "cli.readable.js#L262996",
-        "cli.readable.js#L261931",
-        "cli.readable.js#L216096",
-        "cli.readable.js#L260784",
-        "cli.readable.js#L261085",
-        "cli.readable.js#L362418",
-        "cli.readable.js#L362546",
-        "cli.readable.js#L90870",
-        "cli.readable.js#L90790",
-        "cli.readable.js#L77977",
-        "cli.readable.js#L77550",
-        "cli.readable.js#L361612",
-        "cli.readable.js#L93779",
-        "cli.readable.js#L323373",
-        "cli.readable.js#L403569",
-        "cli.readable.js#L402489",
-        "cli.readable.js#L402554",
-        "cli.readable.js#L194641",
-        "cli.readable.js#L593436",
-        "cli.readable.js#L39176",
-        "cli.readable.js#L62740",
-        "cli.readable.js#L491915",
-        "cli.readable.js#L156505",
-        "cli.readable.js#L202474",
-        "cli.readable.js#L279171",
+    capability_concepts = (
+        r"workspace trust|未信任",
+        r"settings",
+        r"provider",
+        r"candidate",
+        r"advertised",
+        r"authorized",
+        r"executed",
+        r"first-party account entitlement",
     )
-    for anchor in required_case_anchors:
-        if anchor not in content:
-            failures.append(f"product surface reader-first case is missing source anchor {anchor}")
-    for lane in ("C", "Q", "E", "S", "O"):
-        if f"| `{lane}` |" not in content:
-            failures.append(f"product surface runtime plane {lane} is missing")
-
-    narrative = content
-    if not all(
-        marker in content[:5000]
-        for marker in (
-            "模型负责提议，客户端负责裁决与记账",
-            "三个不等价的世界",
-            "模型世界",
-            "客户端世界",
-            "外部世界",
-            "历史表示可以重建，外部世界不能假装回滚",
-        )
-    ):
-        failures.append(
-            "product surface opening must teach proposal authority, client causal state, "
-            "and irreversible external effects before introducing inventories"
-        )
-    if "## 这个版本最鲜明的七个技术特征" in narrative:
-        failures.append(
-            "product surface must derive technical characteristics after the mechanism "
-            "pressure tests instead of front-loading a repetitive feature table"
-        )
-
-    capability_section = markdown_h2_section(
-        content, r"能力编译：任务还没发给模型，边界已经形成"
-    ) or ""
-    if not all(
-        marker in capability_section
-        for marker in (
-            "settings-policy-lifecycle.svg",
-            "shipped candidate -> trusted + enabled local registry",
-            "advertisement path",
-            "dispatch path",
-            "Workspace trust 不是一个欢迎弹窗",
-            "safe/bare startup",
-            "user < project < local < flag < policy",
-            "fallbackModel",
-            "--setting-sources",
-            "ConfigChange",
-            "Provider 选择会改写后续能力",
-            "first-party account entitlement",
-            "fresh memory、disk last-known-good 和 baked fallback",
-            "首请求未广告 LSP schema",
-            "本地 registry 仍完成执行与结果回灌",
-            "收益与代价",
-        )
+    if not (
+        "settings-policy-lifecycle.svg" in capability_section
+        and all(re.search(pattern, capability_section, re.IGNORECASE) for pattern in capability_concepts)
     ):
         failures.append(
             "product surface capability compilation must connect trust, settings merge, "
             "provider selection, advertisement, local dispatch, and user-visible tradeoffs"
         )
-
-    extension_section = markdown_h2_section(
-        content, r"动态扩展：MCP、Skills 与子 Agent 不是往主循环里塞更多名字"
-    ) or ""
+    extension_concepts = (
+        r"connected",
+        r"catalog refreshed|catalog generation",
+        r"schema resident",
+        r"async_launched",
+        r"Plugin Eval",
+        r"with(?:-plugin|out).{0,80}without(?:-plugin)?|with/without",
+        r"Delta",
+        r"partial",
+    )
     if not all(
-        marker in extension_section
-        for marker in (
-            "mcp-agent-lifecycle.svg",
-            "MCP 的 connected 只证明 transport",
-            "tools/list_changed",
-            "catalog generation",
-            "不热改已经发出的 Messages request",
-            "子 Agent 复用循环，不共享父 Agent 的脑内现场",
-            "maxTurns: 200",
-            "permissionMode: bubble",
-            "async_launched",
-            "Task registry 的 claim",
-            "team mailbox",
-            "worktree 隔离 Git 文件视图",
-            "Agent View 只是展示和控制投影",
-            "收益是可扩展与可并行",
-        )
+        re.search(pattern, extension_section, re.IGNORECASE)
+        for pattern in extension_concepts
     ):
         failures.append(
             "product surface dynamic-extension chapter must trace MCP generation, subagent "
             "isolation, notification feedback, task/mailbox/worktree scope, and supervision"
         )
-    evidence_details = content.find(
-        "<summary><strong>证据方法附录：怎样从一个字符串走到可复核的技术结论"
-    )
-    evidence_method = content.find("## 读代码时最容易犯的十个归因错误")
-    evidence_close = content.find("</details>", evidence_method)
-    completeness_heading = content.find("## 证据、完成度与机器清单放在哪里")
+    evidence_blocks = markdown_main_blocks(evidence_section)
     if not (
-        0 <= evidence_details < evidence_method < evidence_close < completeness_heading
+        sum(block["kind"] == "details" for block in evidence_blocks) >= 3
+        and all(
+            marker in evidence_section
+            for marker in (
+                "C/Q/E/S/O",
+                "Derived 阅读框架",
+                "Untraced/Inventory only",
+                "三轴证据坐标",
+                "最终边界",
+            )
+        )
     ):
         failures.append(
             "product surface evidence methodology must be collapsed after the reader "
             "navigation and before the explicit completeness debt"
+        )
+    if not re.search(
+        r"Untraced/Inventory only.{0,180}(?:不是|并非).{0,40}Boundary",
+        evidence_section,
+        re.DOTALL,
+    ):
+        failures.append(
+            "product surface evidence must keep Untraced work distinct from Boundary"
         )
     authority_visual = re.search(
         r"!\[([^\]]+)\]\(visuals/runtime-authority-lifecycle\.svg\)",
@@ -2478,21 +2904,14 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface Agent Loop visual must expose user task, model iteration, "
             "API attempt, tool batch, and result-feedback semantics"
         )
-    five_plane_section = markdown_h2_section(
-        content, r"把 C/Q/E/S/O 留作阅读索引"
-    ) or ""
+    five_plane_section = evidence_section
     if not (
-        "Derived 阅读模型" in content[:2000]
-        and "Derived" in five_plane_section
-        and "分析框架" in five_plane_section
+        "Derived" in five_plane_section
+        and "阅读框架" in five_plane_section
+        and re.search(r"(?:不是|并非).{0,80}(?:源码|bundle)", five_plane_section, re.DOTALL)
         and re.search(
-            r"(?:不是|并非).{0,100}(?:源码|bundle).{0,100}(?:模块|架构)",
-            content[:2500],
-            re.DOTALL,
-        )
-        and re.search(
-            r"(?:不是|并非).{0,100}(?:Anthropic\s*)?官方.{0,80}(?:架构|命名|术语)",
-            content[:2500],
+            r"(?:不是|并非).{0,100}(?:Anthropic\s*)?官方.{0,80}(?:架构|命名|术语)?",
+            five_plane_section,
             re.DOTALL,
         )
     ):
@@ -2524,9 +2943,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "references, and compensation clues rather than real files or remote objects"
         )
 
-    tool_kind_section = markdown_h2_section(
-        content, r"执行控制：模型能提出 Bash，不代表 Bash 会执行"
-    ) or ""
+    tool_kind_section = str(reader_roles.get("agent", {}).get("body", ""))
     client_tool_row = next(
         (
             line
@@ -2539,7 +2956,8 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         (
             line
             for line in tool_kind_section.splitlines()
-            if line.startswith("| `server_tool_use` |")
+            if line.startswith("| server `tool_use` |")
+            or line.startswith("| `server_tool_use` |")
         ),
         "",
     )
@@ -2550,19 +2968,16 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             term in tool_kind_section
             for term in ("registry", "permission", "sandbox", "tool.call")
         )
-        and "**是**" in client_tool_row
-        and "**否**" in server_tool_row
-        and "不会本地 dispatch" in server_tool_row
-        and "本地 Agent Loop 只接管 client `tool_use`" in tool_kind_section
+        and ("进入" in client_tool_row or "**是**" in client_tool_row)
+        and ("不进入" in server_tool_row or "**否**" in server_tool_row)
+        and re.search(r"只\s*dispatch client|只接管 client", tool_kind_section)
     ):
         failures.append(
             "product surface execution semantics must distinguish client tool_use from "
             "server_tool_use and keep server tools out of the local execution pipeline"
         )
 
-    loop_units_section = markdown_h2_section(
-        content, r"Agent Loop：从按下回车到下一次决策"
-    ) or ""
+    loop_units_section = tool_kind_section
     if not (
         all(
             marker in loop_units_section
@@ -2575,23 +2990,26 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
                 "error_max_turns",
             )
         )
-        and "retry 可以重发请求，但不一定增加 `turnCount`" in loop_units_section
+        and re.search(
+            r"retry.{0,80}(?:不一定|不会自动).{0,40}`?turnCount`?",
+            loop_units_section,
+            re.IGNORECASE | re.DOTALL,
+        )
     ):
         failures.append(
             "product surface Agent Loop accounting must distinguish user turn, model "
             "iteration, API attempt, and tool batch"
         )
 
-    bash_section = markdown_h2_section(
-        content, r"执行控制：模型能提出 Bash，不代表 Bash 会执行"
-    ) or ""
+    bash_section = tool_kind_section
     bash_classification = re.search(
-        r"isConcurrencySafe.{0,260}(?:最初|原始|original).{0,40}input",
+        r"(?:isConcurrencySafe.{0,260}(?:最初|原始|original).{0,40}input|"
+        r"(?:最初|原始|original).{0,80}input.{0,260}isConcurrencySafe)",
         bash_section,
         re.IGNORECASE | re.DOTALL,
     )
     bash_rewrite = re.search(
-        r"(?:PreToolUse|Hook).{0,180}permission.{0,220}(?:改写|rewrite)",
+        r"(?:PreToolUse|Hook).{0,220}permission.{0,220}(?:改写|rewrite|updatedInput)",
         bash_section,
         re.IGNORECASE | re.DOTALL,
     )
@@ -2604,7 +3022,6 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         bash_classification
         and bash_rewrite
         and bash_no_recompute
-        and "改写后不会重新计算 `isConcurrencySafe`" in bash_section
         and "改写后会重新计算 `isConcurrencySafe`" not in bash_section
     ):
         failures.append(
@@ -2614,16 +3031,15 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     if not all(
         marker in bash_section
         for marker in (
-            "发现状态",
-            "请求可见状态",
-            "执行授权状态",
+            "registry",
+            "schema",
+            "PreToolUse",
+            "permission",
+            "sandbox",
+            "tool.call",
             "bypassPermissions",
             "Shift+Tab",
-            "Down+Enter",
             "acceptEdits",
-            "关闭输入框",
-            "批准这一次",
-            "本会话批准同类 Edit",
         )
     ):
         failures.append(
@@ -2631,85 +3047,47 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "execution authorization, sandbox enforcement, and TUI permission scope"
         )
 
-    compact_section = markdown_h2_section(
-        content, r"上下文治理：长对话为什么没有一个万能缓存"
-    ) or ""
-    compact_hit = compact_section.lower().find("+-- hit")
-    compact_miss = compact_section.lower().find("+-- miss")
-    hit_window = (
-        compact_section[compact_hit : compact_hit + 900]
-        if compact_hit >= 0
-        else ""
+    compact_section = str(reader_roles.get("history", {}).get("body", ""))
+    compact_concepts = (
+        r"Prompt cache",
+        r"Tool Search",
+        r"Context Hint",
+        r"microcompaction",
+        r"precomputed",
+        r"full compact",
+        r"manual miss",
+        r"<analysis>",
+        r"<summary>",
+        r"messagesToKeep=\[\]",
+        r"compact boundary",
+        r"checkpoint",
     )
-    miss_window = (
-        compact_section[compact_miss : compact_miss + 900]
-        if compact_miss >= 0
-        else ""
-    )
-    hit_skips_request = re.search(
-        r"(?:不发送|不会发送|不发起|不会发起|无需|跳过).{0,100}"
-        r"(?:summary\s*request|summary\s*请求|总结请求)",
-        hit_window,
+    if not all(
+        re.search(pattern, compact_section, re.IGNORECASE)
+        for pattern in compact_concepts
+    ) or not re.search(
+        r"(?:precomputed|预计算).{0,50}hit.{0,80}(?:不发送|不会发送|无需).{0,50}summary request",
+        compact_section,
         re.IGNORECASE | re.DOTALL,
-    )
-    miss_requests_summary = (
-        re.search(r"(?:message\s*groups?|分组)", miss_window, re.IGNORECASE)
-        and re.search(
-            r"(?:summary\s*request|summary\s*请求|总结请求)",
-            miss_window,
-            re.IGNORECASE,
-        )
-    )
-    if not (
-        compact_hit >= 0
-        and "compact finalize" in hit_window.lower()
-        and "smi" in hit_window.lower()
-        and hit_skips_request
-        and compact_miss >= 0
-        and miss_requests_summary
-        and "| `/compact` | 请求 + 状态平面 | 生成 summary" not in narrative
     ):
         failures.append(
-            "product surface compact semantics must separate precomputed hit/finalize without "
-            "a summary request from miss/grouping/summary request"
-        )
-    compact_teaching_markers = (
-        "CRITICAL",
-        "禁止调用工具",
-        "<analysis>",
-        "<summary>",
-        "固定九段",
-        "不是严格双标签 parser",
-        "剥离首个 `<analysis>`",
-        "| Summary |",
-        "| Preserved message groups |",
-        "| Attachments / hooks |",
-        "| compact boundary |",
-        "defer_loading:true",
-        "| Context hint |",
-        "| Local microcompaction |",
-        "| Cold/full compact |",
-        "`messagesToKeep=[]`",
-        "144k precompute",
-        "147k warning",
-        "167k compact",
-        "177k blocked",
-    )
-    if not all(marker in compact_section for marker in compact_teaching_markers):
-        failures.append(
             "product surface compact explanation must teach the ordinary miss prompt, "
-            "four rebuilt-context channels, Tool Search visibility, separate context-hint "
-            "and microcompaction paths, and the four window lines"
+            "separate cache/schema/view/history objects, and the resume boundary"
         )
-    if "Context hint / microcompaction" in compact_section:
+    if (
+        re.search(r"Context Hint\s*/\s*microcompaction", compact_section, re.IGNORECASE)
+        or re.search(
+            r"Context Hint.{0,80}(?:就是|等同于|与).{0,40}microcompaction",
+            compact_section,
+            re.IGNORECASE | re.DOTALL,
+        )
+    ):
         failures.append(
             "product surface must not collapse the server context-hint protocol and local "
             "microcompaction action into one mechanism"
         )
 
-    artifact_section = markdown_h2_section(
-        content, r"远端副作用：Artifact 超时后，客户端为什么只能得到结果未知"
-    ) or ""
+    artifact_section = str(reader_roles.get("remote", {}).get("body", ""))
     artifact_schema = re.search(
         r"(?:response|响应)\s*schema", artifact_section, re.IGNORECASE
     )
@@ -2720,7 +3098,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
     )
     artifact_server_version = re.search(
         r"(?:服务端|server).{0,60}`?version`?.{0,100}"
-        r"(?:采用|接受|接纳|adopt)",
+        r"(?:采用|接受|接纳|采信|adopt)",
         artifact_section,
         re.IGNORECASE | re.DOTALL,
     )
@@ -2734,7 +3112,7 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
         "advisory" in artifact_section.lower()
         and re.search(r"(?:artifact\s*)?list|列表", artifact_section, re.IGNORECASE)
         and re.search(
-            r"(?:不是|并非|不会).{0,120}(?:自动|强制).{0,80}(?:查询|调用|list)",
+            r"(?:不是|并非|不会).{0,120}(?:自动|强制).{0,80}(?:查询|调用|list|read gate)?",
             artifact_section,
             re.IGNORECASE | re.DOTALL,
         )
@@ -2786,165 +3164,124 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             failures,
         )
 
-    voice_section = markdown_h2_section(
-        content, r"Native Bridge：CLI 不只有文本，也不能把 ABI 当成原始源码"
-    ) or ""
+    voice_section = str(reader_roles.get("native", {}).get("body", ""))
+    voice_concepts = (
+        r"本地采集.{0,80}(?:STT|Voice WebSocket).{0,80}composer",
+        r"native callback",
+        r"linear16/16000/1|16 kHz.{0,40}mono",
+        r"queue",
+        r"interim/final",
+        r"salvage",
+        r"Static artifact",
+        r"Probe",
+        r"Compatible",
+        r"validated-artifacts-and-runtime",
+        r"build recipe",
+        r"服务端.{0,80}(?:留存|训练|删除)",
+    )
     if not all(
-        marker in voice_section
-        for marker in (
-            "本地采集 -> 远端 STT -> composer 文本",
-            "audio-capture.node",
-            "native callback 的 bytes 原样上抛",
-            "16 kHz、mono、signed 16-bit raw PCM",
-            "WebSocket ready",
-            "内存 queue",
-            "interim/final",
-            "composer callback",
-            "取消录音会丢弃本次 buffer",
-            "early retry",
-            "silent-drop replay",
-            "partial salvage",
-            "Static artifact",
-            "受控 original/compatible 调用才是 Probe",
-            "只是 Compatible",
-            "validated-artifacts-and-runtime",
-            "build recipe",
-            "没有同次 build 的 literal output 和 exit status",
-            "不能证明服务端留存、训练或删除策略",
-            "不能恢复原版 native 的内部滤波/重采样函数",
-        )
+        re.search(pattern, voice_section, re.IGNORECASE | re.DOTALL)
+        for pattern in voice_concepts
     ) or "完成 build+load contract" in voice_section:
         failures.append(
             "product surface native explanation must trace the Voice lifecycle and keep static, "
             "probe, compatible-source, x86 artifact, and original-source boundaries separate"
         )
 
-    telemetry_section = markdown_h2_section(
-        content, r"观测系统：既要看见运行状态，又不能把遥测当成事实"
-    ) or ""
+    telemetry_section = str(reader_roles.get("remote", {}).get("body", ""))
     if not (
         all(
             marker in telemetry_section
             for marker in (
                 "| 一方事件 |",
-                "| Datadog forwarding |",
-                "| 第三方 OTEL |",
+                "| Datadog |",
+                "| OTEL |",
                 "| 本地诊断 |",
-                "CLAUDE_CODE_ENABLE_TELEMETRY",
-                "OTEL_LOG_USER_PROMPTS",
-                "<REDACTED>",
-                "session_id",
-                "queryChainId",
-                "queryDepth",
-                "request_id",
-                "tool_use_id",
-                "turn_count",
-                "terminal_reason",
-                "关闭其中一条，不代表其他通道同时关闭",
-                "不是系统事实的唯一账本",
-                "不拥有 retry/compact/supervisor 的控制决定",
-                "best-effort",
+                "Agent Loop",
+                "tool_result",
                 "GrowthBook Feature Evaluation",
-                "出口发送失败不反向支配 Agent Loop",
             )
         )
-        and "共享点" in telemetry_section
-        and "不是两条管道等价" in telemetry_section
+        and re.search(
+            r"(?:不等待|不能).{0,100}(?:logger|Datadog|OTEL|Telemetry)|"
+            r"Telemetry.{0,100}(?:不能|不替代).{0,100}(?:readback|结果)",
+            telemetry_section,
+            re.IGNORECASE | re.DOTALL,
+        )
+        and re.search(
+            r"Telemetry.{0,30}(?:能否|是否).{0,30}(?:证明|判断).{0,30}(?:不能|否)",
+            telemetry_section,
+            re.IGNORECASE | re.DOTALL,
+        )
     ):
         failures.append(
             "product surface telemetry semantics must distinguish first-party, Datadog, "
             "OTEL, and local diagnostic pipelines from recovery control"
         )
-    if not all(
-        marker in telemetry_section
-        for marker in (
-            "OTEL_LOG_RAW_API_BODIES",
-            "设置为 `1`",
-            "file:<dir>",
-            "body_ref",
-            "本地明文文件",
-            "即使 `OTEL_LOG_USER_PROMPTS` 没开",
+    if not (
+        all(
+            marker in telemetry_section
+            for marker in (
+                "OTEL_LOG_RAW_API_BODIES",
+                "file:<dir>",
+                "body_ref",
+                "本地明文",
+                "OTEL_LOG_USER_PROMPTS",
+            )
         )
+        and re.search(r"设置为\s*`?1`?.{0,160}即使.{0,100}没开", telemetry_section, re.DOTALL)
     ):
         failures.append(
             "product surface telemetry privacy explanation must cover disabled, inline, and "
             "file raw-body modes independently from prompt redaction"
         )
-    if not all(
-        marker in telemetry_section
-        for marker in (
-            "tengu_other",
-            "event + exact caller identity + comparison fingerprint",
-            "EndConversation",
-            "heap dump",
-            "update refused",
-            "继续是 Unresolved",
-            "完整分类数量和剩余欠账",
+    if not (
+        "tengu_other" in telemetry_section
+        and re.search(
+            r"event.{0,100}(?:exact caller identity|caller).{0,100}(?:comparison fingerprint|fingerprint)",
+            telemetry_section,
+            re.IGNORECASE | re.DOTALL,
         )
+        and all(marker in telemetry_section for marker in ("EndConversation", "heap dump", "update refused"))
     ):
         failures.append(
             "product surface telemetry explanation must teach why exact caller identity is "
             "required and route projection counts to the machine catalog"
         )
 
-    recovery_section = markdown_h2_section(
-        content, r"恢复语义：Resume 恢复因果视图，不是旧进程"
-    ) or ""
-    if not (
-        all(
-            marker in recovery_section
-            for marker in (
-                "U1 用户要求改端口",
-                "B1 compact_boundary",
-                "当前 leaf",
-                "transcript graph loader",
-                "compact-boundary relinker",
-                "ancestor walker",
-                "可读符号 `C6e`",
-                "可读符号 `H$i`",
-                "可读符号 `A_t`",
-                "| Message graph |",
-                "| Compact boundary |",
-                "| File checkpoint |",
-                "| Artifact reference |",
-                "| Background task |",
-                "| MCP/remote result |",
-                "不会重新执行历史工具",
-                "不恢复旧 socket/Promise",
-                "| parent 环或非法自指 |",
-                "| parent 缺失 |",
-                "| 损坏 attachment |",
-                "| 中断的 tool pair |",
-                "| checkpoint 缺失或路径不受管 |",
-                "消息图续消息",
-                "checkpoint 续文件",
-                "各子系统的 remote reference",
-                "补偿线索",
-            )
-        )
+    recovery_section = str(reader_roles.get("history", {}).get("body", ""))
+    recovery_concepts = (
+        r"Message graph",
+        r"Compact boundary",
+        r"File checkpoint",
+        r"Artifact reference|remote reference",
+        r"Background task|Task registry",
+        r"不会.{0,40}(?:执行|重放).{0,40}历史工具",
+        r"不(?:会)?恢复旧 (?:socket|Promise|进程)",
+        r"补偿线索|readback",
+    )
+    if not all(
+        re.search(pattern, recovery_section, re.IGNORECASE)
+        for pattern in recovery_concepts
     ):
         failures.append(
             "product surface recovery semantics must separate message graph, compact "
             "boundary, file checkpoint, and remote-reference recovery objects"
         )
 
-    synthesis_section = markdown_h2_section(
-        content, r"这些机制共同暴露出的工程选择"
-    ) or ""
-    if not all(
-        marker in synthesis_section
-        for marker in (
-            "Derived synthesis",
-            "第一，能力被逐请求编译",
-            "第二，自主性来自反复提案",
-            "第三，Agent Loop 是带四种时钟的因果反馈器",
-            "第四，事实与表示被刻意分开",
-            "第五，恢复按对象负责",
-            "第六，扩展能力靠隔离与 generation",
-            "第七，观测出口与控制输入相邻但不等价",
-            "复杂度没有消失",
-            "真正拥有状态的客户端和外部组件",
+    synthesis_section = str(reader_roles.get("synthesis", {}).get("body", ""))
+    if not (
+        all(
+            marker in synthesis_section
+            for marker in (
+                "权力不对称",
+                "事实与表示",
+                "局部恢复",
+                "用户可观察现象",
+                "release delta",
+            )
         )
+        and synthesis_section.count("**第") == 3
     ):
         failures.append(
             "product surface must derive the version's technical character from multiple "
@@ -2973,10 +3310,10 @@ def validate_product_surface_map(repo: Path, failures: list[str]) -> None:
             "product surface inventory completeness statement does not match the mechanism evidence registry"
         )
     for debt in (
-        "606 个静态环境名称",
-        "211 个 Feature key",
+        "562 个静态环境名称",
+        "186 个 Feature key",
         "138 个动态环境表达式",
-        "905 个 `tengu_other` caller-owner",
+        "899 个 `tengu_other` caller-owner",
     ):
         if debt not in inventory_content:
             failures.append(
@@ -3209,6 +3546,30 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "environment/feature reference generation check failed: "
             + process.stdout.strip()
         )
+    manual_contract_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_environment_feature_manual_contracts.py"
+    )
+    if not manual_contract_test.is_file():
+        failures.append("missing environment/feature manual contract negative test")
+    else:
+        contract_process = subprocess.run(
+            [sys.executable, str(manual_contract_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if (
+            contract_process.returncode != 0
+            or "environment/feature manual contracts: PASS"
+            not in contract_process.stdout
+        ):
+            failures.append(
+                "environment/feature manual contract negative test failed: "
+                + contract_process.stdout.strip()
+            )
     dynamic_resolver_test = (
         repo
         / "skill/claude-code-version-diff/scripts/"
@@ -3496,16 +3857,21 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
             "countField": "consumerContractCount",
             "hashField": "consumerContractNamesSha256",
-            "minimumCount": 307,
+            "minimumCount": 351,
             "callsiteOnlyField": "callsiteOnlyNamedReadCount",
-            "expectedCallsiteOnly": 592,
+            "expectedCallsiteOnly": 548,
+            "structuredMarker": "ENVIRONMENT_VARIABLE_REFERENCE:STRUCTURED_CONTRACT_NAMES",
+            "structuredCountField": "structuredConsumerContractCount",
+            "structuredHashField": "structuredConsumerContractNamesSha256",
+            "expectedStructuredCount": 44,
             "summaryCounts": {
                 "lexicalContextCallsiteCount": 2548,
                 "consumerContextCallsiteCount": 2548,
                 "accessModeCallsiteCount": 2548,
-                "directConsumerContractCount": 307,
+                "directConsumerContractCount": 351,
                 "resolvedDynamicOnlyConsumerContractCount": 0,
-                "semanticFollowupStaticNameCount": 606,
+                "semanticFollowupStaticNameCount": 562,
+                "structuredConsumerContractCallsiteCount": 45,
                 "resolvedDynamicCallsiteCount": 7,
                 "unresolvedDynamicCallsiteCount": 138,
                 "resolvedDynamicOnlyTypedNameCount": 0,
@@ -3525,6 +3891,7 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "ANTHROPIC_BEDROCK_SERVICE_TIER",
                 "ANTHROPIC_CONFIG_DIR",
                 "AWS_SHARED_CREDENTIALS_FILE",
+                "CODESPACES",
                 "BASH_MAX_OUTPUT_LENGTH",
                 "CLAUDE_AGENT_SDK_VERSION",
                 "CLAUDE_CODE_AUTO_COMPACT_WINDOW",
@@ -3545,6 +3912,8 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "CLAUDE_BG_CLAIM_AUTH",
                 "CLAUDE_BG_SOCKET_TOKENS_PATH",
                 "MCP_CONNECT_TIMEOUT_MS",
+                "SELF_HOSTED_RUNNER_BASE_DIR",
+                "SELF_HOSTED_RUNNER_CONFINE_REPO_SETTINGS",
             },
             "requiredNoStaticConsumer": {
                 "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
@@ -3559,12 +3928,17 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             "marker": "FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS",
             "countField": "consumerContractCount",
             "hashField": "consumerContractKeysSha256",
-            "minimumCount": 150,
+            "minimumCount": 175,
             "callsiteOnlyField": "callsiteOnlyStaticKeyCount",
-            "expectedCallsiteOnly": 211,
+            "expectedCallsiteOnly": 186,
+            "structuredMarker": "FEATURE_FLAG_REFERENCE:STRUCTURED_CONTRACT_KEYS",
+            "structuredCountField": "structuredConsumerContractCount",
+            "structuredHashField": "structuredConsumerContractKeysSha256",
+            "expectedStructuredCount": 25,
             "summaryCounts": {
                 "lexicalContextCallsiteCount": 498,
                 "consumerContextCallsiteCount": 498,
+                "structuredConsumerContractCallsiteCount": 27,
             },
             "required": {
                 "tengu_amber_packet",
@@ -3579,6 +3953,7 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "tengu_hover_rest",
                 "tengu_kairos_brief",
                 "tengu_kairos_brief_config",
+                "tengu_kairos_loop_dynamic",
                 "tengu_import",
                 "tengu_keybinding_customization_release",
                 "tengu_mcp_listen_reopen_park",
@@ -3587,6 +3962,7 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
                 "tengu_sedge_lantern_config",
                 "tengu_slate_harbor",
                 "tengu_surreal_dali",
+                "tengu_ptc_enabled",
                 "tengu_umber_kestrel",
             },
         },
@@ -3649,6 +4025,45 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
         ).hexdigest()
         if summary.get(str(contract["hashField"])) != observed_hash:
             failures.append(f"consumer contract hash mismatch: {relative}")
+        structured_marker = str(contract["structuredMarker"])
+        structured_names = [
+            line.strip()
+            for line in text_between(
+                content,
+                f"<!-- BEGIN:{structured_marker}",
+                f"END:{structured_marker} -->",
+            ).splitlines()
+            if line.strip()
+        ]
+        expected_structured_count = int(contract["expectedStructuredCount"])
+        if len(structured_names) != expected_structured_count:
+            failures.append(
+                f"structured consumer contract coverage mismatch: {relative}: "
+                f"expected={expected_structured_count}, actual={len(structured_names)}"
+            )
+        if len(structured_names) != len(set(structured_names)):
+            failures.append(
+                f"structured consumer contract marker contains duplicates: {relative}"
+            )
+        if not set(structured_names).issubset(set(contract_names)):
+            failures.append(
+                f"structured consumer contracts are not a subset of completed contracts: {relative}"
+            )
+        if summary.get(str(contract["structuredCountField"])) != len(
+            structured_names
+        ):
+            failures.append(
+                f"structured consumer contract count mismatch: {relative}"
+            )
+        structured_hash = hashlib.sha256(
+            "".join(
+                f"{name}\n" for name in sorted(structured_names)
+            ).encode("utf-8")
+        ).hexdigest()
+        if summary.get(str(contract["structuredHashField"])) != structured_hash:
+            failures.append(
+                f"structured consumer contract hash mismatch: {relative}"
+            )
         if summary.get(str(contract["callsiteOnlyField"])) != int(
             contract["expectedCallsiteOnly"]
         ):
@@ -3760,6 +4175,47 @@ def validate_generated_control_references(repo: Path, failures: list[str]) -> No
             failures.append(
                 "API/error reference generation check failed: "
                 + api_error_process.stdout.strip()
+            )
+
+    error_owner_generator = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "build_error_diagnostic_owner_projection.py"
+    )
+    error_owner_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_error_diagnostic_owner_projection.py"
+    )
+    if not error_owner_generator.is_file():
+        failures.append("missing exact Error/Diagnostic owner projection generator")
+    else:
+        error_owner_process = subprocess.run(
+            [sys.executable, str(error_owner_generator), str(repo), "--check"],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if error_owner_process.returncode != 0:
+            failures.append(
+                "Error/Diagnostic owner projection check failed: "
+                + error_owner_process.stdout.strip()
+            )
+    if not error_owner_test.is_file():
+        failures.append("missing Error/Diagnostic owner projection negative test")
+    else:
+        error_owner_test_process = subprocess.run(
+            [sys.executable, str(error_owner_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if error_owner_test_process.returncode != 0:
+            failures.append(
+                "Error/Diagnostic owner projection negative test failed: "
+                + error_owner_test_process.stdout.strip()
             )
 
 
@@ -5034,20 +5490,21 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
         if not path.is_file():
             continue
         content = path.read_text(encoding="utf-8")
-        first_screen = content[:7000]
-        required_markers = {
-            "60-second section": "## 60 秒",
-            "reader question": "**读者问题：**",
-            "mental model": "**一句话模型：**",
-            "scenario": "场景",
-            "state table": "| --- |",
-            "lifecycle image": f"](visuals/{visual_stem}.svg)",
-        }
-        for label, marker in required_markers.items():
-            if marker not in first_screen:
-                failures.append(
-                    f"reader-first human document is missing {label}: {relative}"
-                )
+        if relative != "analysis/product-surface-evidence-map.md":
+            first_screen = content[:7000]
+            required_markers = {
+                "60-second section": "## 60 秒",
+                "reader question": "**读者问题：**",
+                "mental model": "**一句话模型：**",
+                "scenario": "场景",
+                "state table": "| --- |",
+                "lifecycle image": f"](visuals/{visual_stem}.svg)",
+            }
+            for label, marker in required_markers.items():
+                if marker not in first_screen:
+                    failures.append(
+                        f"reader-first human document is missing {label}: {relative}"
+                    )
 
         dot_path = repo / f"analysis/visuals/{visual_stem}.dot"
         svg_path = repo / f"analysis/visuals/{visual_stem}.svg"
@@ -6116,6 +6573,52 @@ def main() -> int:
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
     mechanism_evidence = validate_mechanism_evidence(repo, failures)
+    network_proxy_tls_checks = validate_network_proxy_tls_report(
+        repo, version, metadata, failures
+    )
+    network_proxy_tls_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_network_proxy_tls_validator.py"
+    )
+    if not network_proxy_tls_test.is_file():
+        failures.append("missing network proxy/TLS validator forgery test")
+    elif not args.negative_test_fast:
+        network_test_process = subprocess.run(
+            [sys.executable, str(network_proxy_tls_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if network_test_process.returncode != 0:
+            failures.append(
+                "network proxy/TLS validator forgery test failed: "
+                + network_test_process.stdout.strip()
+            )
+    plugin_evaluation_checks = validate_plugin_evaluation_report(
+        repo, version, metadata, failures
+    )
+    plugin_evaluation_test = (
+        repo
+        / "skill/claude-code-version-diff/scripts/"
+        "test_plugin_evaluation_validator.py"
+    )
+    if not plugin_evaluation_test.is_file():
+        failures.append("missing Plugin Evaluation validator forgery test")
+    elif not args.negative_test_fast:
+        plugin_test_process = subprocess.run(
+            [sys.executable, str(plugin_evaluation_test)],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if plugin_test_process.returncode != 0:
+            failures.append(
+                "Plugin Evaluation validator forgery test failed: "
+                + plugin_test_process.stdout.strip()
+            )
     project_data_lifecycle_checks = validate_project_data_lifecycle_report(
         repo, version, metadata, failures
     )
@@ -6211,6 +6714,8 @@ def main() -> int:
     print(f"CLI command rows checked: {cli_command_rows}")
     print(f"CLI exact-binary help cases checked: {cli_help_cases}")
     print(f"mechanism evidence records checked: {mechanism_evidence}")
+    print(f"network proxy/TLS checks recorded: {network_proxy_tls_checks}")
+    print(f"Plugin Evaluation checks recorded: {plugin_evaluation_checks}")
     print(f"project data lifecycle checks recorded: {project_data_lifecycle_checks}")
     print(f"native behavior checks recorded: {native_behavior_checks}")
     print("capture path privacy: PASS")

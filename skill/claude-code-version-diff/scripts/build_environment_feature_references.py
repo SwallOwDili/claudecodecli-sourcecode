@@ -1873,6 +1873,540 @@ FEATURE_MEANINGS: dict[str, tuple[str, str]] = {
 }
 
 
+MANUAL_CONTRACT_FIELDS = (
+    "owner",
+    "readLocation",
+    "fallbackPrecedence",
+    "stateDelta",
+    "failureBoundary",
+    "userImpact",
+    "document",
+)
+
+
+def manual_contract(
+    *,
+    owner: str,
+    read_location: str,
+    fallback_precedence: str,
+    state_delta: str,
+    failure_boundary: str,
+    user_impact: str,
+    document: str,
+    lexical_functions: tuple[str, ...],
+    callsite_count: int,
+    access_modes: tuple[str, ...] | None = None,
+) -> dict[str, Any]:
+    contract: dict[str, Any] = {
+        "owner": owner,
+        "readLocation": read_location,
+        "fallbackPrecedence": fallback_precedence,
+        "stateDelta": state_delta,
+        "failureBoundary": failure_boundary,
+        "userImpact": user_impact,
+        "document": document,
+        "lexicalFunctions": lexical_functions,
+        "callsiteCount": callsite_count,
+    }
+    if access_modes is not None:
+        contract["accessModes"] = access_modes
+    return contract
+
+
+DEPLOYMENT_ENVIRONMENT_RULES: dict[str, tuple[str, str, int]] = {
+    "APP_URL": ('value?.includes("ondigitalocean.app")', "digitalocean-app-platform", 1),
+    "AWS_EXECUTION_ENV": (
+        'value === "AWS_ECS_FARGATE" / value === "AWS_ECS_EC2"',
+        "aws-fargate / aws-ecs",
+        2,
+    ),
+    "AWS_LAMBDA_FUNCTION_NAME": ("non-empty", "aws-lambda", 1),
+    "AZURE_FUNCTIONS_ENVIRONMENT": ("non-empty", "azure-functions", 1),
+    "BUILDKITE": ("truthy", "buildkite", 1),
+    "C9_PID": ("C9_PID || C9_USER", "aws-cloud9", 1),
+    "C9_USER": ("C9_PID || C9_USER", "aws-cloud9", 1),
+    "CF_PAGES": ("Nn(value)", "cloudflare-pages", 1),
+    "CIRCLECI": ("truthy", "circleci", 1),
+    "CODER": ("Nn(CODER) || CODER_WORKSPACE_NAME", "coder", 1),
+    "CODER_WORKSPACE_NAME": ("Nn(CODER) || CODER_WORKSPACE_NAME", "coder", 1),
+    "CODESPACES": ("Nn(value)", "codespaces", 1),
+    "DAYTONA_WS_ID": ("non-empty", "daytona", 1),
+    "DENO_DEPLOYMENT_ID": ("non-empty", "deno-deploy", 1),
+    "DEVPOD": ("Nn(DEVPOD) || DEVPOD_WORKSPACE_UID", "devpod", 1),
+    "DEVPOD_WORKSPACE_UID": ("Nn(DEVPOD) || DEVPOD_WORKSPACE_UID", "devpod", 1),
+    "DYNO": ("non-empty", "heroku", 1),
+    "FLY_APP_NAME": ("FLY_APP_NAME || FLY_MACHINE_ID", "fly.io", 1),
+    "FLY_MACHINE_ID": ("FLY_APP_NAME || FLY_MACHINE_ID", "fly.io", 1),
+    "GITLAB_CI": ("Nn(value)", "gitlab-ci", 1),
+    "GITPOD_WORKSPACE_ID": ("non-empty", "gitpod", 1),
+    "GOOGLE_CLOUD_WORKSTATIONS": ("Nn(value)", "gcp-cloud-workstations", 1),
+    "KUBERNETES_SERVICE_HOST": ("non-empty", "kubernetes", 1),
+    "NETLIFY": ("Nn(value)", "netlify", 1),
+    "PROJECT_DOMAIN": ("non-empty", "glitch", 1),
+    "RAILWAY_ENVIRONMENT_NAME": (
+        "RAILWAY_ENVIRONMENT_NAME || RAILWAY_SERVICE_NAME",
+        "railway",
+        1,
+    ),
+    "RAILWAY_SERVICE_NAME": (
+        "RAILWAY_ENVIRONMENT_NAME || RAILWAY_SERVICE_NAME",
+        "railway",
+        1,
+    ),
+    "RENDER": ("Nn(value)", "render", 1),
+    "REPL_ID": ("REPL_ID || REPL_SLUG", "replit", 1),
+    "REPL_SLUG": ("REPL_ID || REPL_SLUG", "replit", 1),
+    "SPACE_CREATOR_USER_ID": ("non-empty", "huggingface-spaces", 1),
+    "VERCEL": ("Nn(value)", "vercel", 1),
+    "WEBSITE_SITE_NAME": (
+        "WEBSITE_SITE_NAME || WEBSITE_SKU",
+        "azure-app-service",
+        1,
+    ),
+    "WEBSITE_SKU": (
+        "WEBSITE_SITE_NAME || WEBSITE_SKU",
+        "azure-app-service",
+        1,
+    ),
+}
+
+
+ENV_MANUAL_CONTRACTS: dict[str, dict[str, Any]] = {
+    name: manual_contract(
+        owner="CLI 运行时指纹中的部署环境探测器 `flu.detectDeploymentEnvironment -> x1y`",
+        read_location=(
+            f"`x1y` 在 "
+            "[readable L21360](../reverse/javascript/cli.readable.js#L21360)"
+            f" 读取 `process.env.{name}`"
+        ),
+        fallback_precedence=(
+            f"按顺序执行 first-match；`{predicate}` 命中即返回 `{label}`；更早的部署规则优先，"
+            "未命中才继续检查后续 cloud/container/platform fallback"
+        ),
+        state_delta=(
+            f"探测器返回 `{label}` 并缓存到 `flu.deploymentEnvironment`；"
+            "运行时指纹随后把它投射为 `deploymentEnvironment`"
+        ),
+        failure_boundary=(
+            "缺失或不匹配不会抛错，只会继续 fallback；真实值、最终命中的更早规则和下游遥测是否送达仍是运行时 Boundary"
+        ),
+        user_impact=(
+            "改变诊断和运行时元数据中的环境归因，不选择模型 provider，也不改变工具权限或 sandbox enforcement"
+        ),
+        document="technical-architecture.md",
+        lexical_functions=("x1y",),
+        callsite_count=count,
+        access_modes=("read",),
+    )
+    for name, (predicate, label, count) in DEPLOYMENT_ENVIRONMENT_RULES.items()
+}
+
+
+ENV_MANUAL_CONTRACTS.update(
+    {
+        "SELF_HOSTED_RUNNER_BASE_DIR": manual_contract(
+            owner="self-hosted runner 的 argv/环境编译器 `v_y -> dw0`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 读取并解析路径",
+            fallback_precedence="`--base-dir` 高于环境变量；两者都缺失时才用内置 `/workspace`",
+            state_delta="写入 `config.baseDir/baseDirSource`，随后作为 checkout 根目录、runner 临时状态和 session workspace 的 owner",
+            failure_boundary="Windows 拒绝内置 POSIX 默认值；目录不可写会在 runner 注册前以 code 2 退出",
+            user_impact="移动全部 self-hosted checkout，直接改变持久化位置、磁盘压力和清理范围",
+            document="runtime-supervision-and-processes.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_EXEC_PATH": manual_contract(
+            owner="self-hosted runner 子进程 launcher `v_y -> dw0 -> C_y`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 把值写入 `config.execPath`",
+            fallback_precedence="`--exec-path` 高于环境变量；两者都缺失时先允许 command hook 提供路径，最后回退 `process.execPath`",
+            state_delta="选择每个已认领 session child 实际启动的 executable，并保留当前进程 argv fallback",
+            failure_boundary="路径不存在或不可 spawn 会在后续 child launch 失败；选中路径不证明其版本和完整性",
+            user_impact="决定远端任务究竟由哪个 Claude binary 执行，以及 session 能否启动",
+            document="runtime-supervision-and-processes.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_LOG_FILE": manual_contract(
+            owner="self-hosted runner 日志 sink `v_y -> dw0`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 初始化 `config.logFile`",
+            fallback_precedence="`--log-file` 高于环境变量；空值表示只保留 stdout/stderr",
+            state_delta="以 0600 mode 打开 append stream，把 runner status/debug 行 tee 到文件且不替换 stdout",
+            failure_boundary="打开或后续写入失败只告警并降级为 stdout-only；不能据此证明文件已持久 flush",
+            user_impact="增加本地持久的 runner 审计/调试轨迹，同时引入磁盘和隐私成本",
+            document="runtime-supervision-and-processes.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_DEBUG_TOKEN_DIR": manual_contract(
+            owner="self-hosted runner 调试凭据落盘器 `v_y -> dw0 -> p_y`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 初始化 `config.debugTokenDir`",
+            fallback_precedence="`--debug-token-dir` 高于环境变量；缺失时不写 token 文件",
+            state_delta="best-effort 创建 0700 目录，并以 0600 写入或刷新 `runner_token.jwt`",
+            failure_boundary="mkdir/write 错误只记录日志，runner 继续运行；token 有效性和文件系统保密性都未被证明",
+            user_impact="为了调试把 live runner credential 暴露到磁盘，显著改变本地 secret-handling surface",
+            document="runtime-supervision-and-processes.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_LOCK_TO_ACCOUNT": manual_contract(
+            owner="self-hosted runner 注册编译器 `v_y -> dw0 -> registerRunner`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 初始化 `config.lockToAccountId`",
+            fallback_precedence="`--lock-to-account` 高于环境变量；缺失时不发送 account lock",
+            state_delta="把 account id 传给 `registerRunner`，约束服务端 assignment request",
+            failure_boundary="注册对暂时性故障最多重试 5 次后 exit 1；服务端是否接受和后续是否分配仍是远端 Boundary",
+            user_impact="限制这个 runner 能接收哪个账号的任务；lock 被拒绝时会阻止启动",
+            document="remote-routines-runner-and-notifications.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "CLAUDE_RUNNER_USE_GIT_PROXY": manual_contract(
+            owner="self-hosted runner Git transport 编译器 `v_y -> dw0`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 用 `Nn()` 解析该值",
+            fallback_precedence="truthy 环境值启用该 lane；`--use-anthropic-git-proxy` 也能强制 true，CLI 没有 false 去覆盖已为 true 的环境值",
+            state_delta="启用 per-session Anthropic Git proxy，并为跨 session 隔离重写/清除 HOME-level Git config",
+            failure_boundary="capacity >1、Git <2.32、不安全 config target 或 credential-helper 配置都会让启动失败；proxy auth 和 clone 成功仍属外部 Boundary",
+            user_impact="改变 Git credential owner 和 clone route，也放大错误 global Git 配置的影响",
+            document="remote-routines-runner-and-notifications.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_CONFIGURE_GIT": manual_contract(
+            owner="self-hosted runner Git identity/signing bootstrap `v_y -> dw0`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 用 `Nn()` 解析该值",
+            fallback_precedence="truthy 环境值启用该 lane；`--configure-git` 可强制 true；缺失时保留 image 自带 Git config",
+            state_delta="执行 `configureGitForSigning`，并把 coauthor/signing artifacts 传入每个 child session",
+            failure_boundary="Git 缺失或 config 不可写会 fatal exit 1；本地配置成功不证明远端 signing service 会接受 commit",
+            user_impact="控制 self-hosted session 的 commit identity/signing，并可能在任务开始前阻断 runner",
+            document="remote-routines-runner-and-notifications.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_PUSH_OUTCOME_ON_RELEASE": manual_contract(
+            owner="self-hosted runner 的 release/drain 保全路径 `v_y -> A_y/e_y`",
+            read_location="`v_y` 在 [readable L636958](../reverse/javascript/cli.readable.js#L636958) 用 `Nn()` 解析该值",
+            fallback_precedence="truthy 环境值启用该 lane；`--push-outcome-on-release` 可强制 true；缺失时 release 只处理本地状态",
+            state_delta="增加共享 30 秒 push window，让非 completed release 路径把 tracked outcome branch 推到远端供 resume",
+            failure_boundary="server-initiated deassign 和 hook-owned repo 被排除；push timeout/failure 可能留下结果未知的远端状态，且绝不回滚 commit",
+            user_impact="改善 runner 重启连续性，但会产生远端 Git 写入，并在 resume 时新增不可信 ref surface",
+            document="remote-routines-runner-and-notifications.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_TRUST_WORKSPACE": manual_contract(
+            owner="self-hosted runner workspace-trust 编译器 `v_y -> child session config`",
+            read_location="`v_y` 在 [readable L636946](../reverse/javascript/cli.readable.js#L636946) 通过 `cw0()` 解析该值",
+            fallback_precedence="`--trust-workspace` 高于环境变量；空值默认 true；true/false 的允许拼法被显式解析",
+            state_delta="控制 repo-level `.claude/settings.json` grants 和 additional directories 是否为 child session 注入 trust",
+            failure_boundary="非法环境文本在启动时 fail closed；false 会带诊断丢弃 repo grants，但不能撤销 host-level policy grants",
+            user_impact="决定仓库提交的 permission grants 能否影响 self-hosted session 工具",
+            document="onboarding-workspace-trust-and-safe-startup.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+        "SELF_HOSTED_RUNNER_CONFINE_REPO_SETTINGS": manual_contract(
+            owner="self-hosted runner repo-settings confinement 编译器 `v_y -> child preflight`",
+            read_location="`v_y` 在 [readable L636952](../reverse/javascript/cli.readable.js#L636952) 通过 `uw0()` 解析该值",
+            fallback_precedence="`--confine-repo-settings` 高于环境变量；空值默认 `warn`；只接受 `enforce/warn/off`",
+            state_delta="选择 repo-setting 违规仅记录、拒绝 child spawn，或跳过 confinement scan",
+            failure_boundary="非法输入会退出启动；warn 仍会 spawn，off 只移除此 scan，不移除其他 policy/permission gate",
+            user_impact="决定不安全 repo setting 是提示性问题，还是 self-hosted 执行的硬阻断",
+            document="onboarding-workspace-trust-and-safe-startup.md",
+            lexical_functions=("v_y",),
+            callsite_count=1,
+            access_modes=("read",),
+        ),
+    }
+)
+
+
+FEATURE_MANUAL_CONTRACTS: dict[str, dict[str, Any]] = {
+    "tengu_classifier_disabled_surfaces": manual_contract(
+        owner="background/remote 状态分类器的 sink 编译器 `$cf`",
+        read_location="`$cf` 在 [readable L270312](../reverse/javascript/cli.readable.js#L270312) 通过 `BWS()` 解析逗号列表",
+        fallback_precedence="空字符串 fallback 不禁用任何 surface；只接受 `bg/watched/ccr/bridge/desktop/cli/repl`，未知名称忽略且仅告警一次",
+        state_delta="在选择 classifier engine 前，删除每个被禁 surface 所拥有的全部 sink",
+        failure_boundary="background 会独立删除 `summary`；禁用 sink 不停止任务执行，也不擦除已有 status record",
+        user_impact="可压掉指定 host 的 status/headline/summary 投影，但底层 Agent Loop 继续运行",
+        document="runtime-supervision-and-processes.md",
+        lexical_functions=("$cf",),
+        callsite_count=1,
+    ),
+    "tengu_classifier_summary_kill": manual_contract(
+        owner="background/remote 状态分类器的 sink 编译器 `$cf`",
+        read_location="`$cf` 在 [readable L270318](../reverse/javascript/cli.readable.js#L270318) 完成 surface 展开后读取该布尔值",
+        fallback_precedence="false 保留 surface 提供的 summary sink；true 在所有 surface 合并后删除 `summary`",
+        state_delta="强制进入无 summary 的分类形态；除非其他 state sink 要求 LLM，`Bcf` 会选择 heuristic",
+        failure_boundary="state/headline sink 仍保留；该 flag 既不取消分类，也不保证 heuristic 结果正确",
+        user_impact="从 CCR/bridge/desktop/CLI surface 移除 post-turn summary，但不会停止任务",
+        document="runtime-supervision-and-processes.md",
+        lexical_functions=("$cf",),
+        callsite_count=1,
+    ),
+    "tengu_classifier_summary_llm_emit": manual_contract(
+        owner="classifier engine 选择器 `UWS -> Bcf`",
+        read_location="`UWS` 在 [readable L270337](../reverse/javascript/cli.readable.js#L270337) 读取该布尔值",
+        fallback_precedence="false 让仅 summary 的 sink 默认走 `heuristic`；显式 `CLAUDE_CODE_CLASSIFIER_SUMMARY` 和 state sink 优先",
+        state_delta="为剩余 summary sink 选择 `llm` 而非 `heuristic`，启动带独立 token/timeout budget 的 side-query",
+        failure_boundary="LLM error、timeout 或非法 JSON 会降级到 heuristic；classifier 永不授予工具权限",
+        user_impact="用延迟、模型 token 和额外降级路径换取更丰富的状态摘要",
+        document="runtime-supervision-and-processes.md",
+        lexical_functions=("UWS",),
+        callsite_count=1,
+    ),
+    "tengu_feedback_survey_config": manual_contract(
+        owner="终端与 VS Code feedback-survey 调度器 `AUg/eEr`、`GJg`",
+        read_location="同步 VS Code 路径在 [readable L598084](../reverse/javascript/cli.readable.js#L598084) 的 `GJg` 读取；终端 hook 还会通过 `H_e` 异步解析同一 key",
+        fallback_precedence="回退 `Kms`：初始 10 分钟、local interval 1 小时、至少 5 turns、概率 0.005；账号 survey-rate 可覆盖 probability",
+        state_delta="在打开 survey UI 前配置 eligibility 时间、model allowlist、随机抽样和 impression 持久化",
+        failure_boundary="provider、privacy、policy、disable env、其他 survey 和 cooldown 仍可拒绝；submission/upload 是独立网络 Boundary",
+        user_impact="改变产品反馈提示出现的时机和频率，不允许反馈绕过 consent/policy",
+        document="telemetry.md",
+        lexical_functions=("GJg",),
+        callsite_count=1,
+    ),
+    "tengu_vscode_feedback_survey": manual_contract(
+        owner="VS Code/desktop SDK feedback-survey gate `GJg`",
+        read_location="`GJg` 在 [readable L598084](../reverse/javascript/cli.readable.js#L598084) 读取；false 时在加载 config 前直接退出",
+        fallback_precedence="false 关闭该 host survey；还必须命中支持的 VS Code/desktop host，并通过 product-feedback policy 与 privacy gate",
+        state_delta="向 SDK host 返回 survey config，并在 appeared event 后持久化 `lastShownTime`",
+        failure_boundary="disabled/error 路径不返回 config；OTLP proxy emission 失败被收口，不会伪造 upload 成功",
+        user_impact="控制 IDE/desktop 用户能否看到与终端同源的 feedback flow",
+        document="telemetry.md",
+        lexical_functions=("GJg",),
+        callsite_count=1,
+    ),
+    "tengu_fleetview_simple": manual_contract(
+        owner="Agent/Fleet View 根组件 `CBg`",
+        read_location="`CBg` 在 [readable L577686](../reverse/javascript/cli.readable.js#L577686) 把该 flag 与 `CLAUDE_CODE_FLEETVIEW_SIMPLE` 合并",
+        fallback_precedence="环境变量 true 优先；否则 false 保留完整视图；显式打开 `remote-*` item 仍会启用 remote lane",
+        state_delta="simple mode 在普通 Fleet View 中取消初始 remote-job hydration 和 30 秒 remote poll",
+        failure_boundary="local/daemon job 仍保留；remote polling error 本来就被收口，flag 不删除任何 remote job",
+        user_impact="降低后台网络和 UI 复杂度，但在显式打开 remote item 前隐藏普通 remote jobs",
+        document="runtime-supervision-and-processes.md",
+        lexical_functions=("CBg",),
+        callsite_count=1,
+    ),
+    "tengu_fleetview_peers": manual_contract(
+        owner="Agent/Fleet View 的 cross-session peer 投影 `CBg`",
+        read_location="`CBg` 的 3 次读取在 [readable L578024](../reverse/javascript/cli.readable.js#L578024) 分别控制 peer listener、500ms registry 投影和渲染",
+        fallback_precedence="false 隐藏 peers；true 仍要求独立 cross-session messaging gate `Hg()`",
+        state_delta="启动 peer observation，把 protocol 达标、24 小时内仍 fresh 的其他 interactive process 投影为 `peer-<pid>` 行",
+        failure_boundary="registry/listener 失败被捕获并返回空 peers；出现一行只证明本地 liveness metadata，不证明消息送达或 authority",
+        user_impact="在 Agent View 展示其他 Claude session 供发现，同时明确它们不是本 session 的 workers",
+        document="cloud-background-channels.md",
+        lexical_functions=("<top-level>", "CBg"),
+        callsite_count=3,
+    ),
+    "tengu_ultraplan_config": manual_contract(
+        owner="remote Ultraplan eligibility gate `X6e`",
+        read_location="`X6e` 在 [readable L363793](../reverse/javascript/cli.readable.js#L363793) 读取 object member `enabled`",
+        fallback_precedence="null 表示关闭；`enabled:true` 还必须通过 Remote Control entitlement `uXt()` 与非 remote-session gate `!sc()`",
+        state_delta="放行 cloud planning 的 launch/poll 路径，而不是把 planning 留在本地",
+        failure_boundary="除显式 true 外的 shape 都视为关闭；账号 rollout、session 创建和远端执行仍属外部 Boundary",
+        user_impact="让本地终端可进入高级规划，但不保证 cloud plan 启动或完成",
+        document="plan-mode-and-human-approval.md",
+        lexical_functions=("X6e",),
+        callsite_count=1,
+    ),
+    "tengu_ultraplan_timeout_seconds": manual_contract(
+        owner="Ultraplan poll 编排器 `jzv -> Irm`",
+        read_location="`jzv` 在 [readable L363902](../reverse/javascript/cli.readable.js#L363902) 把值乘以 1000 后传给 `Irm`",
+        fallback_precedence="数值 fallback 为 5400 秒；可见 callsite 在换算前没有 range clamp",
+        state_delta="设置 cloud-plan 总 polling deadline；phase change 同时更新 task state 和本地 notification",
+        failure_boundary="timeout 变成 `UltraplanPollError`，best-effort archive 后把 task 标 failed；远端工作可能已经推进",
+        user_impact="改变终端等待 plan approval/result 多久后才报告终止",
+        document="plan-mode-and-human-approval.md",
+        lexical_functions=("<top-level>",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_push_notifications": manual_contract(
+        owner="主动通知 capability gate `E3e/KDt`",
+        read_location="`E3e` 在 [readable L154799](../reverse/javascript/cli.readable.js#L154799) 读取该布尔值",
+        fallback_precedence="false 关闭 capability；真正由模型决定的 push 还要求已保存的 `agentPushNotifEnabled` 以及可用 host/Remote Control state",
+        state_delta="暴露 notification settings/tool affordance，并允许主动 push lane 进入候选",
+        failure_boundary="config off、终端仍活跃、bridge 缺失或 delivery failure 都返回 not-sent；远端是否收到 push 是外部 Boundary",
+        user_impact="在独立用户 opt-in 之后，允许 Claude 把用户注意力从终端外拉回 session",
+        document="remote-routines-runner-and-notifications.md",
+        lexical_functions=("E3e",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_input_needed_push": manual_contract(
+        owner="notification settings 编译器 `B1n -> fdr/config UI`",
+        read_location="`B1n` 在 [readable L154802](../reverse/javascript/cli.readable.js#L154802) 读取该布尔值",
+        fallback_precedence="false 隐藏该行；true 仍要求父级 push capability、受支持 host 和未禁用的 notification surface",
+        state_delta="新增标为 `Push when actions required` 的 `inputNeededNotifEnabled` toggle，并持久化用户选择",
+        failure_boundary="该 key 本身不发送 push；permission/question 检测、bridge connectivity 和 mobile delivery 都是后续 gate",
+        user_impact="让用户可单独订阅因 permission/question 阻塞而产生的移动端提醒",
+        document="remote-routines-runner-and-notifications.md",
+        lexical_functions=("B1n",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_ready_nudge": manual_contract(
+        owner="Remote Control ready-push nudge parser `OJh`",
+        read_location="`OJh` 在 [readable L501906](../reverse/javascript/cli.readable.js#L501906) 读取并校验 config",
+        fallback_precedence="null 关闭；true 展开为 probability 1/max 5；object probability clamp 到 0..1，finite max 取整，缺失字段使用默认值",
+        state_delta="bridge 新连接后可写一条 SDK message，并持久化 impression count/key",
+        failure_boundary="push capability、connection state、历史 impression 和随机抽样均可拒绝；send 不证明移动端已展示",
+        user_impact="控制一个有次数上限的提示，告知用户 session 已可在手机继续",
+        document="tui-ide-remote-cloud.md",
+        lexical_functions=("OJh",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_loop_prompt": manual_contract(
+        owner="自主 `/loop` sentinel 解析器 `LZo -> qha/jop`",
+        read_location="`LZo` 在 [readable L154955](../reverse/javascript/cli.readable.js#L154955) 读取该布尔值",
+        fallback_precedence="false 原样返回 scheduled prompt；true 也只识别固定 sentinel string",
+        state_delta="把识别出的 wakeup 改写为 autonomous-loop preamble/tick，并记录 preamble 或 loop file 是否已投递",
+        failure_boundary="loop file 缺失/为空时降级为 no-op/autonomous tick；该 flag 自己从不调度下一次 wakeup",
+        user_impact="让 recurring wakeup 延续 durable loop，无需每个 tick 重复完整 instructions",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("LZo",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_loop_persistent": manual_contract(
+        owner="autonomous-loop instruction 选择器 `MZo -> Bha/j1n`",
+        read_location="`MZo` 在 [readable L154926](../reverse/javascript/cli.readable.js#L154926) 读取该 flag",
+        fallback_precedence="`CLAUDE_CODE_LOOP_PERSISTENT` true 优先；否则 false 选择保守 preamble，true 选择 persistent-loop guidance",
+        state_delta="改变 loop tick 内嵌的 stop criteria 和 blocked-state notification 文案",
+        failure_boundary="它改变 instructions，不改变 scheduler enforcement；stop call、age limit、abort 和无可做工作仍会结束 loop",
+        user_impact="让自主检查更倾向继续搜索/rearm，而不是一次安静结果后立即停止",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("MZo",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_loop_dynamic": manual_contract(
+        owner="dynamic loop scheduler 与 `ScheduleWakeup` tool gate `Vft`",
+        read_location="`Vft` 在 [readable L155102](../reverse/javascript/cli.readable.js#L155102) 读取该布尔值",
+        fallback_precedence="false 让 `ScheduleWakeup` 保持 deferred，直接调用则以 `gate_off` 结束；true 启用 60..3600 秒 self-paced wakeup",
+        state_delta="注册/显露 scheduler tool，替换旧 loop wakeup，并写入 pending cron/loop state",
+        failure_boundary="age limit、user abort、显式 stop 和 keepalive budget 都会终止；scheduled time 不证明未来进程仍存活",
+        user_impact="让模型选择下一次 loop interval，而不是固定 recurring cron",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("Vft",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_loop_keepalive": manual_contract(
+        owner="post-tick fallback rearm 路径 `Wop -> Vop`",
+        read_location="`Wop` 在 [readable L155108](../reverse/javascript/cli.readable.js#L155108) 读取该 flag",
+        fallback_precedence="`CLAUDE_CODE_LOOP_KEEPALIVE` true 优先；否则 false 表示模型漏掉 rearm 时不补 fallback",
+        state_delta="已完成 tick 且没有 pending loop 时，补一个 1200 秒 fallback 并增加 keepalive budget",
+        failure_boundary="有限 budget 阻止反复漏调；gate-off/age/abort 也会结束 loop；timer 不构成 durable execution 证明",
+        user_impact="避免一次意外漏掉 reschedule 就立刻杀死 active dynamic loop",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("Wop",),
+        callsite_count=1,
+    ),
+    "tengu_loop_noop_fold": manual_contract(
+        owner="dynamic-loop tool schema 与 scheduled-task UI 投影 `$2r`",
+        read_location="`$2r` 在 [readable L155105](../reverse/javascript/cli.readable.js#L155105) 读取该布尔值",
+        fallback_precedence="false 不暴露 `noop` input；true 要求非 stop 调用必须提供，并在 fire 时启用 loop-row folding",
+        state_delta="记录 tick 是否改变状态，并在终端视图折叠连续 no-op ticks",
+        failure_boundary="缺失必填 `noop` 会拒绝 tool call；folding 只改 presentation，绝不删除 transcript/task state",
+        user_impact="减少重复 quiet-loop 噪声，同时保留真正有变化的 tick",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("$2r",),
+        callsite_count=1,
+    ),
+    "tengu_kairos_brief_stop_hook_text": manual_contract(
+        owner="Brief post-turn enforcement 文案解析器 `KWS`",
+        read_location="`KWS` 在 [readable L270409](../reverse/javascript/cli.readable.js#L270409) 读取该字符串",
+        fallback_precedence="空值/非字符串回退 bundled reminder，明确只有 `SendUserMessage` 能到达用户",
+        state_delta="Brief turn 结束却没调用必需的用户可见工具时，改变注入的 stop-hook reminder",
+        failure_boundary="Brief entitlement、host 和 stop-hook gate 仍适用；文案不能保证模型调用工具或 delivery 成功",
+        user_impact="改变防止 Brief 静默回复的 recovery instruction，但不改变隐藏 plain-text 的规则",
+        document="brief-mode-and-user-visible-output.md",
+        lexical_functions=("KWS",),
+        callsite_count=1,
+    ),
+    "tengu_ptc_enabled": manual_contract(
+        owner="SDK/Remote Control 的 staged MCP call dispatcher",
+        read_location="`mcp_call` control-request handler 在 [readable L601989](../reverse/javascript/cli.readable.js#L601989) 读取该值",
+        fallback_precedence="true 允许 staged request；只有 input/output files、expiry 或 timeout 让调用成为 staged 时才读取该 flag",
+        state_delta="false 会在 MCP connect/call 前以 `staged mcp_call is disabled` 拒绝；普通非 staged MCP call 绕过此 switch",
+        failure_boundary="true 仍要求已连接的非 SDK MCP server、staging 校验、session/auth/elicitation 状态和工具成功",
+        user_impact="只 kill 需要 file staging 或 deadline metadata 的 MCP call，不关闭全部 MCP",
+        document="cli-sdk-output-protocol.md",
+        lexical_functions=("<top-level>",),
+        callsite_count=1,
+    ),
+    "tengu_native_cursor": manual_contract(
+        owner="TUI cursor renderer 选择器 `DTa -> gXe`",
+        read_location="`DTa` 在 [readable L178374](../reverse/javascript/cli.readable.js#L178374) 读取该 flag",
+        fallback_precedence="accessibility、screen-reader 和 `CLAUDE_CODE_NATIVE_CURSOR` override 优先；否则 false 保留 non-native path，且 `!Mmt()` 也必须通过",
+        state_delta="缓存 `nativeCursorEnabled`，在 raw terminal rendering 中启用平台 native cursor handling",
+        failure_boundary="unsupported/alternate renderer gate 会 fallback 且不修改输入文本；终端表现仍依赖 host capability",
+        user_impact="改变 cursor 可见性和移动兼容性，尤其影响 accessibility 与特定终端渲染",
+        document="tui-input-accessibility-media-ide-chrome.md",
+        lexical_functions=("DTa",),
+        callsite_count=1,
+    ),
+    "tengu_left_arrow_editing_guard": manual_contract(
+        owner="空 editor 的 left-arrow gesture state machine `Ze -> _Nm`",
+        read_location="`Ze` 在 [readable L428684](../reverse/javascript/cli.readable.js#L428684) 把值传入 `_Nm`",
+        fallback_precedence="true 启用 edit 后的 arm/absorb timing；false 让 solo left-arrow 立即 fire；non-solo input 始终 reject",
+        state_delta="选择 `fire/arm/absorb/attach-*` transition，并在打开/脱离 Agent View 前更新 gesture timestamp",
+        failure_boundary="guard 只作用于空 editor，绝不修改 message text；modifier/non-solo 情况保留普通 cursor movement",
+        user_impact="避免 edit 或 attach 活动后，一次有歧义的左箭头误切换视图",
+        document="tui-input-accessibility-media-ide-chrome.md",
+        lexical_functions=("Ze",),
+        callsite_count=1,
+    ),
+    "tengu_mem_push_delete_mode": manual_contract(
+        owner="shared-memory multi-store 删除策略 `ZQo -> wHn`",
+        read_location="`ZQo` 在 [readable L158864](../reverse/javascript/cli.readable.js#L158864) 读取并校验字符串",
+        fallback_precedence="`CLAUDE_CODE_MEMORY_PUSH_DELETE_MODE` 原样优先且 `ZQo` 不校验；下游非 `immediate/never` 值走 corroborate 分支；服务端 flag 非这两个值也显式回退 `corroborate`",
+        state_delta="在 enqueue delete 前，选择立即远端删除、永久抑制，或两次 walk 加时间的 corroboration",
+        failure_boundary="read-only/discovery policy、disk trust、partition manifest、mass-delete hold 和 conflict recovery 仍可阻断；远端删除不可在本地回滚",
+        user_impact="控制本地文件消失向 shared team/user memory 传播的激进程度",
+        document="sessions-checkpoints-memory.md",
+        lexical_functions=("ZQo",),
+        callsite_count=1,
+    ),
+    "tengu_propose_goal": manual_contract(
+        owner="`ProposeGoal` tool registration 与 settings surface `REi`",
+        read_location="`REi` 在 [readable L299488](../reverse/javascript/cli.readable.js#L299488) 读取该布尔值",
+        fallback_precedence="false 不注册 tool/config row；true 仍会被 noninteractive、remote、background 和用户 setting `disabled` gate 拒绝",
+        state_delta="注册 non-concurrent read-only proposal tool：要么打开 approval，要么记录用户已明确授权的 goal",
+        failure_boundary="agent context 被拒绝，condition 接受长度/schema 校验，用户取消后不留下 active goal",
+        user_impact="允许 Claude 提议可度量 completion condition，但不会静默把每个任务变成 persistent goal",
+        document="active-goal-and-stop-loop.md",
+        lexical_functions=("REi",),
+        callsite_count=1,
+    ),
+    "tengu_retire_chat_relay_artifact_backstop": manual_contract(
+        owner="Artifact SDK-default-off 分类器 `Fip -> Uip`",
+        read_location="`Fip` 在 [readable L155856](../reverse/javascript/cli.readable.js#L155856) 的 chat-relay/SDK entrypoint 逻辑中读取该 flag",
+        fallback_precedence="false 让 chat-relay-like host 默认关闭 Artifact；显式 `CLAUDE_CODE_ARTIFACT=true` 后续仍可覆盖；GitHub Action/MCP 独立保持关闭",
+        state_delta="true 只移除这一层 default-off backstop，使正常 first-party/admin/user Artifact gate 可以继续决定是否注册工具",
+        failure_boundary="admin disable、provider、host exclusion、rollout、ownership 和 publish failure 都保留；该 flag 不执行 upload",
+        user_impact="改变 relay/SDK surface 的 Artifact 可用性，但不绕过 publication control",
+        document="workflow-artifact-design.md",
+        lexical_functions=("Fip",),
+        callsite_count=1,
+    ),
+    "tengu_cowork_chrome_automode_default": manual_contract(
+        owner="Chrome tool 的 permission-context 编译器 `Xza -> jor`",
+        read_location="`Xza` 在 [readable L277868](../reverse/javascript/cli.readable.js#L277868) 构建 `chromeClassifierFloorEnabled` 时读取",
+        fallback_precedence="显式 `CLAUDE_CHROME_CLASSIFIER_FLOOR` 通过 `??` 优先；flag false 是后备值，Auto Mode availability 还必须为 true",
+        state_delta="为 Chrome tool rule 启用 classifier floor，防止 broad allow 在覆盖的 Chrome surface 跳过 Auto Mode review",
+        failure_boundary="managed deny/ask、tool schema、hooks、sandbox 和 classifier failure 仍分别决定；true 不是自动 allow",
+        user_impact="即使存在 allow rule，也提高 Chrome automation 的 review 强度",
+        document="auto-mode-classifier.md",
+        lexical_functions=("<top-level>",),
+        callsite_count=1,
+    ),
+}
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Build deterministic environment and feature reference documents."
@@ -2024,6 +2558,94 @@ def format_consumer_context(rows: list[dict[str, Any]]) -> str:
     return "<br>".join(rendered)
 
 
+def render_manual_contract(contract: dict[str, Any]) -> str:
+    return (
+        "Static consumer 人工合同："
+        f"owner={contract['owner']}；"
+        f"读取位置={contract['readLocation']}；"
+        f"fallback/precedence={contract['fallbackPrecedence']}；"
+        f"state delta={contract['stateDelta']}；"
+        f"failure/Boundary={contract['failureBoundary']}；"
+        f"用户影响={contract['userImpact']}。"
+        f"详见 [{contract['document']}]({contract['document']})。"
+    )
+
+
+def validate_manual_contract_shape(
+    identifier: str, contract: dict[str, Any], kind: str
+) -> None:
+    missing = [field for field in MANUAL_CONTRACT_FIELDS if field not in contract]
+    if missing:
+        raise ValueError(
+            f"{kind} manual contract {identifier} missing fields: {', '.join(missing)}"
+        )
+    for field in MANUAL_CONTRACT_FIELDS:
+        value = contract[field]
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                f"{kind} manual contract {identifier} has invalid {field}"
+            )
+    if not str(contract["document"]).endswith(".md"):
+        raise ValueError(
+            f"{kind} manual contract {identifier} document must be Markdown"
+        )
+    functions = contract.get("lexicalFunctions")
+    if (
+        not isinstance(functions, tuple)
+        or not functions
+        or any(not isinstance(value, str) or not value for value in functions)
+    ):
+        raise ValueError(
+            f"{kind} manual contract {identifier} has invalid lexicalFunctions"
+        )
+    if not isinstance(contract.get("callsiteCount"), int) or contract["callsiteCount"] <= 0:
+        raise ValueError(
+            f"{kind} manual contract {identifier} has invalid callsiteCount"
+        )
+
+
+def validate_environment_manual_contracts(
+    env_calls: list[dict[str, Any]],
+) -> None:
+    overlap = sorted(set(ENV_MEANINGS) & set(ENV_MANUAL_CONTRACTS))
+    if overlap:
+        raise ValueError(
+            "environment structured/manual tuple contracts overlap: "
+            + ", ".join(overlap)
+        )
+    calls_by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in env_calls:
+        if isinstance(row.get("name"), str):
+            calls_by_name[row["name"]].append(row)
+    for name, contract in sorted(ENV_MANUAL_CONTRACTS.items()):
+        validate_manual_contract_shape(name, contract, "environment")
+        rows = calls_by_name.get(name, [])
+        if len(rows) != contract["callsiteCount"]:
+            raise ValueError(
+                f"environment manual contract {name} callsite drift: "
+                f"expected={contract['callsiteCount']}, actual={len(rows)}"
+            )
+        functions = tuple(
+            sorted({str(row.get("function") or "<top-level>") for row in rows})
+        )
+        if functions != tuple(sorted(contract["lexicalFunctions"])):
+            raise ValueError(
+                f"environment manual contract {name} lexical owner drift: "
+                f"expected={contract['lexicalFunctions']}, actual={functions}"
+            )
+        modes = contract.get("accessModes")
+        if not isinstance(modes, tuple) or not modes:
+            raise ValueError(
+                f"environment manual contract {name} has invalid accessModes"
+            )
+        observed_modes = tuple(sorted({str(row.get("accessMode")) for row in rows}))
+        if observed_modes != tuple(sorted(modes)):
+            raise ValueError(
+                f"environment manual contract {name} access-mode drift: "
+                f"expected={modes}, actual={observed_modes}"
+            )
+
+
 def format_locations(rows: list[dict[str, Any]]) -> str:
     return "<br>".join(source_location(row) for row in sorted(rows, key=lambda item: item["offset"])) or "none"
 
@@ -2066,6 +2688,8 @@ def environment_sensitivity(name: str) -> str:
 
 
 def environment_meaning(name: str, has_calls: bool) -> str:
+    if has_calls and name in ENV_MANUAL_CONTRACTS:
+        return render_manual_contract(ENV_MANUAL_CONTRACTS[name])
     if has_calls and name in ENV_MEANINGS:
         meaning, document = ENV_MEANINGS[name]
         return f"Static consumer \u6559\u5b66\u89e3\u91ca\uff1a{meaning}\u8be6\u89c1 [{document}]({document})\u3002"
@@ -2142,6 +2766,13 @@ def feature_functions(rows: list[dict[str, Any]]) -> str:
 
 
 def feature_meaning(key: str) -> str:
+    if key in FEATURE_MANUAL_CONTRACTS:
+        prefix = (
+            "Opaque name / "
+            if "opaque experiment codename" in feature_category(key)
+            else ""
+        )
+        return prefix + render_manual_contract(FEATURE_MANUAL_CONTRACTS[key])
     if key in FEATURE_MEANINGS:
         meaning, document = FEATURE_MEANINGS[key]
         if "opaque experiment codename" in feature_category(key):
@@ -2287,6 +2918,7 @@ def build_environment_document(
     metrics: dict[str, int],
     hashes: dict[str, str],
 ) -> str:
+    validate_environment_manual_contracts(env_calls)
     calls_by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
     dynamic_calls: list[dict[str, Any]] = []
     for row in env_calls:
@@ -2342,8 +2974,9 @@ def build_environment_document(
     declaration_only = sorted(typed_names - set(calls_by_name) - resolved_dynamic_names)
     active_named_names = sorted(calls_by_name)
     active_static_names = set(active_named_names) | resolved_dynamic_names
-    consumer_contract_names = sorted(set(ENV_MEANINGS) & active_static_names)
-    direct_consumer_contract_names = sorted(set(ENV_MEANINGS) & set(active_named_names))
+    all_contract_names = set(ENV_MEANINGS) | set(ENV_MANUAL_CONTRACTS)
+    consumer_contract_names = sorted(all_contract_names & active_static_names)
+    direct_consumer_contract_names = sorted(all_contract_names & set(active_named_names))
     resolved_dynamic_only_contract_names = sorted(
         set(consumer_contract_names) - set(active_named_names)
     )
@@ -2508,8 +3141,11 @@ def build_environment_document(
     )
     for name in untyped_names:
         calls = sorted(calls_by_name[name], key=lambda item: item["offset"])
+        structured_contract = ENV_MANUAL_CONTRACTS.get(name)
         meaning = ENV_MEANINGS.get(name)
-        if meaning:
+        if structured_contract:
+            evidence = render_manual_contract(structured_contract)
+        elif meaning:
             description, document = meaning
             evidence = f"Static consumer \u6559\u5b66\u89e3\u91ca\uff1a{description}\u8be6\u89c1 [{document}]({document})\u3002"
         else:
@@ -2620,6 +3256,14 @@ def build_environment_document(
         "artifact": "analysis/environment-variable-reference.md",
         "consumerContractCount": len(consumer_contract_names),
         "consumerContractNamesSha256": names_sha256(consumer_contract_names),
+        "structuredConsumerContractCount": len(ENV_MANUAL_CONTRACTS),
+        "structuredConsumerContractNamesSha256": names_sha256(
+            ENV_MANUAL_CONTRACTS
+        ),
+        "structuredConsumerContractCallsiteCount": sum(
+            int(contract["callsiteCount"])
+            for contract in ENV_MANUAL_CONTRACTS.values()
+        ),
         "directConsumerContractCount": len(direct_consumer_contract_names),
         "resolvedDynamicOnlyConsumerContractCount": len(
             resolved_dynamic_only_contract_names
@@ -2693,6 +3337,9 @@ def build_environment_document(
             "<!-- BEGIN:ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES",
             *consumer_contract_names,
             "END:ENVIRONMENT_VARIABLE_REFERENCE:CONSUMER_CONTRACT_NAMES -->",
+            "<!-- BEGIN:ENVIRONMENT_VARIABLE_REFERENCE:STRUCTURED_CONTRACT_NAMES",
+            *sorted(ENV_MANUAL_CONTRACTS),
+            "END:ENVIRONMENT_VARIABLE_REFERENCE:STRUCTURED_CONTRACT_NAMES -->",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -2707,6 +3354,40 @@ def static_feature_value(row: dict[str, Any]) -> str | None:
     return None
 
 
+def validate_feature_manual_contracts(
+    feature_keys: list[str], feature_calls: list[dict[str, Any]]
+) -> None:
+    overlap = sorted(set(FEATURE_MEANINGS) & set(FEATURE_MANUAL_CONTRACTS))
+    if overlap:
+        raise ValueError(
+            "feature structured/manual tuple contracts overlap: " + ", ".join(overlap)
+        )
+    key_set = set(feature_keys)
+    calls_by_key: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in feature_calls:
+        value = static_feature_value(row)
+        if value is not None:
+            calls_by_key[value].append(row)
+    for key, contract in sorted(FEATURE_MANUAL_CONTRACTS.items()):
+        validate_manual_contract_shape(key, contract, "feature")
+        if key not in key_set:
+            raise ValueError(f"feature manual contract key is absent from inventory: {key}")
+        rows = calls_by_key.get(key, [])
+        if len(rows) != contract["callsiteCount"]:
+            raise ValueError(
+                f"feature manual contract {key} callsite drift: "
+                f"expected={contract['callsiteCount']}, actual={len(rows)}"
+            )
+        functions = tuple(
+            sorted({str(row.get("function") or "<top-level>") for row in rows})
+        )
+        if functions != tuple(sorted(contract["lexicalFunctions"])):
+            raise ValueError(
+                f"feature manual contract {key} lexical owner drift: "
+                f"expected={contract['lexicalFunctions']}, actual={functions}"
+            )
+
+
 def build_feature_document(
     version: str,
     feature_keys: list[str],
@@ -2716,6 +3397,7 @@ def build_feature_document(
     metrics: dict[str, int],
     hashes: dict[str, str],
 ) -> str:
+    validate_feature_manual_contracts(feature_keys, feature_calls)
     calls_by_key: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in feature_calls:
         value = static_feature_value(row)
@@ -2742,7 +3424,8 @@ def build_feature_document(
         value = static_feature_value(row)
         if value is not None:
             growthbook_by_key[value].append(row)
-    consumer_contract_keys = sorted(key for key in FEATURE_MEANINGS if calls_by_key.get(key))
+    all_contract_keys = set(FEATURE_MEANINGS) | set(FEATURE_MANUAL_CONTRACTS)
+    consumer_contract_keys = sorted(key for key in all_contract_keys if calls_by_key.get(key))
     callsite_only_keys = sorted(set(feature_keys) - set(consumer_contract_keys))
 
     lines: list[str] = [
@@ -2964,6 +3647,14 @@ def build_feature_document(
         "artifact": "analysis/feature-flag-reference.md",
         "consumerContractCount": len(consumer_contract_keys),
         "consumerContractKeysSha256": names_sha256(consumer_contract_keys),
+        "structuredConsumerContractCount": len(FEATURE_MANUAL_CONTRACTS),
+        "structuredConsumerContractKeysSha256": names_sha256(
+            FEATURE_MANUAL_CONTRACTS
+        ),
+        "structuredConsumerContractCallsiteCount": sum(
+            int(contract["callsiteCount"])
+            for contract in FEATURE_MANUAL_CONTRACTS.values()
+        ),
         "callsiteOnlyStaticKeyCount": len(callsite_only_keys),
         "lexicalContextCallsiteCount": sum(
             1 for row in feature_calls if "functionKind" in row
@@ -3010,6 +3701,9 @@ def build_feature_document(
             "<!-- BEGIN:FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS",
             *consumer_contract_keys,
             "END:FEATURE_FLAG_REFERENCE:CONSUMER_CONTRACT_KEYS -->",
+            "<!-- BEGIN:FEATURE_FLAG_REFERENCE:STRUCTURED_CONTRACT_KEYS",
+            *sorted(FEATURE_MANUAL_CONTRACTS),
+            "END:FEATURE_FLAG_REFERENCE:STRUCTURED_CONTRACT_KEYS -->",
         ]
     )
     return "\n".join(lines) + "\n"

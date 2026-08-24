@@ -22,6 +22,21 @@
 | Grader result | six grader executors | trace、last message、文件、工具调用 | pass/fail、weight、evidence、judge votes | grader 抛错按 fail 计入，不静默跳过 |
 | Aggregate/report | suite aggregator | runs、两臂、阈值、partial reason | JSON schema v1、HTML、可选私有 publish | partial 或异规则两臂不能当完整比较 |
 
+## 完整调用顺序：从 case 到可比较 Delta
+
+1. discovery owner 从显式 target、manifest `experimental.evals` 或默认 `evals/` 定位 case。
+2. loader 打开 `case.yaml`、prompt 和 grader 文件，核对 regular file、identity、大小和换包风险。
+3. schema owner 合并 YAML/prose，校验 prompt/history、grader、runs、turn 和 timeout 上限。
+4. plugin trust owner解析 target与 case plugin path，检查 owner/mode/symlink/hardlink/containment。
+5. ablation planner 建立 with/without 两臂；没有真实 plugin 时拒绝伪造 Delta。
+6. 每个 run 创建独立 HOME/config/cwd/trace/credential copy，并按 case/tool grant编译 child argv/env。
+7. child 以 `dontAsk` 和同版 Agent Loop运行；timeout、stdout cap、max turns和 auth backstop各自计时。
+8. observer收集 trace、last message、tool call、created files、费用与 terminal state。
+9. grader owner执行免费规则或 3 票 judge，再按 scored weight聚合 run/case/arm。
+10. report owner只在同规则两臂上计算 Delta，写 JSON/HTML；partial、publish 和 shell exit保持独立状态。
+
+这十步刻意把输入信任、实验臂、child执行、观察、评分和发布交给不同 owner。任一步失败只改变自己拥有的状态：loader error不会伪造成 0 分，child timeout不能被 grader当成普通文本失败，partial report也不能补出缺失的对照臂。
+
 ## 一、Case 不是随便读几个 Markdown 文件
 
 ### 两种输入最后合并成同一 schema
@@ -153,6 +168,7 @@ child timeout 使用 case `timeout_seconds`，超时直接 `SIGKILL`；stdout �
 | 全部 case 达阈值且无 load error | `0` | complete | 可以，仍需区分绝对分与 Delta |
 | 任一 case 低于 threshold、case load error、无 case | `1` | complete 或无有效 case | 失败证据有效；不能忽略坏 case |
 | cost ceiling、auth failure | `2` | `partial=true`，`partialReason=cost_ceiling/auth_failed` | 只能分析已完成部分，不是完整 suite |
+| 单个 run 超过 `timeout_seconds` | run失败/计 0 | child 被 `SIGKILL`，保留明确 timeout evidence | 不能把缺失输出按普通 grader fail解释 |
 | 收到 SIGINT | `130` | 若来得及生成报告，仍可为 `partial=true, partialReason=interrupted` | shell signal 退出码不能被报告内 partial 状态覆盖 |
 | 收到 SIGTERM | `143` | 若来得及生成报告，仍可为 `partial=true, partialReason=interrupted` | shell signal 退出码不能被报告内 partial 状态覆盖 |
 | CLI 参数/target/eval-dir 拒绝 | `1` | 通常没有 run report | 只证明输入合同失败 |
@@ -191,8 +207,33 @@ publish 先等待 policy limits，只有 account/provider/privacy mode 允许 ar
 
 做到这些，Plugin Eval 才是可复现实验；否则它只是一次带评分的 Agent 运行。
 
+## 精确二进制 Probe：免费 grader 的 with/without 编排
+
+[`plugin-evaluation.json`](runtime-probes/plugin-evaluation.json) 用本地 deterministic Messages stub运行一个可信 probe plugin和一个 case：`runs=1`、`max_turns=1`、`timeout=30s`、`with-without`、threshold `1`，只使用免费 `regex(last_message)` grader，并显式 `--no-publish --no-scaffold`。
+
+| 观察对象 | literal / normalized result |
+| --- | --- |
+| process | exit `0`；stdout=`Wrote $RESULT_JSON`；stderr=`Report: $HTML_REPORT` |
+| with arm | score `1`；request 含 plugin SessionStart hook marker |
+| without arm | score `1`；request 不含 hook marker |
+| aggregate | `score=1`、`scoreWithout=1`、`Delta=0`、`partial=false` |
+| outputs | JSON/HTML 非空，mode 均为 `0644`，没有远端 publish |
+
+这证明 exact `2.1.235` 的 plugin resolution、两臂 child orchestration、免费 grader、Delta 聚合和本地报告闭环。专属 validator 强制 17 个 checks；23 种版本/SHA、arm、score、Delta、partial、hook context、路径和 Boundary 伪造全部拒绝。
+
+**窄边界：** 本地 stub总是返回固定 marker，所以 Probe不测模型或插件质量；它不运行 LLM/baseline judge、不测 3 票噪声或付费 ceiling，也不证明 claude.ai publish/retention。temp sandbox仍不是 OS 或网络隔离。
+
+## 用户影响：Token、费用、隐私与副作用
+
+- **Token/费用：** 成本近似 cases × runs × arms 的 Agent token，再加每个 paid grader 的 3 次 judge；免费 smoke只能证明编排，不能估计真实 suite 费用。
+- **延迟：** 每个 run 都有独立启动、模型、工具和 grader阶段；with/without提供因果对照，但至少把 Agent run 数量翻倍。
+- **隐私：** prompt、trace、文件焦点和可选 credential会进入临时状态或模型请求；`--no-publish` 只禁止报告上传，不让模型推理变成本地。
+- **安全/副作用：** temp sandbox不是 OS隔离。scaffold和获准的 Bash/Write/WebFetch/MCP仍能改主机或远端；删除 transcript/报告不会自动回滚这些动作。
+- **可恢复性：** JSON/HTML保留 partial和grader evidence；它们可以诊断已完成部分，但不能把 auth/cost/interruption后的缺失 arm补成有效 Delta。
+
 ## 证据结论
 
 - **Static：** case schema、信任检查、run argv/env、six graders、3-vote majority、ablation、cost/auth/partial、JSON/HTML/publish 生命周期均可由 `2.1.235` readable view定位。
 - **Surface：** `claude plugin eval --help` 的真实选项与 exit 说明已由 command-tree probe 捕获，但 help 不证明任何付费 judge 或插件 case 已成功运行。
-- **Boundary：** 本仓库尚未保存一个绑定该二进制 hash 的完整 paid eval 正向 Probe；模型质量、账号 artifact policy、真实网络/provider 和服务端 publish retention 不能由静态 bundle 推断。
+- **Probe：** 免费 regex grader 的 exact-binary with/without smoke 已保存，证明两臂、hook-context 差异、score/Delta 与本地 JSON/HTML。
+- **Boundary：** 本仓库仍没有 paid LLM/baseline judge 正向 Probe；模型质量、账号 artifact policy、真实网络/provider 和服务端 publish retention 不能由免费 smoke 推断。

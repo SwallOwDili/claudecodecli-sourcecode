@@ -36,7 +36,27 @@
 - constructor message argument shape：`string` 2,891, `template` 1,493, `call` 169, `identifier` 110, `member-or-call` 67, `missing` 59, `expression` 23, `conditional` 17, `array` 2。`missing` 或动态表达式表示静态阶段拿不到最终 message，不表示没有错误。
 - diagnostic `T()` callsites 共 **5,403**；显式/默认 level：`default-debug` 3,325, `verbose` 16, `debug` 42, `info` 58, `warn` 962, `error` 1,000。没有第二参数时由 `T()` 默认成 debug。
 - diagnostic message argument shape：`template` 4,413, `string` 859, `identifier` 55, `member-or-call` 33, `conditional` 28, `call` 15。template 占多数，说明最终日志常带运行时 path/status/id，公开时不能只扫描固定 literal。
+- exact owner projection 覆盖全部 **10,234** 条 callsite：`Product exact caller` **308**、`Dependency exact package/function` **250**、`Unresolved` **9,676**；当前精确收口 **558** 条，不用宽行区间或相似文案补 owner。
+- 分流后 Error constructor 为 Product **54** / Dependency **250** / Unresolved **4,527**；Diagnostic 为 Product **254** / Dependency **0** / Unresolved **5,149**。
 <!-- ERROR_DIAGNOSTIC_METRICS_END -->
+
+## 精确 owner 投影：同一句错误为什么不能直接归模块
+
+完整逐 callsite 结果见 [`error-diagnostic-owner-index.md`](error-diagnostic-owner-index.md)，机器投影见 [`error-diagnostic-owner-projection.jsonl`](error-diagnostic-owner-projection.jsonl)，覆盖与哈希见 [`error-diagnostic-owner-summary.json`](error-diagnostic-owner-summary.json)。这一层解决原清单最关键的缺口：`function + immediate consumer` 只能告诉读者“错误在当前 lexical scope 里怎样被构造”，不能自动回答它属于 Claude Code 产品、打包依赖，还是哪一个恢复 owner。
+
+一个具体反例是 Zod。`"Unprocessed schema. This is a bug in Zod."` 位于经过复核的 Zod 内部 scope，可以标成 `Dependency exact package/function`；但另一个 caller 即使也写着 `expected a Zod schema`，仍可能是 Agent SDK 或产品 adapter 对输入的二次约束，不能靠 `Zod` 关键词继承 owner。同理，OpenTelemetry protobuf generated codec 与同一 canonical 行上的其他 constructor 不会因为行号相同一起归入 OTLP。
+
+投影因此把结论拆成五个互不替代的字段：
+
+| 字段 | 精确证据 | 为什么仍可能 Unresolved |
+| --- | --- | --- |
+| Product / Dependency owner | 完整 callsite identity 命中 reviewed allowlist | 同名 function、同一行或相似 message 都不构成 identity |
+| lexical function | AST `scopePath + functionKind + function` | 压缩后短名不能单独说明产品模块 |
+| immediate consumer | constructor/T() 的直接 AST parent/relation/role | `throw` 或 expression statement 不说明上层怎样消费 |
+| catch / retry owner | exact Product rule 直接绑定 catch wrapper 或 attempt/breaker owner | owner 已解析不等于每条日志都持有 retry counter |
+| tool-result / user-surface owner | exact ledger/end-turn 或输出 wrapper | debug diagnostic 不自动进入模型，也不自动显示给用户 |
+
+当前高置信批次故意让 Product 的 catch 与 user-surface 字段继续全部 fail closed；只有直接位于 recovery controller 的 caller 获得 retry owner，只有 tool-result ledger、deferred resume 或 end-turn scope 获得 tool-result owner。这个保守结果比把几千个 `T()` 全称为“Claude Code 日志”更有用：排障者能区分已确认状态 owner 与仍待追踪的 caller chain，也能看到剩余欠账，而不是从一个很大的覆盖率数字里误读完整性。
 
 这些计数来自 AST callsite，不等于 4,831 个产品故障：打包依赖、SDK、内嵌 runtime 都在同一 bundle。强结论必须回到 consumer。三个 constructor 的实用区别是：
 

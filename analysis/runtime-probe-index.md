@@ -220,7 +220,26 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 
 匹配的 export、错误和行为合同只说明兼容实现可以替代这些已覆盖调用，不会把 `reconstructed/` 变成 Anthropic 原始 Rust/Swift/C++ 源码。
 
-## 44 条 Probe 结论索引
+## 网络 Proxy、CA 与 mTLS
+
+`network-proxy-tls.json` 使用本地 HTTPS Messages service、两个 CONNECT proxy、一日测试 CA 和 client certificate 驱动精确 `2.1.235` 二进制：
+
+- 无 extra CA 时 literal result 为 `API Error: Unable to connect to API: Self-signed certificate detected...`，exit `1`，HTTPS server 在 HTTP 层零命中；加入 `NODE_EXTRA_CA_CERTS` 后 result 为 `NETWORK_OK`，exit `0`。
+- 同时设置 `https_proxy=$A` 与 `HTTPS_PROXY=$B` 时，只有 A 收到 CONNECT；加入 `no_proxy=localhost` 后两个 proxy 的计数都不增加，请求仍为 `NETWORK_OK`。
+- `https_proxy=proxy.invalid:8080` 缺 scheme 时 exit `1`，API server 零 marker，证明配置在受控请求前 fail closed。
+- 加入 `CLAUDE_CODE_CLIENT_CERT/KEY` 后 result 为 `MTLS_OK`，exit `0`，server 观察到 authorized client CN=`Claude Probe Client`。
+
+这 14 项检查只证明主 Messages HTTPS transport；不证明 Axios、undici、WebSocket、AWS、MCP、OTLP、子进程或 CCR relay。22 个专属伪造用例会拒绝改写版本/SHA、check、命令 marker、exit/result、API/proxy 命中、mTLS peer、TLS setup 或 Boundary。
+
+## Plugin Evaluation 免费两臂 Smoke
+
+`plugin-evaluation.json` 用一个本地插件、1 个 case、1 次 with run、1 次 without run、免费 regex grader 和本地 Messages stub 驱动精确二进制。command literal为 `plugin eval ... --ablation with-without --runs 1 --threshold 1 --no-publish --no-scaffold`，exit `0`；CLI literal输出规范化为 `Wrote $RESULT_JSON` 和 `Report: $HTML_REPORT`。
+
+两臂分数都是 `1`、`Delta=0`、`partial=false`。with request独有 `PLUGIN_EVAL_WITH_ARM_HOOK_MARKER`，without request明确没有，证明不是只在 aggregate JSON 中换标签；JSON/HTML 均写为 mode `0644`。23 个专属伪造用例会拒绝 arm、score、Delta、partial、hook context、plugin problem、路径和 Boundary 篡改。
+
+本 Probe 不测真实模型或插件质量，不运行 LLM/baseline paid judge，不触发 cost ceiling，也不证明 claude.ai report publish/retention；Eval 的 temp sandbox 仍不是 OS/网络隔离。
+
+## Probe 结论索引
 
 | Claim ID | 报告 | 核心状态变化 |
 | --- | --- | --- |
@@ -239,6 +258,10 @@ CLAUDE_INTERNAL_FC_OVERRIDES={"tengu_ccr_bridge":true}
 | `probe.native-original-compatible` | `native-reconstruction.json` | 原始/兼容 arm64 contract；22 项真实对照、0 项环境边界、1 项覆盖审计 |
 | `probe.native-x86-build-load` | `native-reconstruction-x86.json` | 稳定 claim ID；5 个 supplied compatible x86_64 artifact 完成 provenance、Rosetta 加载和导出合同，recipe 不构成本次 build attestation |
 | `probe.native-x86-original-compatible` | `native-reconstruction-x86.json` | 原版有 x86 slice 的 Input/Swift 两模块完成 19 项同输入行为对照和覆盖 guard |
+| `probe.network-proxy-routing` | `network-proxy-tls.json` | 小写 proxy 优先、NO_PROXY 绕过、非法 proxy 在 API 命中前拒绝 |
+| `probe.network-extra-ca` | `network-proxy-tls.json` | 自签失败 exit 1，加入 extra CA 后 Messages 请求成功 exit 0 |
+| `probe.network-mtls-client-identity` | `network-proxy-tls.json` | client cert/key 进入 TLS handshake，server 观察授权 CN |
+| `probe.plugin-evaluation-free-ablation` | `plugin-evaluation.json` | with/without 各 1 run，免费 grader 都得 1，Delta 0；with 请求独有 plugin hook context |
 | `probe.project-purge-dry-run` | `project-data-lifecycle.json` | purge 计划 5 项但不改 planned/excluded domain bytes；bootstrap 文件单列 |
 | `probe.project-purge-positive` | `project-data-lifecycle.json` | 独立 `--all -y` 删除 5 个 owned target，保留 shell snapshot/backup 原字节并单列 bootstrap |
 | `probe.project-conversation-import` | `project-data-lifecycle.json` | JSON dry-run 零 domain 写入；真实导入写 0600 transcript、父链、instructions 与降权 CLAUDE.md |

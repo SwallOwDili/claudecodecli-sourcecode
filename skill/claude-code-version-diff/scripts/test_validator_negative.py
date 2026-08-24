@@ -895,13 +895,31 @@ def main() -> None:
             "tool registration SendUserMessage legacy alias mismatch",
         ),
         (
-            "analysis/agent-loop.md",
+            "analysis/compact-visual-guide.md",
             lambda data: replace_once(
                 data,
-                b"## 60 \xe7\xa7\x92\xe7\x90\x86\xe8\xa7\xa3 Agent Loop",
-                b"## Agent Loop overview",
+                "`/compact` 改变的是 Claude Code 下一次发给模型的对话".encode(),
+                "**读者问题：** `/compact` 改变的是 Claude Code 下一次发给模型的对话".encode(),
             ),
-            "reader-first human document is missing 60-second section",
+            "reader-first tutorial exposes authoring scaffold",
+        ),
+        (
+            "analysis/compact-visual-guide.md",
+            lambda data: replace_once(
+                data,
+                "用户继续纠正".encode(),
+                "用户补充说明".encode(),
+            ),
+            "reader-first tutorial lacks a concrete request/action/result trace",
+        ),
+        (
+            "analysis/claude-code-2.1.235-complete-guide.md",
+            lambda data: replace_once(
+                data,
+                "这是一部针对 `2.1.235` 的查阅手册".encode(),
+                "**一句话模型：** 这是一部针对 `2.1.235` 的查阅手册".encode(),
+            ),
+            "reader-first reference exposes tutorial scaffold",
         ),
         (
             "analysis/product-surface-evidence-map.md",
@@ -2057,10 +2075,10 @@ def main() -> None:
             "analysis/structured-output-and-schema-contract.md",
             lambda data: replace_once(
                 data,
-                "**读者问题：**".encode(),
-                "**核心问题：**".encode(),
+                "visuals/structured-output-lifecycle.svg".encode(),
+                "visuals/structured-output-lifecycle-missing.svg".encode(),
             ),
-            "deep topic contract structured-output is missing reader question",
+            "reader-first human document is missing lifecycle image",
         ),
         (
             "analysis/structured-output-and-schema-contract.md",

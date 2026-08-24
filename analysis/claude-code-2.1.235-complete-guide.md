@@ -1,17 +1,23 @@
-# Claude Code CLI 2.1.235 完整机制说明书
+# Claude Code CLI 2.1.235 功能参考说明书
 
-这份文档只讲 `2.1.235`。它把分散在 Agent Loop、上下文治理、会话恢复、权限、MCP、遥测、原生桥接和发布差异专题中的结论重新组织成一条完整运行链，目标是回答三个问题：Claude Code 到底在本机做了什么；每一层状态怎样进入下一层；用户为什么会看到某种性能、费用、权限或恢复结果。
+这是一部针对 `2.1.235` 的查阅手册，不要求从头读到尾。知道自己要查哪类行为时，直接进入对应章节；需要先建立整体运行模型，读 [技术机制总图](technical-mechanism-atlas.md)；只关心这个版本改了什么，读 [版本状态边界分析](product-surface-evidence-map.md)。
 
-本文不是字段清单，也不把当前官网行为直接倒灌成 `2.1.235` 的事实。每个重要结论分别依赖以下证据：
+## 使用方法：按功能查阅
 
-- **Static**：`2.1.235` 发布 bundle、可读化 JavaScript、Mach-O、schema、常量或可达分支；
-- **Probe**：SHA-256 固定为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` 的精确二进制在隔离环境中的真实输出；
-- **Public**：抓取并固化 hash 的 Anthropic 官方说明，用来解释设计目的或提出验证假设；
-- **Boundary**：客户端发布物中不存在的服务端实现、账户状态、隐藏策略或构建前源码。
+| 你要查什么 | 直接看 |
+| --- | --- |
+| 发布物来自哪里、逆向产物分别能证明什么 | 第 2-3 章 |
+| TUI、SDK、IDE、Remote 和 Cloud 怎样进入运行时 | 第 4-5、21-23 章 |
+| 一次请求怎样组装、选模型、执行工具并继续下一轮 | 第 6-10 章 |
+| Prompt cache、Tool Search、microcompaction、`/compact` 和 resume | 第 11-17 章 |
+| MCP、子 Agent、Team 和后台任务怎样扩展主循环 | 第 18-19 章 |
+| Retry、fallback、权限、sandbox 与副作用恢复 | 第 10、20、31-32 章 |
+| 遥测、费用、原生模块、安装更新和 Doctor | 第 24-27 章 |
+| `2.1.235` 的发布变化、关键 settings 和字段含义 | 第 28-30 章 |
+| 结论用了什么证据、哪些仍不能证明 | 第 33-34、58 章 |
+| 条件功能和复杂状态机的详细合同 | 第 35-57 章 |
 
-结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。本文负责把这些证据讲成人能沿着生命周期理解的系统。
-
-需要查全量表面时，不要在本卷里翻零散提及：先读 [2.1.235：不是 Agent Loop 重写，而是一次状态边界修正](product-surface-evidence-map.md)。要理解用户一句话怎样变成最终请求，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要判断内容留在本机还是发往模型、遥测、Remote、Feedback、MCP/Hook、Artifact或Voice，读 [全局数据流与隐私](client-data-flow-and-privacy.md)。精确的71类inventory、356条claim、三轴证据分类和未完成consumer tracing单独放在[机器证据索引](product-surface-inventory-index.md)。[全面性审计](completeness-audit.md)现在明确区分56项Deep、1项Documented与1项Boundary；Updater 已按目标版事务闭合，IDE 只保留 CLI bridge 的正向协议 Probe 缺口。工具、Settings、CLI/SDK、Slash Command、Hook、Storage及高价值状态机继续由对应专题提供精确集合、生命周期和失败合同。
+正文按功能保存状态所有者、调用顺序、门控、阈值、成功与失败结果、用户影响和证据边界。章节末尾的专题链接用于继续下钻；字段或事件全集仍由各自的参考索引负责。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -1235,7 +1241,18 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 
 ## 33. 当前覆盖已经证实什么
 
-### 33.1 静态覆盖
+### 33.1 证据标签怎么读
+
+本文不把当前官网行为直接倒灌成 `2.1.235` 的事实。每个重要结论分别依赖以下证据：
+
+- **Static**：`2.1.235` 发布 bundle、可读化 JavaScript、Mach-O、schema、常量或可达分支；
+- **Probe**：SHA-256 固定为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748` 的精确二进制在隔离环境中的真实输出；
+- **Public**：抓取并固化 hash 的 Anthropic 官方说明，用来解释设计目的或提出验证假设；
+- **Boundary**：客户端发布物中不存在的服务端实现、账户状态、隐藏策略或构建前源码。
+
+结构化证据在 [mechanism-evidence.jsonl](mechanism-evidence.jsonl)，逐项命令、输入、输出、退出状态在 [runtime-probe-index.md](runtime-probe-index.md)。正文负责解释机制，这两个索引负责精确回查。
+
+### 33.2 静态覆盖
 
 - 15个 packed文件和逐文件 hash；
 - 71类 source inventory；
@@ -1249,7 +1266,7 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 - 31个 hook event；
 - 17个 model entry、6个 pricing tier、4个 alias family。
 
-### 33.2 精确二进制 Probe
+### 33.3 精确二进制 Probe
 
 19份运行报告覆盖命令、协议、持久化、网络和原生行为；每份都绑定版本、输入、literal output、exit status、required checks 与 Boundary：
 
@@ -1274,7 +1291,7 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 - 内部 feature override 不可达；
 - 原生 contract、22项原版/兼容对照、0项环境边界和1项覆盖审计。
 
-### 33.3 尚未形成正向 Probe 的部分
+### 33.4 尚未形成正向 Probe 的部分
 
 - 真实 Anthropic服务端 prompt-cache命中与账单；
 - Bedrock、Vertex、Foundry等真实云凭据闭环；
@@ -1286,6 +1303,8 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 这些缺口不会抹掉已完成的客户端静态与本地 Probe结论，但也不能被“validator PASS”替代。
 
 ## 34. 如何继续读证据
+
+需要查全量表面时，不要在本卷里翻零散提及：先读 [2.1.235：不是 Agent Loop 重写，而是一次状态边界修正](product-surface-evidence-map.md)。要理解用户一句话怎样变成最终请求，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要判断内容留在本机还是发往模型、遥测、Remote、Feedback、MCP/Hook、Artifact 或 Voice，读 [全局数据流与隐私](client-data-flow-and-privacy.md)。精确的 71 类 inventory、356 条 claim、三轴证据分类和未完成 consumer tracing 单独放在 [机器证据索引](product-surface-inventory-index.md)。[全面性审计](completeness-audit.md)区分 56 项 Deep、1 项 Documented 与 1 项 Boundary；Updater 已按目标版事务闭合，IDE 只保留 CLI bridge 的正向协议 Probe 缺口。工具、Settings、CLI/SDK、Slash Command、Hook、Storage 及高价值状态机继续由对应专题提供精确集合、生命周期和失败合同。
 
 | 想解决的问题 | 深入文档 |
 | --- | --- |

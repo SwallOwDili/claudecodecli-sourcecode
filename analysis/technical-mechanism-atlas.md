@@ -1,80 +1,73 @@
 # Claude Code CLI 2.1.235 技术机制总图
 
-Claude Code 不是“终端里包了一层模型 API”。一个用户请求会同时穿过请求装配、Agent Loop、工具执行、权限与 hook、上下文治理、会话持久化、MCP/子 Agent 协作、错误恢复和遥测九条主链；工具对象还要经过宿主与运行时 gate 才能进入请求。Plan Mode、Structured Output、REPL、Brief、EndConversation、Remote/Runner/Notifications、Connector/Catalog/MCP 和 ClaudeDesign/Projects 又各自拥有独立状态机；登录、workspace trust、Thinking/Fast、usage limit、数据导入、sandbox、网络证书、Active Goal、后台模型任务、Advisor 和 Ultrareview也会按条件启动。
+用户在项目目录中输入：
 
-本页是阅读路由，不替代各专题。它把公开设计原则、`2.1.235` bundle 静态证据和精确版本运行探针放在同一张生命周期图里。
+> 打开 `config/server.json`，把服务端口从 `8080` 改成 `9090`，运行测试；如果测试失败，找出原因并修好。
 
-## 60 秒建立全局模型
+Claude Code 不会把这句话直接翻译成一次文件写入。它先把当前会话、项目规则和本轮可用工具装进一个模型请求。模型读不到磁盘本身，只能先提出一个动作：
 
-**读者问题：** 用户只输入一句“读取配置、修改端口并运行测试”，为什么 CLI 内部会同时出现模型请求、工具调用、权限判断、上下文压缩、会话文件和遥测事件？
+```json
+{
+  "type": "tool_use",
+  "id": "toolu_read_config",
+  "name": "Read",
+  "input": {"file_path": "config/server.json"}
+}
+```
 
-**一句话模型：** Claude Code 用 Agent Loop 反复决策，用上下文治理控制模型看到什么，用工具控制管线决定动作能否发生，再把可恢复历史和不可自动回滚的外部状态分开管理。
+这时文件还没有被读取。`tool_use` 只是模型提出的调用。客户端等这个 block 完整后，在当前工具 registry 中找到 `Read`，解析并校验输入，执行适用的 Hook、权限和路径检查，最后才调用真正的读取实现。成功后，客户端把结果配回原来的 ID：
+
+```text
+tool_result(tool_use_id=toolu_read_config)
+{"port": 8080, "host": "127.0.0.1"}
+```
+
+这对 `tool_use/tool_result` 会进入下一次模型请求。模型现在看到的不是一句“读取成功”，而是自己请求过什么以及客户端实际读到了什么。它据此生成 `Edit`，把 `8080` 精确替换成 `9090`，随后生成 `Bash` 运行测试。`Edit` 仍要经过 schema、自定义校验、`PreToolUse`、permission/policy 和写入检查；`Bash` 也要经过自己的权限与 sandbox 路径。调度器不会让测试越过写入屏障去验证旧文件。
+
+这次测试进程返回：
+
+```text
+tool_result(tool_use_id=toolu_test_server)
+FAIL tests/server.test.ts
+expected http://127.0.0.1:8080
+received http://127.0.0.1:9090
+```
+
+这不是整个任务的终点。失败输出会作为 `Bash` 的 `tool_result` 回到消息图。下一轮模型看到配置已经修改、哪条断言仍是旧值，以及前面每个动作的配对关系，于是读取并修改测试，再运行一次。第二次测试返回 `PASS` 后，结果再次回灌；模型这次不再提出工具，而是向用户说明改了哪些文件、测试是否通过。客户端还会运行 Stop Hook 并检查轮次与恢复条件，全部放行后才形成 terminal result。
 
 ![一次 Claude Code 任务在上下文、Agent Loop、工具控制、外部状态和恢复状态之间循环](visuals/system-lifecycle.svg)
 
-贯穿本仓库的场景是：Claude 读取项目配置，把端口从 `8080` 改成 `9090`，运行测试，收到失败结果后再次修改。这个任务至少经历两次模型决策、多个工具调用和一次结果回灌；用户中途输入、权限拒绝、窗口不足或网络失败都会改变下一步，却不会把已经完成的外部动作自动抹掉。
+这条执行链就是整个系统的主干：模型负责根据当前观察提出下一步，客户端负责决定提议能否执行并保存因果关系，文件系统和进程负责承载已经发生的结果。下面的机制都可以从这条链上的一个具体时刻找到入口，而不需要先背一张模块分类表。
 
-| 对象 | 任务开始前 | 运行时转换 | 任务结束后 | 用户看到什么 |
-| --- | --- | --- | --- | --- |
-| 模型消息视图 | 当前历史、system prompt、工具目录 | 装配、缓存、清理或 compact | 可继续推理的有效上下文 | 回答是否连贯、token 是否增长 |
-| Agent Loop 状态 | `turnCount=1`、无本轮工具结果 | 请求模型、执行工具、吸收队列、判断终止 | 下一轮状态或 terminal reason | 连续执行还是提前停止 |
-| 外部状态 | 原配置和测试状态 | Edit/Bash/MCP 等工具改变真实世界 | 文件、进程或远端系统已变化 | 修改是否真实发生 |
-| 可恢复状态 | 旧 transcript/checkpoint | 追加消息、boundary、文件快照 | resume/rewind 可用的投影 | 重启后能恢复到什么程度 |
+## 模型第一次请求之前：上下文决定它能看到什么
 
-先记住一个边界：消息、摘要和 tombstone 属于“模型以后看到什么”；文件、进程、远端写入属于“世界已经发生什么”。前者可以重建，后者只有工具自身的幂等、检查点或补偿机制才能处理。
+第一次模型请求不只有用户那句话。客户端还会装入 system prompt、当前会话历史、项目与用户记忆、动态环境信息，以及这一轮真正可见的工具 schema。对话变长后，prompt cache、Tool Search、tool-result cleanup 和 compact 会改变这些内容的成本或表示方式，但不会替模型执行工具，也不会撤销已经完成的写入。
 
-## 先看完整请求生命周期
+要继续追请求是怎样组装出来的，读 [Prompt Assembly](prompt-assembly-and-system-reminders.md)；要理解缓存、工具 schema 延迟加载和上下文压缩，读 [上下文治理与多层缓存](context-governance-and-caching.md)。
 
-```text
-用户输入 / SDK message / queue message
-                  |
-                  v
-        [1. 会话与消息图]
-        选择 session、恢复 parent 链、装载 transcript
-                  |
-                  v
-        [2. 上下文治理]
-        system/user/tool schema 分层、cache breakpoint、
-        tool-result cleanup、compact、memory 注入
-                  |
-                  v
-        [3. Agent Loop]
-        建立本轮状态 -> 请求模型 -> 解析流 -> 判断下一状态
-                  |
-          assistant content stream
-                  |
-                  v
-        [4. 工具调度器]
-        tool_use block 一完成即可排队；并发安全工具重叠，
-        非并发安全工具形成顺序屏障
-                  |
-                  v
-        [5. 工具控制管线]
-        查找 -> JSON/schema -> validate -> PreToolUse ->
-        permission/policy -> call -> PostToolUse -> output schema
-                  |
-                  v
-        [6. 结果回灌与继续条件]
-        tool_result 配对、用户队列吸收、Stop hook、maxTurns
-                  |
-          +-------+-------+
-          |               |
-       再请求模型       terminal reason
-          |               |
-          +-----> [7. 持久化/检查点]
-                  transcript、file checkpoint、compact boundary
-                           |
-                           v
-                [8. MCP / Agent / Team]
-                动态工具刷新、子上下文、任务领取、mailbox
+## 从 `tool_use` 到真实调用：客户端掌握执行权
 
-所有阶段同时写入 [9. 可观测性]
-query/turn/tool/context/cache/retry/error/permission timing 与事件
-```
+模型输出 `Edit` 或 `Bash` 不代表系统已经接受。客户端还要确认工具当前确实存在，输入能通过 JSON/schema 与工具自身校验，Hook 和权限规则允许，必要时再进入 sandbox，调用完成后还要验证和映射输出。Hook 可以拒绝、延迟或改写输入；permission 可以要求一次性或更大范围的授权；这些决定都会影响随后写回模型的结果。
 
-这九层不是串行微服务。它们共享一个本地进程和若干显式状态对象：Agent Loop 在模型流未结束时已经能驱动工具；工具完成后可能触发 hook、消息队列和 MCP 刷新；compact 会重写下一轮发送给模型的消息视图，但 transcript 仍保留逻辑历史；fallback 可以丢弃失败模型产生的消息，却不能撤销已经发生的外部副作用。
+完整执行顺序见 [Agent Loop 专题](agent-loop.md) 和 [工具、权限与 Hooks](tools-permissions-hooks.md)。工具为什么“存在于发布物”却不一定进入本次请求，见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md)。
 
-`2.1.235` 还有四个不能塞进单一方框的专用运行时。Auto Mode 横跨 permission 和模型请求，但只处理确定性前置规则仍未裁决的动作；Plugin Eval 在主产品之外启动受限 child Agent Loop，用 ablation 和 grader 判断插件增益；Runtime Supervision 把 daemon、PTY、worker、rendezvous 和 Storage 投影拆成不同 owner；Enterprise Gateway 则是独立 Bun server，拥有 OIDC/session、managed policy、operator credential、spend/Postgres 和 OTLP fanout。另有多条经常被清单掩盖的横向合同：29 项人工维护的核心终端参考不等于 bundle 的 80 个同工厂 AST 注册调用点，更不等于一次请求的实际工具集合；普通 assistant text 存在不等于 Brief 主视图已经收到；Connector suggestion 不等于安装；MCP refresh 不等于新工具已进入当前 request；EndConversation 的 prompt 规则不等于客户端做过语义判案。对应入口见 [工具注册与宿主表面](tool-registration-and-host-surfaces.md)、[Brief 用户可见输出](brief-mode-and-user-visible-output.md)、[Connector/Catalog/MCP](connectors-catalog-and-mcp-operators.md) 和 [EndConversation 风控](end-conversation-risk-control.md)。
+## `tool_result` 回来之后：历史必须能解释刚才发生了什么
+
+客户端用 `tool_use_id` 把结果配回调用，并把这段因果写入会话历史。Transcript 保存事件，消息图保存逻辑父子关系，file checkpoint 保存受管文件的可恢复内容；它们解决的是不同问题。进程退出后，内存里的调度队列会消失，只有已经投影到这些持久对象中的状态才可能被 `resume`、fork 或 rewind 找回。
+
+这些对象的关系见 [会话、检查点与 Memory](sessions-checkpoints-memory.md)。模型回复、prompt、transcript、远端系统和本地文件分别流向哪里，见 [全局数据流与隐私](client-data-flow-and-privacy.md)。
+
+## 请求或工具失败之后：恢复的是具体对象，不是整个世界
+
+网络重试可以重发尚未完成的 API attempt，fallback 可以切换模型，reactive compact 可以重建更短的消息视图，tombstone 可以移除失败分支的临时消息，rewind 可以恢复受管文件。但已经启动的命令、已经发送的远端请求和已经完成的外部写入不会因为消息被删掉而自动撤销。恢复逻辑必须先回答“哪个 owner 持有这份状态”，再决定重试、重连、补偿还是停止。
+
+分层恢复路径见 [韧性与恢复](resilience-and-recovery.md)；后台执行、MCP、子 Agent 与团队状态的 owner 见 [MCP、Agents 与后台协作](mcp-agents-background.md)。
+
+## 整条链怎样被观察：事件不等于业务事实
+
+同一次任务会产生模型请求耗时、首 token、工具排队和执行、权限等待、Hook、compact、retry 与 terminal reason 等记录。它们可以帮助定位“慢在哪里、为什么停止”，但一条事件名存在只证明客户端定义或触发了一个候选观察；是否采样、是否导出、远端是否接收，以及业务动作是否真正成功，还要分别验证。
+
+先读 [遥测、日志与诊断](telemetry.md) 理解各条观测通道，再在 [事件语义目录](telemetry-event-catalog.md) 中查询具体事件和字段。
 
 ## 三条必须同时理解的闭环
 
@@ -122,23 +115,13 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 详见 [工具、权限与 Hooks](tools-permissions-hooks.md) 和 [韧性与恢复](resilience-and-recovery.md)。
 
-## 九个机制分别管什么
+## 按条件启动的专用运行时
 
-| 机制 | 核心对象 | 关键状态变化 | 主要失败表现 | 用户直接感受 |
-| --- | --- | --- | --- | --- |
-| 会话与消息图 | message UUID、parent、session、transcript | append、fork、compact boundary、resume 修链 | resume 找不到、parent 断裂、恢复到错误分支 | 历史是否连续、是否能 fork/继续 |
-| 上下文治理 | system/user/tool blocks、token budget | cache 标记、defer、cleanup、compact | cache miss、窗口阻塞、摘要丢细节 | 首 token、费用、长任务稳定性 |
-| Agent Loop | messages、toolUseContext、turnCount、transition | model -> tool -> result -> next/terminal | 无限重入、错误计轮、终止原因丢失 | 能否自主完成多步骤任务 |
-| 工具调度 | tool_use block、并发队列、屏障 | enqueue、overlap、barrier、abort | 顺序错乱、重复动作、工具悬挂 | 修改与测试是否按正确顺序发生 |
-| 权限与 hook | tool input、decision、updatedInput、policy | allow/deny/ask/defer/modify/block | 误授权、重复弹窗、hook 永久阻止 | 是否可预测地批准本地动作 |
-| MCP 与 Agent | tool registry、server generation、agent context | discover、invalidate、refresh、spawn、message | 工具目录过期、子 Agent 无结果 | 扩展能否即插即用、并行是否有效 |
-| 持久化与检查点 | JSONL、file snapshots、compact metadata | write、rewind、restore、prune | 文件能回退但外部动作不能回退 | checkpoint 是否真的救得回来 |
-| 韧性与恢复 | attempt、fallback、abort、tombstone | retry、switch model、reactive compact、terminal | 副作用已发生却再次执行 | 出错后是否继续、是否需要人工确认 |
-| 遥测与诊断 | query/turn/tool correlation、timing、event | queue、sample、batch、export、persist | 看见“慢”但分不清慢在哪 | 能否定位模型、权限、工具或 compact |
+上面的执行链解释普通请求怎样从模型提议走到真实结果。下面这些机制只在对应命令、设置、账号能力或环境出现时启动；它们有独立状态、失败和副作用，查到相关问题时再展开。
 
-### 十九个按条件启动的专用运行时
+<details>
+<summary>查看条件运行时的触发入口、状态和常见误判</summary>
 
-九条主链解释每次请求的共同骨架，下面这些机制只有在对应命令、设置、账号能力或环境出现时启动，但它们拥有独立状态、失败和副作用，不能被压扁成一个 feature flag：
 
 | 专用机制 | 触发入口 | 真正拥有的状态 | 最容易误判的地方 |
 | --- | --- | --- | --- |
@@ -161,6 +144,8 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 | Background model tasks | turn/session events、idle scheduler、feedback tool | recap/summary/suggestion/draft、Auto Dream lock 与 memory | `skipTranscript` 不等于不发上下文；只有 Auto Dream 改持久 memory |
 | Advisor | request-time eligibility、server tool | advisor model selection、server-tool blocks、strip retry | 不是第二个本地 Agent；咨询发生在服务端且增加 token/延迟 |
 | Ultrareview | `/ultrareview`、CLI cloud review | Git scope、cloud task/event、findings、fix/post consent | 云端 review 不直接改本地；post 只允许一条普通 PR comment |
+
+</details>
 
 ## 状态不是都存在同一个地方
 
@@ -190,22 +175,15 @@ query/turn/tool/context/cache/retry/error/permission timing 与事件
 
 这类状态不受“删掉一条 assistant message”支配。CLI 可以 abort 仍在运行的工具、tombstone 失败分支、恢复本地文件 checkpoint，但不能普遍撤销已经推送的 Git commit、已经发送的消息或已经完成的远端写操作。
 
-## 一次真实任务为什么会跨越所有层
+## 同一条执行链怎样处理并发和中途输入
 
-以“读取配置、修改端口、运行测试，并在失败时修复”为例：
+模型可以在一个响应中产生多个 `tool_use`。客户端不必等整段文字流结束才开始工作：一个完整 block 到达后就能进入调度器。只读且并发安全的调用可以重叠；`Edit` 这类会改变共享状态的调用形成屏障，后面的 `Bash` 不能越过它去测试旧文件。并发只改变等待时间，不改变每个结果与 `tool_use_id` 的配对关系。
 
-1. 会话层把用户消息写进当前 message graph，并确定它接在哪个 parent 后面。
-2. 上下文层装配 system prompt、memory、历史、工具 schema；若窗口接近阈值，先清理旧工具结果或 compact。
-3. Agent Loop 发起第一次模型请求，流式接收 Read、Edit、Bash 三个 `tool_use`。
-4. Read block 完成即可开始；Edit 形成写屏障；Bash 不能越过 Edit 提前测试旧文件。
-5. 每个工具都独立经过 schema、PreToolUse、权限和 sandbox；hook 还可以修改 input，修改后必须重新校验。
-6. 工具结果用原 `tool_use_id` 回灌。测试失败不是循环失败，而是一个可供模型判断的新观察。
-7. 用户在测试期间输入“端口改成 9090”，消息进入 queue，在下一次 API call 前被吸收，而不是改写已经发出的请求。
-8. 第二轮模型看到修改结果、测试错误和追加指令，再决定继续 Edit/Bash 或结束。
-9. transcript 保存逻辑过程，file checkpoint 保存可支持 rewind 的文件状态；若发生模型 fallback，失败分支消息可被 tombstone，但已完成的文件写入仍需显式恢复。
-10. query、turn、tool、permission、hook、compact 和 retry timing 让诊断者判断时间花在模型、等待审批、工具还是压缩上。
+用户也可能在测试尚未结束时补一句“测试里的旧端口也一起更新”。这条消息进入 queue，不会改写已经发出的模型请求，也不会篡改正在执行的工具输入。客户端在下一次 API call 前吸收它，让模型同时看到测试结果和新的用户要求；如果吸收失败，消息不会被静默丢弃。
 
-这才是“Agent 能执行多步骤任务”的技术含义：不是模型一次性规划得完美，而是运行时让它反复获得经过约束的新事实，同时保证状态仍可配对、可停止、可诊断。
+这期间，transcript 持续记录逻辑过程，file checkpoint 保存可支持 rewind 的文件状态。若模型请求发生 fallback，失败分支的临时消息可以被 tombstone，但已经完成的文件写入仍需显式恢复。`maxTurns=1` 也只阻止工具结果之后的下一次模型判断，不会把第一轮已经执行的工具当成没有发生。
+
+这才是“Agent 能执行多步骤任务”的技术含义：模型不必一次规划完美；运行时让它不断获得经过约束的新事实，同时保持调用与结果可配对、任务可停止、失败可诊断。
 
 ## 公开原理与本版本实现怎么对应
 

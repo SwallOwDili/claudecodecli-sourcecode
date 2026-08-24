@@ -1,55 +1,39 @@
 # Claude Code CLI 2.1.235 MCP、Agents 与后台协作：Claude Code 如何扩展一条主循环
 
-Claude Code 的扩展能力不是“启动时读取一张工具列表”这么简单。MCP server 会连接、鉴权、断开和重新列工具；Tool Search 会把大目录中的 schema 延迟到需要时；子 Agent 拥有独立上下文和循环；后台任务、team mailbox 与 task claim 又把多个执行单元连接起来。理解这些机制，才能判断工具为什么突然不可用、子 Agent 为什么花费更多 token、并行为什么产生重复工作，以及 resume 后为什么需要重新发现能力。
+一个隔离的 stdio MCP server 启动后，第一次 `tools/list` 只返回 `probe_echo`。Claude Code 把它包装成 `mcp__$SERVER__probe_echo`，连同当前可用的内置工具和 `Agent` 一起放进第一个 Messages 请求。主模型调用 `probe_echo` 后，MCP server 返回结果，同时发出 `notifications/tools/list_changed`，第二次 `tools/list` 开始返回新增的 `probe_new`。
 
-## 60 秒理解“扩展主循环”
+新增定义此时已经进入客户端的新 generation，却没有热插进正在组装的旧请求。精确二进制 Probe 观察到：第二个 Messages 请求仍只有 `probe_echo`，第三个请求才开始携带 `mcp__$SERVER__probe_new`。模型能否调用新工具，取决于具体请求里的 tool schema，不取决于连接面板是否已经显示 refresh 完成。
 
-**读者问题：** MCP server 已连接为什么模型仍看不到新工具，子 Agent 启动成功为什么主 Agent 还没有结果，后台任务又为什么在 resume 后不一定还活着？
+主模型随后把一项独立检查交给 `Agent` 工具。客户端没有把父对话复制给另一个模型，而是建立一条 child Agent Loop：它收到自己的 `SUBAGENT_CHILD_PROMPT_MARKER`、自己的 Messages 请求和过滤后的一个工具；请求中没有父级的 `SUBAGENT_PARENT_PROMPT_MARKER`。父子两条执行通道从这里分开：
 
-**一句话模型：** MCP 管动态能力目录和 schema generation；子/后台 Agent 用隔离的 Agent Loop 执行任务；Task、mailbox 和 notification 负责协调状态；主 Agent 只有在新 schema 进入请求或完成通知进入队列后，才能把它们当成新的观察。
+```text
+主 Agent                                      child Agent
+   | tool_use: Agent                               |
+   |---------------------------------------------->| 独立 Messages request
+   |                                               | 独立 prompt / tools / model loop
+   |<-- tool_result: async_launched                |
+   |    只含启动确认和 task/agent 身份              | 执行并产生 SUBAGENT_CHILD_RESULT_MARKER
+   |                                               |
+   |<-- task-notification: completed --------------|
+   |    携带最终 result/error                       |
+   |
+   | 下一次父 Messages request 吸收 completed notification
+   | 主模型读取 child 结果，作出最终决定 SUBAGENT_PARENT_OK
+```
 
 ![MCP 动态目录进入主循环，子 Agent 执行隔离任务，再通过通知回到父循环](visuals/mcp-agent-lifecycle.svg)
 
-贯穿场景：主 Agent 让子 Agent 检查测试，同时 MCP server 发布一个新工具。`tools/list_changed` 先让客户端刷新 generation，但已经组装的 Messages 请求不会被热改写；子 Agent 的 `async_launched` 只证明任务已登记，不是检查结果；完成后 notification 进入父队列，主 Agent 下一次迭代才同时看到新 schema 和子任务 findings。
+父循环收到的第一条反馈是与 `Agent` tool use 配对的 `async_launched`。它只证明后台任务已经登记，不能当作 child findings。child 完成后，task notification 才把 terminal state 与结果放进父队列；父 Agent Loop 在下一次请求边界消费这条新观察，然后决定结束、继续调用工具或再次委派。
 
-| 对象 | 谁拥有 | 状态变化 | 何时对主模型可见 | 失效/恢复边界 |
-| --- | --- | --- | --- | --- |
-| MCP tool catalog | MCP connection + generation | connect/list/change/relist/cache invalidation | 下一次真正重建 tools 的请求 | connected 不等于 schema 已驻留 |
-| Deferred schema | Tool Search/cache | 名称常驻，完整 schema 按需发现 | discover 后的请求 | 失效需跟随 generation |
-| 子 Agent context | 子 Agent Loop | 独立 messages/tools/model/permission/worktree | 通过 progress 或 completed notification | 不复制父级完整历史 |
-| Task/mailbox | registry/coordination layer | claim、ACK、progress、delivery、acknowledge | 父队列吸收时 | 元数据持久不等于旧进程仍运行 |
-| Worktree | Git/filesystem | 隔离文件修改 | 合并或显式读取后 | 不隔离端口、数据库和远端服务 |
+上面的 MCP refresh 和子 Agent 通知分别来自两份同版本隔离 Probe，不冒充同一个物理 session 的原始日志；它们共同证明了同一条客户端规则：**外部能力和协作结果都只能在请求边界成为模型的新观察。**
 
-后文先讲一条正常的“配置 -> 发现 -> 子任务执行 -> 通知 -> 主循环继续”路径，再处理 generation 延迟、权限 bubble、重复工作和后台耐久性。
+## 从这条链再命名三个状态
 
-## 总体拓扑
+**刷新状态**由 MCP connection、server tool catalog 和客户端 generation 共同持有。`tools/list_changed` 可以让旧 catalog 失效并触发 relist，但只有后续 request assembly 使用新 generation 时，主模型才真正得到新 schema；Tool Search 还可能继续延迟完整 schema 的驻留。
 
-```text
-                        +----------------------+
-                        | Main Agent Loop      |
-                        | messages/tools/state |
-                        +----------+-----------+
-                                   |
-             +---------------------+---------------------+
-             |                     |                     |
-             v                     v                     v
-      Built-in tools         MCP client set       Agent/Task tools
-                               |                     |
-                   +-----------+----------+          +------------------+
-                   |                      |                             |
-              MCP server A          MCP server B                 Subagent loop
-              list/call/auth         list/call/auth          own messages/tools/
-                   |                      |                   model/permissions
-                   +----------+-----------+                             |
-                              |                                         v
-                      generation refresh                      result/message/task
-                              |                                         |
-                              +----------------+------------------------+
-                                               v
-                                    next main-loop iteration
-```
+**隔离状态**由 child Agent Loop 持有：messages、tools、model/effort/maxTurns、permission context、abort controller，以及可选 worktree、cwd 和 transcript 都可以与父级不同。父级接收 progress 和压缩后的最终结果，不继承 child 的完整内部轨迹。
 
-主 Agent 并不共享子 Agent 的完整内部轨迹；它通常接收任务状态、progress 和最终压缩结果。MCP 工具也不是复制进二进制的内置函数；客户端持有 server connection/client 和当前工具定义，在 call 时跨 transport 调用外部实现。
+**后台状态**由 task registry、notification queue 和真正的执行 owner 分开持有。Registry 中有 task ID 或 UI 中仍有一行，不证明旧 Promise、worker 或远端 job 仍活着；只有拥有 durable metadata 的 daemon、Storage 或远端服务才能在新进程中被重新查询或 reattach。后文沿这三个 owner 继续展开配置、权限、claim、mailbox、worktree、失败与恢复。
 
 ## MCP 生命周期不是一次 `listTools`
 

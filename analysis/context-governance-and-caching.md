@@ -1,43 +1,71 @@
 # Claude Code CLI 2.1.235 上下文治理与多层缓存
 
-> 第一次理解 `/compact`，建议先读[图文机制专题](compact-visual-guide.md)。该专题用一个贯穿场景和三张图建立心理模型；本文继续下沉到 system prompt 分段、prompt cache、tool search、context hint、microcompaction、阈值、resume 和成本细节。
+## 从三轮 `Read` 请求看上下文怎样增长
 
-这份文档回答的不是“有哪些 context/cache 字段”，而是 Claude Code 在一次真实请求中如何决定：什么内容常驻、什么内容延迟加载、什么内容可以复用、什么时候清理、什么时候总结、总结后如何恢复，以及这些决定怎样影响速度、费用和回答质量。
+用户在 Claude Code 里输入：
 
-本文中的函数名是压缩 bundle 的定位符，不是 Anthropic 原始源码 API。主要证据来自 [`reverse/javascript/cli.readable.js`](../reverse/javascript/cli.readable.js)，机器结构来自 [`analysis/source-inventory/`](source-inventory/)。
+> 读取 `reverse/javascript/cli.readable.js` 第 408719 行附近，解释消息缓存点怎样选择。
 
-## 60 秒理解“治理”而不是只记 `/compact`
+模型此时还没看到目标代码。第一轮 Messages 请求中，与这个问题直接相关的内容可以缩写成：
 
-**读者问题：** 为什么同一个长任务会先出现 cache 命中、工具 schema 延迟加载、旧工具结果变短，最后才 compact；resume 后又为什么仍能接着工作？
+```text
+system:
+  Claude Code 的固定行为规则、工具使用规则……
 
-**一句话模型：** Claude Code 先装配完整可用上下文，再用 prompt cache 复用稳定前缀、用 Tool Search 延迟 schema、用 microcompaction 清理局部大结果，只有接近有效窗口时才用 Summary 重写历史表示；当前 `/compact`、reactive 和 partial 路径保留合法消息组，cold/full auto 或特定 SDK full compact 才使用无保留后缀的表示，最终都用 boundary 保持恢复关系。
+tools:
+  Read { file_path: string, offset?: number, limit?: number }
+
+messages:
+  user: 读取 cli.readable.js 第 408719 行附近，解释消息缓存点怎样选择。
+```
+
+模型先返回一个工具调用：
+
+```text
+assistant: tool_use(id=toolu_1, name=Read,
+  input={file_path:"reverse/javascript/cli.readable.js", offset:408719, limit:30})
+```
+
+Claude Code 执行 `Read` 后才发第二轮请求。这一轮不是只发送刚读到的代码，而是在第一轮消息后追加工具调用和结果：
+
+```text
+system: [与第一轮相同]
+tools:  [与第一轮相同的 Read schema]
+
+messages:
+  user:      读取 cli.readable.js 第 408719 行附近……
+  assistant: tool_use(id=toolu_1, name=Read, ...)
+  user:      tool_result(tool_use_id=toolu_1):
+               function $km({ messages: e, enablePromptCaching: t2, ... }) {
+                 ...
+               }
+```
+
+模型为了确认 `$km()` 的结果怎样写回请求，又读取第 410209 行附近。第三轮请求继续保留前两轮内容，并在末尾再追加一组消息：
+
+```text
+  assistant: tool_use(id=toolu_2, name=Read,
+               input={file_path:"reverse/javascript/cli.readable.js", offset:410209, limit:16})
+  user:      tool_result(tool_use_id=toolu_2):
+               function CpT(e, t2, r2, ...) {
+                 let { markerIndices: a } = $km(...)
+                 ...
+               }
+```
+
+这三个请求最前面的 system 规则和 `Read` 定义没有变化。它们就是适合复用的**稳定前缀**。Claude Code 仍然按请求语义携带这些内容，只是在合适的 block 上写入 `cache_control`；前缀相同且缓存仍有效时，API 可以复用已经处理过的部分。这才是 **Prompt Cache**：它降低重复输入的处理费用和首 token 延迟，不会从逻辑上下文中删除 system prompt，也不会让后面的 `tool_result` 消失。
+
+这里只有一个 `Read`，工具定义很短。如果同一位置还放着几十到上百个 MCP 工具的 name、description 和 input schema，它们即使从未被调用，也会占用上下文。**Tool Search** 解决的是这部分常驻体积：候选工具先以 deferred 形式存在，Claude 选中某个工具后再取得其完整 schema。它改变的是 schema 何时进入模型上下文，不是缓存 `Read` 返回的文件正文。
+
+再看 messages：第二轮加入 `$km()` 的源码，第三轮又加入 `CpT()` 的源码；继续读文件、跑测试时，每个新的 `tool_result` 都会沿这条消息链累积。Prompt Cache 可以复用已经出现过的消息前缀，却不能阻止逻辑 token 总量继续增长。旧工具结果满足后文的候选范围和节省阈值时，Claude Code 才会用 **microcompaction** 把其中的大块正文换成持久化提示或 `[Old tool result content cleared]`，同时留下工具调用关系和近期结果。
+
+局部清理之后，用户需求、模型判断、工具调用和仍需保留的结果还会继续增长。如果用户没有手动输入 `/compact`，客户端会等这份活跃历史逼近有效上下文窗口，才自动用 **compact** 处理更大的范围：让模型总结较早历史，再用较短的消息表示继续后续请求。它改写的是历史表示，不是 Prompt Cache；各条 compact 路径怎样选切点、是否保留近期消息组以及 resume 怎样借 boundary 恢复，后文分别展开。第一次单独理解 `/compact` 时，可配合阅读[图文机制专题](compact-visual-guide.md)。
 
 ![上下文从装配和缓存复用，经过局部清理与全局 compact，最终形成可恢复的下一次请求](visuals/context-control-lifecycle.svg)
 
-贯穿场景：一个重构任务已经读过大量源码，MCP 又提供数十个工具，最近一次测试输出很长。下一轮请求不会立刻把整段会话总结掉：稳定 system 前缀可被缓存，未用工具 schema 可以 defer，旧 tool result 可以清理；只有有效输入预算继续逼近 compact line 时，客户端才把较早历史替换成 summary、按实际路径保留近期合法消息组并写入 compact boundary。
+上面的字段是为了阅读而缩写的请求形状，省略了 UUID、HTTP header、完整 system 文本和 schema，不是逐字抓包。`2.1.235` 只启用 `Read` 时发出的首个 Messages 请求已由 [`runtime-controls.json`](runtime-probes/runtime-controls.json) 捕获；该 Probe 使用的是 `REQUEST_SHAPE_MARKER`，文中的源码问题只负责把同一请求结构具体化。本文中的函数名是压缩 bundle 的定位符，不是 Anthropic 原始源码 API。主要代码证据来自 [`reverse/javascript/cli.readable.js`](../reverse/javascript/cli.readable.js)，机器结构来自 [`analysis/source-inventory/`](source-inventory/)。
 
-| 对象 | 治理前 | 转换 | 治理后 | 解决的问题 |
-| --- | --- | --- | --- | --- |
-| 稳定 system/message 前缀 | 每轮重复出现 | 写入 cache breakpoint 和 TTL 策略 | 逻辑内容仍在，但可被 API cache 复用 | 降低重复前缀成本与首 token 延迟 |
-| 工具 schema | 大目录全部可能驻留 | Tool Search/deferred schema 按需发现 | 只装入当前需要的完整定义 | 降低常驻 token，不缓存工具结果 |
-| 旧 tool result | 大块输出挤占窗口 | context hint 或本地 microcompaction | 占位信息加近期完整结果 | 腾出窗口，同时保留近期因果 |
-| 活跃历史 | 长消息图接近有效上限 | manual/reactive/partial: summary + preserved groups + attachments；cold/full: 无 preserved groups | 更短的有效消息视图 | 继续任务，但承担摘要损失风险 |
-| Transcript 关系 | 物理事件仍完整存在 | 写 compact boundary 和保留 UUID | resume 可重建逻辑历史 | 跨进程恢复，不等于 prompt cache |
-
-下面按成功主线解释每层的 owner、阈值和状态变化，再分别处理 cache miss、prompt-too-long、预计算过期和 rapid-refill 等失败路径。
-
-## 先看结论
-
-Claude Code 2.1.235 的上下文治理不是单一的“快满了就 `/compact`”，而是六个互相配合的层次：
-
-1. **装配层**：把固定行为规则、当前机器状态、项目记忆、工具 schema、Agent/skill 描述和历史消息装成请求。
-2. **前缀复用层**：把 system prompt 分成稳定前缀和组织/会话动态后缀，在 system 与消息尾部写入 prompt-cache breakpoint。
-3. **按需加载层**：大工具目录只先驻留工具名，需要时再把完整 schema 加入上下文。
-4. **局部清理层**：旧工具结果超过可节省阈值时，用 context hint 或本地 microcompaction 清掉大块历史输出，但保留最近结果。
-5. **全局总结层**：上下文接近有效窗口时预计算或执行 auto-compact，把长历史压成摘要并写入 compact boundary。
-6. **持久恢复层**：JSONL transcript、compact boundary、逻辑父节点、memory 文件和预计算摘要 sidecar 共同支持 resume；它们是状态存储，不应和 API prompt cache 混为一谈。
-
-这六层分别解决不同问题。Prompt cache 降低重复前缀的推理成本，但不减少逻辑上下文长度；tool search 和 microcompaction 降低驻留 token；auto-compact 改写历史表示；transcript/memory 负责跨进程延续。
+下面从第一轮请求内部开始，逐项看这些内容由谁装入、怎样计量，以及何时被复用、延迟或改写。
 
 ## 一次请求到底装了什么
 
@@ -138,7 +166,7 @@ CLI 选项 `--exclude-dynamic-system-prompt-sections` 会把 cwd、env info、me
 | 进程内 model config cache | `models.retrieve()` 返回的模型配置 promise/result | 规范化模型 ID 相同 | 进程退出或 provider cache 重建 | 减少配置网络等待，不等于模型响应 cache |
 | API system-prefix cache | 稳定 system prompt block | 同模型/provider/beta 下，breakpoint 前渲染前缀一致且 TTL 未过期 | 稳定块内容/顺序变化、模型/beta/provider 变化、TTL 到期、显式关闭 | 直接降低重复输入费用和 TTFT |
 | API message-prefix cache | 历史消息直到 marker 的前缀 | marker 前消息序列可复用 | 新 breakpoint 前的消息变化、fork 位置变化、`skipCacheWrite`、TTL 到期 | 长会话每轮不用全价重算全部历史 |
-| 预计算 compact cache | 已生成但尚未交换进主历史的 summary/boundary | session、agent、model、CLI version、边界 UUID 和时效校验通过 | 模型/版本/session 不一致、边界缺失、超时、内容继续演化不兼容 | 把等待从“满了以后”前移到用户仍在工作时 |
+| 预计算 compact cache | 已生成但尚未交换进主历史的 summary/boundary | session、agent、model、边界 UUID、时效和历史增长校验通过 | 模型/session 不一致、边界缺失、超时、内容继续演化不兼容 | 把等待从“满了以后”前移到用户仍在工作时 |
 | 认证/实验等依赖 cache | OAuth token、GrowthBook、本地依赖缓存 | 各依赖自己的 key/expiry | token expiry、配置刷新、登出等 | 属于基础设施，不应算作上下文 cache |
 
 ### 进程内工具 schema cache
@@ -451,10 +479,12 @@ blocked_line = model_input_ceiling - 3k
 
 - format version；
 - session ID 和 main agent key；
-- model 与 CLI version；
+- model；
 - 创建时间和 ready duration；
 - `precomputedAtUuid` 是否仍存在于当前历史；
 - pre-compact token 与 hook 结果是否可接受。
+
+Sidecar 同时保存 `cliVersion`，rehydrate telemetry 也记录 `cliVersionMatch`；但 `2.1.235` 的拒绝分支不会仅因 CLI version mismatch 拒绝复用。不能把“字段被记录”写成“版本不一致必然失效”。
 
 具体拒绝线包括：创建超过 604,800,000ms（7 天）、当前历史比预计算点增长超过 150,000 token、缩减超过当时 token 的一半、boundary UUID 或任一 preserve UUID 缺失。通过后，达到真正 compact line 时直接 swap 已准备摘要，并把预计算之后的新消息作为 `messagesSince` 追加保留。校验失败会删除 sidecar、记录具体原因并重新走普通总结，不把旧 summary 硬塞进新历史。连续 3 次可计数失败后不再继续 re-arm。证据见 262324-262680。
 

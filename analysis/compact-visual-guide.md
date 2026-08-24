@@ -1,176 +1,271 @@
-# Claude Code `/compact`：一次长任务怎样被压短又接着干（2.1.235）
+# Claude Code 2.1.235 的 `/compact` 到底做了什么
 
-用户让 Claude 重构评论分页。它已经读过服务代码，试过一个错误方案，跑出两次测试失败，刚找到 cursor 的边界问题。对话越来越长，用户输入：`/compact 保留测试失败原因和当前重构计划`。
+`/compact` 改变的是 Claude Code 下一次发给模型的对话，不是工作区里的代码，也不是已经执行过的命令。
 
-**读者问题：** Claude Code 接下来究竟压缩了什么？旧细节减少后，模型凭什么还能接着修改同一个功能？
+下面直接看一次 Claude Code 会话。任务就是分析 `/compact` 自己，不引入其他业务例子。
 
-> 本文只讲 Claude Code CLI `2.1.235` 的 `/compact`。结论来自该版本可读化 bundle；手动 compact、消息视图切换和 resume 另有同版本精确二进制 Probe。
+## 压缩前：模型和客户端已经来回执行了很多轮
 
-## 60 秒模型：它在做一次工程换班
-
-**一句话模型：** 客户端把旧工作记录换成一份短工作包：Summary 保存较早经历，近期因果组保存刚才的现场，精确附件补回仍要使用的材料；它另在本地会话档案里写一条 Boundary，供以后 resume 接班。
-
-![普通手动 compact 未命中预计算时，客户端总结较早历史、保留近期因果、恢复精确材料并写入边界](visuals/compact-lifecycle.svg)
-
-可以把它理解成一次工程换班：Summary 是交接报告，近期消息组是刚刚发生的施工记录，Attachments 是重新摊在桌面的图纸和配置，Boundary 是会话档案中的交接分界页。
-
-这里是一个“3+1”结构：前三项组成下一次模型请求的短工作包；Boundary 留在 transcript 中，负责记录这次表示切换，不是作为普通业务内容再发给模型。
-
-### 场景里的信息去了哪里
-
-评论分页任务有四条关键信息：较早的“不能修改数据库结构”、V1/V2 的测试失败、刚刚读到的 cursor 边界代码，以及 Plan 中“修完后重跑测试”的待办。
-
-普通 `/compact` 不会识别并删除失败版本、只留下成功态。它会把不同信息交给不同精度的载体：
-
-| 对象 | Compact 前 | 转换 | Compact 后 | 用户可见影响 |
-| --- | --- | --- | --- | --- |
-| 较早对话 | 约束、错误尝试和决定散在长历史里 | 模型生成有损摘要 | Summary 承接远期语义 | 对话变短，逐字细节可能丢失 |
-| 最近工具因果 | `tool_use` 与 `tool_result` 必须配对，后续判断可能属于下一 group | 按合法 group 保留 | Preserved messages 保存近期现场 | Claude 知道刚才做了什么 |
-| 工作材料 | 文件、Plan、Skills、MCP 等位于外部状态 | 客户端重新读取和组装 | Attachments/Hooks 补回精确材料 | 关键代码不必依赖 Summary 背诵 |
-| 本地 transcript | 含 compact 前事件 | 追加 Summary 与 boundary | 逻辑视图改用新表示 | Resume 不会机械回灌全部旧事件 |
-
-下面只沿一次**没有命中预计算结果的普通手动 `/compact`**走到底。预计算和自动触发放到主线讲完之后。
-
-## 第一步：客户端先决定“总结哪一段，哪一段保留因果”
-
-用户输入 `/compact ...` 后，客户端不再把它当成普通业务问题。客户端运行 `PreCompact` hook；本例假设 Hook 放行，并且当前没有可复用的预计算结果。
-
-客户端接下来不能简单从“最后 N 条消息”处切开历史，因为工具调用和工具结果必须保持合法配对：
+用户在 Claude Code 中输入：
 
 ```text
-assistant: tool_use(id=42, Read)
-user:      tool_result(tool_use_id=42, 文件正文)
+找出 Claude Code 2.1.235 执行 /compact 后发生了什么。
+必须确认四件事：Summary 怎样生成、近期消息是否保留、文件怎样补回、Resume 怎样接续。
 ```
 
-如果只留下第二条，下一次 API 请求虽然更短，消息结构却坏了。因此客户端先按合法因果 group 划分历史，再把较早 groups 交给模型总结，把近期 groups 的内容、UUID 和工具因果保留下来。保留的 assistant message 会清零四项旧 usage 计数，所以它不是 JavaScript 对象逐字段不变。
+模型不能直接回答。它先让客户端搜索发布 bundle：
 
-当前 manual `/compact` 从“至少保留最后 1 个合法 group”开始尝试。它不是固定保留一条消息，也不是固定保留最近一轮。
+```text
+assistant:
+  tool_use(id=grep-compact, Grep)
+  pattern: "CRITICAL: Respond with TEXT ONLY|compact_boundary|messagesToPreserve"
+  path: reverse/javascript/cli.readable.js
+```
 
-放回评论分页场景：较早的数据库约束、V1/V2 失败和设计讨论可以进入待总结前缀。最近的 `Read pagination.ts` 与配对的文件正文 `tool_result` 属于一个合法 group；读取后的下一条 assistant 判断通常已经进入另一个 group。两组是否都在 preserved suffix 中，取决于实际切点，不能把三者说成必然一起原样保留。
+Claude Code 客户端执行 `Grep`，再把结果作为同 ID 的工具结果放回消息历史：
 
-## 第二步：模型收到一份专门的“工程交接任务”
+```text
+user:
+  tool_result(tool_use_id=grep-compact)
 
-客户端在待总结前缀末尾加入一条虚拟用户消息。它不是一句随意的“总结一下”，而是强制模型暂停业务工作的专用任务：
+  261902  CRITICAL: Respond with TEXT ONLY. Do NOT call any tools.
+  261933  t2 = t2.replace(/<analysis>...<\/analysis>/, "")
+  262271  messagesToPreserve: m.flat()
+  263175  async function wmi(...)
+  399359  subtype: "compact_boundary"
+```
+
+模型接着读取 Summary 提示词和解析器：
+
+```text
+assistant:
+  tool_use(id=read-summary, Read)
+  file_path: reverse/javascript/cli.readable.js
+  offset: 261901
+  limit: 160
+```
+
+工具返回的源码片段中包含：
+
+```js
+CRITICAL: Respond with TEXT ONLY. Do NOT call any tools.
+Your entire response must be plain text:
+an <analysis> block followed by a <summary> block.
+
+function IzS(text) {
+  text = text.replace(/<analysis>[\s\S]*?<\/analysis>/, "");
+  // 匹配到 <summary> 时改写成 Summary: ...
+}
+```
+
+到这里，模型只能证明“客户端会要求生成 Summary，并尝试删除 analysis”。它还没有证明 Summary 之外保留了什么。
+
+用户继续纠正：
+
+```text
+不要只分析提示词。继续确认当前手动 /compact 是否保留 tool_use/tool_result，
+压缩后会重新读取哪些文件，以及 compact_boundary 如何参与 Resume。
+```
+
+模型又发起多次工具调用：
+
+```text
+Read 232845-232885  -> manual/reactive group compactor 与 finalize
+Read 262247-262294  -> 合法消息分组和 messagesToPreserve
+Read 263175-263235  -> 最近文件、Plan、Skills、MCP 与 Hook 附件
+Read 211993-212001  -> compact_boundary 的序列化字段
+Read analysis/runtime-probes/agent-loop-tool-result-resume.json
+                    -> /compact、fork 和 resume 的真实请求变化
+Bash python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
+                    -> snapshot validation: PASS
+```
+
+每次 `Read` 都会把源码正文变成 `tool_result`，每次验证都会把输出放回下一轮请求。加上用户纠正、模型判断和其他上下文，这条会话会越来越长。
+
+此刻任务状态是：
+
+- Summary 提示词和双标签解析已经确认；
+- 手动 `/compact` 的合法消息分组已经确认；
+- 最近文件恢复的 `5 / 5,000 / 50,000 token` 限制已经确认；
+- Boundary 字段和同版本 Probe 已经找到；
+- 还需要把这些证据整理成一篇准确说明。
+
+用户这时输入：
+
+```text
+/compact 保留用户的两次要求、关键源码位置、Probe 结果和剩余写作任务
+```
+
+## 压缩后：下一次模型实际拿到什么
+
+`/compact` 完成后，客户端不会把上面所有搜索结果、源码片段和验证输出原样再次发给模型。
+
+下面是基于 `2.1.235` 客户端规则构造的说明性结果。Summary 的具体措辞由模型生成，保留多少近期消息也取决于本次切点；它不是固定 wire dump。
+
+### 较早内容变成一段新文本
+
+本例可能生成这样的 Summary：
+
+```text
+Summary:
+
+1. Primary Request and Intent:
+   解释 Claude Code 2.1.235 的 /compact。
+   必须覆盖 Summary、近期消息、文件恢复和 Resume。
+
+2. Key Technical Concepts:
+   manual compact miss、合法消息 group、preserved messages、
+   attachment、compact_boundary、逻辑消息视图。
+
+3. Files and Code Sections:
+   cli.readable.js 261901-262207：Summary prompt 与标签解析。
+   cli.readable.js 262247-262294：group compactor。
+   cli.readable.js 263175-263235：附件恢复。
+   cli.readable.js 211993-212001：Boundary 字段。
+
+4. Errors and Fixes:
+   最初只分析了 Summary prompt；用户指出还必须验证近期消息、附件和 Resume。
+   随后补读 group compactor、附件和 Boundary 路径。
+
+5. Problem Solving:
+   已确认 compact 不是只留一段摘要，而是重建下一次请求使用的历史。
+
+6. All User Messages:
+   用户先要求解释四部分，随后纠正“不要只分析提示词”。
+
+7. Pending Tasks:
+   把证据写成读者可理解的文章，并保留精确阈值和失败边界。
+
+8. Current Work:
+   源码与 Probe 已核验，文章尚未完成。
+
+9. Optional Next Step:
+   按客户端真实顺序写完 /compact 专题并运行验证。
+```
+
+这段新文本在实现中叫 compact Summary。九个标题来自客户端提示词；具体句子不是固定输出。
+
+Errors and Fixes、Problem Solving 会保留失败和用户纠正。因此真实机制并不是“识别失败版本，删掉失败，只留下成功”。它要把失败原因压缩成后续仍可使用的语义。
+
+### 最近的完整消息可以继续保留
+
+假设本次切点保留了最后两个消息组，下一次请求里还可能存在：
+
+```text
+assistant:
+  tool_use(id=read-boundary, Read)
+  file_path: reverse/javascript/cli.readable.js
+  offset: 211993
+  limit: 20
+
+user:
+  tool_result(tool_use_id=read-boundary)
+  compact_metadata: trigger, pre_tokens, post_tokens,
+  preserved_segment, preserved_messages ...
+
+assistant:
+  已确认 Boundary 保存前后 token 和 preserved UUID；
+  下一步把它与 Resume 修链放进文章。
+```
+
+第一条 assistant 工具调用和紧随的 user 工具结果属于一个消息组；后面的 assistant 判断通常是下一个组。客户端不能只保留 `tool_result` 而丢掉同 ID 的 `tool_use`，否则工具因果关系不合法。
+
+这些没有被 Summary 改写、仍以原内容进入新上下文的近期消息，叫 preserved messages。当前 manual `/compact` 至少从保留最后一个合法组开始，但不保证固定保留最后 N 条，也不保证上面两个组每次都会同时留下。
+
+### 最近使用的文件可以被重新装入
+
+客户端会从最近文件集合中重新装入有限的精确材料。如果 `reverse/javascript/cli.readable.js` 进入恢复集合，模型会再次获得受限长度的文件内容，而不必完全依赖 Summary 复述源码。
+
+这种压缩后重新加入的精确材料属于 attachment。`2.1.235` 最多恢复 5 个最近文件；每个文件最多 5,000 token，恢复文件合计最多 50,000 token。文件未被选中、超过预算或读取失败时，不能假装它已经被精确补回。
+
+### Boundary 留在本地会话记录中
+
+Compact 成功后，客户端还会向本地 JSONL transcript 追加 `system/compact_boundary`。简化后可以这样理解：
+
+```text
+compact_boundary:
+  trigger: manual
+  pre_tokens: 压缩前 token
+  post_tokens: 压缩后 token
+  preserved_messages: 被保留消息的 UUID
+```
+
+Boundary 不是第二份 Summary，也不是普通业务内容。它告诉后续 Resume：较早历史已经由 Summary 替代，哪些近期消息仍要接回新链。
+
+## 为什么压缩后还能继续分析 `/compact`
+
+下一轮模型现在掌握四类信息：
+
+- 从 Summary 得知用户两次要求、已确认事实和剩余写作任务；
+- 从 preserved messages 得到近期 Read 的精确输入、结果和判断；
+- 从 attachment 重新取得仍需引用的源码材料；
+- 从 compact 后的新输入得知接下来要继续完成什么。
+
+所以 `/compact` 不是“把全部聊天压成一段摘要”。在当前手动路径中，它总结较早内容，保留部分近期完整消息，再补回仍需使用的精确文件。
+
+![普通手动 compact 会总结较早历史、保留近期因果、恢复精确材料并写入边界](visuals/compact-lifecycle.svg)
+
+## 客户端怎样完成这次切换
+
+上面的例子已经展示了输入和结果。现在再看内部顺序。
+
+### 先找一个不会拆散工具调用的切点
+
+客户端运行 `PreCompact` hook。本例假设 Hook 放行，并且当前没有可复用的预计算结果。
+
+随后客户端按合法消息组切分历史：较早组交给模型总结，近期组留在新上下文中。当前 manual 路径至少从保留最后一个合法组开始；如果 Summary 请求仍然超窗，它会多保留一些尾部组，缩短待总结前缀，再次尝试。
+
+Preserved assistant message 的内容、UUID 和工具因果会保留，但四项旧 usage 计数会清零。因此“保留”指消息语义与关系继续存在，不是 JavaScript 对象每个字段逐字节不变。
+
+### 总结请求只能生成文本，不能继续干活
+
+客户端在待总结前缀末尾加入一条虚拟用户消息，核心要求是：
 
 ```text
 CRITICAL：停止当前业务工作，只生成对话总结。
 
 不要调用 Read、Bash、Grep、Glob、Edit、Write 或任何其他工具。
 先输出 <analysis>，按时间检查要求、文件、决定、错误和反馈；
-再输出 <summary>，形成可继续工作的工程交接文档。
+再输出 <summary>，形成可继续工作的工程交接内容。
 ```
 
-这次请求只允许一轮模型决策，客户端的工具权限函数也固定返回 deny。Prompt 负责把模型带入总结模式，权限层保证这一轮只能产出交接文本，不能继续读文件或跑命令。
+这次请求只允许一轮模型决策，工具权限函数固定返回 deny。模型不可用且策略允许时，客户端沿 fallback chain 重试；这里不存在一套永远固定的“模型 A 写代码、模型 B 管上下文”。
 
-### 九段 Summary 为什么像一份工程交接单
+提示词要求先写 `<analysis>`、再写 `<summary>`。解析器匹配到标签时会删除 analysis，把 summary 改写成后续上下文里的 `Summary:`。这不是严格的结构化输出 schema：若模型返回非空文本却缺少完整标签，当前路径仍可能接受整段文本。
 
-本次总结模板要求九段内容：
+### Summary、近期消息和附件被重新组装
 
-| Summary 段落 | 在评论分页场景中试图保住什么 |
-| --- | --- |
-| Primary Request and Intent | 重构分页，以及“不能改数据库结构”的约束 |
-| Key Technical Concepts | cursor 分页、边界条件和当前架构 |
-| Files and Code Sections | 已读、已改文件及其作用 |
-| Errors and Fixes | V1/V2 为什么失败、怎样修正 |
-| Problem Solving | 已排除的方向和仍需验证的问题 |
-| All User Messages | 待总结范围内的用户反馈和需求变化 |
-| Pending Tasks | 修复边界并重跑测试 |
-| Current Work | compact 前正在检查的 cursor 条件 |
-| Optional Next Step | 与最近任务直接一致的下一步 |
+客户端把模型生成的 Summary、选中的近期消息组、最近文件与当前任务状态组装成新的有效上下文。Summary 保存较早语义，近期消息保存刚发生的精确因果，附件补回当前材料。
 
-模板明确要求保留 errors、fixes 和 problem solving。因此它做的是“把失败经验压成语义”，不是“删除失败，只留成功”。
+几部分出现重复并非错误。例如 Summary 会记录某个函数和行号，attachment 里也可能再次出现同一段源码。前者保证任务含义仍在，后者保证精确代码不完全依赖模型复述。
 
-这些栏目是保真目标，不是无损保证。Summary 仍由模型生成，可能遗漏精确值；用户可以通过 `/compact <instructions>`，项目也可以通过 `PreCompact` hook，强调本次必须关注的约束。
+![Compact 前的长历史被重建为 Summary、近期消息、精确附件和后续输入](visuals/compact-rebuilt-context.svg)
 
-## 第三步：客户端删掉整理草稿，只留下正式交接内容
+### Boundary 让 Resume 采用新历史
 
-提示词要求模型先输出 `<analysis>`，再输出 `<summary>`。这里的 `<analysis>` 是应用层提示格式，不等于 API 原生 thinking。
-
-客户端的解析器会尽力执行：
+下一次模型请求使用的是：
 
 ```text
-匹配到 <analysis>...</analysis>  -> 删除
-匹配到 <summary>...</summary>    -> 改写为 Summary: ...
+Summary + preserved messages + attachments/hooks + compact 后的新输入
 ```
 
-标签匹配时，梳理时间线的 analysis 草稿被删除，正式 Summary 进入新历史。但这不是严格的结构化输出 schema：若模型返回非空文本却没有完整标签，当前路径仍可能接受整段文本。双标签主要由强 prompt 约束，Compact 的语义质量仍然依赖模型，不是客户端逐字段填表。
+本地 transcript 则仍能记录 compact 前事件、Summary、Boundary 和之后的新事件。Resume 读取 JSONL 时不会把所有物理行原样塞回模型，而是按 Boundary 中的保留关系重建逻辑消息链。
 
-## 第四步：客户端重新搭一张工作台，而不是只留下 Summary
+如果 Summary 漏了更早的精确片段，客户端会在路径可用时把完整 transcript 路径告诉模型；模型需要主动 `Read`。这是沿明确路径补查，不是客户端发现“记忆缺失”后自动搜索一个外部语义记忆库。
 
-如果 compact 只留下模型摘要，压缩率会很高，接班质量却不可靠。摘要擅长保留“为什么这样做”，不保证逐字符保存代码、配置、测试输出和工具因果。
-
-所以客户端把下一次上下文重建成三层：
-
-![Compact 前的长历史被重建为 Summary、近期消息、精确附件和运行状态](visuals/compact-rebuilt-context.svg)
-
-**第一层是 Summary。** 它保存较早的目标、约束、错误、决定和待办，压缩率高，但有损。
-
-**第二层是 preserved messages。** 当前 manual 路径保留近期合法 group；工具调用、结果、内容和 UUID 继续配对。它负责保存“刚才发生了什么”。
-
-**第三层是精确附件。** 客户端重新读取最近相关文件，并补回当前任务和运行状态。Plan、Skills、MCP 与 hook 等具体材料由各自装配逻辑提供，读者不需要先记住完整名单。
-
-`2.1.235` 对**文件恢复**有明确预算：最多 5 个文件，每个最多 5,000 token，所有恢复文件合计最多 50,000 token。这个上限只针对恢复文件，不是所有 attachment 的统一上限。
-
-这就是为什么 Summary 与附件可能重复：Summary 用低精度保存理解，附件用受限长度保存精确材料。客户端宁可花一部分 token 重读 `pagination.ts`，也不要求摘要逐字背出代码。
-
-```text
-压缩前：数据库约束 + V1/V2 失败 + Read/tool_result + 当前 Plan
-
-压缩后：Summary 中的约束与失败经验
-       + preserved suffix 中仍合法存在的近期 groups
-       + 重新读取的 pagination.ts 与当前任务状态
-       + 用户 compact 后的新输入
-```
-
-在当前 manual/reactive 路径中，如果附件恢复失败，客户端会记录错误并退化到仍能取得的材料；它不会把不存在的精确附件当成恢复成功。
-
-## 第五步：Boundary 让下一轮和 Resume 都采用新历史
-
-重建完成后，客户端向 transcript 追加 `system/compact_boundary`。它不是第二份 Summary，而是一条恢复元数据，说明较早历史已经由新表示替代。
-
-Boundary 记录 compact 的来源、前后 token 和保留消息的 UUID 关系，让客户端以后知道较早历史已由 Summary 接管。
-
-```text
-物理 transcript：旧事件 + Summary/boundary + compact 后的新事件
-下一次逻辑历史：Summary + 近期合法 groups + Attachments/Hooks + 后续输入
-```
-
-Resume 读取 JSONL 时，不是取最后 N 行，而是按 Boundary 指向的保留关系重建逻辑消息链。因此磁盘档案和模型工作历史可以同时存在，却不会一起完整塞回 context。
-
-### 评论分页任务为什么还能继续
-
-用户接着说：“修复 cursor 边界，然后重跑测试。”下一次模型从 Summary 得知“为什么不能改数据库”；近期 Read 结果若仍在 preserved suffix，可直接提供 cursor 代码，否则重新读取的文件 attachment 可以补回精确材料。模型随后继续修改并运行测试。
-
-它看起来像从原对话无缝继续，实际是在一份新的短工作包上继续。
-
-如果 Summary 漏了更早的精确片段，客户端会在路径可用时把完整 transcript 路径告诉模型；模型需要主动 `Read`。这是**沿明确路径补查**，不是客户端检测“记忆缺失”后自动语义检索。
-
-## 两个必要分支：预计算和自动阈值
-
-到这里，真实 compact 的核心状态变化已经结束。预计算和自动阈值只回答两个问题：Summary 能不能提前写，以及客户端什么时候自动进入这条流程。
-
-### Precomputed compact：把等待前移
+## 预计算只是把 Summary 提前写好
 
 上下文到达 precompute line 后，客户端可以在后台对当时的历史预写 Summary，但不立即替换主历史。当前进程中的 ready result 命中时，客户端确认预计算点仍在当前历史，再把之后的新消息作为 `messagesSince` 接入保留区。
 
-因此 precomputed hit 在**这一次 compact**不发新的 Summary 请求；模型调用只是提前发生了。若用户给 `/compact` 加了新 instructions、Hook 追加了新要求，或预计算点已不在当前历史，客户端放弃复用，回到前面讲过的普通 miss。磁盘 sidecar 在重新装入内存前还会做更完整的 session、model、时间、增长和 preserve UUID 校验，细节放在文末证据层。
+因此 precomputed hit 在**这一次 compact**不发新的 Summary 请求；模型调用只是提前发生。若用户给 `/compact` 加了新 instructions、Hook 追加了新要求，或预计算点已不在当前历史，客户端放弃复用，回到前面讲过的普通路径。
 
-### Auto-compact：阈值来自预算公式
+磁盘 sidecar 在重新装入内存前还会检查 session、model、7 天期限、150,000 token 增长、缩减一半和 preserve UUID。Sidecar 记录 CLI version，但 `2.1.235` 不会仅因 CLI version mismatch 拒绝复用。
 
-手动 `/compact` 可以随时执行。自动路径必须先给模型输出留位置，再给“开始总结、提醒用户、最终阻断”留出不同缓冲。
+## 自动触发线怎样算出来
 
-先用 200k 窗口把两个容易混淆的分母讲清楚：原始 context 是 200k；预留最多 20k 输出后，本例真正可用于输入判断的 budget/ceiling 是 180k。后面的 13k、20k 和 3k 都从对应预算线继续扣，不是直接拿一个固定百分比乘 200k。
+手动 `/compact` 可以随时执行。自动路径必须先给模型输出留位置，再给“提前生成、提醒用户、执行 compact、最终阻断”留出不同缓冲。
 
-```text
-input_budget    = effective_window - min(max_output_tokens, 20k)
-compact_line    = input_budget - 13k
-precompute_line = min(input_budget - input_budget * precompute_fraction,
-                      compact_line)
-warn_line       = compact_line - 20k
-blocked_line    = model_input_ceiling - 3k
-```
-
-代入 200k context、20k 输出预留和默认 20% precompute fraction：
+以 200k 窗口为例，先预留最多 20k 输出，本例真正可用于输入判断的 budget/ceiling 是 180k：
 
 ```text
 input budget = 200k - 20k = 180k
@@ -187,39 +282,32 @@ blocked      = 180k model input ceiling - 3k = 177k
 | compact | 167k | 触发自动 compact |
 | blocked | 177k | 阻止继续无界增加输入 |
 
-这些数字只属于这个算例。模型窗口、输出预算、设置和远程 precompute 配置都会改变结果；源码没有固定 T1-T5，也没有 30%、60%、75%、90% 四档。这里的 `20k` 是 auto-window 输出预留上限，不是 Summary 的固定输出上限。
+这些数字只属于这个算例。模型窗口、输出预算、设置和远程 precompute 配置都会改变结果；源码没有固定 T1-T5，也没有 30%、60%、75%、90% 四档。这里的 20k 是 auto-window 输出预留上限，不是 Summary 的固定输出上限。
 
-## 失败时，客户端不能把半份 Summary 当成功
+## 失败时为什么不会留下半份新历史
 
-只有 Summary、保留区、附件和 boundary 完成组装，active view 才正式切换。
+只有 Summary、保留区、附件和 Boundary 完成组装，新的有效上下文才正式接管。
 
-![Summary 超窗时调整分组，模型不可用时 fallback，附件失败时降级；只有有效短工作包形成后才写 Boundary](visuals/compact-recovery.svg)
+![Summary 超窗时调整分组，模型不可用时 fallback，附件失败时降级；只有有效上下文形成后才写 Boundary](visuals/compact-recovery.svg)
 
 | 失败 | 客户端怎样处理 | 结果 |
 | --- | --- | --- |
-| `PreCompact` 阻止 | 保留原历史，不绕过 Hook | 不写成功 boundary |
-| Summary 请求超窗 | 多保留尾部 group，缩短待总结前缀 | 自适应重试，耗尽后失败 |
+| `PreCompact` 阻止 | 保留原历史，不绕过 Hook | 不写成功 Boundary |
+| Summary 请求超窗 | 多保留尾部消息组，缩短待总结前缀 | 自适应重试，耗尽后失败 |
 | 当前模型不可用 | 沿允许的 fallback chain 切换 | 用下一模型重新总结 |
-| 当前 manual/reactive 附件恢复失败 | 记录错误并降级附件集合 | 可能继续，但精确材料减少 |
+| 当前 manual/reactive 附件恢复失败 | 记录错误并使用仍能取得的材料 | 可能继续，但精确材料减少 |
 
-失败时最重要的合同只有一个：成功的新表示和 Boundary 尚未形成，原 active history 就仍然有效。至于媒体剥离、自动失败计数和 rapid-refill breaker 等保护，属于异常路径细节，放在证据层，不打断主线。
+失败时最重要的合同是：成功的新上下文和 Boundary 尚未形成，原 active history 就仍然有效。
 
-## 三个最容易讲错的边界
+无论 compact 成功还是失败，它都不能撤销文件修改、`git push`、数据库写入、MCP 写操作或远端 API 请求。Compact 改变的是模型以后看到的逻辑消息，不是外部系统的事务状态。
 
-**Compact 会固定切换到“模型 B”吗？** 不会。它使用当前 main-loop model 的请求策略；模型不可用且策略允许时才沿 fallback chain 切换。固定的是这轮“只能总结、不能使用工具”的职责，不是某个永远专用的模型 ID。
+## 回到这次 Claude Code 源码分析
 
-**Summary 漏了细节，客户端会自动搜索外部存储吗？** 不会。客户端可以重装有限附件，也可以把 transcript 路径告诉模型；后续仍需要模型主动 `Read`，不存在统一的自动语义召回层。
+Compact 之后，模型继续任务时仍然知道：用户要求解释 Summary、近期消息、文件恢复和 Resume；最初只看提示词是不够的；关键源码范围和 Probe 已经找到；下一步是把这些事实写清楚并验证。
 
-**Compact 能撤销已经发生的动作吗？** 不能。文件修改、`git push`、数据库写入、MCP 写操作和远端 API 请求仍由工作区或外部系统持有。Compact 是逻辑消息表示切换，不是外部系统 rollback。
+这些信息并非来自一份万能摘要。较早的要求与纠正由 Summary 承接，最近的工具因果由 preserved messages 保留，当前源码由 attachment 补回，Boundary 则让下一次请求和 Resume 知道从哪份短历史继续。
 
-## 最后只记住四件事
-
-1. `/compact` 改写的是下一次模型看到的逻辑历史，不是简单删除磁盘聊天记录。
-2. Summary 保存远期语义，近期合法 group 保存工具因果，Attachments 保存精确材料，Boundary 保存恢复关系。
-3. Precompute 只把 Summary 生成提前；auto-compact 只改变客户端何时自动进入这条流程。
-4. Summary 有损，附件有上限，路径需要模型主动读取，所以 compact 能提高连续性，却不能保证零遗忘。
-
-真正的技术结论是：**Claude Code 的上下文压缩不是一段摘要文本，而是客户端拥有的一次消息图切换。模型负责生成有损语义；客户端负责选择合法范围、补回精确材料、写入恢复边界，并在失败时继续保留旧表示。**
+这就是 `2.1.235` 的 `/compact`：**模型负责把较早经历写成有损文本，客户端负责选择合法切点、保留近期因果、重装精确材料并记录历史切换。**
 
 <details>
 <summary>源码与运行证据</summary>
@@ -229,23 +317,17 @@ blocked      = 180k model input ceiling - 3k = 177k
 | Auto threshold 与 effective window | 216095-216245；`context.autocompact-thresholds` |
 | Summary 模板、九段结构与双标签解析 | 261901-262207 |
 | Group summarizer、token-gap retry 与 preserved suffix | 262209-262294 |
-| Precomputed 生成、校验、`messagesSince` 与失败 cap | 262320-262680 |
+| Precomputed 生成、校验与 `messagesSince` | 262320-262680 |
 | Tool deny、模型 fallback 和附件恢复 | 263099-263235 |
-| Manual slash command 与 finalize/boundary | 331301-331367、232845-232876 |
+| Manual slash command 与 finalize/Boundary | 331301-331367、232845-232876 |
 | Boundary 字段与累计 dropped token | 211531-212001 |
 | 同版本 manual compact、fork 与 resume Probe | `analysis/runtime-probes/agent-loop-tool-result-resume.json`；`probe.manual-compaction-boundary` |
 
-普通 manual miss 的调用主线是 `gEv -> yEv -> nFa -> vmi -> Smi`。`vmi()` 从至少保留 1 个合法 group 开始；`Smi()` 负责恢复附件、运行 compact hook、生成 boundary 并产出新的 active view。
+普通 manual miss 的调用主线是 `gEv -> yEv -> nFa -> vmi -> Smi`。`vmi()` 从至少保留一个合法消息组开始；`Smi()` 负责恢复附件、运行 compact hook、生成 Boundary 并产出新的 active view。
 
-实现边界保留如下，供调试和跨版本比较：
+实现边界：manual/reactive 的 Summary 超窗会扩大 preserved suffix；full/partial 使用另一套最多 3 次的截断重试。Auto compact 连续失败 3 次会跳过本 session 后续 auto 尝试；compact 后少于 3 turns 又连续第 3 次触线会触发 rapid-refill breaker。这些保护都不禁止用户手动 `/compact`。
 
-- Manual 入口并行运行 `PreCompact` 与请求上下文准备；用户或 Hook 新增 summary instructions 会让 ready precompute 放弃复用。
-- 当前进程内 ready hit 主要检查预计算点并拼 `messagesSince`；磁盘 sidecar rehydrate 才检查 session/model、7 天期限、150k 增长、缩减一半和 preserve UUID。Sidecar 记录 CLI version，但 `2.1.235` 不会仅因 CLI version mismatch 拒绝。
-- Manual/reactive 的 Summary 超窗会扩大 preserved suffix；full/partial 使用另一套最多 3 次的截断重试，不能把两类恢复写成一个算法。
-- Auto compact 连续失败 3 次会跳过本 session 后续 auto 尝试；compact 后少于 3 turns 又连续第 3 次触线会触发 rapid-refill breaker。两者都不禁止用户手动 `/compact`。
-- Boundary 还可记录累计 dropped token、耗时、precomputed、discovered tools、preserved segment/messages；Resume 通过 UUID/parent 关系修链。同版本 Probe 证明一次 manual compact 后的 fork 采用了新逻辑视图，但不证明所有 manual 路径都没有 preserved messages。
-
-Prompt cache、Tool Search、context hint 与 microcompaction 属于相邻但不同的问题，见[上下文治理与多层缓存](context-governance-and-caching.md)；UUID、checkpoint、resume、fork 和 Memory 见[会话、检查点与记忆](sessions-checkpoints-memory.md)。
+Prompt cache、Tool Search、context hint 与 microcompaction 是相邻但不同的问题，见[上下文治理与多层缓存](context-governance-and-caching.md)；UUID、checkpoint、resume、fork 和 Memory 见[会话、检查点与记忆](sessions-checkpoints-memory.md)。
 
 </details>
 

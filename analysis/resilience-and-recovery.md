@@ -1,18 +1,52 @@
 # Claude Code CLI 2.1.235 韧性与恢复：Claude Code 出错后如何继续，又有哪些动作无法撤销
 
-“支持重试”不足以描述 Agent 系统的可靠性。Claude Code 一次任务中可能同时发生 HTTP retry、流式降级、模型 fallback、输出续写、malformed tool 修复、reactive compact、工具错误回灌、hook 重入、MCP 重连、session resume 和 file rewind。它们恢复的对象不同，计数器不同，副作用边界也不同。
+## 先跟一条失败链走到底
 
-本章把 `2.1.235` 的恢复路径按故障层拆开，重点回答：失败发生在哪、保留了什么、丢弃了什么、是否会再次执行工具、用户会看到什么，以及为什么 tombstone 不能当事务回滚。
+用户让 Claude Code 修改一个文件，再调用远端发布工具。模型还没有返回任何工具调用时，第一批 API 请求先失败了。本版 Probe 观察到的 model 序列是：
 
-## 60 秒理解“恢复哪个对象”
+```text
+request 1  claude-sonnet-4-5  -> HTTP 529
+request 2  claude-sonnet-4-5  -> HTTP 529
+request 3  claude-sonnet-4-5  -> HTTP 529
+request 4  claude-haiku-4-5   -> 200
+```
 
-**读者问题：** 一次请求失败后，CLI 应该原样重试、换模型、压缩上下文、重连 MCP、恢复会话还是回退文件？为什么选错层会导致重复部署？
+前三次失败发生在模型请求阶段，完整 `tool_use` 还没有产生，因此此时没有文件可恢复，也没有远端动作可撤销。变化的只有同一逻辑请求的 attempt 记录和最终选用的模型：HTTP 重试由请求层负责，主模型耗尽后是否切备用模型由 fallback 策略负责。它们不会因为多发了三次 HTTP 请求，就把 Agent 的正常工作自动算成四个新 turn。
 
-**一句话模型：** 客户端先识别失败发生在哪个对象，再选择 attempt、模型/上下文状态或持久状态恢复；任何恢复都必须重新观察真实世界，因为 abort、tombstone 和重建消息不能撤销已经完成的外部副作用。
+第四次请求成功后，工具循环才真正改变外部状态。把后续两轮消息写开，区别会很清楚：
 
-![Claude Code 按失败对象选择请求重试、状态重建或持久恢复，并在结束前重新验证真实状态](visuals/recovery-layers.svg)
+```text
+assistant: tool_use(id=edit_1, name=Edit,
+  input={file_path:"checkpoint.txt",
+         old_string:"CHECKPOINT_ORIGINAL",
+         new_string:"CHECKPOINT_MODIFIED"})
+user: tool_result(tool_use_id=edit_1): File updated successfully
 
-贯穿场景：模型先 Edit 本地配置，再调用 Deploy MCP；Deploy 已被远端接受，但随后模型流断开。流重试或 model fallback 可以修复响应路径，tombstone 可以移除失败分支的 provisional 消息，file rewind 可以恢复本地配置，但远端部署仍存在。正确恢复必须先查询 deployment ID/status，再决定继续、补偿或终止。
+assistant: tool_use(id=deploy_1, name=Deploy,
+  input={release:"recovery-demo"})
+user: tool_result(tool_use_id=deploy_1):
+  {"deployment_id":"dep-42","status":"accepted"}
+```
+
+`edit_1` 返回成功后，文件系统里已经是 `CHECKPOINT_MODIFIED`；`deploy_1` 返回 `accepted` 后，远端系统已经拥有 `dep-42` 这条状态。假设随后 assistant 流中断并触发 model fallback，客户端可以 abort 尚未完成的工具，并把这次未稳定的 assistant/tool 分支标成 **tombstone**。tombstone 的 owner 是消息图：它决定哪段 provisional 消息不再进入主分支。它不拥有文件系统，也不拥有远端服务，所以 `checkpoint.txt` 不会自动变回原字节，`dep-42` 也不会自动消失。
+
+恢复后的下一次请求还可能因为历史、工具结果和附件太大而得到内部 `Prompt is too long`。在符合后文资格检查时，Agent Loop 先扣住这条用户可见错误，只允许当前逻辑 turn 做一次 reactive compact：
+
+```text
+Prompt is too long
+  -> reactive compact
+  -> summary + preserved message groups + regenerated attachments
+  -> compact boundary
+  -> rebuild the same logical turn
+```
+
+reactive compact 改写的是 context builder 为下一次 API 组装的 active message view。它可以把较早消息换成 summary，并按本路径保留近期合法消息组；compact 本身不会重新执行 `edit_1` 或 `deploy_1`，也不会回滚两者，但重建请求后的模型仍可能再次提出同一动作。某条旧 `tool_result` 之后是原样保留还是只剩摘要，属于上下文恢复问题；避免重复写入仍要依靠 tool ID、幂等键和外部状态回读。
+
+到这里，各种状态已经有了各自的 owner：request runner 拥有 HTTP attempt，Agent Loop 拥有正常 turn 与恢复预算，message graph 拥有 provisional 消息与 tombstone，context builder 拥有 active message view，filesystem 拥有当前文件字节，checkpoint store 保存可回退的旧字节和引用，远端服务拥有 deployment。恢复动作只有作用在正确 owner 上才有意义。
+
+上面把两类运行证据和一条边界示例接成同一条可读链：`sonnet × 3 -> haiku` 来自 [`settings-resilience.json`](runtime-probes/settings-resilience.json)；`CHECKPOINT_ORIGINAL -> CHECKPOINT_MODIFIED -> CHECKPOINT_ORIGINAL` 来自 [`checkpoint-rewind.json`](runtime-probes/checkpoint-rewind.json)。`dep-42` 是用来说明远端所有权的明确示例，不是 Probe 声称执行过的真实部署；本章没有用客户端证据冒充远端回滚证明。
+
+## Owner 确定后，再选择恢复层
 
 | 恢复层 | 恢复对象 | 保留什么 | 丢弃/替换什么 | 不能撤销什么 |
 | --- | --- | --- | --- | --- |
@@ -22,9 +56,11 @@
 | MCP/tool recovery | 工具目录、调用结果和执行状态 | generation、tool ID、结构化错误 | 旧 schema 或失败调用状态 | server 已接受的非幂等动作 |
 | Session/file recovery | transcript 逻辑历史或受管文件 | 持久事件、checkpoint 字节 | 当前逻辑分支或文件版本 | 旧进程、数据库、远端事务 |
 
+![Claude Code 按失败对象选择请求重试、状态重建或持久恢复，并在结束前重新验证真实状态](visuals/recovery-layers.svg)
+
 后文按这五类对象展开，并用 terminal reason、request count、tool ID 和外部状态检查说明“恢复成功”到底指什么。
 
-## 先区分七类“重来一次”
+## 同一条失败链里，七类“重来一次”不能混算
 
 | 恢复动作 | 重做对象 | 是否增加 Agent `turnCount` | 工具是否可能重复 | 典型触发 |
 | --- | --- | --- | --- | --- |

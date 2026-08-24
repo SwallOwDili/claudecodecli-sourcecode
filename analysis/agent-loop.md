@@ -1,27 +1,132 @@
 # Claude Code CLI 2.1.235 Agent Loop：Claude Code 如何从一次回答演化成持续执行
 
-Claude Code 的核心不是“调用一次模型，再把文本打印出来”，而是一个由异步生成器驱动的状态机。模型输出工具调用后，CLI 会校验参数、判定权限、执行工具、把结果重新写进消息图，再决定是否发起下一轮模型请求。上下文压缩、模型 fallback、用户中途输入、Stop hook、最大轮数、子 Agent 和遥测都嵌在这条循环里。
+## 从第一条请求跟到最终结果
 
-本章只描述 2.1.235 发布 bundle 中可以直接追到的客户端行为。函数名是可读化 bundle 中保留下来的压缩符号；它们不是 Anthropic 原始 TypeScript 名称。
+这个例子只做一件事：让 Claude Code 读取一个本地文件，再观察文件内容怎样进入下一次模型请求。
 
-## 60 秒理解 Agent Loop
+本地测试目录里先创建一个只有一行内容的文件：
 
-**读者问题：** Claude 为什么能读文件、修改代码、运行测试、看到失败后再修一次，而不是一次回答完就结束？
+```text
+$WORKSPACE/probe-fixture.txt
+AGENT_LOOP_FILE_MARKER
+```
 
-**一句话模型：** Agent Loop 保存一份显式循环状态，把模型输出的完整 `tool_use` 交给受控执行器，再把成对的 `tool_result` 写回消息图，直到停止条件、预算或恢复分支决定结束。
+然后用 Claude Code 2.1.235 执行下面这条命令。当前会话只开放内置 `Read` 工具：
+
+```text
+$CLAUDE_TARGET --print AGENT_LOOP_INITIAL_MARKER \
+  --output-format stream-json --verbose \
+  --model claude-sonnet-4-5 --tools Read \
+  --permission-mode bypassPermissions \
+  --dangerously-skip-permissions \
+  --session-id $SESSION_ID
+```
+
+模型端是本地受控的 Messages 服务：第一次固定返回 `Read` 调用，第二次固定返回成功文本。这样排除了模型输出的随机性，观察对象只剩 2.1.235 客户端怎样执行工具和组织下一次请求。
+
+下面按真实时序跟完这一次调用。请求体只摘出决定状态变化的字段，省略 system prompt 和完整工具 schema。
+
+### 请求 1：用户消息和 Read 工具进入模型请求
+
+Claude Code 发出的第一个 `POST /v1/messages` 包含：
+
+```text
+messages:
+  - role: user
+    content: AGENT_LOOP_INITIAL_MARKER
+
+tools:
+  - name: Read
+```
+
+此时文件内容还没有发给模型。模型只知道用户消息，并知道自己可以请求 `Read`。
+
+### 模型响应：要求客户端读取具体文件
+
+受控模型通过 SSE 返回一个工具块。这个块不是自然语言建议，而是带 ID 和参数的结构化输出：
+
+```text
+content_block_start:
+  type: tool_use
+  id: toolu_agent_loop_probe
+  name: Read
+
+input_json_delta:
+  {"file_path":"$WORKSPACE/probe-fixture.txt"}
+
+content_block_stop
+message_delta.stop_reason: tool_use
+message_stop
+```
+
+直到 `content_block_stop`，客户端才拿到完整的工具名和输入。`toolu_agent_loop_probe` 是这次调用的唯一配对 ID。
+
+### 客户端执行：真正打开本地文件
+
+Claude Code 把完整工具块交给内置执行器。执行器校验 `Read` 的输入，并按照本次已配置的权限模式执行读取。实际文件返回的内容包含：
+
+```text
+AGENT_LOOP_FILE_MARKER
+```
+
+这一步发生在 Claude Code 进程里，不是模型替客户端读取文件。模型必须等客户端把结果放进后续消息，才能看到这一行。
+
+### 请求 2：同一个工具 ID 把调用和结果接起来
+
+Claude Code 随后发出第二个 `POST /v1/messages`。与第一次请求相比，消息中新增了模型刚才的工具调用，以及客户端生成的工具结果：
+
+```text
+messages:
+  - role: user
+    content: AGENT_LOOP_INITIAL_MARKER
+
+  - role: assistant
+    content:
+      - type: tool_use
+        id: toolu_agent_loop_probe
+        name: Read
+        input:
+          file_path: $WORKSPACE/probe-fixture.txt
+
+  - role: user
+    content:
+      - type: tool_result
+        tool_use_id: toolu_agent_loop_probe
+        content: ...AGENT_LOOP_FILE_MARKER...
+```
+
+`tool_result.tool_use_id` 与上一条 `tool_use.id` 完全相同。模型由此知道：这段文件内容是哪个工具调用的结果，而不是一条无来源的新用户消息。
+
+### 模型结束任务：CLI 返回成功结果
+
+模型在第二次请求中已经看见文件内容，于是返回文本：
+
+```text
+TOOL_EXECUTION_OK
+```
+
+Claude Code 最终输出 `subtype=success`，进程退出状态为 `0`。至此，一次用户提交经历了两次模型请求和一次真实工具执行：
+
+```text
+用户消息
+  -> request 1
+  -> assistant tool_use
+  -> 客户端执行 Read
+  -> tool_result
+  -> request 2
+  -> assistant 最终文本
+  -> success
+```
+
+这组结果不是示意推演。固化报告 [agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json) 对 2.1.235 精确二进制验证了首个请求声明 `Read` 工具、第二个请求含同 ID 的调用与结果、结果包含文件 marker，并记录最终文本、success subtype 和退出状态。对应二进制 SHA-256 为 `83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
+
+到这里再给机制命名：Claude Code 保存当前消息和执行状态，反复完成“请求模型、执行模型要求的工具、把观察结果写回、再次请求模型”。这套客户端控制流程就是本文所说的 Agent Loop。模型输出 `tool_use`，客户端执行后生成成对的 `tool_result`；工具失败同样会成为下一次请求中的新观察，而不是自动让整个用户任务结束。
 
 ![Agent Loop 从模型流启动工具，经受控执行和结果回灌后决定继续或结束](visuals/agent-loop-lifecycle.svg)
 
-贯穿场景：模型在同一响应里依次生成 Read、Edit、Bash。Read 的完整 block 一到即可开始；Edit 形成写屏障；Bash 不能越过 Edit 去测试旧文件。三个结果按各自 `tool_use_id` 回灌，完成顺序不改变配对。若测试失败，失败是下一轮模型的新观察，不等于整个用户 turn 失败。
+这条 trace 先确定了三个事实：模型没有直接访问文件；客户端负责执行工具；工具结果只有写进第二次请求后才成为模型的新观察。后文从这三点继续展开并发、权限、轮次、停止、恢复和副作用边界。
 
-| 对象 | 本轮请求前 | 转换 | 本轮请求后 | 用户影响 |
-| --- | --- | --- | --- | --- |
-| `messages` | 用户任务和旧观察 | 加入 assistant blocks、tool results、hook/queue 消息 | 下一轮可解释的因果历史 | 回答能否基于真实结果继续 |
-| `turnCount` | 首次模型轮次从 1 开始 | 工具批次回灌或 Stop hook 重入后增加 | 达到 `maxTurns` 时终止 | 限制模型轮次，不限制单轮工具数 |
-| streaming executor | 空队列 | 完整 `tool_use` 入队、按安全性形成并发与屏障 | 批次 drain 后统一收尾 | 影响延迟、顺序和共享状态一致性 |
-| 外部状态 | 尚未执行本轮工具 | 文件、命令或远端调用已经发生 | 不随消息 tombstone 自动撤销 | fallback/abort 后必须防止重复副作用 |
-
-普通成功路径是“模型请求 -> 工具执行 -> 结果回灌 -> 再请求模型 -> 正常结束”。后文先把这条路径讲完，再进入 `max_tokens`、malformed tool、Stop hook、fallback 和 reactive compact；这些都是改变循环状态的分支，不是另一套 Agent Loop。
+本章只描述 2.1.235 发布 bundle 中可以直接追到的客户端行为。函数名是可读化 bundle 中保留下来的压缩符号，不是 Anthropic 原始 TypeScript 名称。`max_tokens`、malformed tool、Stop hook、fallback 和 reactive compact 都是改变同一循环状态的分支，不是另一套 Agent Loop。
 
 ## 公开原理怎样变成本版结论
 

@@ -1,14 +1,30 @@
 # Claude Code CLI 2.1.235 Native 安装、自更新与 Doctor 生命周期
 
-`Updater 完整事务`不是 Claude Code 源码里的类名或函数名，而是分析时对一组协作机制的概括。对 `2.1.235` 更准确的名称是 **Native 安装与自更新生命周期**：客户端解析目标版本、下载 manifest 和平台二进制、校验 SHA-256、把候选文件原子发布到版本目录、切换 launcher、记录结果，并在后续启动中保护正在运行的版本和清理旧文件。
+当前 shell 正在运行 `2.1.235`，Native auto-updater 的 channel 是 `latest`。假定本次 feed 解析出的目标是 `2.1.236`，客户端不会覆盖当前可执行文件，而是按下面的顺序准备下一次启动：
 
-## 60 秒看懂：更新改了磁盘，没有改掉当前进程
+```text
+latest feed
+  -> 候选版本 2.1.236
+  -> 应用 maxVersion / minimumVersion / requiredMaximumVersion / canary 策略
+  -> 本次最终 target 仍为 2.1.236
+  -> GET 2.1.236/manifest.json
+  -> 选择 darwin-arm64 的 URL 与 checksum
+  -> 下载到 staging/2.1.236.<pid>.<timestamp>/claude
+  -> 边下载边计算 SHA-256；与 manifest 不同就删除并重试
+  -> 复制到 $XDG_DATA_HOME/claude/versions/2.1.236.tmp.<pid>.<timestamp>，chmod 0755
+  -> rename(...tmp..., $XDG_DATA_HOME/claude/versions/2.1.236) [提交点一]
+  -> 检查 ~/.local/bin/claude 是否归 Native installer 管理
+  -> 创建临时 symlink，再 rename 到 ~/.local/bin/claude [提交点二]
+  -> 写 last-update-result，提示 Restart to update
+```
 
-**读者问题：** 页脚已经显示 `Update installed · Restart to update`，为什么当前会话仍然运行 `2.1.235`？又为什么磁盘里已经有新版本，下一次输入 `claude` 仍可能启动旧版本？
+第一个 `rename` 成功后，`versions/2.1.236` 已经是一份完整、可执行且通过 manifest checksum 的版本文件。它只提交了**版本发布**：当前进程仍然运行已经映射的 `2.1.235`，下一次输入 `claude` 也还不一定能到达新文件。
 
-**一句话模型：** `2.1.235` 把正在运行的版本文件和下一次启动使用的可变 launcher 分开；更新器先校验并按版本路径发布新文件，再原子切换 launcher，但不能热替换当前进程已经映射的代码，而且遇到不归安装器所有的 launcher 时宁可保留它也不覆盖。
+第二个 `rename` 提交的是**启动入口激活**。如果 `~/.local/bin/claude` 原本就是 Native installer 管理的 symlink，临时 symlink 会原子替换旧入口；当前会话依旧是 `2.1.235`，退出后重新启动才会进入 `2.1.236`。
 
-贯穿场景：当前 shell 由 `~/.local/bin/claude` 启动 `2.1.235`。Native auto-updater 发现 channel 指向 `2.1.236`，下载成功并把新文件放进 `$XDG_DATA_HOME/claude/versions/2.1.236`。如果 launcher 归 Native installer 管理，它会原子改指新文件；当前会话仍执行旧字节，重启后才进入 `2.1.236`。如果 launcher 是用户自己的 wrapper，新文件仍会保留在版本目录，但激活会被拒绝，wrapper 决定下一次到底运行哪个版本。
+如果这个入口是用户自己的 wrapper，客户端在 ownership 检查时返回 `activationRefused`，不会覆盖它。提交点一不会因此回滚：新版本文件继续留在 versions 目录，顶层结果仍可能是 `success: true`，但 launcher 没有改变，下一次启动哪个版本仍由 wrapper 决定。这就是更新器的真实部分成功，不是“所有步骤要么一起成功、要么一起撤销”。
+
+## 两个提交点分别由谁负责
 
 | 状态对象 | 谁拥有状态 | 更新前 | 成功后 | 关键含义 |
 | --- | --- | --- | --- | --- |
@@ -20,6 +36,8 @@
 | version lock | 从 versions 路径启动的进程 | 尝试保护 `2.1.235` | 成功则在退出时释放，失败为 non-fatal | cleanup 另按当前 `process.execPath` 保护本进程；其它进程只有成功持锁才受保护 |
 
 ![2.1.235 Native updater 从版本选择、manifest checksum、staging 原子发布到 launcher 切换、重启和清理的真实状态机](visuals/release-lifecycle.svg)
+
+这里的 transaction 不是一项跨网络 ACID 事务。当前 updater attempt 拥有 manifest、下载预算和唯一 staging；Native installer 拥有正式版本目录；launcher 只有在 ownership 检查通过后才由 installer 更新；OS 与已经启动的 Claude 进程继续拥有旧进程映像。结果记录和 cleanup 又在两个提交点之后独立发生。
 
 这张图的核心不是“下载后覆盖原文件”，而是三次分离：**下载与正式发布分离、正式版本与 launcher 分离、磁盘激活与当前进程分离。**
 

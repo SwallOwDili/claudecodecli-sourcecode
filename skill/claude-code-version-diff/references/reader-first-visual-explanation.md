@@ -6,21 +6,21 @@ Keep two jobs separate: evidence determines what may be claimed; teaching determ
 
 ## Output model
 
-Build three progressive layers. A reader should be able to stop after any layer and retain a correct, explicitly bounded model.
+Build three progressive layers, but do not expose those layers as fixed headings or labels. `60 秒`, `读者问题`, `一句话模型`, `场景`, and `状态表` are authoring checks, not a Markdown template.
 
-1. **60-second model**: one user problem, one-sentence conclusion, one lifecycle image, and one before/after state change.
-2. **10-minute mechanism**: ordered phases, owned state, trigger and gates, success path, failure path, recovery, and user impact.
-3. **Evidence appendix**: version identity, source ranges, probe results, field semantics, public-source boundary, and cross-version delta.
+1. **Concrete first pass**: show an input, the relevant starting state, at least one real action/result pair, and the resulting state change. A reader should understand what happened before learning the internal name.
+2. **Mechanism depth**: explain the ordered client path, state owner, trigger, gates, success, failure, recovery, and user impact for that same example.
+3. **Evidence appendix**: retain version identity, source ranges, probe results, field semantics, public-source boundary, and cross-version delta outside the main reading path.
 
-Do not begin with binary hashes, inventory counts, minified names, or a wall of configuration fields. Those belong in layer three.
+Do not begin with binary hashes, inventory counts, minified names, a list of every future concept, or a fictional-task synopsis. A paragraph that says an Agent already read files, tried several versions, hit failures, used hooks, compacted, resumed, and recovered has not supplied an example; it has compressed the whole article into unexplained nouns.
 
 ## Reader-first anti-regression contract
 
 Machine validation must protect the reading path, not force authors to preserve a fixed paragraph template. Parse Markdown into headings and block types (`prose`, `table`, `list`, `code`, `image`, `details`) and validate their order and density. Do not accept a bag of required phrases as a substitute for prose structure.
 
-- The first screen introduces the governing thesis and one mental model before any table, list, evidence appendix, file inventory, or version-delta ledger. It may contain one explanatory image.
+- A tutorial begins with enough concrete state for the first action and result to make sense. Do not open with a taxonomy, a five-column state table, a list of mechanisms, or a context-free sentence such as “the task has already failed twice.”
 - Keep baseline architecture and target-release delta explicitly separate. A version article may lead with the delta judgment, but it must perform a clear scope switch to baseline architecture before the mechanism chapters; the delta must not be presented as the definition of the whole architecture.
-- Follow one scenario through the core chapters. A single explicitly named side lane is acceptable when forcing it into the main task would make the explanation artificial.
+- Follow one complete example through the core chapters. The example must show the user's actual request, relevant input/file/message data, the first action, the literal or faithfully simplified result, and the next state. A mere checklist of facts that supposedly happened is not an example.
 - Core chapters appear in causal order. Each starts with prose, teaches the ordinary path before failure/retry/optimization, and ends by explaining the engineering choice or transition to the next owner.
 - A chapter must contain a concrete tension, the client's design choice, and both benefit and cost. These ideas may be written naturally; do not require visible `Question:`, `Conflict:`, or other mechanical labels.
 - Tables summarize a model already introduced in prose. They do not open or close a core chapter, and a chapter cannot consist mainly of tables or bullet lists. Long matrices and enumerations move to a deep topic, collapsed appendix, or machine index.
@@ -32,16 +32,15 @@ Validator thresholds should be calibrated against block roles rather than total 
 
 ## Teaching sequence
 
-Use this sequence unless the mechanism genuinely requires a different order:
+Use this sequence unless the mechanism genuinely requires a different order. These are reasoning steps, not required visible headings.
 
-1. **Reader question**: phrase the concrete symptom or task in the user's language.
-2. **Version badge**: name the exact release and evidence class without interrupting the opening explanation. State whether the guide describes a static path, an exact-binary observation, current public behavior, or a boundary.
-3. **Scenario**: choose one realistic input and follow it through the system. Reuse the same scenario instead of changing examples between sections.
-4. **Before and after**: show which state is replaced, preserved, appended, persisted, or external. Use concrete but version-valid values only.
-5. **Main lifecycle**: show the success path from entrypoint to observable result before explaining internal branches.
-6. **Layered explanation**: assign each component one job. Explain why each layer exists and what would break without it.
-7. **Failure and recovery**: show the first failed attempt, retry decision, retained/discarded state, terminal failure, and surviving external side effects.
-8. **Version delta and evidence**: separate observed target-version behavior from current documentation and from nearby releases.
+1. **Establish the concrete input**: quote or faithfully simplify the user command/request and show any data, file snippet, request body, or current state needed to understand it.
+2. **Show the first action and result**: render the actual tool/API/client action and the output or state delta. Do not summarize several unseen attempts as backstory.
+3. **Continue the same trace**: show the decision caused by that result. Introduce an internal term only when the reader has just seen the object it names.
+4. **Compare before and after**: explain what was replaced, preserved, appended, persisted, or left external. Use a table only if prose and the example have already introduced every row.
+5. **Name the mechanism and lifecycle**: now show the complete success path and assign each component one job.
+6. **Explain failure and recovery**: use the same trace to show a failed attempt, retry decision, retained/discarded state, terminal failure, and surviving external side effects.
+7. **State version and evidence boundaries**: separate target-version behavior, exact Probe observations, public intent, and what remains unproved.
 
 The governing narrative is always:
 
@@ -64,45 +63,29 @@ Every image must answer one question. Do not create decorative architecture post
 - A screenshot may prove an observed UI or request, but it must not be the only explanation. Annotate the significant field and bind it to a version.
 - Do not embed machine-local absolute paths, usernames, credentials, request IDs, or private session content in publishable visuals.
 
-## Required explanation blocks
+## Explanation contracts
 
-### One-sentence mental model
+### A complete example
 
-Use a sentence with an owned object and a state change:
+Before the article asks the reader to remember an abstraction, its example must provide:
 
-> The client replaces a long message representation with a summary, a valid recent suffix, restored exact context, and a persistent boundary so the next model call can continue with fewer tokens.
+- the user's concrete request;
+- the relevant starting data or source/message fragment;
+- the client/model/tool action;
+- the result, including an error or state change when relevant;
+- the next decision caused by that result.
 
-Avoid labels that merely rename the feature, such as "compaction compresses context."
+Examples may simplify payloads, but must say so. Do not call an invented scenario a captured run. Do not spend more explanation on an unrelated demo domain than on the target mechanism itself; when the article is about Claude Code, prefer a Claude Code request/tool/result trace.
 
-### Before/after table
+### State transformation
 
-Use five columns:
+After the example has introduced the objects, state which component owns each decision and what it replaces, preserves, appends, persists, or leaves external. Prose is the default. Use a before/after or ownership table only when it reduces complexity rather than satisfying a template.
 
-| Object | Before | Transformation | After | User-visible effect |
-| --- | --- | --- | --- | --- |
+### Failure and recovery
 
-This forces the guide to distinguish deletion, summarization, preservation, rehydration, and persistence.
-
-### Phase cards
-
-For every phase, answer in prose:
-
-- what enters;
-- which component owns the decision;
-- what state changes;
-- what the next phase receives;
-- what the reader can observe.
+Explain detection, retry/change, retained state, terminal effect, and whether an external side effect already occurred. A matrix is optional; a well-ordered trace is often easier to read.
 
 Keep source names and fields in a short evidence line after the explanation, not in the opening sentence.
-
-### Failure matrix
-
-Use these columns:
-
-| Failure | Detection | Retry/change | State retained | Final user effect |
-| --- | --- | --- | --- | --- |
-
-For an agentic path, also state whether any tool or external side effect already occurred.
 
 ### Version matrix
 
@@ -134,12 +117,12 @@ For every core human topic:
 
 1. Keep the original detailed sections unless a claim is disproved or duplicated verbatim.
 2. Add a first-screen teaching block before research history, inventory counts, or minified call chains.
-3. Use exactly one reader question and one owned-state mental model.
-4. Follow one target-version-valid scenario through the ordinary success path.
-5. Add a state transition or ownership table that makes replacement, preservation, persistence, and external side effects explicit.
-6. Add one focused diagram with editable source and rendered output.
-7. Leave thresholds, defaults, fields, retry limits, hooks, policy gates, source locations, Probe literal results, and evidence boundaries in the detailed body.
-8. Link failure/recovery and user impact from the teaching block instead of pretending the happy path is the whole mechanism.
+3. Replace visible authoring labels such as `读者问题`, `一句话模型`, and `60 秒模型` with natural prose and a complete example.
+4. Follow one target-version-valid trace through the ordinary path; do not summarize the whole trace in a “scenario” paragraph.
+5. Introduce internal terms after the example first exposes the object. Keep adjacent mechanisms out unless they change this trace.
+6. Add one focused diagram with editable source and rendered output after the reader understands its nodes.
+7. Leave thresholds, defaults, fields, retry limits, hooks, policy gates, source locations, Probe literal results, and evidence boundaries in the detailed body or collapsed evidence layer.
+8. Explain failure/recovery and user impact in causal order instead of turning them into an interview checklist.
 
 The refresh is incomplete if readability improves by deleting details that a debugger, implementer, auditor, or cross-version comparator still needs.
 
@@ -157,59 +140,38 @@ A product-surface overview is not the place to display how much extraction work 
 
 The overview fails this contract when its sentences are governed mainly by filenames and counts, even if every number is correct.
 
-## Reusable Markdown skeleton
+## No reusable prose skeleton
 
-```markdown
-# Mechanism name: the user question it answers
+Do not provide or enforce one Markdown skeleton for every mechanism. A fixed skeleton is useful for an evidence registry and destructive for teaching prose: authors begin filling headings instead of deciding what the reader must see next.
 
-> Version: X | Evidence: Static / Probe / Public / Boundary
+The reusable artifact is the causal contract:
 
-One-sentence mental model.
-
-![Lifecycle conclusion](visuals/mechanism-lifecycle.svg)
-
-## What changes
-
-Before/after table.
-
-## One real scenario
-
-Input and observable result.
-
-## Phase 1 ...
-
-Purpose, owner, state change, output, evidence.
-
-## Failure and recovery
-
-Failure diagram and matrix.
-
-## Cost, latency, quality, privacy and recovery impact
-
-## Version differences
-
-Version matrix.
-
-## Evidence appendix
-
-Claim IDs, source ranges, probe commands/results, and boundaries.
+```text
+concrete input -> action -> result -> next decision -> named mechanism
+               -> state ownership -> failure/recovery -> evidence boundary
 ```
+
+Tutorials, reference manuals, and machine evidence have different jobs:
+
+- **Tutorials** follow a concrete trace and introduce terms progressively.
+- **Reference manuals** optimize for lookup and may open with a navigation table; they do not need a fictional scenario.
+- **Machine evidence** optimizes for deterministic regeneration and exact fields; it should be linked as evidence, not presented as a prose article.
 
 ## Quality gate
 
 Before publication, verify all answers are yes:
 
-1. Can a reader explain the mechanism after the first image without reading source code?
-2. Does the guide use one scenario from trigger through result?
+1. Can a reader explain the first action and result before encountering internal terminology?
+2. Does the example include a concrete request, starting data, action, result, and next decision?
 3. Does every diagram state a conclusion and use action verbs?
-4. Are before/after states explicit?
+4. Are before/after states explicit without requiring a table?
 5. Does each component have one clear responsibility?
 6. Are success, failure, retry, and terminal states separate?
 7. Are token, latency, quality, privacy, security, and recovery effects stated where relevant?
 8. Are exact numeric claims bound to the target release?
 9. Are public claims separated from target-version static and probe evidence?
-10. Are field dumps and inventory counts deferred until after the mental model?
+10. Are field dumps and inventory counts deferred until after the concrete trace?
 11. Are editable diagram sources committed and reproducibly rendered?
 12. Has the publishable output passed the repository privacy scan?
 
-If the guide fails questions 1-6, adding more fields will not fix it. Rewrite the teaching path first.
+If the guide fails questions 1-6, adding more fields, headings, tables, or visible “reader-friendly” labels will not fix it. Rewrite the teaching path first.

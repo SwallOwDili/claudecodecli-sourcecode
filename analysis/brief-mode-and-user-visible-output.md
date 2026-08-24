@@ -1,26 +1,179 @@
 # Claude Code CLI 2.1.235 Brief Mode 与用户可见输出通道
 
-**读者问题：** 为什么 Claude 明明生成了普通文字，用户主界面却看不到；为什么一轮结束后客户端还会要求调用 `SendUserMessage`；为什么附件有时桌面能看、手机或 Web 看不到？
+用户给 Claude Code 的任务是生成周报，并把两个已经存在的文件一起发来：
 
-**一句话模型：** Brief Mode 把“模型生成了什么”和“用户主视图收到什么”拆成两条通道：普通 assistant text 留在 detail/transcript，`SendUserMessage` 或其他 `briefStandalone` 工具才形成 chat 主视图中的可见 checkpoint；模型漏调时客户端最多插入一次 meta reminder，把同一任务交回 Agent Loop 补发。
+```text
+用户：
+把本周错误情况整理成周报，把 report.pdf 和 raw.csv 一起发给我。
+
+本地文件：
+  /workspace/project/out/report.pdf   184320 bytes
+  /workspace/project/out/raw.csv        9216 bytes
+```
+
+## 第一步：Claude 已经写了普通文字，但主视图没有这条回答
+
+模型先生成一个普通 assistant text block：
+
+```text
+周报已经生成。本周共有 37 次接口错误，其中 29 次来自上游 503；
+高峰集中在周三 14:00 到 14:20。完整结论见 report.pdf，原始记录见 raw.csv。
+```
+
+此刻两个界面的可见结果不同：
+
+```text
+Brief 主视图：
+  [没有出现上面这段 Claude 消息]
+
+展开 detail / transcript：
+  Claude: 周报已经生成。本周共有 37 次接口错误……
+```
+
+文字没有丢。它已经进入会话消息历史，只是主视图的 renderer 没把普通 assistant text 投影成一条聊天消息。到这里再给第一条通道命名：这是 **detail/transcript 通道**，消息历史保存内容，renderer 决定当前视图是否显示。
+
+## 第二步：模型调用 `SendUserMessage`
+
+同一轮响应接着产生一个结构化工具调用：
+
+```text
+assistant tool_use:
+  id: send_weekly_01
+  name: SendUserMessage
+  input:
+    status: normal
+    message: |
+      周报已生成：本周 37 次接口错误，其中 29 次是上游 503。
+      详细分析和原始数据见附件。
+    attachments:
+      - /workspace/project/out/report.pdf
+      - /workspace/project/out/raw.csv
+```
+
+这时主视图仍不能凭工具输入断言两个文件都已交付。客户端要先校验路径，再处理每个附件。
+
+## 第三步：两个附件并行上传，一个成功，一个失败
+
+两个路径都通过 regular-file 和可读性检查。客户端随后并行调用同一个上传实现。本例固定上传接口返回：
+
+```text
+report.pdf
+  POST /api/oauth/file_upload
+  HTTP 201
+  body: {"file_uuid":"file_report_01"}
+
+raw.csv
+  POST /api/oauth/file_upload
+  HTTP 503
+  client error: upload failed: server returned 503
+```
+
+客户端不会因为 `raw.csv` 失败而回滚 `report.pdf`。工具执行数据变成：
+
+```text
+message: 周报已生成：本周 37 次接口错误，其中 29 次是上游 503。详细分析和原始数据见附件。
+sentAt: 2026-08-24T14:32:00.000Z
+rendered_locally: true
+attachments:
+  - path: /workspace/project/out/report.pdf
+    size: 184320
+    isImage: false
+    media_type: application/pdf
+    pathValidated: true
+    file_uuid: file_report_01
+  - path: /workspace/project/out/raw.csv
+    size: 9216
+    isImage: false
+    media_type: text/csv
+    pathValidated: true
+    upload_error: "upload failed: server returned 503"
+```
+
+因为一个附件已有 `file_uuid`，成功数是 1；另一个附件只有本地路径和 `upload_error`。客户端给下一轮模型的 tool result 是：
+
+```text
+tool_use_id: send_weekly_01
+content: |
+  Message delivered to user. (1 attachment included)
+  1 attachment NOT delivered to Remote Control (phone/web) viewers — only visible in the desktop app on this machine:
+    /workspace/project/out/raw.csv: upload failed: server returned 503
+  Tell the user the attachment is only visible in the desktop app, and why.
+```
+
+这里没有 `is_error:true`，因为本例固定走的是“当前桌面仍能打开失败附件”的分支。桌面主视图此时出现：
+
+```text
+Claude
+周报已生成：本周 37 次接口错误，其中 29 次是上游 503。
+详细分析和原始数据见附件。
+
+  [file] report.pdf
+  [file] raw.csv
+```
+
+手机/Web 端不能由这张桌面视图推出同样结果。客户端只知道 `report.pdf` 获得了远端标识，而 `raw.csv` 上传返回 503；是否有任意远端 viewer 真正渲染 `report.pdf`，仍需要 viewer 侧验证。
+
+到这里才需要引入 **upload lane**。要产生上面的 `rendered_locally:true`，本例固定选择 `sdk_hosted`，并命中允许本地兜底的附加条件。`sdk_hosted` 是选择标签，不是另一套上传协议；它与 `repl`、`env_brief_upload`、`env_ccr`、`env_byoc` 共用同一个 `/api/oauth/file_upload` 实现。若没有本地兜底，同一个 503 会让 tool result 带 `is_error:true`，但已经送达的消息正文和成功的 `report.pdf` 仍不会回滚。
+
+## 第四步：下一轮把“部分失败”明确告诉用户
+
+下一次模型请求已经包含上面的 tool result。模型据此再次调用 `SendUserMessage`，这次不重复附加文件：
+
+```text
+assistant tool_use:
+  id: send_weekly_02
+  name: SendUserMessage
+  input:
+    status: normal
+    message: |
+      report.pdf 的上传已被接口接受。
+      raw.csv 上传返回 503，目前只在这台桌面应用里可见。
+```
+
+客户端返回：
+
+```text
+tool_use_id: send_weekly_02
+content: Message delivered to user.
+```
+
+主视图新增第二条 Claude 消息，用户现在能直接看到附件交付差异。第一次的普通 assistant text 仍然没有成为主消息。
+
+## 第五步：主视图和 transcript 保存的不是同一份展示
+
+这轮结束时，Brief 主视图显示：
+
+```text
+1. SendUserMessage 正文，以及 report.pdf/raw.csv 两张本地文件卡片
+2. “report.pdf 已被接口接受；raw.csv 只在当前桌面可见”的补充消息
+```
+
+同一会话的 transcript 还保留：
+
+```text
+1. 最开始那段普通 assistant text
+2. send_weekly_01 的 tool_use
+3. send_weekly_01 的 tool_result，包括 HTTP 503 对应的 upload_error
+4. send_weekly_02 的 tool_use
+5. send_weekly_02 的 tool_result
+```
+
+因此“模型生成过”“主视图展示过”“附件上传成功”“远端 viewer 看见过”是四个不同事实。隐藏普通文字只是视图投影，不是删除 transcript；HTTP `201 + file_uuid` 只是客户端接受上传成功，不是 viewer 渲染证明。
+
+现在再给这条链上的所有者命名：
+
+| 已经看到的事实 | 通道或状态 | 谁负责 |
+| --- | --- | --- |
+| 普通 assistant text 只在 detail/transcript 出现 | detail/transcript 通道 | Agent Loop 消息历史保存，renderer 选择是否展示 |
+| `SendUserMessage` 正文成为主聊天消息 | brief 主输出通道 | tool call 产生数据，主视图 renderer 投影 |
+| `report.pdf` 获得 `file_uuid`，`raw.csv` 获得 `upload_error` | attachment 交付状态 | 本地文件系统提供 bytes，上传接口返回远端结果，tool result 保存分类 |
+| 同一附件在桌面可见、Remote viewer 不完整 | viewer 投影 | 各端 renderer 决定实际呈现，客户端上传结果不能替它作证 |
+
+这条链不是远端 viewer 的在线 Probe。模型文本、两次 tool call、`201`、`503` 和示例 `file_uuid` 都是为了走完客户端分支而固定的输入；上面的可见块按 renderer 结构展开，不是在线截图。消息映射、错误文字、`is_error` 判定和视图选择来自 2.1.235 可读 bundle。哪些事实仍缺少真实手机/Web 验证，文末 Boundary 会单独说明。
 
 ![Brief Mode 从入口、entitlement、工具装配到可见消息、附件 lane 选择、统一上传实现和 turn-end enforcement 的完整状态机](visuals/brief-user-output-lifecycle.svg)
 
-贯穿场景：一个后台任务完成后，模型先在普通 assistant text 里写了完整结果，又调用 `SendUserMessage({status:"proactive", message:"报告已完成", attachments:["report.pdf"]})`。本地桌面将后者作为主消息呈现；若 `/api/oauth/file_upload` 返回 `201` 和 `file_uuid`，客户端把附件记为上传成功，但这仍不能单独证明手机/Web/Remote viewer 已实际显示 PDF；若 upload 失败但桌面已能读取本地文件，tool result 会明确告诉模型“消息已送达，但附件只在这台桌面可见”；若模型完全漏掉工具调用，客户端在 turn end 插入 `You ended the turn without calling SendUserMessage.`，再给模型一次补发机会。
-
-## 60 秒理解：它解决的不是“回答更短”，而是输出所有权
-
-Brief Mode 不是把长回答自动摘要成短回答，也不是 `/compact`。它重新定义了 UI 的 primary output channel：
-
-| 对象 | 谁拥有 | 用户在哪里看 | 是否进入 transcript | 主要用途 |
-| --- | --- | --- | --- | --- |
-| 普通 assistant text | Agent Loop message history | detail 或 transcript；brief 主视图通常隐藏 | 是 | 推理过程、工具间说明、可展开细节 |
-| `SendUserMessage` result data | tool call + UI renderer | chat/brief 主视图 | tool use/result 均保留 | 用户真正需要读到的答复、进度和主动通知 |
-| `SendUserFile`/`Artifact` | briefStandalone 工具 | 文件卡片、inline side panel 或 artifact page | 是 | 独立交付物，不要求把文件内容塞进消息文本 |
-| `PushNotification` | notification/Remote owner | 系统或手机通知 | 事件/结果按对应通道记录 | 离开终端后的主动提醒 |
-| `/compact` summary | context governance | 通常不作为一条用户回复展示 | 作为 compact boundary/history 参与恢复 | 压缩历史上下文，不负责 UI 输出路由 |
-
-这一区分解释了最常见的误判：模型“已经输出”只说明 assistant message 存在，不说明主视图已经交付。Brief prompt 明确告诉模型，普通文字在 detail view 中可见，但大多数用户不会打开；真正的答案要进入 `SendUserMessage`。
+Brief Mode 因而不是把长回答自动摘要成短回答，也不是 `/compact`。它改变的是哪一种输出进入 UI 主视图。`SendUserFile`/`Artifact` 可以形成独立文件卡片或 artifact 页面，`PushNotification` 由通知/Remote 通道处理，`/compact` summary 则属于上下文治理；这些都不能替代上面已经逐步走完的正文与附件交付判断。
 
 ## 五个入口怎样汇聚为 `isBriefOnly`
 

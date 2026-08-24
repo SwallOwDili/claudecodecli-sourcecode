@@ -1,41 +1,28 @@
 # Claude Code CLI 2.1.235 后台模型任务：哪些只是提示，哪一个会真正改写记忆
 
-> 版本：`2.1.235` | 证据：`Static` | 本章区分模型调用、启发式分类、本地草稿与持久文件副作用
+一个项目在上次记忆整理后又完成了 5 个 session，当前正在使用第 6 个。距离上次 consolidation 已超过默认的 `24` 小时；某个 turn 结束后，Auto Dream 调度器通过 `10` 分钟扫描节流，列出这 5 个已结束 session，并明确排除仍在变化的当前 session。
 
-## 60 秒理解
+这时客户端还不会立即请求模型。它先争抢这份 project memory 的跨进程锁：本地文件后端检查 `.consolidate-lock` 的 PID 和 mtime，Storage V5 后端则用对象版本做 compare-and-swap。另一个 Claude Code 进程若已经持锁，本次任务直接跳过，不会同时启动两个整理 Agent 去覆盖同一批 Markdown。
 
-**读者问题：** Claude Code 在主回答之外还会生成 recap、状态摘要、下一问建议和记忆整理；它们是不是同一套“后台总结”，会不会都写进对话或长期记忆？
+拿到锁后，客户端在 task registry 中创建一条 `type:"dream"` 的 running task，记录 `sessionsReviewing:5`、空的 `filesTouched/turns`、独立 `AbortController` 和锁之前的 `priorMtime`。随后它 fork 一个 `querySource:"auto_dream"` 的 Agent Loop。发给这个 Agent 的任务 prompt 会列出待整理的 session ID，并直接声明工具边界：
 
-**一句话模型：** 2.1.235 用多个独立调度器消费 session 事件：Away Summary、Post-turn Summary 和 Prompt Suggestion 主要生成短暂 UI/协议状态，Feedback Draft 只排队本地草稿，只有 Auto Dream fork agent 被授权读历史 session 并真实改写持久 memory Markdown。
+```text
+Sessions since last consolidation (5):
+- <session-id-1>
+- ...
+
+Shell 只允许 ls/find/grep/cat/stat/wc/head/tail 等只读命令；
+只允许在 memory 目录内写入或删除 .md；
+禁止一般 shell 写操作、重定向和 MCP。
+```
+
+这个 fork 的第一次模型请求携带上述 consolidation prompt 和受限工具集合，并设置 `skipTranscript:true`，再按配置使用 `skipCacheWrite`；这只是不把整理过程伪装成普通用户对话，也不表示模型没有读取 session 和 memory。Agent 通过受限工具检查历史记录、现有 daily logs 与长期记忆，把仍有价值的事实合并进 memory Markdown，并删除已经被吸收的冗余 `.md`。每次 assistant turn 的文字、工具次数和实际触碰文件都会投影回 dream task。
+
+Agent 正常结束后，task 变成 `completed`，客户端记录模型 usage、检查的 session 数、发现的 daily logs 和 `filesTouched`。只要确实改过文件，app state 还会追加一条 `source:"dream"` 的 `pendingMemoryUpdates`；下一次 session 读到的是已经改变的长期 memory，而不是一条仅供界面展示的摘要。
+
+失败时要区分调度状态和文件状态。fork 阶段失败会把 task 标成 `failed`，并尝试把 consolidation 时间恢复为 `priorMtime`，让后续调度仍能重试；用户 abort 则记录 aborted 后退出。但如果 Agent 已经写了一部分 Markdown，时间回滚不会恢复那些文件。Auto Dream 的持久副作用由 memory 文件持有，不由 task 状态代替。
 
 ![后台模型任务按各自 gate 生成临时 recap、状态和建议，只有 Auto Dream 改写持久记忆，反馈草稿需用户确认才上传](visuals/background-model-tasks.svg)
-
-贯穿场景：用户完成一天的开发，离开窗口 4 分钟后回来。Away Summary 可能显示“刚才修复了登录测试”；turn 结束后某些宿主 surface 得到 `status_category/status_detail/needs_action`；输入框可能出现下一问建议。与此同时，只有满足“距上次至少 24 小时且至少 5 个新 session”等条件的 Auto Dream 才会 fork 一个受限 Agent 去整理 memory 文件。若主模型认为出现了产品问题，它还能调用 `SendFeedback` 写一个本地草稿，但在用户打开 `/feedback` 并确认前不会上传。
-
-## 一张表先把五种机制分开
-
-| 机制 | 主要触发 | 是否额外调用模型 | 工具能力 | 写入位置 | 会不会自动上传 |
-| --- | --- | --- | --- | --- | --- |
-| Auto Dream | 24h + 5 个新 session 等 gate | 是，fork agent | 只读探索 + memory 内 `.md` 写删；禁 MCP | 持久 memory 文件、task state | 否 |
-| 自动 Away Summary | 离开窗口、缓存仍新鲜且自动 gate 通过 | 是，单轮无工具 | 无工具 | 追加 session `away_summary` system event | 否 |
-| `/recap` | 用户显式执行命令 | 是，复用同一个单轮无工具生成器 | 无工具 | 只把 text/typed failure 返回给命令调用方，不写 `away_summary` 或 metadata | 否 |
-| Post-turn Summary | turn 结束且宿主 surface 需要 | 默认 heuristic；可选 LLM | 分类器无业务工具 | app/session summary fields | 只发给当前宿主协议 |
-| Prompt Suggestion | 至少 2 个 assistant turn 且多道 gate 通过 | 是，单轮无工具 | 无工具 | `promptSuggestion` UI/SDK event | 否 |
-| Feedback Draft | 主模型自然时机调用 `SendFeedback` | 工具调用来自主 Agent；写草稿本身不另起模型 | 仅写受控草稿 | 本地持久 draft，权限 `0600` | 否；必须用户审核发送 |
-
-这些机制共享“发生在主回答之外”的表象，但 owner、输入、持久性、费用和隐私边界完全不同。把它们统称为 background summarizer，会掩盖最重要的区别：**Auto Dream 会改文件，Feedback Draft 可能在确认后出网，自动 Away Summary 会写一条展示 event，而 `/recap` 只返回当次命令结果。**
-
-## 状态变化：离开并返回一次 session 后发生什么
-
-| Object | Before | Transformation | After | User-visible effect |
-| --- | --- | --- | --- | --- |
-| conversation transcript | 有多个真实用户 turn | 自动 Away model 把现状压成 `<40 words` recap | 追加一条 `away_summary` system event | 回来时快速知道刚才做到哪 |
-| `/recap` command result | 用户显式请求即时 recap | 同一生成器返回 `ok/api-error/no-turn/aborted/failed` | wrapper 映射成 text 返回，不改 transcript/metadata | 当前调用方看到一次性短摘要或明确失败文案 |
-| post-turn state | 没有本轮状态 | heuristic 或 classifier 生成结构化字段 | `status_category/status_detail/needs_action` | 宿主可显示等待、阻塞或完成 |
-| prompt input | 空，无建议 | suggestion model 生成并通过长度/语气过滤 | 保存一条短建议 | 用户可一键继续下一步 |
-| project memory | 多个 session 后仍是旧整理结果 | Auto Dream 读取 session 与 memory，编辑 `.md` | 长期记忆内容被真实改写 | 后续 session 会读到新记忆 |
-| feedback queue | 无草稿 | `SendFeedback` 写本地 draft | 最多保留 10 个待审草稿 | `/feedback` 可审核、发送或丢弃 |
-| transcript/cache accounting | 主 turn 正常记录 | 后台调用设置 `skipTranscript`，部分设置 `skipCacheWrite` | 后台生成不伪装成用户对话 | 仍有额外 token/延迟，但消息历史更干净 |
 
 ## Auto Dream：不是“摘要提示”，而是受限的持久记忆维护 Agent
 
@@ -105,6 +92,33 @@ Auto Dream 注册 `type:"dream"` task，状态包含：
 如果回滚本身失败，日志明确指出下一次触发至少会被 `minHours` 延迟。文件编辑已经发生到一半时，时间回滚不能自动恢复旧 Markdown 内容；这也是 Auto Dream 的不可逆边界。
 
 证据：`reverse/javascript/cli.readable.js` 268382-268398、268463-268484。
+
+## 其余后台任务不是 Auto Dream 的子阶段
+
+Auto Dream 完成后，不会顺带生成 Away Summary、Post-turn Summary、Prompt Suggestion 或 Feedback Draft。它们由不同事件和 owner 触发，也不会保证在同一个 session 中全部出现。下面的表只用于横向查阅，不能读成一条连续流水线。
+
+| 机制 | 主要触发 | 是否额外调用模型 | 工具能力 | 写入位置 | 会不会自动上传 |
+| --- | --- | --- | --- | --- | --- |
+| Auto Dream | 24h + 5 个新 session 等 gate | 是，fork agent | 只读探索 + memory 内 `.md` 写删；禁 MCP | 持久 memory 文件、task state | 否 |
+| 自动 Away Summary | 离开窗口、缓存仍新鲜且自动 gate 通过 | 是，单轮无工具 | 无工具 | 追加 session `away_summary` system event | 否 |
+| `/recap` | 用户显式执行命令 | 是，复用同一个单轮无工具生成器 | 无工具 | 只把 text/typed failure 返回给命令调用方，不写 `away_summary` 或 metadata | 否 |
+| Post-turn Summary | turn 结束且宿主 surface 需要 | 默认 heuristic；可选 LLM | 分类器无业务工具 | app/session summary fields | 只发给当前宿主协议 |
+| Prompt Suggestion | 至少 2 个 assistant turn 且多道 gate 通过 | 是，单轮无工具 | 无工具 | `promptSuggestion` UI/SDK event | 否 |
+| Feedback Draft | 主模型自然时机调用 `SendFeedback` | 工具调用来自主 Agent；写草稿本身不另起模型 | 仅写受控草稿 | 本地持久 draft，权限 `0600` | 否；必须用户审核发送 |
+
+### 每条分支最终改变哪一份状态
+
+| 独立分支 | 触发前 | 转换 | 触发后 | 用户可见结果 |
+| --- | --- | --- | --- | --- |
+| 自动 Away Summary | conversation transcript 有多个真实用户 turn | 无工具模型把现状压成 `<40 words` recap | 追加一条 `away_summary` system event | 回来时快速知道刚才做到哪 |
+| `/recap` | 用户显式请求即时 recap | 同一生成器返回 `ok/api-error/no-turn/aborted/failed` | wrapper 映射成 text 返回，不改 transcript/metadata | 当前调用方看到一次性短摘要或明确失败文案 |
+| Post-turn Summary | 没有本轮状态 | heuristic 或 classifier 生成结构化字段 | `status_category/status_detail/needs_action` | 宿主可显示等待、阻塞或完成 |
+| Prompt Suggestion | prompt input 为空 | suggestion model 生成并通过长度/语气过滤 | 保存一条短建议 | 用户可一键继续下一步 |
+| Auto Dream | project memory 仍是旧整理结果 | 读取 session 与 memory，编辑 `.md` | 长期记忆内容被真实改写 | 后续 session 会读到新记忆 |
+| Feedback Draft | feedback queue 无草稿 | `SendFeedback` 写本地 draft | 最多保留 10 个待审草稿 | `/feedback` 可审核、发送或丢弃 |
+| 共同 accounting 选项 | 主 turn 正常记录 | 后台调用设置 `skipTranscript`，部分设置 `skipCacheWrite` | 后台生成不伪装成用户对话 | 仍有额外 token/延迟，但消息历史更干净 |
+
+这些机制只共享“发生在主回答之外”的表象。Auto Dream 会改文件，Feedback Draft 可能在用户确认后出网，自动 Away Summary 会写一条展示 event，而 `/recap` 只返回当次命令结果；把它们统称为 background summarizer 会直接丢掉状态 owner。
 
 ## Away Summary：给“离开后回来”的人看，不是 `/compact`
 

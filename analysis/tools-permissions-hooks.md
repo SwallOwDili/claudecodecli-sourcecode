@@ -1,28 +1,196 @@
 # Claude Code CLI 2.1.235 工具、权限与 Hooks：一次动作为什么要经过十几道关卡
 
-模型生成 `tool_use` 只是在申请执行一个动作，不等于动作已经获准。Claude Code 2.1.235 会把模型给出的名称和 JSON input 依次送入工具查找、schema、自定义校验、hook、permission/policy、sandbox、实际调用和输出校验。每一层管理不同风险，失败也必须转换成模型能理解的 `tool_result`，否则 Agent Loop 会得到一段断裂历史。
+工作区里有两个已经被 Claude Code 完整读取过的文件：
 
-本章解释客户端本地执行控制面。它不声称恢复 Anthropic 服务端账户风控、abuse score 或封禁规则；发布 bundle 没有这些服务端内部实现证据。
+```jsonc
+// /workspace/project/config.json
+{"port": 8080, "mode": "production"}
 
-## 60 秒理解动作控制
+// /workspace/project/config.staging.json
+{"port": 8080, "mode": "staging"}
+```
 
-**读者问题：** 为什么模型明明“决定执行 Bash”，用户仍可能看到审批、hook 拒绝、sandbox 错误，或者工具失败后模型还能继续回答？
+模型接着产生一个具体工具调用：
 
-**一句话模型：** `tool_use` 只是动作提案；客户端必须先证明工具和输入合法，再经过可编程 hook、权限与企业 policy；需要 OS 隔离的工具还会在自身 `call` 路径进入 runtime sandbox，执行后再验证输出并把成功或错误按原 ID 回灌给 Agent Loop。
+```text
+assistant tool_use:
+  id: toolu_edit_port_01
+  name: Edit
+  input:
+    file_path: /workspace/project/config.json
+    old_string: '"port": 8080'
+    new_string: '"port": 9090'
+```
+
+下面只跟这一个 ID。每一步先给客户端得到的结果，再说明该层叫什么。
+
+## 第一步：字符串 `Edit` 找到了一个可执行对象
+
+客户端用当前 turn 的工具集合查找名称，结果是：
+
+```text
+requested name: Edit
+resolved canonical name: Edit
+implementation: built-in Edit tool
+input schema: available
+custom validateInput: available
+permission matcher: file_path
+call: available
+```
+
+如果当前工具集合里没有 `Edit`，这里就会直接生成同 ID 的 `No such tool available` error result，不会继续检查文件。成功找到对象之后，这一层才叫 **tool registry / canonical-name resolution**。
+
+## 第二步：四个字段通过结构检查
+
+`replace_all` 没有显式提供，schema 将它解析为默认值 `false`。结构检查后的数据是：
+
+```text
+file_path: string = /workspace/project/config.json
+old_string: string = '"port": 8080'
+new_string: string = '"port": 9090'
+replace_all: boolean = false
+result: valid
+```
+
+缺少 `file_path`、把 `replace_all` 写成无法解析的值，或者工具 JSON 本身不完整，都会在文件访问前变成 `InputValidationError`。这一步叫 **input schema validation**；它只证明对象形状可解析，不证明这次编辑能安全执行。
+
+## 第三步：原始目标文件也满足 Edit 自己的条件
+
+工具随后读取当前运行状态并检查原始输入。本例得到：
+
+```text
+absolute path: yes
+denied directory: no
+Jupyter notebook: no
+file size: within limit
+file was fully Read in this conversation: yes
+file changed since Read: no
+old_string match count: 1
+old_string differs from new_string: yes
+result: valid
+meta.actualOldString: '"port": 8080'
+```
+
+如果没有先 Read、文件已被其他进程改动、旧字符串不存在或出现多次且 `replace_all=false`，工具会在这里拒绝。这个依赖文件内容和会话读取状态的检查叫 **Edit custom `validateInput`**。
+
+## 第四步：执行前的 hook 把目标改到 staging 文件
+
+校验原始目标后，客户端运行匹配这个工具的动作前 hook。本例固定 hook 返回：
+
+```text
+updatedInput:
+  file_path: /workspace/project/config.staging.json
+  old_string: '"port": 8080'
+  new_string: '"port": 9090'
+  replace_all: false
+additionalContext: production edits are redirected to staging
+permissionDecision: no decision
+```
+
+文件还没有被修改。到这里才把这个可编程控制点命名为 **PreToolUse**。它可以追加上下文、改输入、给权限决定、拒绝或在受限模式下 defer。
+
+这里有一个必须当场记住的边界：刚才通过的是 `/workspace/project/config.json` 的 custom `validateInput`。hook 改成 staging 路径后，通用管线不会自动再调用一次 Edit 的 custom `validateInput`。
+
+## 第五步：权限决定允许 staging 编辑，并返回完整输入
+
+权限层接收到的是 hook 改写后的 staging 路径，而不是模型最初的 production 路径。本例的决定结果是：
+
+```text
+behavior: allow
+decision source: permission handler
+checked path: /workspace/project/config.staging.json
+updatedInput:
+  file_path: /workspace/project/config.staging.json
+  old_string: '"port": 8080'
+  new_string: '"port": 9090'
+  replace_all: false
+```
+
+这次 allow 决定覆盖的就是上面显示的 staging 输入。permission handler 又显式返回了完整 `updatedInput`，客户端不会直接执行，而是先得到以下通用复验结果：
+
+```text
+Edit input schema: valid
+Edit custom validateInput: not run again
+another permission round after handler return: no
+```
+
+若 `updatedInput` 漏掉 `new_string`，客户端会生成 `PERMISSION_UPDATED_INPUT` validation error，并指出问题来自 callback、PermissionRequest hook 或 permission-prompt tool。结构有效后才采用新输入；通用管线不会在 handler 返回后再启动一轮 custom validation 或 permission 决策。这一段才叫 **permission / policy decision and updatedInput schema revalidation**。
+
+## 第六步：没有启动 Bash，也没有额外网络动作
+
+执行前的可见运行条件是：
+
+```text
+target path: workspace-local file
+permission decision: allow
+subprocess launched: no
+network request: no
+OS command sandbox wrapper: not used by this Edit call
+```
+
+这一步说明 **sandbox applicability** 不能写成“所有工具统一套一层 shell sandbox”。`Edit` 直接进入自己的文件实现，并继续执行路径、读取状态和写入保护；Bash 等适用工具才会在自身调用路径里建立 OS/filesystem/network sandbox。permission allow 也不会关闭这些独立边界。
+
+## 第七步：真正写文件时再次遇到当前磁盘状态
+
+客户端标记 `toolu_edit_port_01` 为 in-progress，然后调用 Edit 实现。由于 staging 文件也已经被完整 Read、仍未变化且旧字符串唯一，实际结果是：
+
+```text
+/workspace/project/config.json
+  before: {"port": 8080, "mode": "production"}
+  after:  {"port": 8080, "mode": "production"}
+
+/workspace/project/config.staging.json
+  before: {"port": 8080, "mode": "staging"}
+  after:  {"port": 9090, "mode": "staging"}
+```
+
+实现同时返回 `filePath`、old/new string、原文件内容和 structured patch，并更新文件历史。发生字节副作用的这一层才叫 **`tool.call`**。在它之前的拒绝不会写文件；从这里开始，后置 hook 只能影响后续消息，不能把写入自动变回去。
+
+## 第八步：执行后的 hook 观察成功结果
+
+写入成功后，动作后 hook 收到最终输入和 Edit 输出。本例固定它返回完整、仍然合法的候选输出，并追加一条上下文：
+
+```text
+additionalContext: staging config port is now 9090
+updatedToolOutput:
+  filePath: /workspace/project/config.staging.json
+  oldString: '"port": 8080'
+  newString: '"port": 9090'
+  originalFile: '{"port": 8080, "mode": "staging"}'
+  structuredPatch:
+    - oldStart: 1
+      oldLines: 1
+      newStart: 1
+      newLines: 1
+      lines:
+        - '-{"port": 8080, "mode": "staging"}'
+        - '+{"port": 9090, "mode": "staging"}'
+  userModified: false
+  replaceAll: false
+```
+
+Edit output schema 对这份 `updatedToolOutput` 的结果是 valid，因此 mapper 使用它生成最终结果。这一步叫 **PostToolUse and output-contract validation**。如果 hook 返回不符合 output schema 的候选对象，客户端会保留原始工具输出，并追加 hook error attachment。
+
+## 第九步：同一个工具 ID 把结果送回模型
+
+最后，Edit mapper 生成：
+
+```text
+type: tool_result
+tool_use_id: toolu_edit_port_01
+is_error: omitted
+content: The file /workspace/project/config.staging.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+
+下一次模型请求同时包含最初的 `tool_use.id=toolu_edit_port_01`、这个同 ID `tool_result`，以及 hook 追加的 staging 上下文。模型由此知道 production 文件没有改，实际变化发生在 staging 文件。
+
+这一步叫 **tool-result mapping and Agent Loop feedback**。工具失败、hook 拒绝或 sandbox 阻断也必须生成同 ID 的 error result；否则消息协议会留下孤立调用。
 
 ![一个 tool_use 依次经过查找校验、PreToolUse、权限、sandbox、执行和 PostToolUse](visuals/tool-control-lifecycle.svg)
 
-贯穿场景：模型要执行 `Bash("curl https://example.test")`。名称和 JSON 正确并不代表动作能发生：PreToolUse 可以改写命令或拒绝；permission rule 可以 ask/deny；managed policy 可以压过项目设置；sandbox 可以允许进程启动却阻断域名或凭据读取；命令成功后 PostToolUse 还能追加反馈，但不能撤销已经发出的网络请求。
+上面是一条按 2.1.235 可达代码路径固定输入后的完整复原，不是单份运行报告捕获的组合 hook 成功案例。精确二进制 [checkpoint-rewind.json](runtime-probes/checkpoint-rewind.json) 正向证明内置 Edit 能把受控文件从 `CHECKPOINT_ORIGINAL` 改成 `CHECKPOINT_MODIFIED`；[runtime-controls.json](runtime-probes/runtime-controls.json) 则证明 PreToolUse deny 会阻止真实 `tool.call`，同时仍返回配对 error result。sandbox 的文件与网络拒绝由后文两项独立 Probe 覆盖。
 
-| 阶段 | 所有者 | 输入状态变化 | 失败时是否已产生副作用 | Agent Loop 收到什么 |
-| --- | --- | --- | --- | --- |
-| 查找与 schema | 工具 registry/validator | 名称、alias、JSON、类型变成可执行输入 | 否 | unknown tool 或 validation error result |
-| PreToolUse | hook runner | 允许、修改、询问或拒绝；修改后重新校验 | 否 | hook feedback/deny result |
-| Permission/policy | 权限决策器和 managed source | 根据 mode、rule、来源决定 allow/ask/deny | 否 | approval 或 denial reason |
-| Tool call / 适用时 Sandbox | 运行时和工具实现 | 真正访问文件、网络、进程或远端系统；Bash 等工具在实现内部应用 sandbox | 可能已经发生 | 成功输出、abort 或结构化错误 |
-| PostToolUse/output | hook 和 output validator | 追加反馈、校验返回合同 | 是 | 与原 `tool_use_id` 配对的 result |
-
-关键边界是“前置控制能阻止副作用，后置控制只能影响后续决策”。所以本文会把拒绝、执行失败、后置阻断和 Stop hook 重入分开讲，而不是统称为权限失败。
+本章解释客户端本地执行控制面。它不声称恢复 Anthropic 服务端账户风控、abuse score 或封禁规则；发布 bundle 没有这些服务端内部实现证据。关键边界是：前置控制能阻止副作用，后置控制只能影响后续决策。
 
 ## 完整控制管线
 

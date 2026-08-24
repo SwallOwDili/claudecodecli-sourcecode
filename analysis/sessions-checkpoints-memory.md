@@ -1,36 +1,194 @@
 # Claude Code CLI 2.1.235 会话、检查点与 Memory：Claude Code 到底保存了什么
 
-用户看到的是一条连续对话，但 Claude Code 需要同时保存四类完全不同的状态：消息图、JSONL transcript、文件 checkpoint 和 memory。它们的生命周期、恢复能力和失败边界不同。把它们统称为“会话缓存”，会直接导致错误预期，例如认为 `resume` 可以恢复正在运行的 shell，或认为 rewind 能撤销已经推送到远端的 commit。
+先看 Claude Code 2.1.235 自己写下并恢复了什么。工作目录里有两个受控文件：
 
-本章只把 `2.1.235` 客户端中可以追到的行为写成本版事实。当前官方 Sessions、Checkpointing 和 Memory 文档用于解释目的；字段、上限和修链逻辑以发布 bundle 为准。
+```text
+$WORKSPACE/probe-fixture.txt
+AGENT_LOOP_FILE_MARKER
 
-## 60 秒理解恢复对象
+$WORKSPACE/checkpoint.txt
+CHECKPOINT_ORIGINAL
+```
 
-**读者问题：** 为什么 `--resume` 能找回对话，`rewind` 能恢复部分文件，却不能复活旧进程、撤销远端部署或让 Claude 自动记住所有历史？
+下面把同一精确二进制的两组正向 Probe 按一条可达 session 顺序展开。仓库把“工具、compact、resume”和“文件 rewind”分成两个隔离报告，以便每个合同可独立复跑；下面保留各自的真实命令、marker、literal output 和退出状态，不把进程或远端副作用写成已被 Probe 覆盖。
 
-**一句话模型：** Transcript 保存消息图事件，compact boundary 保存历史表示的切换关系，file checkpoint 保存受管文件字节，Memory 为未来请求提供长期文本；它们分别恢复不同对象，没有一个机制能回滚整个外部世界。
+## 第一步：工具调用和结果进入本地 JSONL
+
+第一个进程用固定 session ID 启动：
+
+```text
+$CLAUDE_TARGET --print AGENT_LOOP_INITIAL_MARKER \
+  --output-format stream-json --verbose \
+  --model claude-sonnet-4-5 --tools Read \
+  --permission-mode bypassPermissions \
+  --dangerously-skip-permissions \
+  --session-id $SESSION_ID
+```
+
+第一次模型请求只带用户 marker 和 `Read` 工具定义。受控模型返回：
+
+```text
+assistant tool_use:
+  id: toolu_agent_loop_probe
+  name: Read
+  input:
+    file_path: $WORKSPACE/probe-fixture.txt
+```
+
+Claude Code 执行真实 `Read`，读到 `AGENT_LOOP_FILE_MARKER`。第二次请求同时带回调用和结果：
+
+```text
+assistant:
+  type: tool_use
+  id: toolu_agent_loop_probe
+  name: Read
+
+user:
+  type: tool_result
+  tool_use_id: toolu_agent_loop_probe
+  content: ...AGENT_LOOP_FILE_MARKER...
+```
+
+受控模型随后返回 `TOOL_EXECUTION_OK`。CLI 输出 `subtype=success`，exit status 为 `0`。
+
+与此同时，本地 session JSONL 已经留下带父指针的记录。下面只摘决定顺序的字段：
+
+```text
+user      uuid=$USER_UUID       parentUuid=null
+  content=AGENT_LOOP_INITIAL_MARKER
+
+assistant uuid=$TOOL_USE_UUID   parentUuid=$USER_UUID
+  tool_use.id=toolu_agent_loop_probe
+
+user      uuid=$TOOL_RESULT_UUID parentUuid=$TOOL_USE_UUID
+  tool_result.tool_use_id=toolu_agent_loop_probe
+  content=...AGENT_LOOP_FILE_MARKER...
+
+assistant uuid=$FINAL_UUID      parentUuid=$TOOL_RESULT_UUID
+  content=TOOL_EXECUTION_OK
+```
+
+这里先只看事实：工具结果不是覆盖旧消息，而是作为新节点接在调用之后；调用 ID 负责配对，message UUID 和 `parentUuid` 负责顺序。
+
+## 第二步：`/compact` 追加新的恢复切面
+
+第一个进程结束后，新的 Claude Code 进程用同一个 session ID 执行：
+
+```text
+$CLAUDE_TARGET --print '/compact COMPACT_REQUEST_MARKER retain key facts' \
+  --output-format stream-json --verbose \
+  --model claude-sonnet-4-5 --tools Read \
+  --permission-mode bypassPermissions \
+  --dangerously-skip-permissions \
+  --resume $SESSION_ID
+```
+
+这次命令 exit status 仍为 `0`。输出事件中出现：
+
+```text
+type: system
+subtype: compact_boundary
+trigger: manual
+preTokens: 104
+```
+
+模型生成的受控摘要 marker 是 `COMPACT_SUMMARY_OK`。本地 JSONL 里的旧 user、`tool_use`、`tool_result` 和最终文本并没有因为这次 compact 全部消失；文件又追加了摘要和 `system/compact_boundary`，记录“后续请求应该从哪一种历史表示继续”。
+
+```text
+物理 JSONL：
+  旧 user/tool_use/tool_result/assistant 记录
+  + compact summary
+  + system:compact_boundary(trigger=manual, preTokens=104, ...)
+```
+
+`104` 只属于这组受控输入，不是自动 compact 阈值。后文会把逻辑 compact 与本地 JSONL 的物理压实分开说明。
+
+## 第三步：旧进程退出，`--resume` 在新进程里重新接链
+
+compact 命令退出后，原 JavaScript 堆、Promise、socket 和普通子进程句柄都不再属于新进程。第三个 Claude Code 进程从同一 session 恢复。Probe 为了同时验证新 session 身份，加了 `--fork-session`：
+
+```text
+$CLAUDE_TARGET --print AGENT_LOOP_FORK_MARKER \
+  --output-format stream-json --verbose \
+  --model claude-sonnet-4-5 --tools Read \
+  --permission-mode bypassPermissions \
+  --dangerously-skip-permissions \
+  --resume $SESSION_ID --fork-session
+```
+
+`--fork-session` 让新进程获得不同的 session ID，但历史装载仍从 `--resume $SESSION_ID` 开始。客户端读取本地记录，识别最后一个 compact boundary，再把摘要、保留节点和 boundary 之后的消息接成下一次请求使用的链。
+
+捕获到的新请求具有以下结果：
+
+```text
+包含：COMPACT_SUMMARY_OK
+包含：AGENT_LOOP_FORK_MARKER
+
+不包含：AGENT_LOOP_INITIAL_MARKER
+不包含：toolu_agent_loop_probe
+不包含：TOOL_EXECUTION_OK
+```
+
+受控模型返回 `FORK_OK`，subtype 为 success，exit status 为 `0`。这证明新进程没有把物理 JSONL 的所有旧记录原样塞回模型；它按 boundary 采用 compact 后的有效历史。
+
+旧进程或远端动作的边界也在这里出现：即使某条历史 `tool_result` 写着 `pid=...`、`deployment_id=...` 或“请求已发送”，恢复器拿到的仍只是消息字段。JSONL 没有旧进程的活句柄，也没有任意远端服务的通用撤销凭据。恢复历史不等于复活进程，更不等于对远端系统执行补偿。
+
+## 第四步：文件 rewind 只把受管文件写回旧字节
+
+同一版本的 file-rewind Probe 先让 Claude Code 对另一个受控文件执行真实 `Read` 和 `Edit`：
+
+```text
+执行前：CHECKPOINT_ORIGINAL
+Edit 后：CHECKPOINT_MODIFIED
+
+CLI result: CHECKPOINT_EDIT_OK
+subtype: success
+exit status: 0
+```
+
+Probe 从真实 session JSONL 中找到本次 user message 的 UUID，然后在独立的新进程执行：
+
+```text
+$CLAUDE_TARGET --print \
+  --resume $SESSION_ID \
+  --rewind-files $USER_MESSAGE_UUID
+```
+
+CLI literal output 为：
+
+```text
+Files rewound to state at message $USER_MESSAGE_UUID
+```
+
+命令 exit status 为 `0`。磁盘字节的前后结果是：
+
+```text
+rewind 前：CHECKPOINT_MODIFIED
+rewind 后：CHECKPOINT_ORIGINAL
+```
+
+rewind 阶段发出的模型请求数是 `0`。它没有让模型生成一条反向 `Edit`，也没有调用某个通用“撤销远端动作”工具；本地恢复器只是读取已经保存的文件历史，并把受管文件写回目标节点的状态。
+
+因此，若同一任务还启动过普通本地进程、执行过 `git push`、写过数据库或调用过部署 API，rewind 最多保留这些动作的历史文字。它不会复活退出进程中的句柄，也不会自动发送远端取消请求。未被文件历史跟踪的路径同样不在这次恢复结果里。
+
+## 第五步：到这里再给四类状态命名
+
+上面的具体结果现在可以对应到四个不同对象：
+
+| 已经观察到的事实 | 名称 | 保存和恢复的对象 | 明确不拥有的对象 |
+| --- | --- | --- | --- |
+| UUID 与 `parentUuid` 把 user、tool call、result 和 summary 接起来 | message graph | 当前分支、逻辑顺序和下一次请求使用的节点 | 工具副作用的真实事务 |
+| 本地 JSONL 同时保留旧记录、summary 与 boundary | transcript | 可恢复事件、tool pair、compact/fork 元数据 | 旧进程堆、Promise、socket 和活句柄 |
+| `CHECKPOINT_MODIFIED` 被写回 `CHECKPOINT_ORIGINAL` | file checkpoint | 受管、仍可写的本地文件字节 | Git push、数据库、HTTP side effect、未跟踪文件 |
+| 两份报告没有执行或验证长期知识写入；未来请求会另行发现 `CLAUDE.md`/auto-memory | memory | 未来请求重新注入的长期文本 | 原 session 的逐条消息、文件快照和运行时对象 |
+
+Memory 在这条恢复链中没有替代前三者。实现上，退出或 compact 不会自动把全部 JSONL 变成 Memory；Memory 只有在后续请求发现并装载对应文本时才影响模型。两份 Probe 本身没有验证 memory 写入或装载，相关预算和证据放在后文。
 
 ![消息图和文件检查点分别进入 resume、fork 或 rewind，而外部状态保留在统一回滚边界之外](visuals/session-recovery-lifecycle.svg)
 
-贯穿场景：Claude 修改 `config.json`、运行一个本地进程并调用远端部署接口，然后用户退出 CLI。重新进入时，resume 可以重建消息父链；checkpoint 可以把受管文件恢复到修改前；旧进程句柄已经消失；已提交的远端部署仍要查询、取消或补偿；Memory 只会在后续请求装载时影响模型，不是这次运行的完整快照。
+两份固化报告分别是 [agent-loop-tool-result-resume.json](runtime-probes/agent-loop-tool-result-resume.json) 和 [checkpoint-rewind.json](runtime-probes/checkpoint-rewind.json)。它们绑定同一个 2.1.235 二进制 SHA-256：`83b8f806f6f2eea316cfe246628e6c23374711d868f1fd0409db551b877b7748`。
 
-| 对象 | 保存形式 | 能恢复什么 | 不能恢复什么 | 用户判断 |
-| --- | --- | --- | --- | --- |
-| Session/message graph | session ID、UUID、parent/logical parent | 对话分支与逻辑顺序 | 外部工具的真实事务 | “回到哪段对话” |
-| JSONL transcript | 逻辑追加事件流；达到门槛后会条件压实重写 | 历史、tool pair、boundary 元数据 | 旧进程内对象 | “发生过什么” |
-| File checkpoint | 受管文件的快照/差异 | 本地文件字节 | 数据库、远端 API、未覆盖路径 | “文件能否回退” |
-| Memory | 用户/项目长期文本 | 下一次上下文中的稳定说明 | 原会话逐条消息和精确运行状态 | “以后应继续记住什么” |
-
-后文先讲持久化主线，再给出 resume、fork、conversation rewind、file rewind 的恢复矩阵；任何恢复结论都必须说清“恢复的是哪个对象”。
-
-## 一张表先分清四个对象
-
-| 对象 | 保存什么 | 主要用途 | 能恢复什么 | 不能恢复什么 |
-| --- | --- | --- | --- | --- |
-| message graph | message UUID、parent、type、content、logical parent | 表示分支、compact 后逻辑历史和当前 leaf | 下一轮应该看到的对话链 | 外部工具自身的事务状态 |
-| JSONL transcript | 按事件逻辑追加；物理文件会删除 tombstone 并压实 superseded records | resume、审计、会话列表、fork | 可解析的会话消息和边界元数据 | 已退出进程中的 Promise、socket、子进程内存 |
-| file checkpoint | 被跟踪文件在消息节点前后的内容/元数据 | rewind 文件改动 | 本地、可跟踪、仍可写的文件状态 | Git push、数据库写、HTTP side effect |
-| memory | `CLAUDE.md`/规则/auto-memory 中的长期文本 | 未来轮次重新注入高价值知识 | 计划、约定、项目事实的文本表示 | 完整 transcript、模型隐藏状态、任意二进制状态 |
+本章只把 `2.1.235` 客户端中可以追到的行为写成本版事实。当前官方 Sessions、Checkpointing 和 Memory 文档用于解释目的；字段、上限和修链逻辑以发布 bundle 为准。后文继续展开物理 compact、resume、fork、conversation rewind、file rewind 和 Memory 的独立边界。
 
 ## 会话不是 message 数组，而是一张有父指针的图
 

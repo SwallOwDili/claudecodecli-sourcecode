@@ -77,16 +77,16 @@ Coverage markers prove exact set membership; they still do not replace the per-i
 
 For a multi-phase mechanism, a `Deep` completeness row is a machine-checked publication claim, not an editorial label. Register the topic once in `TOPIC_DEPTH_CONTRACTS` inside `scripts/validate_snapshot.py`; the declaration binds its article, visual stem, completeness capability, ordered lifecycle anchors, gate/threshold anchors, failure/recovery anchors, evidence floor, and visual state anchors. Adding another deep topic should require data in that declaration rather than a new one-off validator function.
 
-The bound article must expose the following reader path with real content under each section:
+The bound article must cover the following facts without exposing them as a fixed prose template:
 
-1. `## 60 秒...`, `**读者问题：**`, `**一句话模型：**`, an explicit scenario, and the rendered lifecycle image in the first screen.
-2. `## 状态所有权...` with a table that names the owner of each changing state.
-3. `## 完整调用顺序...` with at least the contract's minimum number of numbered phases and all topic anchors in executable order. Mentioning the same symbols in an introduction does not satisfy this section.
-4. `## Gate、优先级与阈值...` with exact numeric units/ranges and every release-local gate named by the contract.
-5. `## 失败与恢复...` with validation, rejection, timeout/retry/terminal behavior, state restoration, and whether external side effects already happened.
-6. `## 用户影响...` covering token, latency/cost, privacy, and side effects instead of only describing internal fields.
-7. `## 证据索引...` with release-local `reverse/javascript/cli.readable.js#L...` references and explicit evidence classes. A contract may explicitly count full-path locators distributed beside lifecycle claims, but the evidence section must still index those ranges and name the evidence class; document scope cannot excuse bare claims without source locators.
-8. `## Boundary...` stating what the shipped client, untriggered branch, remote account, server, model internals, or missing original source cannot prove.
+1. Open with a complete concrete trace: user input, relevant starting data or message/file fragment, the first client/model/tool action, its result, and the decision caused by that result. Do not require visible `60 秒`, `读者问题`, `一句话模型`, or `场景` labels.
+2. Explain which component owns each changing state after the trace introduces those objects. A table is optional; prose is preferable when ownership follows the action order naturally.
+3. Present all lifecycle anchors in executable order. Numbered phases are optional; causal prose and focused diagrams are valid when they preserve the same state transitions.
+4. Keep exact numeric units/ranges and every release-local gate, but introduce them at the decision they change rather than collecting them to fill a mandatory heading.
+5. Explain validation, rejection, timeout/retry/terminal behavior, state restoration, and whether external side effects already happened.
+6. Cover token, latency/cost, privacy, security, and side effects where they affect the user; do not force an interview-style “user impact” chapter.
+7. Retain release-local `reverse/javascript/cli.readable.js#L...` references and explicit evidence classes in local evidence strips or a collapsed appendix. Document scope cannot excuse bare claims without source locators.
+8. State what the shipped client, untriggered branch, remote account, server, model internals, or missing original source cannot prove. The heading may be natural; the Boundary fact is mandatory.
 
 The same article path must appear in `ARTICLES.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. README links only the small subset that forms the best reader route for that release; it is not the deep-topic registry. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
 
@@ -100,9 +100,9 @@ The first enforced contracts are:
 - `analysis/remote-routines-runner-and-notifications.md`: RemoteTrigger control-plane actions, routine/run observation, runner authentication and operator tools, detached process side effects, requeue approval, notification validation/backpressure, bounded drain, and Agent Loop feedback.
 - `analysis/connectors-catalog-and-mcp-operators.md`: connector discovery versus chat enablement, account Plugin/Skill catalogs and OAuth scope, bounded MCP wait/refresh, kept-previous fallback, resource list/read behavior, and the next-request advertised tool pool.
 
-## Mechanism template
+## Mechanism fact checklist
 
-For each important mechanism, answer in this order:
+Recover the following facts for each important mechanism before writing. This checklist is not a heading list and must not be copied into the article as twelve equal sections:
 
 1. **Purpose**: the concrete user/runtime problem it solves.
 2. **Owned state**: messages, cache entry, tool schema, transcript, permission, queue, model config, native object, or other state.
@@ -119,7 +119,7 @@ For each important mechanism, answer in this order:
 
 Do not replace these answers with counts, identifier lists, or field dumps.
 
-Do not present all twelve answers at the same visual level. Start with the user problem and one complete lifecycle, then reveal thresholds, branches, fields, and evidence progressively. A technically complete chapter that does not give the reader a stable mental model is incomplete as human documentation.
+Do not present all twelve answers at the same visual level. Start with a complete input/action/result trace, then reveal ownership, thresholds, branches, fields, and evidence only when the trace needs them. A technically complete chapter that reads like a filled checklist is incomplete as human documentation.
 
 Verification is an authoring discipline, not the default storyline. Unless the user requested a review or comparison, the main chapter explains the target mechanism directly; source disputes, rejected hypotheses, and research detours stay out of the reader path.
 

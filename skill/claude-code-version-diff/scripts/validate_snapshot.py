@@ -448,9 +448,11 @@ HUMAN_ANALYSIS_DOCS = {
     ),
     "analysis/compact-visual-guide.md": (
         "/compact",
-        "Summary",
-        "Preserved messages",
-        "Attachments",
+        "tool_use(id=grep-compact",
+        "tool_result(tool_use_id=grep-compact)",
+        "compact Summary",
+        "preserved messages",
+        "attachment",
         "compact_boundary",
         "PreCompact",
         "precompute",
@@ -935,7 +937,7 @@ TOPIC_DEPTH_CONTRACTS = {
         "minimum_evidence_references": 12,
         "gate_scope": "document",
         "section_patterns": {
-            "state ownership": r"60 秒看懂",
+            "state ownership": r"两个提交点分别由谁负责",
             "ordered lifecycle": r"完整生命周期",
             "gates and thresholds": r"Gate、优先级与精确阈值",
             "failure and recovery": r"失败、部分成功与恢复",
@@ -5822,26 +5824,116 @@ def validate_readme_front_door(
 
 
 def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
+    migrated_tutorials = {
+        "analysis/compact-visual-guide.md": (
+            "tool_use(id=grep-compact",
+            "tool_result(tool_use_id=grep-compact)",
+            "用户继续纠正",
+            "本例可能生成这样的 Summary",
+        ),
+        "analysis/agent-loop.md": (
+            "content: AGENT_LOOP_INITIAL_MARKER",
+            "id: toolu_agent_loop_probe",
+            "实际文件返回的内容包含",
+            "TOOL_EXECUTION_OK",
+        ),
+        "analysis/context-governance-and-caching.md": (
+            "toolu_1",
+            "tool_result(tool_use_id=toolu_1)",
+            "toolu_2",
+            "Prompt Cache",
+        ),
+        "analysis/technical-mechanism-atlas.md": (
+            "toolu_read_config",
+            "tool_result(tool_use_id=toolu_read_config)",
+            "FAIL tests/server.test.ts",
+            "第二次测试返回 `PASS`",
+        ),
+        "analysis/brief-mode-and-user-visible-output.md": (
+            "普通 assistant text block",
+            "id: send_weekly_01",
+            "HTTP 503",
+            "id: send_weekly_02",
+        ),
+        "analysis/install-update-doctor-lifecycle.md": (
+            "latest feed",
+            "manifest.json",
+            "[提交点一]",
+            "[提交点二]",
+        ),
+        "analysis/background-model-tasks-and-memory-consolidation.md": (
+            "5 个已结束 session",
+            'type:"dream"',
+            'querySource:"auto_dream"',
+            "pendingMemoryUpdates",
+        ),
+        "analysis/sessions-checkpoints-memory.md": (
+            "AGENT_LOOP_INITIAL_MARKER",
+            "COMPACT_SUMMARY_OK",
+            "AGENT_LOOP_FORK_MARKER",
+            "FORK_OK",
+        ),
+        "analysis/mcp-agents-background.md": (
+            "probe_echo",
+            "notifications/tools/list_changed",
+            "async_launched",
+            "SUBAGENT_PARENT_OK",
+        ),
+        "analysis/resilience-and-recovery.md": (
+            "request 1  claude-sonnet-4-5",
+            "tool_use(id=edit_1",
+            '"deployment_id":"dep-42"',
+            "Prompt is too long",
+        ),
+        "analysis/tools-permissions-hooks.md": (
+            "id: toolu_edit_port_01",
+            "permissionDecision: no decision",
+            'after:  {"port": 9090',
+            "type: tool_result",
+        ),
+    }
+    migrated_reference_docs = {
+        "analysis/claude-code-2.1.235-complete-guide.md": (
+            "这是一部针对 `2.1.235` 的查阅手册",
+            "## 使用方法：按功能查阅",
+        ),
+    }
+    visible_scaffolding = (
+        "**读者问题：**",
+        "**一句话模型：**",
+        "## 60 秒",
+        "贯穿场景：",
+    )
     for relative, visual_stem in READER_FIRST_ANALYSIS_DOCS.items():
         path = repo / relative
         if not path.is_file():
             continue
         content = path.read_text(encoding="utf-8")
         if relative != "analysis/product-surface-evidence-map.md":
-            first_screen = content[:7000]
-            required_markers = {
-                "60-second section": "## 60 秒",
-                "reader question": "**读者问题：**",
-                "mental model": "**一句话模型：**",
-                "scenario": "场景",
-                "state table": "| --- |",
-                "lifecycle image": f"](visuals/{visual_stem}.svg)",
-            }
-            for label, marker in required_markers.items():
-                if marker not in first_screen:
+            visual_marker = f"](visuals/{visual_stem}.svg)"
+            if visual_marker not in content:
+                failures.append(
+                    f"reader-first human document is missing lifecycle image: {relative}"
+                )
+
+        if relative in migrated_tutorials:
+            first_screen = content[:12000]
+            for marker in visible_scaffolding:
+                if marker in first_screen:
                     failures.append(
-                        f"reader-first human document is missing {label}: {relative}"
+                        f"reader-first tutorial exposes authoring scaffold {marker}: {relative}"
                     )
+            concrete_markers = migrated_tutorials[relative]
+            missing = [marker for marker in concrete_markers if marker not in first_screen]
+            if missing:
+                failures.append(
+                    f"reader-first tutorial lacks a concrete request/action/result trace: {relative}"
+                )
+            positions = [first_screen.find(marker) for marker in concrete_markers]
+            if all(position >= 0 for position in positions) and positions != sorted(positions):
+                failures.append(
+                    f"reader-first tutorial concrete trace is out of order: {relative}"
+                )
 
         dot_path = repo / f"analysis/visuals/{visual_stem}.dot"
         svg_path = repo / f"analysis/visuals/{visual_stem}.svg"
@@ -5859,6 +5951,21 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
         elif "<svg" not in svg_path.read_text(encoding="utf-8"):
             failures.append(
                 f"reader-first rendered visual is invalid: {svg_path.relative_to(repo)}"
+            )
+
+    for relative, required_markers in migrated_reference_docs.items():
+        path = repo / relative
+        if not path.is_file():
+            continue
+        first_screen = path.read_text(encoding="utf-8")[:12000]
+        for marker in visible_scaffolding:
+            if marker in first_screen:
+                failures.append(
+                    f"reader-first reference exposes tutorial scaffold {marker}: {relative}"
+                )
+        if any(marker not in first_screen for marker in required_markers):
+            failures.append(
+                f"reader-first reference lacks lookup-oriented opening: {relative}"
             )
 
 
@@ -5997,19 +6104,11 @@ def validate_topic_depth_contracts(
         if not path.is_file():
             continue
         content = path.read_text(encoding="utf-8")
-        first_screen = content[:7000]
-
-        first_screen_markers = {
-            "60-second model": r"^##\s+60\s*秒",
-            "reader question": r"\*\*读者问题：\*\*",
-            "one-sentence mental model": r"\*\*一句话模型：\*\*",
-            "scenario": r"(?:贯穿)?场景[：:]",
-            "lifecycle image": re.escape(
-                f"](visuals/{contract['visual_stem']}.svg)"
-            ),
+        document_markers = {
+            "lifecycle image": re.escape(f"](visuals/{contract['visual_stem']}.svg)"),
         }
-        for label, pattern in first_screen_markers.items():
-            if re.search(pattern, first_screen, re.MULTILINE | re.IGNORECASE) is None:
+        for label, pattern in document_markers.items():
+            if re.search(pattern, content, re.MULTILINE | re.IGNORECASE) is None:
                 failures.append(f"deep topic contract {topic} is missing {label}")
 
         sections: dict[str, str] = {}

@@ -2470,6 +2470,18 @@ def main() -> None:
             "analysis/visuals/connectors-catalog-mcp-operators-lifecycle.svg",
             "reader-first rendered visual is missing: analysis/visuals/connectors-catalog-mcp-operators-lifecycle.svg",
         ),
+        (
+            "analysis/compact-visual-guide.md",
+            "missing human analysis document: analysis/compact-visual-guide.md",
+        ),
+        (
+            "analysis/visuals/compact-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/compact-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/compact-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/compact-lifecycle.svg",
+        ),
     ]
     total_cases = len(cases) + len(missing_cases)
     if args.start_case > total_cases:

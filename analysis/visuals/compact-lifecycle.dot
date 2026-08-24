@@ -3,7 +3,7 @@ digraph compact_lifecycle {
     rankdir=TB,
     bgcolor="#ffffff",
     pad="0.28",
-    nodesep="0.30",
+    nodesep="0.34",
     ranksep="0.58",
     splines=polyline,
     fontname="Arial, PingFang SC, Microsoft YaHei"
@@ -26,28 +26,18 @@ digraph compact_lifecycle {
     fontcolor="#263238"
   ];
 
-  trigger [label="用户执行 /compact\n可附加总结要求", fillcolor="#fff3cd"];
-  prehook [label="PreCompact\n允许、补充指令或阻断", fillcolor="#ffe0b2"];
-  mode [label="检查预计算结果\n命中则复用，未命中则总结", fillcolor="#e3f2fd"];
-  groups [label="未命中：消息分组\n保持 tool_use / tool_result 合法", fillcolor="#bbdefb"];
-  summarize [label="总结模型调用\n禁止工具，只生成文本", fillcolor="#d1c4e9"];
-  parse [label="解析总结\n移除 <analysis>，保留 <summary>", fillcolor="#d1c4e9"];
-  rebuild [label="重建工作上下文\n摘要 + 近期消息 + 精确附件", fillcolor="#c8e6c9"];
-  boundary [label="写 compact boundary\n记录保留 UUID 与 token 元数据", fillcolor="#d7ccc8"];
-  next [label="下一次模型请求\n从更短但可继续的状态工作", fillcolor="#b2dfdb"];
-
-  { rank=same; trigger; prehook; mode; }
-  { rank=same; summarize; parse; rebuild; }
-  { rank=same; boundary; next; }
-
-  trigger -> prehook [label="启动"];
-  prehook -> mode [label="放行并附加指令"];
-  mode -> rebuild [label="命中：直接采用预计算结果\npreserve UUID + messagesSince", color="#2e7d32", fontcolor="#2e7d32", penwidth=1.7];
-  mode -> groups [label="未命中"];
-  groups -> summarize [label="选择待总结前缀"];
-  summarize -> parse [label="返回双标签文本"];
-  parse -> rebuild [label="提供语义摘要"];
-  groups -> rebuild [label="保留近期合法后缀"];
-  rebuild -> boundary [label="持久化新表示"];
-  boundary -> next [label="修复逻辑消息视图"];
+  trigger [label="用户执行 /compact\nPreCompact 放行", fillcolor="#fff3cd"];
+  groups [label="按合法消息组切分\n较早前缀 / 近期后缀", fillcolor="#bbdefb"];
+  summarize [label="模型写工程交接 Summary\n禁止工具，只返回文本", fillcolor="#d1c4e9"];
+  parse [label="客户端解析\n标签匹配时删 analysis，留 summary", fillcolor="#d1c4e9"];
+  rebuild [label="重建短工作包\nSummary + 近期因果 + 精确附件", fillcolor="#c8e6c9"];
+  boundary [label="写 compact boundary\n记录 token 与保留 UUID", fillcolor="#d7ccc8"];
+  next [label="下一次模型请求\n从短历史继续任务", fillcolor="#b2dfdb"];
+  trigger -> groups [label="普通 miss：选择范围"];
+  groups -> summarize [label="总结较早合法前缀"];
+  summarize -> parse [label="返回交接文本"];
+  parse -> rebuild [label="提供远期语义"];
+  groups -> rebuild [label="保留近期完整因果"];
+  rebuild -> boundary [label="持久化表示切换"];
+  boundary -> next [label="采用新的逻辑历史"];
 }

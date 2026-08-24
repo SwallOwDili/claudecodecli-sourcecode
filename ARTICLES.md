@@ -112,6 +112,7 @@
 | top-level system、CLAUDE.md/Memory、typed attachment、`system-reminder`、IDE/Hook/MCP、文件变化和tools怎样编译成最终request | [Prompt Assembly 与 System Reminder](analysis/prompt-assembly-and-system-reminders.md) |
 | Messages、local transcript、Remote、1P/OTEL、Feedback、WebFetch、MCP/Hook、IDE/Chrome、Artifact/upload和Voice分别去了哪里 | [全局数据流与隐私](analysis/client-data-flow-and-privacy.md) |
 | Prompt Cache、Tool Search、microcompaction 和 auto-compact 有什么区别 | [上下文治理与多层缓存](analysis/context-governance-and-caching.md) |
+| `/compact` 怎样把长消息图换成 Summary、近期因果、精确附件和可恢复边界 | [`/compact` 真实上下文压缩图文专题](analysis/compact-visual-guide.md) |
 | Resume、fork、rewind、checkpoint 和 Memory 分别恢复什么 | [会话、检查点与 Memory](analysis/sessions-checkpoints-memory.md) |
 | 工具执行为什么还要经过 hook、permission、policy 和 sandbox | [工具、权限与 Hooks](analysis/tools-permissions-hooks.md) |
 | Auto Mode 为什么有时放行、有时弹框、有时因 unavailable 而拒绝 | [Auto Mode 两阶段分类器](analysis/auto-mode-classifier.md) |

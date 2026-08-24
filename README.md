@@ -61,7 +61,7 @@ Claude Code 同时维护多种对象，目的并不相同：
 | manual/reactive/partial/precomputed compact | 用 summary 重建，并按各自规则保留合法 group、选择器另一侧或 `messagesSince` | 不存在固定的“保留末尾 N 条”规则 |
 | cold/full auto 与特定 SDK full compact | 用 summary 重建，返回 `messagesToKeep: []` | 不保留旧消息后缀，也不撤销工具副作用或复活旧进程 |
 
-`/compact` 因而不是单纯“把聊天总结成一段话”。客户端先运行 `PreCompact`，再选择预计算命中或现场生成；当前 manual 路径会构造或复用 summary，按合法 group 保留后缀并重新生成必要附件，cold/full 路径则不保留旧消息后缀。各路径都会写 compact boundary，供 resume 修复逻辑链。详细的状态变化和三张机制图见 [`/compact` 图文指南](analysis/compact-visual-guide.md) 与 [上下文治理专题](analysis/context-governance-and-caching.md)。
+`/compact` 因而不是单纯“把聊天总结成一段话”。普通 manual miss 会按合法 group 切开历史，用 Summary 承接较早语义，保留近期因果并重新装入精确附件；预计算命中只是把 Summary 生成提前，full 路径则可能不保留旧消息后缀。成功路径都会写 compact boundary，供 resume 修复逻辑链。完整的评论重构案例和三张机制图见 [`/compact` 真实上下文压缩指南](analysis/compact-visual-guide.md) 与 [上下文治理专题](analysis/context-governance-and-caching.md)。
 
 ### 3. 模型可以提议动作，客户端决定动作能否发生
 

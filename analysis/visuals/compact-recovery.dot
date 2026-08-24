@@ -1,10 +1,10 @@
 digraph compact_recovery {
   graph [
-    rankdir=LR,
+    rankdir=TB,
     bgcolor="#ffffff",
     pad="0.28",
-    nodesep="0.34",
-    ranksep="0.70",
+    nodesep="0.38",
+    ranksep="0.58",
     splines=polyline,
     fontname="Arial, PingFang SC, Microsoft YaHei"
   ];
@@ -26,29 +26,28 @@ digraph compact_recovery {
     fontcolor="#263238"
   ];
 
-  attempt [label="总结尝试", fillcolor="#d1c4e9"];
-  success [label="成功\n写入新上下文与 boundary", fillcolor="#c8e6c9"];
-  ptl [label="prompt-too-long", fillcolor="#ffcdd2"];
-  preserve [label="增加保留的尾部消息组\n缩小待总结前缀", fillcolor="#fff3cd"];
-  media [label="媒体过大", fillcolor="#ffcdd2"];
-  strip [label="剥离非必要媒体后重试", fillcolor="#fff3cd"];
-  model [label="模型不可用或触发 fallback", fillcolor="#ffcdd2"];
+  attempt [label="请求 Summary", fillcolor="#d1c4e9"];
+  ptl [label="Summary 仍然超窗", fillcolor="#ffcdd2"];
+  preserve [label="多保留尾部 group\n缩短待总结前缀", fillcolor="#fff3cd"];
+  model [label="当前模型不可用", fillcolor="#ffcdd2"];
   fallback [label="切换允许的 fallback 模型", fillcolor="#fff3cd"];
-  blocked [label="PreCompact 阻断\n不写成功 boundary", fillcolor="#ef9a9a"];
-  refill [label="compact 后窗口快速回填", fillcolor="#ffe0b2"];
-  breaker [label="快速回填熔断\n停止继续浪费自动 compact 调用", fillcolor="#ef9a9a"];
+  rebuild [label="Summary 成功\n开始重建短工作包", fillcolor="#c8e6c9"];
+  attach [label="精确附件恢复失败", fillcolor="#ffcdd2"];
+  degrade [label="记录错误\n使用可取得的较小附件集合", fillcolor="#fff3cd"];
+  boundary [label="重建有效后写 Boundary\n否则原历史继续有效", fillcolor="#b2dfdb"];
 
-  attempt -> success [label="有效 summary"];
-  attempt -> ptl [label="请求仍超窗"];
-  ptl -> preserve [label="按 token 缺口调整"];
+  { rank=same; ptl; attempt; model; }
+  { rank=same; preserve; fallback; }
+
+  attempt -> rebuild [label="得到有效 Summary"];
+  attempt -> ptl [label="token gap"];
+  ptl -> preserve [label="调整范围"];
   preserve -> attempt [label="重试"];
-  attempt -> media [label="media_too_large"];
-  media -> strip [label="首次命中"];
-  strip -> attempt [label="重试"];
   attempt -> model [label="fallback signal"];
-  model -> fallback [label="选择下一模型"];
+  model -> fallback [label="策略允许"];
   fallback -> attempt [label="重试"];
-  blocked -> attempt [label="用户再次触发", style=dashed];
-  success -> refill [label="后续内容重新占满窗口"];
-  refill -> breaker [label="连续快速发生"];
+  rebuild -> boundary [label="附件恢复成功"];
+  rebuild -> attach [label="读取失败"];
+  attach -> degrade [label="manual / reactive 降级"];
+  degrade -> boundary [label="仍形成有效表示"];
 }

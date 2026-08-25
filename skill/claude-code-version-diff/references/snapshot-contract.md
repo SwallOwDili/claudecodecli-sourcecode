@@ -179,7 +179,7 @@ Store the exact version's upstream release-note bullets. In the README, connect 
 1. Source inventory extractor reruns deterministically.
 2. Snapshot validator exits zero and reports source inventory files checked, deterministic product-surface mapping, evidence-appropriate Deep/Documented/Boundary capability states, and capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
-4. `ARTICLES.md` links every required human document; completeness and Skill contracts bind each deep topic. README remains a concise project front door with selected routes, and the validator confirms every document independently remains substantive.
+4. `README.md` is the single human navigation page and links every required human document; `SNAPSHOT.md` owns release identity, hashes and verification details; `ARTICLES.md` remains only as a compatibility redirect. Completeness and Skill contracts still bind each deep topic independently.
 5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification, a contracted capability downgraded from `Deep`, and a `Documented` row that no longer names its exact missing fact.
 6. Deep-reverse validator exits zero when `reverse/` exists.
 7. Git branch name equals `VERSION`.

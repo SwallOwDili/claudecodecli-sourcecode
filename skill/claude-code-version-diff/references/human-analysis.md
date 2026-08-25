@@ -88,7 +88,7 @@ The bound article must cover the following facts without exposing them as a fixe
 7. Retain release-local `reverse/javascript/cli.readable.js#L...` references and explicit evidence classes in local evidence strips or a collapsed appendix. Document scope cannot excuse bare claims without source locators.
 8. State what the shipped client, untriggered branch, remote account, server, model internals, or missing original source cannot prove. The heading may be natural; the Boundary fact is mandatory.
 
-The same article path must appear in `ARTICLES.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. README links only the small subset that forms the best reader route for that release; it is not the deep-topic registry. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
+The same article path must appear in `README.md`, the corresponding `completeness-audit.md` document cell, and `SKILL.md`. README is the single human navigation page; use collapsed groups for the long tail instead of maintaining a second article registry. Its DOT source must contain enough named states and labeled transitions to express the lifecycle; its SVG must parse as SVG, have a viewport, contain the rendered states/transitions, and retain the contract's key state labels. Negative tests must independently remove headings, lifecycle anchors, thresholds, evidence, bindings, and visual structure so a validator PASS cannot be obtained by writing `Deep` beside a long but non-causal article.
 
 The first enforced contracts are:
 
@@ -379,8 +379,8 @@ Group related fields into a mechanism. A new telemetry event alone is an observa
 
 Before publication, verify:
 
-- README states artifact identity and source-recovery boundaries, teaches one end-to-end lifecycle, names the real version delta, and exposes `ARTICLES.md` plus a small set of high-value next steps;
-- `ARTICLES.md` links all required human documents, while completeness and Skill bindings preserve the publication contract;
+- README states artifact identity and source-recovery boundaries, exposes ordered tutorial/reference/evidence routes, and links every required human document;
+- `SNAPSHOT.md` preserves detailed release identity, hashes, reverse layers, validation and comparison commands; `ARTICLES.md` is only a compatibility redirect;
 - the mechanism atlas links every deep topic and lets a reader choose by user problem;
 - public research has retrieval dates and clearly separates `Public`, `Static`, `Probe`, and `Boundary` evidence;
 - public sources have status, byte length, raw and semantic SHA-256, excerpt hashes, and readable fixed excerpts;

@@ -593,24 +593,33 @@ def main() -> None:
             "README.md",
             lambda data: replace_once(
                 data,
+                b"# Claude Code CLI " + snapshot_version + " 源码逆向与技术指南".encode(),
+                "# Claude Code CLI 0.0.0 源码逆向与技术指南".encode(),
+            ),
+            "README front door is missing homepage title",
+        ),
+        (
+            "SNAPSHOT.md",
+            lambda data: replace_once(
+                data,
                 b"# Claude Code CLI " + snapshot_version,
                 b"# Claude Code CLI 0.0.0",
             ),
-            "README title does not match VERSION",
+            "SNAPSHOT title does not match VERSION",
         ),
         (
-            "README.md",
+            "SNAPSHOT.md",
             lambda data: replace_once(data, binary_sha, b"0" * 64),
-            "README binary SHA-256 does not match analysis/version.json",
+            "SNAPSHOT binary SHA-256 does not match analysis/version.json",
         ),
         (
-            "README.md",
+            "SNAPSHOT.md",
             lambda data: replace_once(
                 data,
                 b"`" + binary_size + b"` " + byte_label,
                 b"`999,999,999` " + byte_label,
             ),
-            "README snapshot fact mismatch for 原始程序",
+            "SNAPSHOT fact mismatch for 原始程序",
         ),
         (
             "analysis/risk-control-surface.txt",
@@ -2128,20 +2137,20 @@ def main() -> None:
             "deep topic contract structured-output has 0 source references; minimum is 5",
         ),
         (
-            "ARTICLES.md",
+            "README.md",
             lambda data: data.replace(
                 b"analysis/plan-mode-and-human-approval.md",
                 b"analysis/plan-mode-and-human-approval-missing.md",
             ),
-            "deep topic contract plan-mode is not linked from ARTICLES.md",
+            "deep topic contract plan-mode is not linked from README.md",
         ),
         (
-            "ARTICLES.md",
+            "README.md",
             lambda data: data.replace(
                 b"analysis/structured-output-and-schema-contract.md",
                 b"analysis/structured-output-and-schema-contract-missing.md",
             ),
-            "deep topic contract structured-output is not linked from ARTICLES.md",
+            "deep topic contract structured-output is not linked from README.md",
         ),
         (
             "analysis/completeness-audit.md",
@@ -2320,6 +2329,14 @@ def main() -> None:
         print(f"negative case {case_number}: PASS", flush=True)
 
     missing_cases = [
+        (
+            "SNAPSHOT.md",
+            "missing release snapshot reference: SNAPSHOT.md",
+        ),
+        (
+            "ARTICLES.md",
+            "missing compatibility article entry: ARTICLES.md",
+        ),
         (
             "skill/claude-code-version-diff/scripts/probe_plugin_evaluation.mjs",
             "Plugin Evaluation probe: missing probe script",

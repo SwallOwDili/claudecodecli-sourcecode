@@ -36,7 +36,7 @@ EXPECTED_DYNAMIC_TOOL_REGISTRATION_COUNT = 3
 EXPECTED_TOOL_FACTORY = "Yi"
 README_MAX_BYTES = 30_000
 README_MAX_LINES = 260
-README_MAX_LINKS = 50
+README_MAX_LINKS = 100
 README_MAX_TABLE_ROWS = 70
 README_MAX_TOP_LEVEL_HEADINGS = 8
 TOOL_FACTORY_ANCHORS = {"Bash", "Read", "Write", "Edit", "Glob", "Grep"}
@@ -5716,17 +5716,21 @@ def git(repo: Path, *args: str) -> str:
 def validate_human_snapshot_identity(
     repo: Path, version: str, metadata: dict, failures: list[str]
 ) -> None:
-    readme = (repo / "README.md").read_text(encoding="utf-8")
+    snapshot_path = repo / "SNAPSHOT.md"
+    if not snapshot_path.is_file():
+        failures.append("missing release snapshot reference: SNAPSHOT.md")
+        return
+    readme = snapshot_path.read_text(encoding="utf-8")
     expected_title = f"# Claude Code CLI {version} 深度逆向快照"
     if readme.splitlines()[0] != expected_title:
-        failures.append("README title does not match VERSION")
+        failures.append("SNAPSHOT title does not match VERSION")
 
     binary_sha = metadata.get("binary", {}).get("sha256")
     readme_sha = re.search(
         r"^\| 原始程序 SHA-256 \| `([0-9a-f]{64})` \|$", readme, re.MULTILINE
     )
     if readme_sha is None or readme_sha.group(1) != binary_sha:
-        failures.append("README binary SHA-256 does not match analysis/version.json")
+        failures.append("SNAPSHOT binary SHA-256 does not match analysis/version.json")
 
     readme_rows: dict[str, str] = {}
     for line in readme.splitlines():
@@ -5773,7 +5777,7 @@ def validate_human_snapshot_identity(
         actual = readme_rows.get(label)
         if actual != expected:
             failures.append(
-                f"README snapshot fact mismatch for {label}: "
+                f"SNAPSHOT fact mismatch for {label}: "
                 f"{actual!r} != {expected!r}"
             )
 
@@ -5793,7 +5797,7 @@ def validate_human_snapshot_identity(
         if f"# Version: {version}" not in risk_surface.splitlines()[:3]:
             failures.append("risk-control surface version does not match VERSION")
 
-    probe_placeholder_paths = {"README.md", *HUMAN_ANALYSIS_DOCS}
+    probe_placeholder_paths = {"README.md", "SNAPSHOT.md", *HUMAN_ANALYSIS_DOCS}
     versioned_probe = re.compile(r"\$CLAUDE_\d+_\d+_\d+")
     for relative in sorted(probe_placeholder_paths):
         path = repo / relative
@@ -5840,21 +5844,15 @@ def validate_readme_front_door(
         )
 
     required_markers = {
-        "source-recovery boundary": "它不是 Anthropic 内部 TypeScript 原始仓库",
-        "governing thesis": "模型提出下一步，客户端负责",
-        "article index": "[技术文章总入口](ARTICLES.md)",
-        "request lifecycle": "## 先建立一个正确模型",
-        "lifecycle visual": "analysis/visuals/system-lifecycle.svg",
+        "homepage title": f"# Claude Code CLI {version} 源码逆向与技术指南",
+        "source-recovery boundary": "它不是 Anthropic 内部 TypeScript 原始源码",
+        "snapshot reference": "[发布物与证据快照](SNAPSHOT.md)",
+        "complete guide": "analysis/claude-code-2.1.235-complete-guide.md",
         "request execution visual": "analysis/visuals/request-execution-feedback.svg",
-        "Agent Loop explanation": "### 1. Agent Loop",
-        "context governance explanation": "### 2. 上下文治理",
-        "local authority explanation": "### 3. 模型可以提议动作",
-        "recovery ownership explanation": "### 4. 恢复是",
-        "observability explanation": "### 5. “遥测”",
-        "release-local delta": f"## `{version}` 到底改了什么",
-        "artifact layers": "## 仓库里实际保存了什么",
-        "evidence boundary": "## 快照身份与证据边界",
-        "validation and comparison": "## 验证与长期版本对比",
+        "curated start": "## 先读这五篇",
+        "tutorial routes": "## 机制教程",
+        "reference routes": "## 参考手册",
+        "evidence routes": "## 证据与完整性",
     }
     for label, marker in required_markers.items():
         if marker not in readme:
@@ -6150,7 +6148,7 @@ def validate_topic_depth_contracts(
     completeness_rows: dict[int, list[str]],
     failures: list[str],
 ) -> None:
-    articles_path = repo / "ARTICLES.md"
+    articles_path = repo / "README.md"
     articles = articles_path.read_text(encoding="utf-8") if articles_path.is_file() else ""
     skill_path = repo / "skill/claude-code-version-diff/SKILL.md"
     skill = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
@@ -6331,7 +6329,7 @@ def validate_topic_depth_contracts(
             failures.append(f"deep topic contract {topic} lacks a concrete Boundary")
 
         if relative not in articles:
-            failures.append(f"deep topic contract {topic} is not linked from ARTICLES.md")
+            failures.append(f"deep topic contract {topic} is not linked from README.md")
         if relative not in skill:
             failures.append(f"deep topic contract {topic} is not bound in Skill")
 
@@ -6891,17 +6889,15 @@ def main() -> int:
 
     readme = (repo / "README.md").read_text(encoding="utf-8")
     articles_path = repo / "ARTICLES.md"
-    if "[技术文章总入口](ARTICLES.md)" not in readme[:3000]:
-        failures.append("README does not expose ARTICLES.md near the top")
     if not articles_path.is_file():
-        failures.append("missing root technical article index: ARTICLES.md")
-    else:
-        articles = articles_path.read_text(encoding="utf-8")
-        for relative in READER_FIRST_ANALYSIS_DOCS:
-            if relative not in articles:
-                failures.append(
-                    f"ARTICLES.md does not link reader-first document: {relative}"
-                )
+        failures.append("missing compatibility article entry: ARTICLES.md")
+    elif "[README.md](README.md)" not in articles_path.read_text(encoding="utf-8"):
+        failures.append("ARTICLES.md does not redirect to README.md")
+    for relative in READER_FIRST_ANALYSIS_DOCS:
+        if relative not in readme:
+            failures.append(
+                f"README.md does not link reader-first document: {relative}"
+            )
     for relative, required_terms in HUMAN_ANALYSIS_DOCS.items():
         path = repo / relative
         if not path.is_file():
@@ -6924,9 +6920,9 @@ def main() -> int:
                 failures.append(
                     f"human analysis document {relative} does not cover {term!r}"
                 )
-        if articles_path.is_file() and relative not in articles:
+        if relative not in readme:
             failures.append(
-                f"ARTICLES.md does not link human analysis document: {relative}"
+                f"README.md does not link human analysis document: {relative}"
             )
 
     if (

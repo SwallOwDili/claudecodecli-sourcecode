@@ -5781,6 +5781,19 @@ def validate_human_snapshot_identity(
                 f"{actual!r} != {expected!r}"
             )
 
+    request_visual_dot = repo / "analysis/visuals/request-execution-feedback.dot"
+    request_visual_svg = repo / "analysis/visuals/request-execution-feedback.svg"
+    if "analysis/visuals/request-execution-feedback.svg" not in readme:
+        failures.append("SNAPSHOT project guide is missing request execution visual")
+    if not request_visual_dot.is_file():
+        failures.append("SNAPSHOT request execution visual source is missing")
+    elif not re.search(r"->.*\[label=", request_visual_dot.read_text(encoding="utf-8")):
+        failures.append("SNAPSHOT request execution visual lacks labeled transitions")
+    if not request_visual_svg.is_file():
+        failures.append("SNAPSHOT request execution rendered visual is missing")
+    elif "<svg" not in request_visual_svg.read_text(encoding="utf-8"):
+        failures.append("SNAPSHOT request execution rendered visual is invalid")
+
     for relative in HUMAN_ANALYSIS_DOCS:
         path = repo / relative
         if not path.is_file():
@@ -5797,7 +5810,12 @@ def validate_human_snapshot_identity(
         if f"# Version: {version}" not in risk_surface.splitlines()[:3]:
             failures.append("risk-control surface version does not match VERSION")
 
-    probe_placeholder_paths = {"README.md", "SNAPSHOT.md", *HUMAN_ANALYSIS_DOCS}
+    probe_placeholder_paths = {
+        "README.md",
+        "ARTICLES.md",
+        "SNAPSHOT.md",
+        *HUMAN_ANALYSIS_DOCS,
+    }
     versioned_probe = re.compile(r"\$CLAUDE_\d+_\d+_\d+")
     for relative in sorted(probe_placeholder_paths):
         path = repo / relative
@@ -5811,6 +5829,9 @@ def validate_readme_front_door(
     repo: Path, version: str, failures: list[str]
 ) -> None:
     path = repo / "README.md"
+    if not path.is_file():
+        failures.append("missing GitHub homepage article index: README.md")
+        return
     raw = path.read_bytes()
     readme = raw.decode("utf-8")
     line_count = len(readme.splitlines())
@@ -5844,11 +5865,9 @@ def validate_readme_front_door(
         )
 
     required_markers = {
-        "homepage title": f"# Claude Code CLI {version} 源码逆向与技术指南",
-        "source-recovery boundary": "它不是 Anthropic 内部 TypeScript 原始源码",
-        "snapshot reference": "[发布物与证据快照](SNAPSHOT.md)",
+        "homepage title": f"# Claude Code CLI {version} 阅读入口",
+        "content roles": "这个仓库同时包含教程、参考手册和机器证据",
         "complete guide": "analysis/claude-code-2.1.235-complete-guide.md",
-        "request execution visual": "analysis/visuals/request-execution-feedback.svg",
         "curated start": "## 先读这五篇",
         "tutorial routes": "## 机制教程",
         "reference routes": "## 参考手册",
@@ -5857,17 +5876,6 @@ def validate_readme_front_door(
     for label, marker in required_markers.items():
         if marker not in readme:
             failures.append(f"README front door is missing {label}")
-
-    request_visual_dot = repo / "analysis/visuals/request-execution-feedback.dot"
-    request_visual_svg = repo / "analysis/visuals/request-execution-feedback.svg"
-    if not request_visual_dot.is_file():
-        failures.append("README request execution visual source is missing")
-    elif not re.search(r"->.*\[label=", request_visual_dot.read_text(encoding="utf-8")):
-        failures.append("README request execution visual lacks labeled transitions")
-    if not request_visual_svg.is_file():
-        failures.append("README request execution rendered visual is missing")
-    elif "<svg" not in request_visual_svg.read_text(encoding="utf-8"):
-        failures.append("README request execution rendered visual is invalid")
 
 
 def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
@@ -6148,8 +6156,12 @@ def validate_topic_depth_contracts(
     completeness_rows: dict[int, list[str]],
     failures: list[str],
 ) -> None:
-    articles_path = repo / "README.md"
-    articles = articles_path.read_text(encoding="utf-8") if articles_path.is_file() else ""
+    readme_path = repo / "README.md"
+    readme_index = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
+    articles_path = repo / "ARTICLES.md"
+    articles_index = (
+        articles_path.read_text(encoding="utf-8") if articles_path.is_file() else ""
+    )
     skill_path = repo / "skill/claude-code-version-diff/SKILL.md"
     skill = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
 
@@ -6328,8 +6340,10 @@ def validate_topic_depth_contracts(
         ) is None:
             failures.append(f"deep topic contract {topic} lacks a concrete Boundary")
 
-        if relative not in articles:
+        if relative not in readme_index:
             failures.append(f"deep topic contract {topic} is not linked from README.md")
+        if relative not in articles_index:
+            failures.append(f"deep topic contract {topic} is not linked from ARTICLES.md")
         if relative not in skill:
             failures.append(f"deep topic contract {topic} is not bound in Skill")
 
@@ -6887,16 +6901,24 @@ def main() -> int:
     if finish_expected_negative_failure(failures, args.negative_test_expect):
         return 1
 
-    readme = (repo / "README.md").read_text(encoding="utf-8")
+    readme_path = repo / "README.md"
+    readme = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
     articles_path = repo / "ARTICLES.md"
+    articles = ""
     if not articles_path.is_file():
-        failures.append("missing compatibility article entry: ARTICLES.md")
-    elif "[README.md](README.md)" not in articles_path.read_text(encoding="utf-8"):
-        failures.append("ARTICLES.md does not redirect to README.md")
+        failures.append("missing complete technical article index: ARTICLES.md")
+    else:
+        articles = articles_path.read_text(encoding="utf-8")
+        if articles != readme:
+            failures.append("ARTICLES.md must be byte-identical to README.md")
     for relative in READER_FIRST_ANALYSIS_DOCS:
         if relative not in readme:
             failures.append(
                 f"README.md does not link reader-first document: {relative}"
+            )
+        if relative not in articles:
+            failures.append(
+                f"ARTICLES.md does not link reader-first document: {relative}"
             )
     for relative, required_terms in HUMAN_ANALYSIS_DOCS.items():
         path = repo / relative
@@ -6923,6 +6945,10 @@ def main() -> int:
         if relative not in readme:
             failures.append(
                 f"README.md does not link human analysis document: {relative}"
+            )
+        if relative not in articles:
+            failures.append(
+                f"ARTICLES.md does not link human analysis document: {relative}"
             )
 
     if (

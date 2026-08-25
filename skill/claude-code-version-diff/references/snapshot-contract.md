@@ -5,6 +5,8 @@
 ```text
 VERSION
 README.md
+ARTICLES.md
+SNAPSHOT.md
 extracted/cli.js
 extracted/<all other packed files>
 analysis/version.json
@@ -94,7 +96,7 @@ Include a boundary stating that local CLI execution controls do not prove server
 
 ## Human explanation documents
 
-`README.md` must start with artifact identity, the source-recovery boundary, one governing product thesis and a plain request-lifecycle overview. It should teach the release's highest-value mechanisms and actual delta before routing readers onward. Exhaustive document links, inventory counts and validator ledgers belong in dedicated indexes, not the project front door.
+`ARTICLES.md` is the complete reader-first technical index. `README.md` must be its byte-identical publication copy so the GitHub homepage preserves the same curated order and grouped tutorial/reference/evidence navigation. `SNAPSHOT.md` preserves the former project README: artifact identity, source-recovery boundary, governing product thesis, request-lifecycle overview, release delta, hashes, reverse layers and validation commands. Inventory counts and validator ledgers remain in dedicated evidence indexes.
 
 `analysis/technical-architecture.md` must connect input/resume, message graph, system/user context, tools/agents/skills/MCP, permissions/policy/hooks/sandbox, cache markers, API request/stream/tool loop, persistence, compaction, telemetry, native modules, and UI. It should let a reader follow the system without opening JSONL.
 
@@ -172,14 +174,14 @@ The build script must use a unique load directory. Document original/reconstruct
 
 ## Release evidence
 
-Store the exact version's upstream release-note bullets. In the README, connect a note to source evidence only when the relevant setting, error, command, validation branch, or implementation literal is present in the extracted bundle.
+Store the exact version's upstream release-note bullets. In `SNAPSHOT.md`, connect a note to source evidence only when the relevant setting, error, command, validation branch, or implementation literal is present in the extracted bundle.
 
 ## Completion checks
 
 1. Source inventory extractor reruns deterministically.
 2. Snapshot validator exits zero and reports source inventory files checked, deterministic product-surface mapping, evidence-appropriate Deep/Documented/Boundary capability states, and capture-path privacy PASS.
 3. Source inventory summary reports the pinned parser, semantic JSONL fields, passing completion audit, and zero known static extraction gaps.
-4. `README.md` is the single human navigation page and links every required human document; `SNAPSHOT.md` owns release identity, hashes and verification details; `ARTICLES.md` remains only as a compatibility redirect. Completeness and Skill contracts still bind each deep topic independently.
+4. `README.md` and `ARTICLES.md` are byte-identical complete human indexes and link every required human document; `SNAPSHOT.md` owns the project explanation, release identity, hashes and verification details. Completeness and Skill contracts still bind each deep topic independently.
 5. Skill validator and negative tests exit zero; negative cases cover a missing inventory classification, a contracted capability downgraded from `Deep`, and a `Documented` row that no longer names its exact missing fact.
 6. Deep-reverse validator exits zero when `reverse/` exists.
 7. Git branch name equals `VERSION`.

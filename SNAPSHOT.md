@@ -6,7 +6,7 @@
 
 > **核心判断：** Claude Code 不是“终端里套了一层模型 API”，而是一套由客户端编译能力并维护因果账本的 Agent 运行时。模型提出下一步，客户端负责编译上下文、裁决和调度客户端工具、记录会话与观测；文件系统、子进程和远端服务则持有已经完成的真实副作用。`2.1.235` 没有重写这套架构；它主要修正权限范围、缓存身份、恢复状态和输入界面的边界错误。
 
-[人类阅读首页](README.md) · [从一次真实请求开始](analysis/technical-mechanism-atlas.md) · [2.1.235 深度技术指南](analysis/claude-code-2.1.235-complete-guide.md) · [证据与边界](analysis/completeness-audit.md)
+[从一次真实请求开始](analysis/technical-mechanism-atlas.md) · [技术文章总入口](ARTICLES.md) · [2.1.235 完整说明书](analysis/claude-code-2.1.235-complete-guide.md) · [证据与边界](analysis/completeness-audit.md)
 
 ![Claude Code 任务在上下文、Agent Loop、工具控制、外部状态和恢复状态之间循环](analysis/visuals/system-lifecycle.svg)
 
@@ -92,7 +92,7 @@ Transcript 保存消息事件，compact boundary 保存表示切换，file check
 | 你的目的 | 推荐顺序 |
 | --- | --- |
 | 理解一次请求如何变成连续行动 | [Prompt Assembly](analysis/prompt-assembly-and-system-reminders.md) -> [Agent Loop](analysis/agent-loop.md) -> [权限与 Hooks](analysis/tools-permissions-hooks.md) -> [Context / Cache / Compact](analysis/context-governance-and-caching.md) -> [数据流与隐私](analysis/client-data-flow-and-privacy.md) |
-| 快速查一个具体能力 | [深度技术指南](analysis/claude-code-2.1.235-complete-guide.md)；再从 [人类阅读首页](README.md) 进入对应专题 |
+| 快速查一个具体能力 | [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)；再从 [全部技术文章](ARTICLES.md) 进入对应专题 |
 | 判断结论是否可靠 | [全面性审计](analysis/completeness-audit.md) -> [运行探针索引](analysis/runtime-probe-index.md) -> [结构化机制证据](analysis/mechanism-evidence.jsonl) |
 | 查字段、命令或事件 | [机器证据索引](analysis/product-surface-inventory-index.md) 和 [字段阅读指南](analysis/inventory-field-guide.md) |
 | 研究原生模块 | [Native Bridge](analysis/native-bridge-runtime.md) -> [重建说明](reconstructed/README.md) -> `reverse/native/` |

@@ -1,26 +1,20 @@
-# Claude Code CLI 2.1.235 源码逆向与技术指南
+# Claude Code CLI 2.1.235 阅读入口
 
-这是 Claude Code CLI `2.1.235` **实际发布程序的版本化研究仓库**。它保存从 Anthropic 签名 Mach-O 中提取的发布字节、可读化代码、原生模块分析、精确二进制 Probe 和面向开发者的技术文章。
-
-它不是 Anthropic 内部 TypeScript 原始源码。这里能证明的是发布物中仍然存在的客户端行为；构建时已丢失的注释、原始文件边界和被删除代码不会被包装成“恢复成功”。完整发布身份、哈希、逆向层级和验证命令见[发布物与证据快照](SNAPSHOT.md)。
-
-[深度技术指南](analysis/claude-code-2.1.235-complete-guide.md) · [2.1.235 版本变化](analysis/product-surface-evidence-map.md) · [证据与边界](analysis/completeness-audit.md) · [发布物快照](SNAPSHOT.md)
-
-![一次请求经过上下文装配和 Agent Loop 后，文本直接结束或进入受控工具执行；tool_result 再按同一 ID 回到下一轮](analysis/visuals/request-execution-feedback.svg)
+这个仓库同时包含教程、参考手册和机器证据。三者用途不同：教程用来理解一次真实状态变化；参考手册用来查命令、字段和生命周期；机器证据用来复核结论。不要从大清单开始读。
 
 ## 先读这五篇
 
-1. [一次请求的技术机制总图](analysis/technical-mechanism-atlas.md)：从用户输入、`tool_use`、客户端执行、`tool_result` 回灌一直跟到下一轮和最终结束。
-2. [Agent Loop](analysis/agent-loop.md)：模型怎样提出工具调用，客户端怎样执行并保持 ID 因果关系。
+1. [`/compact` 到底压缩了什么](analysis/compact-visual-guide.md)：从一段 Claude Code 自身的 `Grep -> tool_result -> Read -> tool_result` 会话开始，展示压缩前后模型实际拿到什么。
+2. [Agent Loop](analysis/agent-loop.md)：模型怎样提出 `tool_use`，客户端怎样执行并把配对结果送回下一轮。
 3. [上下文治理](analysis/context-governance-and-caching.md)：Prompt Cache、Tool Search、microcompaction 和完整 compact 分别改变什么。
-4. [`/compact` 到底压缩了什么](analysis/compact-visual-guide.md)：直接对比 Claude Code 自身会话压缩前后模型实际拿到的内容。
-5. [会话、Checkpoint 与 Memory](analysis/sessions-checkpoints-memory.md)：Resume、fork、rewind 和长期 Memory 各自恢复什么对象。
+4. [会话、Checkpoint 与 Memory](analysis/sessions-checkpoints-memory.md)：Resume、fork、rewind 和长期 Memory 各自恢复什么对象。
+5. [工具、权限与 Hooks](analysis/tools-permissions-hooks.md)：一个模型提议怎样经过校验、权限、sandbox 和 Hook 才产生真实副作用。
 
-工具为什么还要经过 schema、Hook、permission、policy 和 sandbox，继续读[工具、权限与 Hooks](analysis/tools-permissions-hooks.md)。需要系统学习顺序，进入[七卷深度技术指南](analysis/claude-code-2.1.235-complete-guide.md)。
+要按完整顺序学习，进入 [Claude Code 2.1.235 深度技术指南](analysis/claude-code-2.1.235-complete-guide.md)；只看一条执行链，可读[技术机制总图](analysis/technical-mechanism-atlas.md)；只关心本版变化，可读[2.1.235 状态边界修正](analysis/product-surface-evidence-map.md)。需要逐项查阅时，再进入下面的专题和参考手册。
 
 ## 机制教程
 
-这些文档解释用户做了什么、客户端按什么顺序改变状态、失败后留下什么。
+这些文档解释“用户做了什么、客户端按什么顺序改变状态、失败后留下什么”。
 
 <details>
 <summary>展开全部机制教程</summary>
@@ -29,7 +23,6 @@
 
 - [技术机制总图](analysis/technical-mechanism-atlas.md)
 - [技术架构](analysis/technical-architecture.md)
-- [Prompt Assembly 与 System Reminder](analysis/prompt-assembly-and-system-reminders.md)
 - [Agent Loop](analysis/agent-loop.md)
 - [`/compact` 上下文压缩](analysis/compact-visual-guide.md)
 - [上下文治理与多层缓存](analysis/context-governance-and-caching.md)
@@ -39,7 +32,6 @@
 - [工具、权限与 Hooks](analysis/tools-permissions-hooks.md)
 - [模型、认证、Provider 与请求装配](analysis/models-auth-providers-request.md)
 - [韧性与恢复](analysis/resilience-and-recovery.md)
-- [全局数据流与隐私](analysis/client-data-flow-and-privacy.md)
 
 ### 计划、输出与协作
 
@@ -70,7 +62,6 @@
 
 ### 配置、身份与安全边界
 
-- [Settings 解析、合并与热重载](analysis/settings-resolution-and-reload.md)
 - [Settings、Feature Flags 与 Managed Policy](analysis/settings-feature-flags-policy.md)
 - [Feature Flags 与 Remote Config](analysis/feature-flags-remote-config.md)
 - [Auth、账号与订阅](analysis/auth-account-and-subscription-lifecycle.md)
@@ -97,7 +88,7 @@
 
 ## 参考手册
 
-这些文档用于快速查命令、字段和完整集合，不强行使用教程体裁。
+这些文档允许高密度表格。它们的目标是快速查找，不需要虚构贯穿场景。
 
 <details>
 <summary>展开全部参考手册</summary>
@@ -121,7 +112,7 @@
 
 ## 证据与完整性
 
-这些文档回答结论凭什么成立，不承担教程职责。
+这些文档回答“结论凭什么成立”，不承担教程职责。
 
 - [全面性审计](analysis/completeness-audit.md)
 - [公开主张与目标版证据](analysis/public-claims-validation.md)
@@ -130,6 +121,5 @@
 - [错误与诊断精确 owner 索引](analysis/error-diagnostic-owner-index.md)
 - [Environment 全量参考](analysis/environment-variable-reference.md)
 - [Feature key 全量参考](analysis/feature-flag-reference.md)
-- [发布身份、哈希、逆向层与验证命令](SNAPSHOT.md)
 
-教程中的阈值、失败分支和边界仍必须保留；这里只是把证据清单从主阅读路径移开，不是删除技术深度。
+教程中的阈值、失败分支和边界仍然必须保留；这里只是把证据清单从主阅读路径移开，而不是删掉技术深度。

@@ -593,10 +593,19 @@ def main() -> None:
             "README.md",
             lambda data: replace_once(
                 data,
-                b"# Claude Code CLI " + snapshot_version + " 源码逆向与技术指南".encode(),
-                "# Claude Code CLI 0.0.0 源码逆向与技术指南".encode(),
+                b"# Claude Code CLI " + snapshot_version + " 阅读入口".encode(),
+                "# Claude Code CLI 0.0.0 阅读入口".encode(),
             ),
             "README front door is missing homepage title",
+        ),
+        (
+            "ARTICLES.md",
+            lambda data: replace_once(
+                data,
+                "不要从大清单开始读。".encode(),
+                "不要从清单开始读。".encode(),
+            ),
+            "ARTICLES.md must be byte-identical to README.md",
         ),
         (
             "SNAPSHOT.md",
@@ -2153,6 +2162,14 @@ def main() -> None:
             "deep topic contract structured-output is not linked from README.md",
         ),
         (
+            "ARTICLES.md",
+            lambda data: data.replace(
+                b"analysis/structured-output-and-schema-contract.md",
+                b"analysis/structured-output-and-schema-contract-missing.md",
+            ),
+            "deep topic contract structured-output is not linked from ARTICLES.md",
+        ),
+        (
             "analysis/completeness-audit.md",
             lambda data: replace_once(
                 data,
@@ -2330,12 +2347,16 @@ def main() -> None:
 
     missing_cases = [
         (
+            "README.md",
+            "missing GitHub homepage article index: README.md",
+        ),
+        (
             "SNAPSHOT.md",
             "missing release snapshot reference: SNAPSHOT.md",
         ),
         (
             "ARTICLES.md",
-            "missing compatibility article entry: ARTICLES.md",
+            "missing complete technical article index: ARTICLES.md",
         ),
         (
             "skill/claude-code-version-diff/scripts/probe_plugin_evaluation.mjs",
@@ -2519,11 +2540,11 @@ def main() -> None:
         ),
         (
             "analysis/visuals/request-execution-feedback.dot",
-            "README request execution visual source is missing",
+            "SNAPSHOT request execution visual source is missing",
         ),
         (
             "analysis/visuals/request-execution-feedback.svg",
-            "README request execution rendered visual is missing",
+            "SNAPSHOT request execution rendered visual is missing",
         ),
         (
             "analysis/file-checkpoint-rewind-lifecycle.md",

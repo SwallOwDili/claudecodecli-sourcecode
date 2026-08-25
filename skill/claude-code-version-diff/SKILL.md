@@ -184,6 +184,23 @@ Use a default publication budget of 30,000 UTF-8 bytes, 260 lines, 100 Markdown 
 
 Keep detailed hashes, byte counts, reverse layers, validation and comparison commands in `SNAPSHOT.md`, `analysis/version.json` and `analysis/unpack-manifest.json`. Publish the complete human navigation unchanged to both README and ARTICLES; machine inventory rows remain outside them.
 
+## GitHub Pages publication
+
+When the archive publishes a documentation site, keep Markdown as the only maintained article source and generate a real multi-page site. Use a small set of editor-written hub pages to establish the system model and reading paths, then render every `analysis/*.md` article as an independent HTML page with search, grouped navigation, article TOC, code copy, responsive tables and reusable release-local SVGs. Do not turn the homepage into the exhaustive article list or a marketing landing page.
+
+Never publish `extracted/`, `reverse/`, `reconstructed/`, source inventories or runtime-probe directories into Pages merely to make relative links resolve. Rewrite those evidence links to the exact numeric version branch and validate their targets against the Git tree, so sparse CI checkout remains sufficient. Pin build dependencies and client-side diagram assets; the deployed site must not depend on unversioned runtime CDN scripts.
+
+For the repository's standard site pipeline, run:
+
+```bash
+python site/prepare_site.py
+mkdocs build --strict
+python site/postprocess_site.py .site-output
+python site/validate_site.py .site-output
+```
+
+Before publishing, verify the generated page/article counts, all internal links and anchors, version-pinned evidence links, local-path privacy, search, light/dark themes, mobile navigation, wide SVG behavior and page-level horizontal overflow. After deployment, require the Pages workflow to succeed, the Pages API to report `built`, and fresh HTTP/browser checks of the homepage plus representative hub, long-article, reference and evidence pages. A local build is not a live Pages result.
+
 ## Human explanation contract
 
 Read [references/human-analysis.md](references/human-analysis.md) before writing or comparing the human layer. Every important mechanism must answer:

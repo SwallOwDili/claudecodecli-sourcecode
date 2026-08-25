@@ -1,0 +1,195 @@
+site_name: Claude Code CLI 2.1.235 技术档案
+site_description: Claude Code CLI 2.1.235 的运行机制、上下文治理、工具控制、协作系统与逆向证据
+site_url: https://swallowdili.github.io/claudecodecli-sourcecode/
+repo_name: SwallOwDili/claudecodecli-sourcecode
+repo_url: https://github.com/SwallOwDili/claudecodecli-sourcecode
+copyright: Claude Code CLI 2.1.235 发布物研究与技术分析
+
+docs_dir: .site-content
+site_dir: .site-output
+use_directory_urls: false
+strict: true
+
+not_in_nav: |
+  articles/*
+
+theme:
+  name: material
+  language: zh
+  font: false
+  icon:
+    logo: material/console-line
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+      separator: '[\s\-\.、，。；：！？（）/`]+'
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: 复制本节链接
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+validation:
+  nav:
+    omitted_files: ignore
+    not_found: ignore
+  links:
+    not_found: ignore
+    unrecognized_links: ignore
+    absolute_links: relative_to_docs
+    anchors: ignore
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/mermaid.min.js
+  - assets/javascripts/site.js
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/SwallOwDili/claudecodecli-sourcecode
+      name: GitHub 仓库
+
+nav:
+  - 开始:
+      - 首页: index.md
+      - 阅读路径: start.md
+      - 全部技术文章: articles.md
+  - 执行内核:
+      - 机制总览: runtime.md
+      - 一次请求的技术机制: articles/technical-mechanism-atlas.md
+      - 技术架构: articles/technical-architecture.md
+      - Prompt Assembly: articles/prompt-assembly-and-system-reminders.md
+      - Agent Loop: articles/agent-loop.md
+      - 模型与请求装配: articles/models-auth-providers-request.md
+      - Structured Output: articles/structured-output-and-schema-contract.md
+      - 韧性与恢复: articles/resilience-and-recovery.md
+      - Runtime Supervision: articles/runtime-supervision-and-processes.md
+  - 上下文与状态:
+      - 上下文总览: context.md
+      - 上下文治理与缓存: articles/context-governance-and-caching.md
+      - /compact: articles/compact-visual-guide.md
+      - 会话、Checkpoint 与 Memory: articles/sessions-checkpoints-memory.md
+      - File Checkpoint 与 Rewind: articles/file-checkpoint-rewind-lifecycle.md
+      - CLAUDE.md、Memory 与 Skills: articles/memory-claude-md-skills-lifecycle.md
+      - Active Goal 与 Stop-loop: articles/active-goal-and-stop-loop.md
+  - 工具与协作:
+      - 工具协作总览: tools.md
+      - 内置工具: articles/builtin-tools-reference.md
+      - 工具注册与宿主: articles/tool-registration-and-host-surfaces.md
+      - 权限、Hooks 与 Sandbox: articles/tools-permissions-hooks.md
+      - Plan Mode: articles/plan-mode-and-human-approval.md
+      - MCP Runtime: articles/mcp-runtime-lifecycle.md
+      - MCP、Agents 与后台协作: articles/mcp-agents-background.md
+      - 子 Agent、Team 与 Task: articles/subagent-team-task-runtime.md
+      - Plugins、Skills 与 LSP: articles/plugins-skills-commands-lsp.md
+      - Connectors 与 Catalog: articles/connectors-catalog-and-mcp-operators.md
+      - 后台执行与 Cloud: articles/cloud-background-channels.md
+      - Remote Routines: articles/remote-routines-runner-and-notifications.md
+  - 系统边界:
+      - 边界总览: boundaries.md
+      - Settings 解析与热重载: articles/settings-resolution-and-reload.md
+      - Settings、Flags 与 Policy: articles/settings-feature-flags-policy.md
+      - Feature Flags 与 Remote Config: articles/feature-flags-remote-config.md
+      - Onboarding 与 Workspace Trust: articles/onboarding-workspace-trust-and-safe-startup.md
+      - Auth、账号与订阅: articles/auth-account-and-subscription-lifecycle.md
+      - Sandbox Enforcement: articles/sandbox-install-and-runtime-enforcement.md
+      - Proxy、CA 与 mTLS: articles/network-proxy-ca-and-mtls.md
+      - 数据流与隐私: articles/client-data-flow-and-privacy.md
+      - 遥测、日志与诊断: articles/telemetry.md
+      - 安装、自更新与 Doctor: articles/install-update-doctor-lifecycle.md
+      - Native Bridge: articles/native-bridge-runtime.md
+  - 参考手册:
+      - 参考入口: reference.md
+      - 2.1.235 深度技术指南: articles/claude-code-2.1.235-complete-guide.md
+      - Settings 全字段: articles/settings-reference.md
+      - CLI 命令树: articles/cli-command-reference.md
+      - CLI、SDK 与输出协议: articles/cli-sdk-output-protocol.md
+      - Slash Commands: articles/slash-command-reference.md
+      - Hook 事件: articles/hooks-event-reference.md
+      - Storage v5: articles/storage-v5-reference.md
+      - Environment 全量参考: articles/environment-variable-reference.md
+      - Feature Key 全量参考: articles/feature-flag-reference.md
+      - Telemetry 事件目录: articles/telemetry-event-catalog.md
+      - API、Beta 与路由: articles/api-beta-route-ownership.md
+      - 错误与诊断图谱: articles/error-diagnostic-atlas.md
+      - 机器清单字段指南: articles/inventory-field-guide.md
+  - 证据与项目:
+      - 证据方法: evidence.md
+      - 全面性审计: articles/completeness-audit.md
+      - 产品机制与证据: articles/product-surface-evidence-map.md
+      - 产品表面机器索引: articles/product-surface-inventory-index.md
+      - 精确二进制 Probe: articles/runtime-probe-index.md
+      - 公开主张核验: articles/public-claims-validation.md
+      - 可提取能力面: articles/source-surface.md
+      - Error/Diagnostic Owner: articles/error-diagnostic-owner-index.md
+      - 2.1.235 版本说明: version.md
+      - 项目与快照说明: project.md

@@ -2,3 +2,6 @@ reconstructed/target/
 reconstructed/swift/computer-use-swift/.build/
 __pycache__/
 *.pyc
+.site-content/
+.site-output/
+.site-cache/

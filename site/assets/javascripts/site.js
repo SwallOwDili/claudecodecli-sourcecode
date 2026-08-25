@@ -1,11 +1,16 @@
 (function () {
   "use strict";
 
+  const siteScriptUrl = document.currentScript?.src ||
+    Array.from(document.scripts).find((script) => /\/site\.js(?:\?|$)/.test(script.src))?.src ||
+    "";
+
   const state = {
     article: null,
     frameRequested: false,
     lightbox: null,
     mermaidQueue: Promise.resolve(),
+    mermaidRuntimePromise: null,
     observedScheme: null,
   };
 
@@ -200,11 +205,31 @@
     container.setAttribute("aria-label", "可横向滚动的技术流程图");
   }
 
-  async function runMermaid() {
-    if (!window.mermaid) return;
+  function ensureMermaidRuntime() {
+    if (window.mermaid) return Promise.resolve(true);
+    if (state.mermaidRuntimePromise) return state.mermaidRuntimePromise;
+    if (!siteScriptUrl) return Promise.resolve(false);
 
-    const diagrams = Array.from(document.querySelectorAll(".md-content .mermaid"));
+    state.mermaidRuntimePromise = new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = new URL("mermaid.min.js", siteScriptUrl).href;
+      script.async = true;
+      script.addEventListener("load", () => resolve(Boolean(window.mermaid)), { once: true });
+      script.addEventListener("error", () => resolve(false), { once: true });
+      document.head.append(script);
+    });
+    return state.mermaidRuntimePromise;
+  }
+
+  async function runMermaid() {
+    const diagrams = Array.from(document.querySelectorAll(".md-content .mermaid-source"));
     if (!diagrams.length) return;
+    for (const diagram of diagrams) {
+      if (!diagram.dataset.mermaidSource) {
+        diagram.dataset.mermaidSource = diagram.textContent.trim();
+      }
+    }
+    if (!window.mermaid && !(await ensureMermaidRuntime())) return;
 
     const theme = colorScheme() === "slate" ? "dark" : "neutral";
     window.mermaid.initialize({
@@ -215,10 +240,6 @@
     });
 
     for (const diagram of diagrams) {
-      if (!diagram.dataset.mermaidSource) {
-        diagram.dataset.mermaidSource = diagram.textContent.trim();
-      }
-
       const source = diagram.dataset.mermaidSource;
       diagram.classList.remove("is-wide");
       diagram.removeAttribute("data-processed");
@@ -273,7 +294,9 @@
 
   window.addEventListener("scroll", requestProgressUpdate, { passive: true });
   window.addEventListener("resize", requestProgressUpdate, { passive: true });
-  window.addEventListener("load", renderMermaid, { once: true });
+  window.addEventListener("load", () => {
+    if (document.querySelector(".md-content .mermaid-source")) renderMermaid();
+  }, { once: true });
 
   if (typeof document$ !== "undefined") {
     document$.subscribe(initializePage);

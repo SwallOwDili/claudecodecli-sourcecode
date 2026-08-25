@@ -11,10 +11,11 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 
+from site_identity import repository_url as default_repository_url
+from site_identity import version
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REPOSITORY = "https://github.com/SwallOwDili/claudecodecli-sourcecode"
-DEFAULT_BRANCH = "2.1.235"
 REPOSITORY_EVIDENCE_ROOTS = {"analysis", "extracted", "reconstructed", "reverse", "skill"}
 URL_ATTRIBUTES = {
     "a": ("href",),
@@ -158,8 +159,14 @@ def rewrite_url(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("site_dir", type=Path)
-    parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY_URL", DEFAULT_REPOSITORY))
-    parser.add_argument("--branch", default=os.environ.get("SITE_VERSION_BRANCH", DEFAULT_BRANCH))
+    parser.add_argument(
+        "--repository",
+        default=os.environ.get("GITHUB_REPOSITORY_URL") or default_repository_url(),
+    )
+    parser.add_argument(
+        "--branch",
+        default=os.environ.get("SITE_VERSION_BRANCH") or version(),
+    )
     return parser.parse_args()
 
 

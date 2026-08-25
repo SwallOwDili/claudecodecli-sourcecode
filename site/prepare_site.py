@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import re
 import shutil
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit, urlunsplit
 from urllib.request import Request, urlopen
+
+from site_identity import repository_url, version
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +30,64 @@ MARKDOWN_LINK_RE = re.compile(
     r"(?P<suffix>(?:\s+(?:\"[^\"]*\"|'[^']*'))?\))"
 )
 FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
+TABLE_CODE_IDENTIFIER_RE = re.compile(r"^\|\s*<code>([^<]+)</code>\s*\|")
+DETAIL_IDENTIFIER_RE = re.compile(r"^<summary><code>([^:<]+):")
+IDENTIFIER_INDEXES = (
+    {
+        "name": "environment",
+        "source": "environment-variable-reference.md",
+        "title": "Environment 静态名称索引",
+        "start": "## 842 个 typed 环境变量逐项参考",
+        "end": None,
+        "patterns": (TABLE_CODE_IDENTIFIER_RE,),
+        "allowed": re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$"),
+        "expected_count": 979,
+        "samples": (
+            "CLAUDE_CODE_MAX_TURNS",
+            "CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS",
+            "CLAUDE_BG_SOCKET_TOKENS_PATH",
+        ),
+    },
+    {
+        "name": "feature",
+        "source": "feature-flag-reference.md",
+        "title": "Feature Key 标识符索引",
+        "start": "## 361 个 static feature key 逐项参考",
+        "end": "## 11 个 assignment-resolved",
+        "patterns": (TABLE_CODE_IDENTIFIER_RE,),
+        "allowed": re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$"),
+        "expected_count": 361,
+        "samples": ("tengu_amber_packet",),
+    },
+    {
+        "name": "telemetry",
+        "source": "telemetry-event-catalog.md",
+        "title": "Telemetry Event 标识符索引",
+        "start": "## 43 个一方动态事件名调用点",
+        "end": "## Datadog forwarding 目录",
+        "patterns": (DETAIL_IDENTIFIER_RE, TABLE_CODE_IDENTIFIER_RE),
+        "allowed": re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$"),
+        "expected_count": 1441,
+        "samples": ("tengu_agent_color_set",),
+    },
+)
+SUPPLEMENTAL_ARTICLE_GROUPS = (
+    (
+        "站点补充机制",
+        (
+            "prompt-assembly-and-system-reminders.md",
+            "client-data-flow-and-privacy.md",
+            "settings-resolution-and-reload.md",
+        ),
+    ),
+    (
+        "版本与公开证据",
+        (
+            "release-notes.md",
+            "public-source-excerpts.md",
+        ),
+    ),
+)
 DETAILS_RE = re.compile(r"<details(?![^>]*\bmarkdown\s*=)([^>]*)>")
 
 
@@ -183,21 +244,131 @@ def complete_article_index(index_path: Path, article_sources: list[Path]) -> lis
     if not missing:
         return []
 
+    allowed = {
+        name
+        for _group, names in SUPPLEMENTAL_ARTICLE_GROUPS
+        for name in names
+    }
+    actual = {source.name for source in missing}
+    if actual != allowed:
+        raise SystemExit(
+            "Unclassified article-index drift: "
+            f"missing={sorted(actual - allowed)}, stale={sorted(allowed - actual)}"
+        )
+
     lines = [
         "",
-        "## 补充资料",
+        "## 站点补充专题",
         "",
-        "这些页面同样来自当前版本分析，但不在历史 `ARTICLES.md` 的原始分组中。",
+        "这些页面同样来自当前版本分析，但不在历史 `ARTICLES.md` 的原始分组中；站点按明确用途补入，新增页面未分类时构建会失败。",
         "",
     ]
-    lines.extend(
-        f"- [{first_heading(source)}](articles/{source.name})" for source in missing
-    )
+    sources_by_name = {source.name: source for source in missing}
+    for group, names in SUPPLEMENTAL_ARTICLE_GROUPS:
+        lines.extend((f"### {group}", ""))
+        lines.extend(
+            f"- [{first_heading(sources_by_name[name])}](articles/{name})"
+            for name in names
+        )
+        lines.append("")
     index_path.write_text(
         text.rstrip() + "\n" + "\n".join(lines) + "\n",
         encoding="utf-8",
     )
     return [source.name for source in missing]
+
+
+def extract_identifiers(
+    source: Path,
+    start: str,
+    end: str | None,
+    patterns: tuple[re.Pattern[str], ...],
+    allowed: re.Pattern[str],
+) -> list[str]:
+    text = source.read_text(encoding="utf-8")
+    start_at = text.find(start)
+    if start_at < 0:
+        raise SystemExit(f"Identifier index start marker is missing: {source} / {start}")
+
+    end_at = text.find(end, start_at + len(start)) if end else -1
+    body = text[start_at:] if end_at < 0 else text[start_at:end_at]
+
+    identifiers: set[str] = set()
+    for line in body.splitlines():
+        for pattern in patterns:
+            match = pattern.match(line)
+            if match is None:
+                continue
+            value = html.unescape(match.group(1)).strip()
+            if allowed.fullmatch(value):
+                identifiers.add(value)
+            break
+    return sorted(identifiers, key=str.casefold)
+
+
+def write_identifier_indexes(output_root: Path) -> list[dict[str, object]]:
+    generated: list[dict[str, object]] = []
+    for spec in IDENTIFIER_INDEXES:
+        source = REPO_ROOT / "analysis" / str(spec["source"])
+        identifiers = extract_identifiers(
+            source,
+            str(spec["start"]),
+            str(spec["end"]) if spec["end"] else None,
+            spec["patterns"],
+            spec["allowed"],
+        )
+        if len(identifiers) != int(spec["expected_count"]):
+            raise SystemExit(
+                f"Identifier index {spec['name']} count mismatch: "
+                f"{len(identifiers)} != {spec['expected_count']}"
+            )
+        missing_samples = sorted(set(spec["samples"]) - set(identifiers))
+        if missing_samples:
+            raise SystemExit(
+                f"Identifier index {spec['name']} misses required samples: {missing_samples}"
+            )
+
+        destination = output_root / "search" / f"{spec['name']}-identifiers.md"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        article_target = f"../articles/{spec['source']}"
+        lines = [
+            "---",
+            "hide:",
+            "  - toc",
+            "---",
+            "",
+            f"# {spec['title']}",
+            "",
+            "这是一份用于站内精确搜索的轻量索引。字段语义、consumer、失败路径和证据边界仍以完整参考页为准。",
+            "",
+            f"[打开完整参考]({article_target})",
+            "",
+        ]
+        current_group = ""
+        for identifier in identifiers:
+            group = identifier[0].upper() if identifier[0].isalnum() else "其他"
+            if group != current_group:
+                lines.extend((f"## {group}", ""))
+                current_group = group
+            lines.extend(
+                (
+                    f"### `{identifier}`",
+                    "",
+                    f"[在完整参考中查看]({article_target})",
+                    "",
+                )
+            )
+        destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        generated.append(
+            {
+                "name": spec["name"],
+                "source": source.relative_to(REPO_ROOT).as_posix(),
+                "output": destination.relative_to(output_root).as_posix(),
+                "count": len(identifiers),
+                "samples": list(spec["samples"]),
+            }
+        )
+    return generated
 
 
 def write_markdown(source: Path, destination: Path, document_kind: str, exclude_search: bool = False) -> None:
@@ -283,6 +454,7 @@ def main() -> int:
         output_root / "articles.md",
         article_sources,
     )
+    identifier_indexes = write_identifier_indexes(output_root)
 
     articles: list[dict[str, object]] = []
     for source in article_sources:
@@ -321,10 +493,12 @@ def main() -> int:
 
     manifest = {
         "schema": 1,
-        "branch": "2.1.235",
+        "branch": version(),
+        "repository": repository_url(),
         "curated_pages": curated_pages,
         "root_documents": root_documents,
         "supplemental_articles": supplemental_articles,
+        "identifier_indexes": identifier_indexes,
         "mermaid": mermaid,
         "articles": articles,
         "visuals": visuals,

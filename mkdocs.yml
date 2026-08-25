@@ -1,9 +1,9 @@
-site_name: Claude Code CLI 2.1.235 技术档案
-site_description: Claude Code CLI 2.1.235 的运行机制、上下文治理、工具控制、协作系统与逆向证据
-site_url: https://swallowdili.github.io/claudecodecli-sourcecode/
-repo_name: SwallOwDili/claudecodecli-sourcecode
-repo_url: https://github.com/SwallOwDili/claudecodecli-sourcecode
-copyright: Claude Code CLI 2.1.235 发布物研究与技术分析
+site_name: !ENV [SITE_NAME, "Claude Code CLI 技术档案"]
+site_description: !ENV [SITE_DESCRIPTION, "Claude Code CLI 的运行机制、上下文治理、工具控制、协作系统与逆向证据"]
+site_url: !ENV [SITE_URL, "https://swallowdili.github.io/claudecodecli-sourcecode/"]
+repo_name: !ENV [REPOSITORY_NAME, "SwallOwDili/claudecodecli-sourcecode"]
+repo_url: !ENV [REPOSITORY_URL, "https://github.com/SwallOwDili/claudecodecli-sourcecode"]
+copyright: !ENV [SITE_COPYRIGHT, "Claude Code CLI 发布物研究与技术分析"]
 
 docs_dir: .site-content
 site_dir: .site-output
@@ -15,6 +15,7 @@ not_in_nav: |
 
 theme:
   name: material
+  custom_dir: site/overrides
   language: zh
   font: false
   icon:
@@ -55,7 +56,7 @@ plugins:
       lang:
         - zh
         - en
-      separator: '[\s\-\.、，。；：！？（）/`]+'
+      separator: '[\s_\-\.、，。；：！？（）/`]+'
 
 markdown_extensions:
   - abbr
@@ -84,7 +85,7 @@ markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
-          class: mermaid
+          class: mermaid-source
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
@@ -108,14 +109,13 @@ extra_css:
   - assets/stylesheets/extra.css
 
 extra_javascript:
-  - assets/javascripts/mermaid.min.js
   - assets/javascripts/site.js
 
 extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/SwallOwDili/claudecodecli-sourcecode
+      link: !ENV [REPOSITORY_URL, "https://github.com/SwallOwDili/claudecodecli-sourcecode"]
       name: GitHub 仓库
 
 nav:
@@ -177,8 +177,11 @@ nav:
       - Hook 事件: articles/hooks-event-reference.md
       - Storage v5: articles/storage-v5-reference.md
       - Environment 全量参考: articles/environment-variable-reference.md
+      - Environment 标识符搜索: search/environment-identifiers.md
       - Feature Key 全量参考: articles/feature-flag-reference.md
+      - Feature Key 标识符搜索: search/feature-identifiers.md
       - Telemetry 事件目录: articles/telemetry-event-catalog.md
+      - Telemetry Event 标识符搜索: search/telemetry-identifiers.md
       - API、Beta 与路由: articles/api-beta-route-ownership.md
       - 错误与诊断图谱: articles/error-diagnostic-atlas.md
       - 机器清单字段指南: articles/inventory-field-guide.md

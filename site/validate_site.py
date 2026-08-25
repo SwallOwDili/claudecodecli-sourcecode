@@ -13,10 +13,11 @@ from urllib.parse import unquote, urlsplit
 
 from bs4 import BeautifulSoup
 
+from site_identity import version
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTENT = REPO_ROOT / ".site-content"
-DEFAULT_BRANCH = "2.1.235"
 LOCAL_PATH_PATTERNS = {
     "macOS user path": re.compile(r"(?:file://)?/Users/[A-Za-z0-9._-]+"),
     "macOS temporary path": re.compile(r"/(?:private/)?var/folders/[A-Za-z0-9_./-]+"),
@@ -149,6 +150,13 @@ def validate_pages(
     for page_name in ("articles", "project"):
         validation.require(find_page(site_root, PurePosixPath(page_name)) is not None, f"Missing {page_name} page")
 
+    for item in manifest.get("identifier_indexes", []):
+        relative = PurePosixPath(str(item["output"])).with_suffix("")
+        validation.require(
+            find_page(site_root, relative) is not None,
+            f"Missing identifier search page: {relative}",
+        )
+
     article_pages: dict[str, Path] = {}
     for item in articles:
         source = Path(str(item["source"]))
@@ -201,6 +209,7 @@ def validate_links(
     html_files: list[Path],
     validation: Validation,
     branch: str,
+    repository: str,
     tracked_files: set[PurePosixPath],
     tracked_directories: set[PurePosixPath],
 ) -> None:
@@ -217,7 +226,7 @@ def validate_links(
                         continue
                     parsed = urlsplit(value)
                     if parsed.scheme in {"http", "https"} or parsed.netloc:
-                        if "github.com/SwallOwDili/claudecodecli-sourcecode/" in value and any(
+                        if f"{repository.rstrip('/')}/" in value and any(
                             f"/{root}/" in value for root in ("analysis", "extracted", "reconstructed", "reverse", "skill")
                         ):
                             evidence_links += 1
@@ -276,8 +285,20 @@ def validate_visuals(site_root: Path, manifest: dict[str, object], validation: V
         )
 
     external_scripts: list[str] = []
+    csp_documents = 0
     for html_file in site_root.rglob("*.html"):
         soup = BeautifulSoup(html_file.read_text(encoding="utf-8"), "html.parser")
+        csp = soup.find(
+            "meta",
+            attrs={"http-equiv": re.compile(r"^content-security-policy$", re.IGNORECASE)},
+        )
+        if csp is not None:
+            csp_documents += 1
+            policy = str(csp.get("content", ""))
+            validation.require(
+                "script-src 'self'" in policy and "https:" not in policy and "http:" not in policy,
+                f"Page CSP does not keep runtime scripts local: {html_file.relative_to(site_root)}",
+            )
         external_scripts.extend(
             str(script.get("src"))
             for script in soup.find_all("script", src=True)
@@ -286,6 +307,10 @@ def validate_visuals(site_root: Path, manifest: dict[str, object], validation: V
     validation.require(
         not external_scripts,
         f"Site contains runtime third-party scripts: {sorted(set(external_scripts))}",
+    )
+    validation.require(
+        csp_documents == len(list(site_root.rglob("*.html"))),
+        "Content Security Policy is missing from one or more HTML pages",
     )
 
 
@@ -308,6 +333,7 @@ def validate_search(
     docs = payload.get("docs", []) if isinstance(payload, dict) else []
     validation.require(isinstance(docs, list) and len(docs) > 20, "Search index contains too few documents")
     locations = [str(doc.get("location", "")) for doc in docs if isinstance(doc, dict)]
+    searchable_text = json.dumps(payload, ensure_ascii=False)
 
     for item in manifest.get("articles", []):
         stem = Path(str(item["source"])).stem
@@ -318,6 +344,18 @@ def validate_search(
             validation.require(not present, f"Oversized reference leaked into search index: {stem}")
         else:
             validation.require(present, f"Article missing from search index: {stem}")
+
+    for item in manifest.get("identifier_indexes", []):
+        stem = Path(str(item["output"])).stem
+        validation.require(
+            any(f"search/{stem}" in location for location in locations),
+            f"Identifier index is missing from search: {stem}",
+        )
+        for sample in item.get("samples", []):
+            validation.require(
+                str(sample) in searchable_text,
+                f"Search index is missing identifier sample: {sample}",
+            )
 
 
 def validate_privacy(site_root: Path, validation: Validation) -> None:
@@ -340,7 +378,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("site_dir", type=Path)
     parser.add_argument("--content", type=Path, default=DEFAULT_CONTENT)
-    parser.add_argument("--branch", default=DEFAULT_BRANCH)
+    parser.add_argument("--branch")
     return parser.parse_args()
 
 
@@ -355,13 +393,17 @@ def main() -> int:
         return 1
 
     manifest = load_manifest(args.content.resolve(), validation)
+    branch = args.branch or str(manifest.get("branch") or version())
+    repository = str(manifest.get("repository", ""))
+    validation.require(bool(repository), "Generated manifest is missing repository identity")
     tracked_files, tracked_directories = tracked_repository_paths()
     html_files, article_pages = validate_pages(site_root, args.content.resolve(), manifest, validation)
     validate_links(
         site_root,
         html_files,
         validation,
-        args.branch,
+        branch,
+        repository,
         tracked_files,
         tracked_directories,
     )

@@ -63,6 +63,8 @@ Skill 是上下文与工作流材料，MCP 是运行时协议，Plugin 可以同
 
 环境变量和 Feature key 的全量参考用于防漏，不是按名称猜功能的词典。它们记录 `Static immediate consumer` 时，只证明值接下来流向哪里；完整 fallback、状态变化、失败和用户影响仍要回到机制专题。
 
+三个超大参考页不会把整页正文塞进浏览器搜索索引。需要按精确名称查找时，使用轻量的 [Environment 标识符索引](search/environment-identifiers.html)、[Feature Key 标识符索引](search/feature-identifiers.html) 和 [Telemetry Event 标识符索引](search/telemetry-identifiers.html)；定位名称后再进入完整参考阅读 consumer、字段和 Boundary。
+
 **推荐顺序：** [机器清单字段阅读指南](articles/inventory-field-guide.html) -> [Environment 全量参考](articles/environment-variable-reference.html) -> [Feature key 全量参考](articles/feature-flag-reference.html)。
 
 ## 需要全部入口时

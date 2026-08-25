@@ -338,7 +338,7 @@ body {
   max-width: none;
 }
 
-.mermaid {
+.mermaid-source {
   display: block;
   max-width: 100%;
   margin: 1.5rem 0;
@@ -354,19 +354,19 @@ body {
   scrollbar-width: thin;
 }
 
-.mermaid[data-processed="true"] {
+.mermaid-source[data-processed="true"] {
   font-family: inherit;
   white-space: normal;
 }
 
-.mermaid > svg {
+.mermaid-source > svg {
   display: block;
   width: 100%;
   height: auto;
   margin-inline: auto;
 }
 
-.mermaid.is-wide > svg {
+.mermaid-source.is-wide > svg {
   width: auto;
   min-width: 58rem;
   max-width: none;
@@ -907,7 +907,7 @@ body.is-lightbox-open {
     white-space: normal;
   }
 
-  .mermaid {
+  .mermaid-source {
     margin-inline: -0.2rem;
     padding: 0.75rem;
   }

@@ -71,6 +71,10 @@ Promote `catchOwner` only for an exact caller inside a reviewed catch/translatio
 
 Do not let rare entrypoints disappear inside a broad command, Artifact or telemetry table. When shipped, maintain dedicated reader-first lifecycle chapters for `analysis/artifact-watch-comment-autoreact.md`, `analysis/insights-history-analysis-pipeline.md`, `analysis/cli-startup-files-plugins-deeplinks.md` and `analysis/complex-slash-command-lifecycles.md`. Cover local/remote state ownership, untrusted-input isolation, cache invalidation, exact download/ZIP/queue/model budgets, partial success, external side effects and rollback boundaries. Bind each chapter to `ARTICLES.md`, the complete guide, the completeness matrix, an editable DOT/SVG, a topic-depth validator contract and at least one negative test that proves the contract cannot silently disappear. Do not turn the README into the completeness registry.
 
+## Split deep-article ownership
+
+The deep layer includes `analysis/file-checkpoint-rewind-lifecycle.md`, `analysis/memory-claude-md-skills-lifecycle.md`, `analysis/mcp-runtime-lifecycle.md`, and `analysis/subagent-team-task-runtime.md`. Their broader parent chapters remain navigation and synthesis; they must not duplicate or replace these single-owner explanations. Add future split articles here only when the source article contains multiple independent state owners that cannot be taught through one causal trace.
+
 ## Snapshot workflow
 
 1. Record the resolved binary path locally, plus version output, size, SHA-256, container, architecture, code signature, and current Git remote/branches. Replace the committed source/entrypoint path with stable placeholders such as `$CLAUDE_INSTALL_ROOT` and `$CLAUDE_ENTRYPOINT`.

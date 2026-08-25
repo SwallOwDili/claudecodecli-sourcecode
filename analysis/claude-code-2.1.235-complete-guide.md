@@ -1,23 +1,22 @@
-# Claude Code CLI 2.1.235 功能参考说明书
+# Claude Code CLI 2.1.235 深度技术指南：一次任务如何被执行、压缩与恢复
 
-这是一部针对 `2.1.235` 的查阅手册，不要求从头读到尾。知道自己要查哪类行为时，直接进入对应章节；需要先建立整体运行模型，读 [技术机制总图](technical-mechanism-atlas.md)；只关心这个版本改了什么，读 [版本状态边界分析](product-surface-evidence-map.md)。
+这份指南沿 Claude Code 自己的一次任务解释整个客户端：输入怎样编译成 Messages 请求，模型怎样提出工具调用，客户端怎样授权和执行，结果怎样回到下一轮，上下文怎样压缩，会话怎样恢复，外部副作用为什么不会随消息回滚。
 
-## 使用方法：按功能查阅
+它不是 58 个功能摘要的合集。每个机制只保留一个内容所有者：本文件建立前提、连接章节并解释跨机制边界；遇到需要完整调用链、阈值、失败和 Probe 的主题，章节现场直接进入对应深度文章，而不是把链接藏到文末。
 
-| 你要查什么 | 直接看 |
-| --- | --- |
-| 发布物来自哪里、逆向产物分别能证明什么 | 第 2-3 章 |
-| TUI、SDK、IDE、Remote 和 Cloud 怎样进入运行时 | 第 4-5、21-23 章 |
-| 一次请求怎样组装、选模型、执行工具并继续下一轮 | 第 6-10 章 |
-| Prompt cache、Tool Search、microcompaction、`/compact` 和 resume | 第 11-17 章 |
-| MCP、子 Agent、Team 和后台任务怎样扩展主循环 | 第 18-19 章 |
-| Retry、fallback、权限、sandbox 与副作用恢复 | 第 10、20、31-32 章 |
-| 遥测、费用、原生模块、安装更新和 Doctor | 第 24-27 章 |
-| `2.1.235` 的发布变化、关键 settings 和字段含义 | 第 28-30 章 |
-| 结论用了什么证据、哪些仍不能证明 | 第 33-34、58 章 |
-| 条件功能和复杂状态机的详细合同 | 第 35-57 章 |
+## 七卷阅读顺序
 
-正文按功能保存状态所有者、调用顺序、门控、阈值、成功与失败结果、用户影响和证据边界。章节末尾的专题链接用于继续下钻；字段或事件全集仍由各自的参考索引负责。
+| 卷 | 解决的问题 | 本文件章节 |
+| --- | --- | --- |
+| 1. 一次任务怎样跑起来 | 发布物、入口、请求装配、模型路由、Agent Loop、工具管线 | 1-10 |
+| 2. 上下文怎样增长和续接 | Cache、Tool Search、microcompaction、`/compact`、Resume、Checkpoint、Memory | 11-17 |
+| 3. 能力怎样装载和委派 | MCP、子 Agent、Team、后台任务与协作结果回灌 | 18-19、35 |
+| 4. 谁能批准副作用 | Permission、Policy、Hook、Sandbox、Trust、Feature 与 Auth | 10、23、36、40-46 |
+| 5. 用户从哪里进入、任务在哪里跑 | TUI、IDE、Remote、Cloud、Native 与 Supervisor | 4、21-22、26、38-39 |
+| 6. 专用工作流 | Plan、Brief、Structured Output、Goal、Artifact、Insights 等 | 35、47-57 |
+| 7. 运行治理与版本变化 | Telemetry、Usage、Updater、错误诊断、证据与本版变化 | 24-34、58 |
+
+需要先看整条执行链，可读[技术机制总图](technical-mechanism-atlas.md)；只关心 `2.1.235` 改了什么，读[版本状态边界分析](product-surface-evidence-map.md)；字段、命令和事件全集仍由 [ARTICLES 总入口](../ARTICLES.md)中的 Reference/Evidence 层负责。
 
 ## 1. 先给结论：它不是聊天壳，而是本地 Agent 运行时
 
@@ -156,6 +155,8 @@ IDE 连接负责把编辑器选区、打开文件、诊断、面板焦点和会�
 
 ## 6. 一次请求到底装了什么
 
+> 深度专题：[Prompt Assembly 与 System Reminder](prompt-assembly-and-system-reminders.md)
+
 模型请求不是把 transcript 原样发出。CLI 先产生本轮“逻辑消息视图”，再装配 system、tools、betas、缓存 marker 和 provider 字段。
 
 ### 6.1 历史消息
@@ -222,6 +223,8 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 
 ## 7. Model、Provider、认证和请求路由
 
+> 深度专题：[模型、认证、Provider 与请求装配](models-auth-providers-request.md)
+
 ### 7.1 Model catalog
 
 `2.1.235` 内置 17 个 model entry、6 个 pricing tier 和 4 个 alias family。entry 可携带：
@@ -256,6 +259,8 @@ CLAUDE.md、rules、memory、项目说明、IDE 选区、文件片段、Git diff
 本版 inventory 中共有 99 条 API path 和 53 个日期后缀 Beta，但字符串存在不等于产品层调用：有些属于 Claude Code 直接 consumer，有些是发布物内 Enterprise Gateway handler，有些只是打包 SDK、prefix/allowlist 或内嵌迁移参考。Beta 还要经过 descriptor、模型/provider/feature/query-source/sticky gate、云 provider 改写和定向 400 strip，不能把 53 个标识写成“每次请求都会发送”。逐项 owner、method/path、consumer、失败与远端边界见 [API、Beta 与路由所有权](api-beta-route-ownership.md)。
 
 ## 8. Agent Loop：持续执行的核心状态机
+
+> 深度专题：[Agent Loop 完整执行链](agent-loop.md)
 
 ### 8.1 Loop 持有的关键状态
 
@@ -347,6 +352,8 @@ Stop hook 可以阻止本轮结束并返回反馈。客户端把反馈加入 mes
 
 ## 9. 单个工具调用的完整管线
 
+> 深度专题：[工具、权限与 Hooks](tools-permissions-hooks.md)
+
 模型输出 `tool_use` 后，CLI 仍会经过多道关卡：
 
 ```text
@@ -400,6 +407,8 @@ Loop 在批次结束后还会处理：
 所以“工具返回成功”仍不是一次 Agent 任务的最终终止点。
 
 ## 10. 权限、风控、Sandbox 和企业治理
+
+> 深度专题：[工具、权限与 Hooks](tools-permissions-hooks.md) · [Auto Mode](auto-mode-classifier.md) · [Sandbox](sandbox-install-and-runtime-enforcement.md)
 
 ### 10.1 六种规范化 permission mode
 
@@ -482,6 +491,8 @@ Hook 自身也有 timeout、exit code、JSON/schema 和来源信任问题。错�
 
 ## 11. 上下文治理：不是“快满了就总结”
 
+> 深度专题：[上下文治理与多层缓存](context-governance-and-caching.md)
+
 上下文治理同时处理四个不同问题：
 
 1. **窗口容量**：本轮输入是否装得下；
@@ -492,6 +503,8 @@ Hook 自身也有 timeout、exit code、JSON/schema 和来源信任问题。错�
 把 prompt cache、tool schema cache、microcompaction、auto-compact 和 transcript storage 统称为“多层缓存”会掩盖它们完全不同的对象和失效条件。
 
 ## 12. 多层缓存逐层解释
+
+> 深度专题：[上下文治理与多层缓存](context-governance-and-caching.md)
 
 ### 12.1 Tool schema 进程缓存
 
@@ -528,6 +541,8 @@ system blocks会区分稳定和动态段，并在内部标记 `global`/`org`。�
 
 ## 13. Tool Search、Context Hint 与 Microcompaction
 
+> 深度专题：[上下文治理与多层缓存](context-governance-and-caching.md)
+
 ### 13.1 Tool Search
 
 Tool Search解决“工具 schema 本身占满上下文”的问题。启用受 provider、settings、first-party base URL 和 beta gate 控制。延迟工具先暴露名称，取得完整 schema 后才能调用。
@@ -545,6 +560,8 @@ Context hint 只在特定 first-party 主线程路径使用，并要求 keep-rec
 它不总结整个对话，也不改变用户/assistant 主结论。目的在于清理高体积、低复用的工具输出，同时保留可追溯引用。
 
 ## 14. Auto-compact、预计算与手工 compact
+
+> 深度专题：[上下文治理](context-governance-and-caching.md) · [`/compact` 完整状态转换](compact-visual-guide.md)
 
 ### 14.1 四条阈值线
 
@@ -589,6 +606,8 @@ Context hint 只在特定 first-party 主线程路径使用，并要求 keep-rec
 Compact减少窗口占用，但摘要可能丢细节；prompt cache减少重复前缀成本，但不释放窗口。这两个机制必须分开诊断。
 
 ## 15. Transcript、消息图、Resume 与 Fork
+
+> 深度专题：[会话、消息图、Resume 与 Fork](sessions-checkpoints-memory.md)
 
 ### 15.1 Transcript 不是普通聊天数组
 
@@ -636,6 +655,8 @@ Boundary可记录：
 
 ## 16. File Checkpoint 与 Rewind
 
+> 深度专题：[File Checkpoint 与 Rewind 独立生命周期](file-checkpoint-rewind-lifecycle.md)
+
 ### 16.1 保存对象
 
 File checkpoint保存 Claude Code已追踪文件在动作前后的可恢复状态，并用消息/动作身份关联。活跃恢复集最多保留 100 个 snapshot；增加新 snapshot会淘汰更旧项并记录结果。
@@ -665,6 +686,8 @@ File checkpoint不覆盖：
 
 ## 17. Memory、CLAUDE.md 与 Skills 的上下文预算
 
+> 深度专题：[Memory、CLAUDE.md、Rules 与 Skills 生命周期](memory-claude-md-skills-lifecycle.md)
+
 ### 17.1 Memory 的不同来源
 
 - 用户级 CLAUDE.md；
@@ -688,6 +711,8 @@ File checkpoint不覆盖：
 Memory是内容来源和持久知识；prompt cache是 API对相同输入前缀的计费/计算复用。Memory内容变化会导致请求和 cache identity变化，但二者不是同一种存储。
 
 ## 18. MCP：动态扩展如何进入 Agent Loop
+
+> 深度专题：[MCP Runtime 生命周期](mcp-runtime-lifecycle.md)
 
 ### 18.1 配置与信任
 
@@ -722,6 +747,8 @@ MCP配置可以来自不同 settings层和项目来源。项目配置可能需�
 
 ## 19. Custom Agent、子 Agent、Team 与后台任务
 
+> 深度专题：[子 Agent、Team 与 Task Runtime](subagent-team-task-runtime.md)
+
 ### 19.1 Agent 定义
 
 Custom Agent可以指定 prompt、工具、model/effort、permission和工作目录策略。内置 fork Agent默认可继承 model，并有独立轮次预算；本版静态路径显示 fork默认上限为 200 turns，并支持权限向上冒泡。
@@ -753,6 +780,8 @@ Team/task registry有显式 claim语义。已经被领取的任务返回 already
 当前官方资料说明后台 session可由独立 supervisor承载，但本版精确探针没有正向验证“CLI进程退出后真实后台任务继续并重连”。因此仓库把它保留为 Public主张，不升级为 `2.1.235` 本机 Probe事实。
 
 ## 20. Retry、Fallback 与恢复：七种“再来一次”
+
+> 深度专题：[韧性与恢复](resilience-and-recovery.md)
 
 | 机制 | 重做对象 | 是否增加正常 turn | 副作用风险 |
 | --- | --- | --- | --- |
@@ -794,6 +823,8 @@ Tombstone只表示某段 provisional assistant/tool消息不再属于有效主�
 
 ## 21. TUI：视觉状态为什么会影响安全和正确性
 
+> 深度专题：[TUI、输入、无障碍与媒体状态](tui-input-accessibility-media-ide-chrome.md)
+
 ### 21.1 输入状态
 
 TUI维护“当前高亮项”和“提交时读取项”两份时序状态。`2.1.235` 修复快速方向键后立即 Enter仍提交旧 highlight的问题。这不是单纯渲染延迟，而是用户选择和实际动作不一致。
@@ -821,6 +852,8 @@ Shift+Tab在 permission comment field中原本可能触发批准并授予 sessio
 
 ## 22. IDE、VS Code、Remote Control 与 Cloud
 
+> 深度专题：[TUI、IDE、Remote Control 与 Cloud](tui-ide-remote-cloud.md) · [后台执行、Channels 与 Cloud](cloud-background-channels.md)
+
 ### 22.1 IDE 上下文
 
 IDE连接提供选区、打开文件、diagnostics、tab/panel和编辑器命令。该上下文随焦点变化，是动态 prompt信息，不适合无条件进入稳定 cache prefix。
@@ -844,6 +877,8 @@ Remote Control有 endpoint、登录 entitlement、gateway availability、device/
 Thin client可能采用 worker下发的 model、cwd、tools、MCP和 autocompact状态。正确实现需要验证 frame schema、ownership和允许字段；malformed frame应 fail closed。远端告诉客户端“有什么工具”不等于绕过本地 policy和 OS权限。
 
 ## 23. Settings、Feature Flag 与 Managed Policy
+
+> 深度专题：[Settings 解析与热重载](settings-resolution-and-reload.md) · [Feature Flags 与 Remote Config](feature-flags-remote-config.md)
 
 ### 23.1 156 个根 setting不等于 156 个独立开关
 
@@ -883,6 +918,8 @@ Root schema记录字段类型、description、enum和嵌套对象，但每个字
 `allowManagedPermissionRulesOnly`启用时，只聚合 policySettings rules；CLI allowedTools和 session allow也会被替换为空 allow列表。它控制的是“哪些来源有资格放宽权限”，而不是只在最终结果上再叠一条 deny。
 
 ## 24. Telemetry：所有出口、默认值与字段含义
+
+> 深度专题：[遥测、日志与诊断](telemetry.md) · [全局数据流与隐私](client-data-flow-and-privacy.md)
 
 Telemetry不能概括成“会上报”。`2.1.235` 至少有一方 analytics、Datadog、OTEL、GrowthBook、error reporting、debug/profile和本地 recording等不同通道。
 
@@ -968,6 +1005,8 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 
 ## 25. `2.1.235` 的 Usage-limit 遥测如何解释
 
+> 深度专题：[Usage、成本、Credits 与 Limits](usage-cost-credits-and-limits.md)
+
 本版一方事件把 usage-limit 自动续跑拆成一组可独立诊断的状态，而不是只记录一个“额度不足”结果：
 
 - armed：已进入等待；
@@ -982,6 +1021,8 @@ Error reporting要求 first-party authenticated路径，并经过 organization p
 这表示观测状态更细，不表示传输和隐私门被放宽：telemetry endpoint、OTEL metrics/spans、Datadog tag/redaction和一方 environment字段数量均无变化。
 
 ## 26. 五个原生模块：JavaScript 到 macOS 的边界
+
+> 深度专题：[Native Bridge 与 JavaScript Runtime](native-bridge-runtime.md)
 
 ### 26.1 共同运行模型
 
@@ -1045,6 +1086,8 @@ ARM64 上 5 个原版/兼容模块完成 contract。报告的 23 个检查项由
 
 ## 27. 安装、更新与 Doctor
 
+> 深度专题：[Native 安装、自更新与 Doctor 生命周期](install-update-doctor-lifecycle.md)
+
 ### 27.1 核心不是覆盖当前文件，而是分离三个状态
 
 Native 安装把正式版本放在 `$XDG_DATA_HOME/claude/versions/<version>`（默认 `~/.local/share/claude/versions/`），把下一次启动入口放在 `~/.local/bin/claude`。当前进程已经映射的 binary、磁盘中的新版本文件和 launcher 指向是三个对象：更新成功能改变后两者，不能热替换当前会话。页脚因此显示 `Restart to update`。
@@ -1082,6 +1125,8 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 重新发布旧版本或把launcher指回旧binary不会反向迁移settings、transcript、Storage v5，也不会撤销远端副作用。完整阶段、失败矩阵、源码证据和Native Windows/npm分支差异见[Native安装、自更新与Doctor专题](install-update-doctor-lifecycle.md)。
 
 ## 28. `2.1.235` 的 19 条发布变化：逐项解释与证据强度
+
+> 深度专题：[2.1.235 状态边界分析](product-surface-evidence-map.md) · [Release Notes 逐项证据](release-notes.md)
 
 | # | 变化 | 解决的问题 | 用户影响 | 当前证据 |
 | ---: | --- | --- | --- | --- |
@@ -1369,6 +1414,8 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 
 ### 35.1 Slash Command：103 是静态集合，不是菜单数量
 
+> 完整参考：[Slash Command 全量生命周期](slash-command-reference.md)
+
 `2.1.235` 的 command object 分成 `local`、`local-jsx` 和 `prompt`。同名 command 还可能有 interactive/noninteractive/thin-client twin。判断一个命令是否可用，必须分别看：
 
 1. parser 是否能解析；
@@ -1380,6 +1427,8 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 因此 `version`、`pause-memory`、`loops` 等保留 object/identifier 的命令不能自动写成当前可用；hidden、stub、host-only 和 remote-event-only 也必须单独标出。103/103 marker 证明集合未漏，不替代逐命令失败边界。
 
 ### 35.2 Hooks：前置控制与后置观察不能混写
+
+> 完整参考：[Hooks 全事件生命周期](hooks-event-reference.md)
 
 31 个事件至少跨越 prompt、tool、compact、session、config/file、MCP elicitation、task/team/worktree 和 display/notification。共同 runner 之外，每个事件的时机、matcher 字段和阻塞语义不同：
 
@@ -1393,6 +1442,8 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 
 ### 35.3 Storage v5：namespace 不是自动事务数据库
 
+> 完整参考：[Storage v5 Namespace 与写入纪律](storage-v5-reference.md)
+
 32 个 Claude namespace 用 typed key 把 segment、scope 和允许形状固定下来；其中 `transcript`、`history`、`log` 是不能漏掉的流式入口。底层支持 atomic replace、in-place 和 append 等写入纪律，也有 expected stat/value/version 一类 precondition。它解决的是路径、key 与单次写入合同，不自动提供：
 
 - namespace-wide lock；
@@ -1405,11 +1456,15 @@ Doctor handler不执行repair，但根命令前的共享preAction可能持久化
 
 ### 35.4 Workflow、Artifact、Design：三条链没有共享事务
 
+> 深度专题：[Workflow、Artifact 与 Design 数据链](workflow-artifact-design.md)
+
 Workflow 把自包含脚本、phase、agent call、journal、run/task ID 和同 session resume 绑定；`async_launched` 只证明运行已登记。Artifact 则把具体本地文件身份、hash/version、supporting files、CSP、远端 URL、comments/DB/assets/watch 绑定，发布批准针对 bytes，不只是路径字符串。Design Sync 再把本地 repo、build/diff/validate/capture、sidecar、远端 project 和 ownership 对齐。
 
 三者可以串联，却不能共同回滚：Workflow 后续 phase 失败不会撤销已发布 Artifact；Artifact URL 不证明 Design project 已同步；远端 upload 成功也不会把本地 Git 状态自动变干净。
 
 ### 35.5 TUI、媒体、IDE、Chrome：输入不是一条字符串
+
+> 深度专题：[TUI、输入、媒体、IDE 与 Chrome](tui-input-accessibility-media-ide-chrome.md)
 
 Composer 持有文本、selection、Vim mode、permission comment、history 和 focus；renderer 还区分 alternate screen、screen reader、native cursor 和 diff strategy。Spellcheck 是受限本地子进程，有批量、缓存、字符过滤、timeout 和 circuit breaker。Paste 先做 gesture 分类，再按 MIME/bytes/扩展名走文本、文件、native image processor 或 clipboard fallback。Voice 是本地 capture + 远端 STT + 文本注入，不是直接把音频当普通 message。
 
@@ -1417,11 +1472,15 @@ IDE 与 Chrome 又拥有各自的 socket/token/selection/page/permission/timer s
 
 ### 35.6 Background、Channels、Remote 与 Cloud：显示端不等于执行 owner
 
+> 深度专题：[后台执行、Channels 与 Cloud](cloud-background-channels.md)
+
 本地 Bash/Agent 可由 task/supervisor 承载，Cron/loop/Monitor/Channel 只负责在请求边界排入新 input/notification。Remote Control 通常是远端看、本地 CLI 执行；cloud session、CCR/BYOC/self-hosted runner 才把 Agent Loop 或 workspace owner 放到远端环境。
 
 所以关闭终端、关闭网页、resume transcript、停止 task、断开 viewer 的效果不同。`async_launched`、task metadata、Channel notification、remote event cursor 和 runner lease 也不是同一种完成信号。长 cloud task 在 `2.1.235` 使用增量 event cursor/owned state，减少重复扫描历史；它优化本地消费，不证明远端 worker 更快或更便宜。
 
 ### 35.7 Feature Flags：同版本差异来自状态链，不来自版本号本身
+
+> 深度专题：[Feature Flags 与 Remote Config](feature-flags-remote-config.md)
 
 Feature manager 同时持有 fresh map、disk last-known-good、experiment metadata、pending/logged exposure、auth identity、generation 和 refresh loop。每个 consumer 还要继续通过 settings、policy、provider、command/tool surface 和协议门。
 

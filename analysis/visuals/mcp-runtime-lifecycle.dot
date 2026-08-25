@@ -1,0 +1,37 @@
+digraph mcp_runtime_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.42", ranksep="0.62", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.17,0.12", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  config [label="配置候选\nsettings / .mcp.json / CLI / plugin / SDK", fillcolor="#fff3cd"];
+  trust [label="信任与策略\nproject approval / strict / managed allow-deny", fillcolor="#ffe0b2"];
+  blocked [label="Pending / Blocked / Skipped\n不启动、不联网、不装 schema", fillcolor="#ffcdd2"];
+  transport [label="Transport\nstdio spawn / HTTP / SSE / SDK / proxy", fillcolor="#e3f2fd"];
+  auth [label="认证分支\nheader / first-party / OAuth / XAA", fillcolor="#d1c4e9"];
+  needs_auth [label="Needs Auth / Failed\n配置保留，尚无 live client", fillcolor="#ffebee"];
+  init [label="Initialize\nprotocol + serverInfo + capabilities", fillcolor="#c8e6c9"];
+  catalogs [label="独立目录\ntools/list | resources/list | prompts/list", fillcolor="#b2dfdb"];
+  roots [label="客户端 Roots\ncwd + additional dirs -> roots/list\ncwd变化时另发 roots/list_changed", fillcolor="#d7ccc8"];
+  generation [label="Catalog + Generation\n规范化、过滤、缓存与 deferred schema", fillcolor="#c8e6c9"];
+  request [label="后续 Messages Request\ntools[] 采用当前 generation", fillcolor="#e8eaf6"];
+  execution [label="工具审批与 tools/call\n本文边界之外", fillcolor="#f5f5f5", style="rounded,filled,dashed"];
+  changed [label="list_changed 或连接重建\n失效后重新 list；成功返回目录", fillcolor="#fff3cd"];
+  keep [label="刷新失败\n保留 previous catalog + 暴露错误", fillcolor="#ffebee"];
+
+  config -> trust [label="解析来源与 scope"];
+  trust -> blocked [label="未批准或 policy拒绝"];
+  trust -> transport [label="允许尝试连接"];
+  transport -> auth [label="建立通道 / 收到挑战"];
+  auth -> needs_auth [label="缺凭据、交换失败"];
+  auth -> init [label="身份可用或无需认证"];
+  init -> catalogs [label="按 capabilities 发现"];
+  init -> roots [label="server 请求 roots/list", style=dashed];
+  catalogs -> generation [label="转换 tool schema"];
+  generation -> request [label="下一请求边界装配"];
+  request -> execution [label="模型以后可能选择"];
+
+  catalogs -> changed [style=dashed];
+  changed -> catalogs [style=dashed, constraint=false];
+  changed -> keep [label="有界重试仍失败"];
+  keep -> generation [label="继续旧表，不伪装 fresh"];
+}

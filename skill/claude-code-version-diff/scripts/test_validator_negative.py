@@ -916,10 +916,10 @@ def main() -> None:
             "analysis/claude-code-2.1.235-complete-guide.md",
             lambda data: replace_once(
                 data,
-                "这是一部针对 `2.1.235` 的查阅手册".encode(),
-                "**一句话模型：** 这是一部针对 `2.1.235` 的查阅手册".encode(),
+                "这份指南沿 Claude Code 自己的一次任务".encode(),
+                "**一句话模型：** 这份指南沿 Claude Code 自己的一次任务".encode(),
             ),
-            "reader-first reference exposes tutorial scaffold",
+            "reader-first guide exposes authoring scaffold",
         ),
         (
             "analysis/product-surface-evidence-map.md",
@@ -2507,6 +2507,54 @@ def main() -> None:
         (
             "analysis/visuals/request-execution-feedback.svg",
             "README request execution rendered visual is missing",
+        ),
+        (
+            "analysis/file-checkpoint-rewind-lifecycle.md",
+            "missing human analysis document: analysis/file-checkpoint-rewind-lifecycle.md",
+        ),
+        (
+            "analysis/visuals/file-checkpoint-rewind-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/file-checkpoint-rewind-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/file-checkpoint-rewind-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/file-checkpoint-rewind-lifecycle.svg",
+        ),
+        (
+            "analysis/memory-claude-md-skills-lifecycle.md",
+            "missing human analysis document: analysis/memory-claude-md-skills-lifecycle.md",
+        ),
+        (
+            "analysis/visuals/memory-context-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/memory-context-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/memory-context-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/memory-context-lifecycle.svg",
+        ),
+        (
+            "analysis/mcp-runtime-lifecycle.md",
+            "missing human analysis document: analysis/mcp-runtime-lifecycle.md",
+        ),
+        (
+            "analysis/visuals/mcp-runtime-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/mcp-runtime-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/mcp-runtime-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/mcp-runtime-lifecycle.svg",
+        ),
+        (
+            "analysis/subagent-team-task-runtime.md",
+            "missing human analysis document: analysis/subagent-team-task-runtime.md",
+        ),
+        (
+            "analysis/visuals/subagent-team-task-lifecycle.dot",
+            "reader-first visual source is missing: analysis/visuals/subagent-team-task-lifecycle.dot",
+        ),
+        (
+            "analysis/visuals/subagent-team-task-lifecycle.svg",
+            "reader-first rendered visual is missing: analysis/visuals/subagent-team-task-lifecycle.svg",
         ),
     ]
     total_cases = len(cases) + len(missing_cases)

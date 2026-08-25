@@ -475,6 +475,35 @@ HUMAN_ANALYSIS_DOCS = {
         "并发尾追加",
         "外部状态",
     ),
+    "analysis/file-checkpoint-rewind-lifecycle.md": (
+        "CHECKPOINT_ORIGINAL",
+        "--rewind-files",
+        "100",
+        "skippedLinks",
+        "边界",
+    ),
+    "analysis/memory-claude-md-skills-lifecycle.md": (
+        "CLAUDE.md",
+        "MEMORY.md",
+        "Skill",
+        "25,000",
+        "Boundary",
+    ),
+    "analysis/mcp-runtime-lifecycle.md": (
+        "initialize",
+        "tools/list",
+        "notifications/tools/list_changed",
+        "OAuth",
+        "XAA",
+        "Boundary",
+    ),
+    "analysis/subagent-team-task-runtime.md": (
+        "async_launched",
+        "task-notification",
+        "SendMessage",
+        "worktree",
+        "边界",
+    ),
     "analysis/tools-permissions-hooks.md": (
         "updatedInput",
         "PostToolBatch",
@@ -794,6 +823,10 @@ HUMAN_ANALYSIS_MINIMUMS = {
     "analysis/technical-mechanism-atlas.md": (6000, 8),
     "analysis/public-claims-validation.md": (6000, 8),
     "analysis/compact-visual-guide.md": (8000, 10),
+    "analysis/file-checkpoint-rewind-lifecycle.md": (4000, 7),
+    "analysis/memory-claude-md-skills-lifecycle.md": (8000, 7),
+    "analysis/mcp-runtime-lifecycle.md": (12000, 8),
+    "analysis/subagent-team-task-runtime.md": (10000, 8),
     "analysis/sessions-checkpoints-memory.md": (6000, 10),
     "analysis/tools-permissions-hooks.md": (6000, 10),
     "analysis/mcp-agents-background.md": (6000, 10),
@@ -857,6 +890,10 @@ READER_FIRST_ANALYSIS_DOCS = {
     "analysis/compact-visual-guide.md": "compact-lifecycle",
     "analysis/context-governance-and-caching.md": "context-control-lifecycle",
     "analysis/sessions-checkpoints-memory.md": "session-recovery-lifecycle",
+    "analysis/file-checkpoint-rewind-lifecycle.md": "file-checkpoint-rewind-lifecycle",
+    "analysis/memory-claude-md-skills-lifecycle.md": "memory-context-lifecycle",
+    "analysis/mcp-runtime-lifecycle.md": "mcp-runtime-lifecycle",
+    "analysis/subagent-team-task-runtime.md": "subagent-team-task-lifecycle",
     "analysis/tools-permissions-hooks.md": "tool-control-lifecycle",
     "analysis/mcp-agents-background.md": "mcp-agent-lifecycle",
     "analysis/resilience-and-recovery.md": "recovery-layers",
@@ -5903,11 +5940,35 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
             'after:  {"port": 9090',
             "type: tool_result",
         ),
+        "analysis/file-checkpoint-rewind-lifecycle.md": (
+            "CHECKPOINT_ORIGINAL",
+            "CHECKPOINT_MODIFIED",
+            "--rewind-files",
+            "Files rewound to state at message",
+        ),
+        "analysis/memory-claude-md-skills-lifecycle.md": (
+            "repo/CLAUDE.md",
+            "Read(src/api/client.ts)",
+            "Launching skill: release-check",
+            "下一次模型迭代",
+        ),
+        "analysis/mcp-runtime-lifecycle.md": (
+            "client -> server: initialize",
+            "tools: [probe_echo]",
+            "notifications/tools/list_changed",
+            "MCP_REFRESH_OK",
+        ),
+        "analysis/subagent-team-task-runtime.md": (
+            "SUBAGENT_PARENT_PROMPT_MARKER",
+            "async_launched",
+            "SUBAGENT_CHILD_RESULT_MARKER",
+            "SUBAGENT_PARENT_OK",
+        ),
     }
-    migrated_reference_docs = {
+    migrated_guide_docs = {
         "analysis/claude-code-2.1.235-complete-guide.md": (
-            "这是一部针对 `2.1.235` 的查阅手册",
-            "## 使用方法：按功能查阅",
+            "这份指南沿 Claude Code 自己的一次任务",
+            "## 七卷阅读顺序",
         ),
     }
     visible_scaffolding = (
@@ -5965,7 +6026,7 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
                 f"reader-first rendered visual is invalid: {svg_path.relative_to(repo)}"
             )
 
-    for relative, required_markers in migrated_reference_docs.items():
+    for relative, required_markers in migrated_guide_docs.items():
         path = repo / relative
         if not path.is_file():
             continue
@@ -5973,11 +6034,11 @@ def validate_reader_first_analysis(repo: Path, failures: list[str]) -> None:
         for marker in visible_scaffolding:
             if marker in first_screen:
                 failures.append(
-                    f"reader-first reference exposes tutorial scaffold {marker}: {relative}"
+                    f"reader-first guide exposes authoring scaffold {marker}: {relative}"
                 )
         if any(marker not in first_screen for marker in required_markers):
             failures.append(
-                f"reader-first reference lacks lookup-oriented opening: {relative}"
+                f"reader-first guide lacks volume-oriented opening: {relative}"
             )
 
 

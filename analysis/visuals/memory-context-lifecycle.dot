@@ -1,0 +1,30 @@
+digraph memory_context_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.42", ranksep="0.58", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.18,0.11", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=10.5];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.76, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=8.5, fontcolor="#263238"];
+
+  sources [label="磁盘与同步来源\nCLAUDE.md / rules\nMEMORY.md / topic memory / SKILL.md", fillcolor="#fff3cd"];
+  discovery [label="当前 session 的发现结果\nscope + cwd + canonical path\nSkill metadata registry", fillcolor="#e3f2fd"];
+  gates [label="信任与启用门\nworkspace trust / safe / bare\nmanaged policy / overrides", fillcolor="#ffe0b2"];
+  request_view [label="预算后的请求视图\nCLAUDE.md + 命中 rules\nmemory 入口 + Skill description", fillcolor="#c8e6c9"];
+  model [label="模型作出下一步决定\n直接执行 / Read memory\n调用 Skill", fillcolor="#b2dfdb"];
+  body [label="按需装入正文\nRead topic memory\nSkill tool dispatch", fillcolor="#d1c4e9"];
+  next_request [label="下一次 Messages 请求\nmemory 正文或 Skill body\n与 tool result 保持因果配对", fillcolor="#c5cae9"];
+  update [label="持久更新与失效\nWrite/Edit / reload / clear\ncwd、policy 或 generation 改变", fillcolor="#d7ccc8"];
+  skipped [label="未进入当前请求\nskipped / truncated / name-only\nstale registry", fillcolor="#ffcdd2"];
+
+  { rank=same; discovery; gates; }
+  { rank=same; request_view; skipped; }
+  { rank=same; model; body; }
+
+  sources -> discovery [label="扫描路径与 frontmatter"];
+  discovery -> gates [label="标记来源并裁决"];
+  gates -> request_view [label="允许并施加各自预算"];
+  gates -> skipped [label="拒绝或跳过", style=dashed];
+  request_view -> skipped [label="超预算时截入口或降为名称", style=dashed, constraint=false];
+  request_view -> model [label="发送常驻指导和元数据"];
+  model -> body [label="Read 或调用 Skill"];
+  body -> next_request [label="追加正文和配对结果"];
+  next_request -> update [label="完成后可写入长期状态"];
+  update -> discovery [label="清 cache 或下一 session 重扫", style=dashed];
+}

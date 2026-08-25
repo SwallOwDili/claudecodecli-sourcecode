@@ -10,7 +10,7 @@
 4. [会话、Checkpoint 与 Memory](analysis/sessions-checkpoints-memory.md)：Resume、fork、rewind 和长期 Memory 各自恢复什么对象。
 5. [工具、权限与 Hooks](analysis/tools-permissions-hooks.md)：一个模型提议怎样经过校验、权限、sandbox 和 Hook 才产生真实副作用。
 
-要先看整个系统，可读[一次请求的技术机制总图](analysis/technical-mechanism-atlas.md)。只关心本版变化，可读[2.1.235 状态边界修正](analysis/product-surface-evidence-map.md)。需要逐项查阅时，再进入下面的专题和参考手册。
+要按完整顺序学习，进入 [Claude Code 2.1.235 深度技术指南](analysis/claude-code-2.1.235-complete-guide.md)；只看一条执行链，可读[技术机制总图](analysis/technical-mechanism-atlas.md)；只关心本版变化，可读[2.1.235 状态边界修正](analysis/product-surface-evidence-map.md)。需要逐项查阅时，再进入下面的专题和参考手册。
 
 ## 机制教程
 
@@ -27,6 +27,8 @@
 - [`/compact` 上下文压缩](analysis/compact-visual-guide.md)
 - [上下文治理与多层缓存](analysis/context-governance-and-caching.md)
 - [会话、Checkpoint 与 Memory](analysis/sessions-checkpoints-memory.md)
+- [File Checkpoint 与 Rewind](analysis/file-checkpoint-rewind-lifecycle.md)
+- [Memory、CLAUDE.md、Rules 与 Skills](analysis/memory-claude-md-skills-lifecycle.md)
 - [工具、权限与 Hooks](analysis/tools-permissions-hooks.md)
 - [模型、认证、Provider 与请求装配](analysis/models-auth-providers-request.md)
 - [韧性与恢复](analysis/resilience-and-recovery.md)
@@ -39,6 +41,8 @@
 - [REPL 程序化工具运行时](analysis/repl-programmatic-tool-runtime.md)
 - [EndConversation 风控](analysis/end-conversation-risk-control.md)
 - [MCP、Agents 与后台协作](analysis/mcp-agents-background.md)
+- [MCP Runtime 生命周期](analysis/mcp-runtime-lifecycle.md)
+- [子 Agent、Team 与 Task Runtime](analysis/subagent-team-task-runtime.md)
 - [Connectors、Catalog 与 MCP Operators](analysis/connectors-catalog-and-mcp-operators.md)
 - [Remote Routines、Runner 与 Notifications](analysis/remote-routines-runner-and-notifications.md)
 - [ClaudeDesign 与 Projects](analysis/claude-design-and-projects.md)
@@ -110,7 +114,6 @@
 
 这些文档回答“结论凭什么成立”，不承担教程职责。
 
-- [完整机制说明书](analysis/claude-code-2.1.235-complete-guide.md)
 - [全面性审计](analysis/completeness-audit.md)
 - [公开主张与目标版证据](analysis/public-claims-validation.md)
 - [精确二进制 Probe 索引](analysis/runtime-probe-index.md)

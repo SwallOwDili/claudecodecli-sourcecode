@@ -1,0 +1,23 @@
+digraph file_checkpoint_rewind_lifecycle {
+  graph [rankdir=TB, bgcolor="#ffffff", pad="0.30", nodesep="0.42", ranksep="0.58", splines=polyline, fontname="Arial, PingFang SC, Microsoft YaHei"];
+  node [shape=box, style="rounded,filled", color="#263238", penwidth=1.4, margin="0.18,0.12", fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=11];
+  edge [color="#455a64", penwidth=1.4, arrowsize=0.75, fontname="Arial, PingFang SC, Microsoft YaHei", fontsize=9.5, fontcolor="#263238"];
+
+  original [label="受管文件\nCHECKPOINT_ORIGINAL", fillcolor="#e3f2fd"];
+  snapshot [label="File history\n消息 UUID + 目标文件旧字节", fillcolor="#c8e6c9"];
+  edit [label="Read / Edit 执行\n文件变成 CHECKPOINT_MODIFIED", fillcolor="#ffe0b2"];
+  command [label="新进程执行\n--resume SESSION --rewind-files MESSAGE_UUID", fillcolor="#fff3cd"];
+  validate [label="本地恢复器校验\ncheckpoint / 当前路径 / link / 写权限", fillcolor="#d1c4e9"];
+  restored [label="文件写回\nCHECKPOINT_ORIGINAL", fillcolor="#b2dfdb"];
+  conversation [label="Conversation fork / rewind\n只改变消息图分支", fillcolor="#eceff1", style="rounded,filled,dashed"];
+  external [label="外部副作用仍由原 owner 持有\nGit / 进程 / 数据库 / MCP / 远端 API", fillcolor="#ffcdd2"];
+
+  original -> snapshot [label="修改前关联消息节点"];
+  snapshot -> edit [label="保留旧字节后执行修改"];
+  edit -> command [label="用户选择目标消息"];
+  command -> validate [label="不调用模型"];
+  validate -> restored [label="校验通过后写回"];
+  command -> conversation [label="若另行 fork / rewind conversation", style=dashed];
+  edit -> external [label="其它动作可能已经完成", style=dashed];
+  restored -> external [label="不会自动补偿", style=dashed, color="#c62828", fontcolor="#c62828"];
+}

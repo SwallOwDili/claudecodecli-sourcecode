@@ -1,0 +1,106 @@
+digraph SubagentTeamTaskLifecycle {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad="0.28",
+    nodesep="0.38",
+    ranksep="0.52",
+    splines=spline,
+    newrank=true,
+    compound=true,
+    fontname="Helvetica, Noto Sans CJK SC, Arial",
+    fontsize=15,
+    label="Claude Code 2.1.235: 子 Agent 从启动确认到完成回灌",
+    labelloc="t",
+    labeljust="l"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#53606D",
+    fillcolor="#F7F9FB",
+    fontcolor="#18212A",
+    fontname="Helvetica, Noto Sans CJK SC, Arial",
+    fontsize=11,
+    margin="0.16,0.10"
+  ];
+  edge [
+    color="#61707E",
+    fontcolor="#3E4B57",
+    fontname="Helvetica, Noto Sans CJK SC, Arial",
+    fontsize=9,
+    arrowsize=0.72,
+    penwidth=1.25
+  ];
+
+  parent_request [label="父 Messages 请求\n模型返回 Agent tool_use", fillcolor="#E9F2FB", color="#4D789F"];
+
+  subgraph cluster_launch {
+    label="客户端创建第二个运行时";
+    color="#D0B36F";
+    fillcolor="#FFF9EA";
+    style="rounded,filled";
+    launch_gate [label="启动裁决\ndepth / budget / concurrency / type", fillcolor="#FFF4D8", color="#A87918"];
+    compile_child [label="编译 child context\nprompt / messages / tools / model\npermission / cwd / worktree", fillcolor="#FFF4D8", color="#A87918"];
+    launch_gate -> compile_child [label="通过启动 gate"];
+  }
+
+  runtime_running [label="后台 Agent 运行注册表: running\nownerAgentId / transcript / progress\nin-flight tools / abort state", fillcolor="#F7EAF1", color="#965D7A"];
+
+  launch_ack [label="父 tool_result\nstatus: async_launched", fillcolor="#FFF4D8", color="#A87918"];
+  parent_continue [label="父 Agent 继续其他工作\n此时不知道子任务结论", fillcolor="#F2F6F9", color="#71808D"];
+
+  subgraph cluster_child {
+    label="子 Agent 独立 Agent Loop";
+    color="#9EBCA9";
+    fillcolor="#F1F8F3";
+    style="rounded,filled";
+    child_loop [label="独立 Messages API\n自己的工具调用与 tool_result", fillcolor="#E7F5EC", color="#3D7C56"];
+    child_finish [label="形成最终文本\n收束 usage 与 worktree", fillcolor="#E7F5EC", color="#3D7C56"];
+    child_loop -> child_finish [label="收束子循环"];
+  }
+
+  subgraph cluster_team {
+    label="Team 协作支链: 不是运行注册表";
+    color="#91A7B7";
+    fillcolor="#F3F7FA";
+    style="rounded,filled";
+    task_list [label="协作 Task list\npending / owner / blocks / blockedBy", fillcolor="#EAF2F7", color="#52758B"];
+    task_claim [label="原子 claim 分支\nalready_claimed / blocked / agent_busy", fillcolor="#EAF2F7", color="#52758B"];
+    mailbox [label="SendMessage -> mailbox\n写入成功不等于已执行", fillcolor="#EAF2F7", color="#52758B"];
+    task_list -> task_claim [dir=both, arrowtail=none, style=dashed];
+  }
+
+  subgraph cluster_effects {
+    label="持久化与副作用边界";
+    color="#C8B4A0";
+    fillcolor="#FBF7F2";
+    style="rounded,filled";
+    child_storage [label="child transcript / 可选 worktree", fillcolor="#F7EFE7", color="#8D6B4D"];
+    external_effects [label="文件 / 进程 / 网络副作用\n不会随 Task 状态自动回滚", fillcolor="#FBE9E7", color="#A95349"];
+    child_storage -> external_effects [style=invis];
+  }
+
+  runtime_terminal [label="后台 Agent 运行注册表: 终态\ncompleted / failed / killed\nresult / usage / notified claim", fillcolor="#F7EAF1", color="#965D7A"];
+  notification [label="task-notification: completed\n按 owner 投递，priority: next", fillcolor="#F7EAF1", color="#965D7A"];
+  parent_decide [label="父 Agent 新一轮决策\n吸收结果后汇总或继续", fillcolor="#E7F5EC", color="#3D7C56"];
+
+  parent_request -> launch_gate [label="解析 Agent 输入"];
+  compile_child -> runtime_running [label="登记并启动"];
+  runtime_running -> launch_ack [label="立即配对启动确认"];
+  launch_ack -> parent_continue [label="父循环继续"];
+  runtime_running -> child_loop [label="运行独立 Agent Loop"];
+  child_finish -> runtime_terminal [label="写入终态与结果"];
+  runtime_terminal -> notification [label="领取一次完成通知"];
+  notification -> parent_decide [label="下一轮吸收结果"];
+
+  parent_continue -> mailbox [style=dashed];
+  mailbox -> child_loop [label="下一轮或 resume 吸收", style=dashed];
+  task_claim -> child_loop [label="领取后进入下一项工作", style=dashed];
+  child_loop -> child_storage [label="持久化 transcript / worktree", style=dashed];
+  child_loop -> external_effects [label="执行外部动作", style=dashed];
+
+  { rank=same; launch_ack; child_loop; task_list; }
+  { rank=same; parent_continue; child_finish; mailbox; }
+  { rank=same; child_storage; external_effects; }
+}

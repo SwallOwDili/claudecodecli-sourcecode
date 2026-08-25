@@ -63,6 +63,27 @@ Every image must answer one question. Do not create decorative architecture post
 - A screenshot may prove an observed UI or request, but it must not be the only explanation. Annotate the significant field and bind it to a version.
 - Do not embed machine-local absolute paths, usernames, credentials, request IDs, or private session content in publishable visuals.
 
+## Interactive teaching contract
+
+Use an interactive lab when the mechanism has a state transition a reader can learn by changing an input, policy, failure or recovery condition. Do not force a lab into lookup-oriented references or inventories. For a tutorial, however, prefer at least one reader-controlled transformation over a fixed animation whenever the mechanism admits a faithful local simulation.
+
+The static article remains the source of truth. The lab is a second way to inspect the same causal path, not a replacement for the ordinary explanation, thresholds, field semantics, failure boundaries or evidence. It must remain useful with JavaScript disabled: keep a readable fallback inside the custom element and keep the complete prose and static diagrams after it.
+
+An acceptable lab has all of these properties:
+
+- Reader input materially changes the trace. It must alter concrete tool arguments, message content, branch selection, owned state, virtual files/diff, attachment set or evidence view. Do not silently replace unsupported free text with a default trace; explain which action could not be parsed.
+- Each step records the actor, action kind, input/output, before/after state when relevant, external or virtual side effects, evidence class and diagram target. The visible trace follows causal order and lets the reader move forward, backward, seek and pause autoplay.
+- Success and failure branches preserve real ownership rules. Permission denial happens before the blocked side effect; a later test failure does not erase an earlier edit; a compact hook block does not write a success Boundary; an Edit path is not described as passing through a Bash OS-command sandbox.
+- Every `tool_use` has exactly one same-ID success or error `tool_result` in traces that return control to the loop. If the target release has a different protocol boundary, model that release instead of preserving the old fixture.
+- Evidence labels distinguish `Exact-binary probe`, `Static source reconstruction` and `Teaching fixture`. A deterministic browser simulation is not a captured Claude response or a new runtime Probe.
+- The default implementation runs entirely in browser memory. It does not call Claude, request an API key, read or modify the reader's workspace, use `eval`, load a third-party runtime CDN, embed an iframe or send the entered task to an external service.
+- A shared runtime owns playback, inspection, virtual files, diff, SVG highlighting, keyboard behavior and responsive layout. Scenario modules own only parsing, controls and version-specific trace construction. Reuse that runtime across tutorials instead of shipping one framework per article.
+- Load the runtime only on pages containing the lab element. Keep one production bundle under the repository budget, currently `50 KiB` gzip unless the project records and approves a different limit.
+- Keyboard shortcuts never override focused links, buttons, form controls, editable content or ARIA interactive controls. Provide visible focus, meaningful labels, stable control dimensions, a reduced-motion path and a fullscreen option when the trace needs more room.
+- At 390px, every scenario control must remain wholly inside the lab; a hidden outer overflow with clipped children is a failure even when the page's `scrollWidth` equals its viewport. Wide diagrams and code/diff regions may scroll inside their named region.
+
+Validate the behavior rather than the presence of UI labels. Tests should cover representative input-driven success, denial before mutation, failure after mutation, compact block/no-Boundary, sandbox rejection, state drift and protocol pairing. Browser acceptance must then operate the real generated page in light and dark themes, inspect desktop and 390x844 layouts, emulate reduced motion, prove non-lab pages do not load the runtime, and verify the no-JavaScript fallback remains a light-DOM child hidden after upgrade.
+
 ## Explanation contracts
 
 ### A complete example

@@ -193,13 +193,18 @@ Never publish `extracted/`, `reverse/`, `reconstructed/`, source inventories or 
 For the repository's standard site pipeline, run:
 
 ```bash
+node --version
+npm ci --no-audit --no-fund
+npm run check:labs
 python site/prepare_site.py
 mkdocs build --strict
 python site/postprocess_site.py .site-output
 python site/validate_site.py .site-output
 ```
 
-Before publishing, verify the generated page/article counts, all internal links and anchors, version-pinned evidence links, local-path privacy, search, light/dark themes, mobile navigation, wide SVG behavior and page-level horizontal overflow. After deployment, require the Pages workflow to succeed, the Pages API to report `built`, and fresh HTTP/browser checks of the homepage plus representative hub, long-article, reference and evidence pages. A local build is not a live Pages result.
+For a tutorial whose central mechanism changes state in a way readers can manipulate, add an input-driven local teaching lab under the contract in [references/reader-first-visual-explanation.md](references/reader-first-visual-explanation.md). A lab must change tool arguments, branch decisions, state, files/diff or evidence when its input or controls change; a fixed animation with editable-looking controls is not acceptable. Keep the full static explanation and no-JavaScript fallback, and label exact-binary observations, static reconstructions and teaching fixtures separately.
+
+Before publishing, verify the generated page/article counts, all internal links and anchors, version-pinned evidence links, local-path privacy, search, light/dark themes, mobile navigation, wide SVG behavior and page-level horizontal overflow. For interactive tutorials, also verify a successful path and every materially different failure boundary, `tool_use_id`/`tool_result` pairing, side-effect preservation, static fallback placement, lazy loading, keyboard focus, reduced motion, and desktop plus 390px layout without clipped controls. Non-lab pages must not load the lab runtime. After deployment, require the Pages workflow to succeed, the Pages API to report `built`, and fresh HTTP/browser checks of the homepage plus representative hub, long-article, interactive tutorial, reference and evidence pages. A local build is not a live Pages result.
 
 ## Human explanation contract
 

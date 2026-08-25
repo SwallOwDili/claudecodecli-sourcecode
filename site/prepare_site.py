@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import html
 import json
@@ -19,6 +20,7 @@ from site_identity import repository_url, version
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = REPO_ROOT / ".site-content"
 SEARCH_EXCLUDE_MIN_BYTES = 250_000
+LAB_BUNDLE_MAX_GZIP_BYTES = 50 * 1024
 MERMAID_VERSION = "11.17.1"
 MERMAID_URL = (
     f"https://cdn.jsdelivr.net/npm/mermaid@{MERMAID_VERSION}/dist/mermaid.min.js"
@@ -123,6 +125,32 @@ def install_mermaid(output_root: Path) -> dict[str, str]:
         "source": MERMAID_URL,
         "output": destination.relative_to(output_root).as_posix(),
         "sha256": MERMAID_SHA256,
+    }
+
+
+def install_lab_runtime(output_root: Path) -> dict[str, object]:
+    source = REPO_ROOT / ".site-cache" / "labs" / "cc-agent-lab.js"
+    if not source.is_file():
+        raise SystemExit(
+            "Missing interactive lab bundle; run `npm ci` and `npm run build:labs` first"
+        )
+    content = source.read_bytes()
+    gzip_bytes = len(gzip.compress(content, compresslevel=9, mtime=0))
+    if gzip_bytes > LAB_BUNDLE_MAX_GZIP_BYTES:
+        raise SystemExit(
+            f"Interactive lab bundle exceeds gzip budget: "
+            f"{gzip_bytes} > {LAB_BUNDLE_MAX_GZIP_BYTES}"
+        )
+
+    destination = output_root / "assets" / "labs" / source.name
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+    return {
+        "output": destination.relative_to(output_root).as_posix(),
+        "bytes": len(content),
+        "gzipBytes": gzip_bytes,
+        "sha256": hashlib.sha256(content).hexdigest(),
+        "budgetGzipBytes": LAB_BUNDLE_MAX_GZIP_BYTES,
     }
 
 
@@ -432,6 +460,7 @@ def main() -> int:
     if assets_source.is_dir():
         shutil.copytree(assets_source, output_root / "assets", dirs_exist_ok=True)
     mermaid = install_mermaid(output_root)
+    lab_runtime = install_lab_runtime(output_root)
 
     root_documents = {
         "ARTICLES.md": "articles.md",
@@ -499,6 +528,7 @@ def main() -> int:
         "root_documents": root_documents,
         "supplemental_articles": supplemental_articles,
         "identifier_indexes": identifier_indexes,
+        "lab_runtime": lab_runtime,
         "mermaid": mermaid,
         "articles": articles,
         "visuals": visuals,

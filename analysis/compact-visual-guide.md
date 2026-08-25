@@ -102,6 +102,14 @@ Bash python3 skill/claude-code-version-diff/scripts/validate_snapshot.py .
 
 下面是基于 `2.1.235` 客户端规则构造的说明性结果。Summary 的具体措辞由模型生成，保留多少近期消息也取决于本次切点；它不是固定 wire dump。
 
+### 改变输入，亲自观察这次重建
+
+下面的沙盘不会播放一条固定动画，范围明确限定为普通手动 `/compact` 且 precomputed miss，因此会真实走一次 Summary 请求；precomputed hit 仍由后文单独解释。输入参数会改变 Summary 的强调项和附件候选，消息组数量与保留数量会改变切点，附件恢复状态会改变重建后的精确材料；如果 `PreCompact` 阻止，客户端会停在原历史，不写成功 Boundary。每一步都标明执行 owner、证据类型和当前高亮的客户端阶段。
+
+<div class="cc-agent-lab-embed">
+<cc-agent-lab scenario="compact" heading-level="4"><div class="cc-agent-lab-fallback"><strong>静态回退：</strong>当前浏览器没有运行交互组件。下文仍按同一顺序完整保留 Summary、preserved messages、attachments、Boundary、恢复分支和三张静态流程图。</div></cc-agent-lab>
+</div>
+
 ### 较早内容变成一段新文本
 
 本例可能生成这样的 Summary：

@@ -22,6 +22,14 @@ assistant tool_use:
     new_string: '"port": 9090'
 ```
 
+## 先亲自走一遍控制管线
+
+下面的沙盘使用内存文件系统，不会修改真实工作区。输入中的路径、旧值和新值会进入实际工具参数；审批范围、`PreToolUse` 改写、Edit/Bash surface、sandbox 和执行前磁盘漂移会决定最终产生虚拟 diff，还是产生与原 `tool_use_id` 配对的 error `tool_result`。Edit 不会被伪装成经过 Bash 的 OS command sandbox，只有选择 Bash 时该分支才生效。
+
+<div class="cc-agent-lab-embed">
+<cc-agent-lab scenario="permissions" heading-level="3"><div class="cc-agent-lab-fallback"><strong>静态回退：</strong>当前浏览器没有运行交互组件。下文仍逐步保留工具查找、两次输入复验、Hook、权限、sandbox、当前磁盘状态、PostToolUse 和配对 tool_result 的完整说明与静态流程图。</div></cc-agent-lab>
+</div>
+
 下面只跟这一个 ID。每一步先给客户端得到的结果，再说明该层叫什么。
 
 ## 第一步：字符串 `Edit` 找到了一个可执行对象

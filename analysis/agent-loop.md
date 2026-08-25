@@ -126,6 +126,18 @@ Claude Code 最终输出 `subtype=success`，进程退出状态为 `0`。至此�
 
 这条 trace 先确定了三个事实：模型没有直接访问文件；客户端负责执行工具；工具结果只有写进第二次请求后才成为模型的新观察。后文从这三点继续展开并发、权限、轮次、停止、恢复和副作用边界。
 
+## 亲手改变一次 Agent Loop
+
+下面的操作区把同一条闭环变成可修改的教学实验。沙盘固定提供 `Read`、`Grep`、`Edit` 与 `Bash` 四个可用工具 schema；输入只改变教学夹具模拟的模型选择和参数，不会让客户端按关键词删减工具 surface。为了让“结果何时对模型可见”没有歧义，沙盘把每个工具放在一个独立 model iteration：前一条 `tool_result` 只有进入下一次请求，后一个工具决定才可能使用它。真实模型也可以在同一 assistant response 中批量提出多个彼此独立的 `tool_use`，那批调用不会读取同一响应期间刚完成的结果。
+
+把权限切到“拒绝”，`Edit` 或 `Bash` 会在执行前停止，文件不会产生对应副作用。把测试结果切到“失败”，文件修改仍然保留，失败输出会作为 `is_error` 工具结果回灌；Agent Loop 本身不会替你撤销已经发生的文件修改。
+
+<div class="cc-agent-lab-embed">
+<cc-agent-lab scenario="agent-loop" heading-level="3"><div class="cc-agent-lab-fallback"><strong>静态回退：</strong>用户输入先进入第 1 次模型请求；模型返回带 ID 的 <code>tool_use</code>；客户端完成校验、权限和虚拟工具执行，再用相同的 <code>tool_use_id</code> 生成结果。这个教学计划为每个工具显式建立下一次模型请求，因此任何结果都只在后一个 iteration 可见。权限拒绝发生在执行前，测试失败发生在文件修改后，两者的副作用边界不同。</div></cc-agent-lab>
+</div>
+
+这个实验明确标记为教学模拟。输入规划由页面中的确定性解析规则完成，不冒充 Claude 模型输出；`Read -> tool_result -> 下一次请求` 绑定本版精确二进制 Probe，`Grep/Edit/Bash` 分支则依据 2.1.235 的静态工具执行管线重建。关闭 JavaScript 时，上面的静态回退仍给出完整状态顺序。
+
 本章只描述 2.1.235 发布 bundle 中可以直接追到的客户端行为。函数名是可读化 bundle 中保留下来的压缩符号，不是 Anthropic 原始 TypeScript 名称。`max_tokens`、malformed tool、Stop hook、fallback 和 reactive compact 都是改变同一循环状态的分支，不是另一套 Agent Loop。
 
 ## 公开原理怎样变成本版结论

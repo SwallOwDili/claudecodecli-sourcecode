@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import re
@@ -314,6 +315,88 @@ def validate_visuals(site_root: Path, manifest: dict[str, object], validation: V
     )
 
 
+def validate_interactive_labs(
+    site_root: Path,
+    manifest: dict[str, object],
+    validation: Validation,
+) -> None:
+    runtime = manifest.get("lab_runtime", {})
+    runtime_path = site_root / str(runtime.get("output", ""))
+    validation.require(runtime_path.is_file(), "Missing interactive lab runtime bundle")
+    if runtime_path.is_file():
+        content = runtime_path.read_bytes()
+        validation.require(
+            sha256(runtime_path) == str(runtime.get("sha256", "")),
+            "Interactive lab runtime checksum differs from the prepared bundle",
+        )
+        gzip_bytes = len(gzip.compress(content, compresslevel=9, mtime=0))
+        validation.require(
+            gzip_bytes == int(runtime.get("gzipBytes", -1)),
+            "Interactive lab runtime gzip size differs from the manifest",
+        )
+        validation.require(
+            gzip_bytes <= int(runtime.get("budgetGzipBytes", 0)),
+            f"Interactive lab runtime exceeds gzip budget: {gzip_bytes}",
+        )
+
+    found: dict[str, list[str]] = {}
+    static_script_refs = 0
+    for html_file in site_root.rglob("*.html"):
+        soup = BeautifulSoup(html_file.read_text(encoding="utf-8"), "html.parser")
+        for element in soup.find_all("cc-agent-lab"):
+            scenario = str(element.get("scenario", ""))
+            found.setdefault(scenario, []).append(html_file.relative_to(site_root).as_posix())
+            fallback = element.find(class_="cc-agent-lab-fallback", recursive=False)
+            validation.require(
+                element.parent is not None and element.parent.name != "p",
+                f"Interactive lab is wrapped by an invalid paragraph: {html_file}",
+            )
+            validation.require(
+                fallback is not None,
+                f"Interactive lab fallback must remain inside the custom element: {html_file}",
+            )
+            validation.require(
+                fallback is not None and len(fallback.get_text(" ", strip=True)) >= 80,
+                f"Interactive lab lacks a readable no-JavaScript fallback: {html_file}",
+            )
+        static_script_refs += sum(
+            1
+            for script in soup.find_all("script", src=True)
+            if "cc-agent-lab" in str(script.get("src"))
+        )
+
+    expected = {"agent-loop", "compact", "permissions"}
+    validation.require(
+        set(found) == expected,
+        f"Interactive lab scenario coverage mismatch: found={sorted(found)}, expected={sorted(expected)}",
+    )
+    for scenario, pages in found.items():
+        validation.require(
+            len(pages) == 1,
+            f"Interactive lab scenario {scenario} appears on multiple pages: {pages}",
+        )
+    validation.require(
+        static_script_refs == 0,
+        "Interactive lab runtime must be loaded lazily instead of every page",
+    )
+    loader_path = site_root / "assets" / "javascripts" / "site.js"
+    validation.require(loader_path.is_file(), "Missing site JavaScript loader")
+    if loader_path.is_file():
+        loader = loader_path.read_text(encoding="utf-8")
+        validation.require(
+            'document.querySelector("cc-agent-lab")' in loader,
+            "Interactive lab loader lacks the non-lab page guard",
+        )
+        validation.require(
+            'new URL("../labs/cc-agent-lab.js", siteScriptUrl)' in loader,
+            "Interactive lab loader does not use the local prepared bundle",
+        )
+        validation.require(
+            "import(source)" in loader,
+            "Interactive lab loader no longer imports the bundle lazily",
+        )
+
+
 def validate_search(
     site_root: Path,
     manifest: dict[str, object],
@@ -408,6 +491,7 @@ def main() -> int:
         tracked_directories,
     )
     validate_visuals(site_root, manifest, validation)
+    validate_interactive_labs(site_root, manifest, validation)
     validate_search(site_root, manifest, article_pages, validation)
     validate_privacy(site_root, validation)
 

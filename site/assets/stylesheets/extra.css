@@ -913,6 +913,21 @@ body.is-lightbox-open {
   }
 }
 
+cc-agent-lab:not(:defined) {
+  display: block;
+  margin: 1.5rem 0;
+}
+
+cc-agent-lab:not(:defined) .cc-agent-lab-fallback {
+  display: block;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--cc-line-strong);
+  border-left: 4px solid var(--cc-green);
+  border-radius: 4px;
+  background: var(--cc-surface-subtle);
+  color: var(--cc-ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

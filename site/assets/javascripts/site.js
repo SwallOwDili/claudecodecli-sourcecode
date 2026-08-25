@@ -9,6 +9,7 @@
     article: null,
     frameRequested: false,
     lightbox: null,
+    labRuntimePromise: null,
     mermaidQueue: Promise.resolve(),
     mermaidRuntimePromise: null,
     observedScheme: null,
@@ -221,6 +222,19 @@
     return state.mermaidRuntimePromise;
   }
 
+  function ensureLabRuntime() {
+    if (!document.querySelector("cc-agent-lab")) return Promise.resolve(false);
+    if (customElements.get("cc-agent-lab")) return Promise.resolve(true);
+    if (state.labRuntimePromise) return state.labRuntimePromise;
+    if (!siteScriptUrl) return Promise.resolve(false);
+
+    const source = new URL("../labs/cc-agent-lab.js", siteScriptUrl).href;
+    state.labRuntimePromise = import(source)
+      .then(() => Boolean(customElements.get("cc-agent-lab")))
+      .catch(() => false);
+    return state.labRuntimePromise;
+  }
+
   async function runMermaid() {
     const diagrams = Array.from(document.querySelectorAll(".md-content .mermaid-source"));
     if (!diagrams.length) return;
@@ -288,6 +302,7 @@
     enhanceWideVisuals();
     enhanceImages();
     observeColorScheme();
+    void ensureLabRuntime();
     renderMermaid();
     requestProgressUpdate();
   }
